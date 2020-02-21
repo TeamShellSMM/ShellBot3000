@@ -20,6 +20,11 @@ var GS=function(config){
     return google_auth
   }
 
+  this.timestampVarName="Timestamp"
+  this.timestamp=function(){
+    return Math.floor(Date.now() / 1000) //seconds epoch
+  }
+
   let json_header={}
   let SheetCache={} //not sure if I need a mutex here or not
   this.loadSheets=async function(ranges){ //input is sheets to be loaded. load to cache to be stored
@@ -120,7 +125,45 @@ var GS=function(config){
 
 
   function r1c1(sheet,r,c){ //A1 = R1C1
-    return "'"+sheet+"'!r"+(r+1)+"c"+(c+1)
+    return "'"+sheet+"'!r"+(r+1)+"c"+(c+1);
+  }
+
+  
+
+  this.insert =async function(sheet,pData){
+    var header=json_header[sheet];
+    if(!sheet) throw "No sheet selected";
+    if(!header) throw "Sheet has not been loaded or doesn't exist";
+    if(!pData) throw "Passed data must not be null";
+    let url = "https://sheets.googleapis.com/v4/spreadsheets/"+config.spreadsheetId+"/values/"+encodeURI("'"+sheet+"'")+":append?insertDataOption=INSERT_ROWS&valueInputOption=USER_ENTERED"
+    var new_row=[],hasData=false;
+    for(var i=0;i<header.length;i++){
+      var cur_col=pData[header[i]]?pData[header[i]]:'';
+      if(!cur_col && header[i]==this.timestampVarName){
+        cur_col=this.timestamp();
+      }
+      if(cur_col) hasData=true;
+      new_row.push(cur_col);
+    }
+
+    if(!hasData) throw "There was no valid data given for this sheet";
+
+    var data={
+      "values":[new_row]
+    }
+
+    let authClient=await get_token()
+    const response=await request( {
+      url: url,
+      method: 'POST',
+      headers:{
+        Authorization: 'Bearer ' + authClient.access_token
+      },
+      gzip: true,
+      body: JSON.stringify(data)
+    })
+    return response
+
   }
 
   //store batchUpdates in a cache then run batchUpdate to save changes?
