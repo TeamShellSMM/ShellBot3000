@@ -4,7 +4,7 @@ const emotes = require('../emotes.json');
 class points extends Command {
     constructor() {
         super('points', {
-           aliases: ['points'],
+           aliases: ['points','rank','point'],
             args: [{
                     id: 'role',
                     type: 'string',
@@ -30,10 +30,10 @@ class points extends Command {
          var user_reply="<@"+message.author.id+">"+rank.Pips+" "
 
 
-        if(args.role=="role" || args.role=="removerole"){
+        if(args.role=="role" || args.role=="norole"){
           await message.member.removeRoles(all_ranks_id)
         }
-        if(args.role=="norole"){
+        if(args.role=="role"){
           await message.member.addRole(rank.discord_roles)
         }
 
