@@ -33,6 +33,8 @@ const response=await gs.loadSheets(static_vars) //loading initial sheets
   for(var i=0;i<_points.length;i++){
     pointMap[parseFloat(_points[i].Difficulty)]=parseFloat(_points[i].Points)
   }
+
+  console.log("TS Vars loaded")
 }
 
 function get_variable(var_name){
@@ -56,20 +58,17 @@ function levelsAvailable(points,levelsUploaded){
 }
 
 this.get_rank=function(points){
-  var point_rank=gs.select("Ranks")
+  var point_rank=gs.select("TeamShell Ranks")
+  console.log(points)
   for(var i=point_rank.length-1;i>=0;i--){
     if(parseFloat(points)>=parseFloat(point_rank[i]["Min Points"])){
-      return {
-        name:point_rank[i].Rank,
-        pips:point_rank[i].Pips
-      }
+      return point_rank[i]
     }
   }
   return false
 }
 
-this.calculatePoints=async function(user){
-   if(!pointMap) await this.load()
+this.calculatePoints=function(user){
    var currentLevels = gs.select("Raw Levels");
    var levelMap={};
    var ownLevels=[];
@@ -114,7 +113,7 @@ this.calculatePoints=async function(user){
 
    
   return {
-    clearPoints:clearPoints,
+    clearPoints:clearPoints.toFixed(1),
     levelsMade:ownLevels.length,
     available:levelsAvailable(clearPoints,ownLevels.length),
   }

@@ -7,11 +7,14 @@ global.ts=new TS(gs);
 const client = new AkairoClient(config, {
     disableEveryone: true
 });
+/*
 const static_vars=[
 "TeamShell Variable","Points","TeamShell Ranks","Seasons", //static vars
 'Raw Members','Raw Levels','Raw Played' //play info
-]; //initial vars to be loaded on bot load
+]; //initial vars to be loaded on bot load */
 (async () => { //main thread
-  const response=await gs.loadSheets(static_vars) //loading initial sheets
-  client.login(config.token); 
+  //const response=await gs.loadSheets(static_vars) //loading initial sheets
+  await ts.load()
+  await client.login(config.token); 
+  console.log("ShellBot 3000, logged in")
 })();
