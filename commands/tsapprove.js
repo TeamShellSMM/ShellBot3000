@@ -46,7 +46,7 @@ class TSApprove extends Command {
         inCodeDiscussionChannel = true;
         args.reason = args.difficulty;
         args.difficulty = args.code;
-        args.code = message.channel.name;
+        args.code = message.channel.name.toUpperCase();
       } else {
         //Check the code only if not in discussion channel
         if(!ts.valid_code(args.code)){
