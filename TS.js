@@ -59,7 +59,6 @@ function levelsAvailable(points,levelsUploaded){
 
 this.get_rank=function(points){
   var point_rank=gs.select("TeamShell Ranks")
-  console.log(points)
   for(var i=point_rank.length-1;i>=0;i--){
     if(parseFloat(points)>=parseFloat(point_rank[i]["Min Points"])){
       return point_rank[i]

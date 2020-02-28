@@ -1,0 +1,22 @@
+{
+  //copy your google service account here. add it to the sheet to edit
+  "type":"PLACEHOLDER",
+  "project_id":"PLACEHOLDER",
+  "private_key_id":"PLACEHOLDER",
+  "private_key":"PLACEHOLDER",
+  "client_email":"PLACEHOLDER",
+  "client_id":"PLACEHOLDER",
+  "auth_uri":"PLACEHOLDER",
+  "token_uri":"PLACEHOLDER",
+  "auth_provider_x509_cert_url":"PLACEHOLDER",
+  "client_x509_cert_url":"PLACEHOLDER",
+  "shellbot2000":"PLACEHOLDER",
+  "prefix":"PLACEHOLDER",
+  "ownerID":["DISCORD_ID","DISCORD_ID"],
+  "defaultCooldown": 1000,
+  "commandDirectory":"PLACEHOLDER",
+  //discord access token
+  "token":"PLACEHOLDER",
+  //spreadsheet id
+  "spreadsheetId":"PLACEHOLDER",
+}
