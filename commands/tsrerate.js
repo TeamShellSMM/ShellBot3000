@@ -64,11 +64,12 @@ class TSRerate extends Command {
       var oldDiff = level.Difficulty;
 
       var updateLevel = gs.query("Raw Levels", {
-        filters: {"Code":args.code},
+        filter: {"Code":args.code},
         update: {"Difficulty": args.difficulty}
       });
-      console.log("tsrerate log 3", updateLevel);
-      gs.batchUpdate([updateLevel.update_ranges]);
+      if(updateLevel.Code == args.code){
+        gs.batchUpdate([updateLevel.update_ranges]);
+      }
       
       this.client.channels.get(channels.shellderLevelChanges).send(level["Level Name"] + " (" + level.Code + ") by <@" + author.discord_id + ">: Difficulty changed by <@" +message.member.id + "> - " + oldDiff + " to " + args.difficulty + " (Reason: " + args.reason + ")");
       message.reply("Difficulty was successfully changed!");
