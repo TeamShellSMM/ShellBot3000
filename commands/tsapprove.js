@@ -139,6 +139,8 @@ class TSApprove extends Command {
           overviewMessage = await discussionChannel.send("**The Judgement for " + level["Level Name"] + " (" + level.Code + ") by <@" + author.discord_id + "> has now begun!**\n\nCurrent Votes for approving the level:\nNone\n\nCurrent votes for rejecting the level:\nNone");
           //overviewMessage = await overviewMessage.pin();
         }
+      } else {
+        discussionChannel = message.channel;
       }
 
       //Add/Update Approval/Rejection to new sheet 'shellder votes?' + difficulty + reason
@@ -167,7 +169,7 @@ class TSApprove extends Command {
           update: updateJson
         });
         if(updateVote.Code == level.Code && updateVote.Shellder == shellder.Name){
-          gs.batchUpdate(updateVote.update_ranges);
+          await gs.batchUpdate(updateVote.update_ranges);
         }
       }
 
