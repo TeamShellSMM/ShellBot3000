@@ -1,5 +1,6 @@
 const { Command } = require('discord-akairo');
 const channels = require('../channels.json');
+const emotes = require('../emotes.json');
 class TSJudge extends Command {
     constructor() {
         super('tsjudge', {
