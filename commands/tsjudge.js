@@ -82,7 +82,7 @@ class TSJudge extends Command {
           var diffCounter = 0;
           var diffSum = 0;
           for(var i = 0; i < approvalVotes.length; i++){
-            reasonsMessage += "> " + approvalVotes[i].Shellder + " voted " + approvalVotes[i].Difficulty + ", Reasons: " + approvalVotes[i].Reason + ")\n";
+            reasonsMessage += "> " + approvalVotes[i].Shellder + " voted " + approvalVotes[i].Difficulty + ", Reasons: " + approvalVotes[i].Reason + "\n";
             var diff = parseFloat(approvalVotes[i].Difficulty);
             if(!Number.isNaN(diff)){
               diffCounter++;
