@@ -174,14 +174,10 @@ class TSApprove extends Command {
       }
 
       //Reload sheets
-      console.log("reloading sheets");
       await gs.loadSheets(["Raw Levels", "Raw Members", "Shellder Votes"]);
       //Get all current votes for this level
-      console.log("loading approve votes");
       var approveVotes = gs.select("Shellder Votes",{"Code":args.code, "Type": "approve"});   
-      console.log("loading reject votes");
       var rejectVotes = gs.select("Shellder Votes",{"Code":args.code, "Type": "reject"});
-      console.log("loading votes done");
 
       if(approveVotes !== undefined && !Array.isArray(approveVotes)){
         approveVotes = [approveVotes];
@@ -191,25 +187,25 @@ class TSApprove extends Command {
       }
 
       //Update Overview post in discussion channel
-      var postString = "**The Judgement for " + level["Level Name"] + " (" + level.Code + ") by <@" + author.discord_id + "> has now begun!**\n\nCurrent Votes for approving the level:\n";
+      var postString = "**The Judgement for " + level["Level Name"] + " (" + level.Code + ") by <@" + author.discord_id + "> has now begun!**\n\n> __Current Votes for approving the level:__\n";
       
       if(approveVotes == undefined || approveVotes.length == 0){
         postString += "None\n";
       } else {
         for(var i = 0; i < approveVotes.length; i++){
           const curShellder = gs.select("Raw Members",{"Name":approveVotes[i].Shellder});
-          postString += "<@" + curShellder.discord_id + "> - Difficulty: " + approveVotes[i].Difficulty + ", Reason: " + approveVotes[i].Reason + "\n";
+          postString += "> <@" + curShellder.discord_id + "> - Difficulty: " + approveVotes[i].Difficulty + ", Reason: " + approveVotes[i].Reason + "\n";
         }
       }
 
-      postString += "\nCurrent votes for rejecting the level:\n";
+      postString += "\n> __Current votes for rejecting the level:__\n";
 
       if(rejectVotes == undefined || rejectVotes.length == 0){
         postString += "None\n";
       } else {
         for(var i = 0; i < rejectVotes.length; i++){
           const curShellder = gs.select("Raw Members",{"Name":rejectVotes[i].Shellder});
-          postString += "<@" + curShellder.discord_id + "> - Reason: " + rejectVotes[i].Reason + "\n";
+          postString += "> <@" + curShellder.discord_id + "> - Reason: " + rejectVotes[i].Reason + "\n";
         }
       }
 
