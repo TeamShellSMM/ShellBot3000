@@ -82,10 +82,18 @@ class TSApprove extends Command {
       raw_command=raw_command.split(" ");
       var sb_command=raw_command.shift().toLowerCase().substring(1);
       
-
+      var discussionChannel;
       if(!inCodeDiscussionChannel){
-        //Create new channel and set channel id in level sheet
-        message.gui
+        //Check if channel already exists
+        discussionChannel = message.guild.channels.find(channel => channel.name === args.code);
+        if(!discussionChannel){
+          //Create new channel and set parent to category
+          discussionChannel = await message.guild.createChannel(args.code, {
+            type: 'text',
+            parent: this.client.channels.get(channels.levelDiscussionCategory )
+          });
+          discussionChannel.send("**The Judgement for " + level["Level Name"] + " (" + level.Code + ") by <@" + author.discord_id + "> has now begun!**\n\nCurrent Votes for approving the level:\nNone\n\nCurrent votes for rejecting the level:\nNone");
+        }
       }
 
       //Add/Update Approval/Rejection to new sheet 'shellder votes?' + difficulty + reason
