@@ -169,16 +169,23 @@ class TSApprove extends Command {
         }
       }
 
+      //Reload sheets
+      await gs.loadSheets(["Raw Levels", "Shellder Votes"]);
       //Get all current votes for this level
+      var approveVotes = gs.select("Shellder Votes",{"Code":args.code, "Type": "approve"});   
       var rejectVotes = gs.select("Shellder Votes",{"Code":args.code, "Type": "reject"});
-      var approveVotes = gs.select("Shellder Votes",{"Code":args.code, "Type": "approve"});      
 
-      console.log("votes", approveVotes, rejectVotes);
+      if(approveVotes !== undefined && !Array.isArray(approveVotes)){
+        approveVotes = [approveVotes];
+      }
+      if(rejectVotes !== undefined && !Array.isArray(rejectVotes)){
+        rejectVotes = [rejectVotes];
+      }
 
       //Update/Post Overview post in discussion channel
       var postString = "**The Judgement for " + level["Level Name"] + " (" + level.Code + ") by <@" + author.discord_id + "> has now begun!**\n\nCurrent Votes for approving the level:\n";
       
-      if(approveVotes.length == 0){
+      if(approveVotes == undefined || approveVotes.length == 0){
         postString += "None\n";
       } else {
         for(var i = 0; i < approveVotes.length; i++){
@@ -188,7 +195,7 @@ class TSApprove extends Command {
 
       postString += "\nCurrent votes for rejecting the level:\n";
 
-      if(rejectVotes.length == 0){
+      if(rejectVotes == undefined || rejectVotes.length == 0){
         postString += "None\n";
       } else {
         for(var i = 0; i < rejectVotes.length; i++){
