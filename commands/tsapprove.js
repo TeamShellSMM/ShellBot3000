@@ -149,7 +149,7 @@ class TSApprove extends Command {
       //Add/Update Approval/Rejection to new sheet 'shellder votes?' + difficulty + reason
       var updating = false;
       if(!vote){
-        gs.insert("Shellder Votes", {
+        await gs.insert("Shellder Votes", {
           Code: level.Code,
           Shellder: shellder.Name,
           Type: sb_command == "tsreject" ? "reject" : "approve",
