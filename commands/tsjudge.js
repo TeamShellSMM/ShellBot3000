@@ -12,33 +12,97 @@ class TSJudge extends Command {
     async exec(message,args) {     
       var inCodeDiscussionChannel = false;
 
+      var levelCode;
       //Check if in level discussion channel
-      if(inCodeDiscussionChannel){
+      if(ts.valid_code(message.channel.name.toUpperCase())){
         inCodeDiscussionChannel = true;
-        //Set current code from level sheet where channel id matches
-        args.code = "XXX-XXX-XXX";
+        levelCode = message.channel.name.toUpperCase();
       }
 
-
       if(!( 
-        message.channel.id === channels.shellderShellbot  //only in bot-test channel
-        && inCodeDiscussionChannel //should also work in the discussion channel for that level
+        inCodeDiscussionChannel //should also work in the discussion channel for that level
       )) return false;
 
-      var raw_command=message.content.trim();
-      raw_command=raw_command.split(" ");
-      var sb_command=raw_command.shift().toLowerCase().substring(1);
+      //Reload sheets
+      await gs.loadSheets(["Raw Levels", "Raw Members", "Shellder Votes"]);
+      //Get all current votes for this level
+      var level = gs.select("Raw Levels", {"Code":levelCode});
+
+      var approveVotes = gs.select("Shellder Votes",{"Code":levelCode, "Type": "approve"});   
+      var rejectVotes = gs.select("Shellder Votes",{"Code":levelCode, "Type": "reject"});
+
+      if(approveVotes !== undefined && !Array.isArray(approveVotes)){
+        approveVotes = [approveVotes];
+      }
+      if(rejectVotes !== undefined && !Array.isArray(rejectVotes)){
+        rejectVotes = [rejectVotes];
+      }
 
       //Count Approval and Rejection Votes
-      var approvalVotes = 0;
-      var rejectVotes = 0;
+      var approvalVotes = approveVotes.length;
+      var rejectVotes = rejectVotes.length;
 
       if(rejectVotes >= 3){
-        //Reject Level and post shellder rejection reasons in channels.shellderLevelChanges + all reasons
-        //Remove Discussion Channel
+        //Reject level
+        var updateLevel = gs.query("Raw Levels", {
+          filter: {"Code":levelCode},
+          update: {"Approved": "del:" + level.Approved}
+        });
+        if(updateLevel.Code == levelCode){
+          await gs.batchUpdate(updateLevel.update_ranges);
+        }
+
+        //Build Status Message
+        var postMessage = level["Level Name"] + " (" + level.Code + ") by <@" + author.discord_id + ">: Level was " + (level.Approved === "0" ? "rejected" : "removed") + "!\n\n> __Reasons:__\n";
+
+        for(var i = 0; i < rejectVotes.length; i++){
+          postMessage += "> " + rejectVotes[i].Shellder + ": " + rejectVotes[i].Reasons + "\n";
+        }
+        
+        //Send Rejection to #shellder-level-changes
+        this.client.channels.get(channels.shellderLevelChanges).send(postMessage);
+        
+        message.channel.delete("Justice has been met!");
       } else if (approvalVotes >= 3){
-        //Approve Level and post difficulty reasons in channels.shellderLevelChanges (use highest difficulty vote + all reasons by each shellder?)
+        if(level.Approved === "0"){
+          //Get the average difficulty and round to nearest .5, build the message at the same time
+          var reasonsMessage = "";
+          var diffCounter = 0;
+          var diffSum = 0;
+          for(var i = 0; i < approvalVotes.length; i++){
+            reasonsMessage += "> " + approvalVotes[i].Shellder + " voted " + approvalVotes[i].Difficulty + ", Reasons: " + approvalVotes[i].Reasons + ")\n";
+            var diff = parseFloat(approvalVotes[i].Difficulty);
+            if(!Number.isNaN(diff)){
+              diffCounter++;
+              diffSum += diff;
+            }
+          }
+
+          var finalDiff = Math.round((diffSum/diffCounter)*2)/2;
+
+          //Only if the level is pending we approve it and send the message
+          var updateLevel = gs.query("Raw Levels", {
+            filter: {"Code":levelCode},
+            update: {
+              "Approved": "1",
+              "Difficulty": finalDiff
+            }
+          });
+          if(updateLevel.Code == levelCode){
+            await gs.batchUpdate(updateLevel.update_ranges);
+          }
+
+          //Build Status Message
+          var postMessage = level["Level Name"] + " (" + level.Code + ") by <@" + author.discord_id + ">: Level was approved for Difficulty: " + finalDiff + "!\n\n> __Reasons:__\n" + reasonsMessage;
+  
+          //Send Approval to #shellder-level-changes
+          this.client.channels.get(channels.shellderLevelChanges).send(postMessage);
+        }
+
         //Remove Discussion Channel
+        message.channel.delete("Justice has been met!");
+      } else {
+        message.reply("There must be at least 3 Shellders in agreement before this level can be judged! " + emotes.think);
       }
     }
 }

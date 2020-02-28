@@ -144,6 +144,7 @@ class TSApprove extends Command {
       }
 
       //Add/Update Approval/Rejection to new sheet 'shellder votes?' + difficulty + reason
+      var updating = false;
       if(!vote){
         gs.insert("Shellder Votes", {
           Code: level.Code,
@@ -153,6 +154,7 @@ class TSApprove extends Command {
           Reason: args.reason
         });
       } else {
+        updating = true;
         var updateJson = {
           "Type": sb_command == "tsreject" ? "reject" : "approve"
         }
@@ -215,7 +217,11 @@ class TSApprove extends Command {
 
       await overviewMessage.edit(postString);
 
-      message.reply("Your vote was added to the level!");
+      if(updating){
+        message.reply("Your vote was changed!");
+      } else {
+        message.reply("Your vote was added!")
+      }
     }
 }
 module.exports = TSApprove;
