@@ -2,7 +2,7 @@ const { Command } = require('discord-akairo');
 const channels = require('../channels.json');
 class TSJudge extends Command {
     constructor() {
-        super('tsapprove', {
+        super('tsjudge', {
            aliases: ['tsjudge'],
             args: [],
            channelRestriction: 'guild'
@@ -34,10 +34,10 @@ class TSJudge extends Command {
       var rejectVotes = 0;
 
       if(rejectVotes >= 3){
-        //Reject Level and post shellder rejection reasons in some channel + all reasons
+        //Reject Level and post shellder rejection reasons in channels.shellderLevelChanges + all reasons
         //Remove Discussion Channel
       } else if (approvalVotes >= 3){
-        //Approve Level and post difficulty reasons (use highest difficulty vote + all reasons by each shellder?)
+        //Approve Level and post difficulty reasons in channels.shellderLevelChanges (use highest difficulty vote + all reasons by each shellder?)
         //Remove Discussion Channel
       }
     }

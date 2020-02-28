@@ -68,6 +68,7 @@ class TSApprove extends Command {
       }
 
       //Add/Update Approval/Rejection to new sheet 'shellder votes?' + difficulty + reason
+      //Update/Post Overview post in discussion channel
     }
 }
 module.exports = TSApprove;
