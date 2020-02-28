@@ -161,7 +161,8 @@ var GS=function(config){
       },
       gzip: true,
       body: JSON.stringify(data)
-    })
+    });
+    
     return response
 
   }
