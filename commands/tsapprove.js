@@ -42,7 +42,7 @@ class TSApprove extends Command {
       var inCodeDiscussionChannel = false;
 
       //Check if in level discussion channel
-      if(ts.valid_code(message.channel.name)){
+      if(ts.valid_code(message.channel.name.toUpperCase())){
         inCodeDiscussionChannel = true;
         args.reason = args.difficulty;
         args.difficulty = args.code;
@@ -135,6 +135,7 @@ class TSApprove extends Command {
             type: 'text',
             parent: this.client.channels.get(channels.levelDiscussionCategory )
           });
+          //Post empty overview post
           overviewMessage = await discussionChannel.send("**The Judgement for " + level["Level Name"] + " (" + level.Code + ") by <@" + author.discord_id + "> has now begun!**\n\nCurrent Votes for approving the level:\nNone\n\nCurrent votes for rejecting the level:\nNone");
           //overviewMessage = await overviewMessage.pin();
         }
@@ -171,10 +172,14 @@ class TSApprove extends Command {
       }
 
       //Reload sheets
+      console.log("reloading sheets");
       await gs.loadSheets(["Raw Levels", "Raw Members", "Shellder Votes"]);
       //Get all current votes for this level
+      console.log("loading approve votes");
       var approveVotes = gs.select("Shellder Votes",{"Code":args.code, "Type": "approve"});   
+      console.log("loading reject votes");
       var rejectVotes = gs.select("Shellder Votes",{"Code":args.code, "Type": "reject"});
+      console.log("loading votes done");
 
       if(approveVotes !== undefined && !Array.isArray(approveVotes)){
         approveVotes = [approveVotes];
@@ -183,7 +188,7 @@ class TSApprove extends Command {
         rejectVotes = [rejectVotes];
       }
 
-      //Update/Post Overview post in discussion channel
+      //Update Overview post in discussion channel
       var postString = "**The Judgement for " + level["Level Name"] + " (" + level.Code + ") by <@" + author.discord_id + "> has now begun!**\n\nCurrent Votes for approving the level:\n";
       
       if(approveVotes == undefined || approveVotes.length == 0){
