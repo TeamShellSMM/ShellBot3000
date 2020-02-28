@@ -34,12 +34,12 @@ class TSJudge extends Command {
 
       if(approveVotes !== undefined && !Array.isArray(approveVotes)){
         approveVotes = [approveVotes];
-      } else {
+      } else if(!approveVotes){
         approveVotes = [];
       }
       if(rejectVotes !== undefined && !Array.isArray(rejectVotes)){
         rejectVotes = [rejectVotes];
-      } else {
+      } else if(!rejectVotes) {
         rejectVotes = [];
       }
 
