@@ -68,7 +68,7 @@ class TSJudge extends Command {
         var postMessage = level["Level Name"] + " (" + level.Code + ") by <@" + author.discord_id + ">: Level was " + (level.Approved === "0" ? "rejected" : "removed") + "!\n\n> __Reasons:__\n";
 
         for(var i = 0; i < rejectVotes.length; i++){
-          postMessage += "> " + rejectVotes[i].Shellder + ": " + rejectVotes[i].Reasons + "\n";
+          postMessage += "> " + rejectVotes[i].Shellder + ": " + rejectVotes[i].Reason + "\n";
         }
         
         //Send Rejection to #shellder-level-changes
@@ -82,7 +82,7 @@ class TSJudge extends Command {
           var diffCounter = 0;
           var diffSum = 0;
           for(var i = 0; i < approvalVotes.length; i++){
-            reasonsMessage += "> " + approvalVotes[i].Shellder + " voted " + approvalVotes[i].Difficulty + ", Reasons: " + approvalVotes[i].Reasons + ")\n";
+            reasonsMessage += "> " + approvalVotes[i].Shellder + " voted " + approvalVotes[i].Difficulty + ", Reasons: " + approvalVotes[i].Reason + ")\n";
             var diff = parseFloat(approvalVotes[i].Difficulty);
             if(!Number.isNaN(diff)){
               diffCounter++;
