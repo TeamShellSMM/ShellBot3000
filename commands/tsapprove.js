@@ -127,7 +127,7 @@ class TSApprove extends Command {
       var discussionChannel;
       if(!inCodeDiscussionChannel){
         //Check if channel already exists
-        discussionChannel = message.guild.channels.find(channel => channel.name === args.code);
+        discussionChannel = this.client.channels.find(channel => channel.name === args.code);
         console.log("found discussionChannel", discussionChannel, args.code);
         if(!discussionChannel){
           //Create new channel and set parent to category
@@ -140,6 +140,7 @@ class TSApprove extends Command {
         }
       }
 
+      console.log("vote before everything", vote);
       //Add/Update Approval/Rejection to new sheet 'shellder votes?' + difficulty + reason
       if(!vote){
         console.log(await gs.insert("Shellder Votes", {
