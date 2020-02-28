@@ -29,13 +29,13 @@ class TSJudge extends Command {
       //Get all current votes for this level
       var level = gs.select("Raw Levels", {"Code":levelCode});
 
-      var approveVotes = gs.select("Shellder Votes",{"Code":levelCode, "Type": "approve"});   
+      var approvalVotes = gs.select("Shellder Votes",{"Code":levelCode, "Type": "approve"});   
       var rejectVotes = gs.select("Shellder Votes",{"Code":levelCode, "Type": "reject"});
 
-      if(approveVotes !== undefined && !Array.isArray(approveVotes)){
-        approveVotes = [approveVotes];
-      } else if(!approveVotes){
-        approveVotes = [];
+      if(approvalVotes !== undefined && !Array.isArray(approvalVotes)){
+        approvalVotes = [approvalVotes];
+      } else if(!approvalVotes){
+        approvalVotes = [];
       }
       if(rejectVotes !== undefined && !Array.isArray(rejectVotes)){
         rejectVotes = [rejectVotes];
@@ -44,7 +44,7 @@ class TSJudge extends Command {
       }
 
       //Count Approval and Rejection Votes
-      var approvalVoteCount = approveVotes.length;
+      var approvalVoteCount = approvalVotes.length;
       var rejectVoteCount = rejectVotes.length;
 
       if(rejectVoteCount >= 3){
