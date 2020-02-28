@@ -82,7 +82,7 @@ class TSApprove extends Command {
       const shellder = gs.select("Raw Members",{"discord_id":message.member.id});
 
       if(!shellder){
-        message.reply("Your were not found in Members List! " + emotes.think);
+        message.reply("You were not found in Members List! " + emotes.think);
         return false;
       }
 
@@ -208,6 +208,8 @@ class TSApprove extends Command {
       }
 
       await overviewMessage.edit(postString);
+
+      message.reply("Your vote was added to the level!");
     }
 }
 module.exports = TSApprove;
