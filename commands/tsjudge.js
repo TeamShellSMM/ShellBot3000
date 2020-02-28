@@ -29,6 +29,13 @@ class TSJudge extends Command {
       //Get all current votes for this level
       var level = gs.select("Raw Levels", {"Code":levelCode});
 
+      const author = gs.select("Raw Members",{"Name":level.Creator});
+
+      if(!author){
+        message.reply("Author was not found in Members List! " + emotes.think);
+        return false;
+      }
+
       var approvalVotes = gs.select("Shellder Votes",{"Code":levelCode, "Type": "approve"});   
       var rejectVotes = gs.select("Shellder Votes",{"Code":levelCode, "Type": "reject"});
 
