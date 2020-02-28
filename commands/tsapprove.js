@@ -128,6 +128,7 @@ class TSApprove extends Command {
       if(!inCodeDiscussionChannel){
         //Check if channel already exists
         discussionChannel = message.guild.channels.find(channel => channel.name === args.code);
+        console.log("found discussionChannel", discussionChannel, args.code);
         if(!discussionChannel){
           //Create new channel and set parent to category
           discussionChannel = await message.guild.createChannel(args.code, {
@@ -135,7 +136,7 @@ class TSApprove extends Command {
             parent: this.client.channels.get(channels.levelDiscussionCategory )
           });
           overviewMessage = await discussionChannel.send("**The Judgement for " + level["Level Name"] + " (" + level.Code + ") by <@" + author.discord_id + "> has now begun!**\n\nCurrent Votes for approving the level:\nNone\n\nCurrent votes for rejecting the level:\nNone");
-          overviewMessage = await overviewMessage.pin();
+          //overviewMessage = await overviewMessage.pin();
         }
       }
 
