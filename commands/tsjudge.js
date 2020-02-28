@@ -72,7 +72,7 @@ class TSJudge extends Command {
         }
         
         //Send Rejection to #shellder-level-changes
-        this.client.channels.get(channels.shellderLevelChanges).send(postMessage);
+        await this.client.channels.get(channels.shellderLevelChanges).send(postMessage);
         
         message.channel.delete("Justice has been met!");
       } else if (approvalVoteCount >= 3){
@@ -108,7 +108,7 @@ class TSJudge extends Command {
           var postMessage = level["Level Name"] + " (" + level.Code + ") by <@" + author.discord_id + ">: Level was approved for Difficulty: " + finalDiff + "!\n\n> __Reasons:__\n" + reasonsMessage;
   
           //Send Approval to #shellder-level-changes
-          this.client.channels.get(channels.shellderLevelChanges).send(postMessage);
+          await this.client.channels.get(channels.shellderLevelChanges).send(postMessage);
         }
 
         //Remove Discussion Channel

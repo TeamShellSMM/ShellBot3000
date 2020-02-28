@@ -71,7 +71,7 @@ class TSRerate extends Command {
         await gs.batchUpdate(updateLevel.update_ranges);
       }
       
-      this.client.channels.get(channels.shellderLevelChanges).send(level["Level Name"] + " (" + level.Code + ") by <@" + author.discord_id + ">: Difficulty changed by <@" +message.member.id + "> - " + oldDiff + " to " + args.difficulty + " (Reason: " + args.reason + ")");
+      await this.client.channels.get(channels.shellderLevelChanges).send(level["Level Name"] + " (" + level.Code + ") by <@" + author.discord_id + ">: Difficulty changed by <@" +message.member.id + "> - " + oldDiff + " to " + args.difficulty + " (Reason: " + args.reason + ")");
       message.reply("Difficulty was successfully changed!");
     }
 }

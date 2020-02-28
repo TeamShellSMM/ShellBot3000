@@ -114,13 +114,16 @@ class TSApprove extends Command {
       }
 
       //Check if level is approved, if it's approved only allow rejection
-      if(!((level.Approved == "1" && raw_command == "tsreject") || level.Approved == "0")){
-        if(level.Approved == 1){
+      if(level.Approved === "1"){
+        if(raw_command == "tsapprove"){
           message.reply("Level is already approved! " + emotes.think);
-        } else {
-          message.reply("Level is not pending! " + emotes.think);
-        }        
-        return false;          
+          return false;   
+        }
+      } else if(level.Approved === "0"){
+        //I don't care that this is empty, I can't be arsed anymore to think how to structure this if
+      } else {
+        message.reply("Level is not pending! " + emotes.think);
+        return false;  
       }
 
 
