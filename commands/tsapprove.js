@@ -79,6 +79,9 @@ class TSApprove extends Command {
         }
       }
 
+      //Check if vote already exists
+      await gs.loadSheets(["Raw Levels", "Shellder Votes", "Raw Members"]);
+
       const shellder = gs.select("Raw Members",{"discord_id":message.member.id});
 
       if(!shellder){
@@ -86,8 +89,6 @@ class TSApprove extends Command {
         return false;
       }
 
-      //Check if vote already exists
-      await gs.loadSheets(["Raw Levels", "Shellder Votes"]);
       var vote=gs.select("Shellder Votes",{"Code":args.code, "Shellder": shellder.Name});
 
       if(!vote){
@@ -170,7 +171,7 @@ class TSApprove extends Command {
       }
 
       //Reload sheets
-      await gs.loadSheets(["Raw Levels", "Shellder Votes"]);
+      await gs.loadSheets(["Raw Levels", "Raw Members", "Shellder Votes"]);
       //Get all current votes for this level
       var approveVotes = gs.select("Shellder Votes",{"Code":args.code, "Type": "approve"});   
       var rejectVotes = gs.select("Shellder Votes",{"Code":args.code, "Type": "reject"});
@@ -189,7 +190,8 @@ class TSApprove extends Command {
         postString += "None\n";
       } else {
         for(var i = 0; i < approveVotes.length; i++){
-          postString += approveVotes[i].Shellder + " - Difficulty: " + approveVotes[i].Difficulty + ", Reason: " + approveVotes[i].Reason + "\n";
+          const curShellder = gs.select("Raw Members",{"Name":approveVotes[i].Shellder});
+          postString += "<@" + curShellder.discord_id + "> - Difficulty: " + approveVotes[i].Difficulty + ", Reason: " + approveVotes[i].Reason + "\n";
         }
       }
 
@@ -199,7 +201,8 @@ class TSApprove extends Command {
         postString += "None\n";
       } else {
         for(var i = 0; i < rejectVotes.length; i++){
-          postString += rejectVotes[i].Shellder + " - Reason: " + rejectVotes[i].Reason + "\n";
+          const curShellder = gs.select("Raw Members",{"Name":rejectVotes[i].Shellder});
+          postString += "<@" + curShellder.discord_id + "> - Reason: " + rejectVotes[i].Reason + "\n";
         }
       }
 
