@@ -34,8 +34,12 @@ class TSRerate extends Command {
       await gs.loadSheets(["Raw Levels"]);
       const level=gs.select("Raw Levels",{"Code":args.code});
 
+      console.log("tsrerate log 1:", level);
+
       await gs.loadSheets(["Raw Members"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
-      const authorId=gs.select("Raw Members",{"Name":level.creator}).map(m=>m.discord_id)
+      const author = gs.select("Raw Members",{"Name":level.creator});
+
+      console.log("tsrerate log 2:", author);
 
       var oldDiff = level.Difficulty;
 
@@ -46,7 +50,7 @@ class TSRerate extends Command {
       });
       gs.batchUpdate([updateLevel.update_ranges]);
       
-      this.client.channels.get(channels.initiateChannel).send(level["Level Name"] + " (" + level.Code + ") by <@" + authorId + ">: Difficulty change by <@" +message.member.id + "> - " + oldDiff + " to " + args.difficulty + " (Reason: " + args.reason + ")");
+      this.client.channels.get(channels.initiateChannel).send(level["Level Name"] + " (" + level.Code + ") by <@" + author.discord_id + ">: Difficulty change by <@" +message.member.id + "> - " + oldDiff + " to " + args.difficulty + " (Reason: " + args.reason + ")");
     }
 }
 module.exports = TSRerate;
