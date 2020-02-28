@@ -127,8 +127,7 @@ class TSApprove extends Command {
       var discussionChannel;
       if(!inCodeDiscussionChannel){
         //Check if channel already exists
-        discussionChannel = message.guild.channels.find(channel => channel.name === level.Code);;
-        console.log("found discussionChannel", discussionChannel, args.code, message.guild.channels.map(channel => channel.name));
+        discussionChannel = message.guild.channels.find(channel => channel.name === level.Code.toLowerCase());;
         if(!discussionChannel){
           //Create new channel and set parent to category
           discussionChannel = await message.guild.createChannel(args.code, {
@@ -140,10 +139,9 @@ class TSApprove extends Command {
         }
       }
 
-      console.log("vote before everything", vote);
       //Add/Update Approval/Rejection to new sheet 'shellder votes?' + difficulty + reason
       if(!vote){
-        await gs.insert("Shellder Votes", {
+        gs.insert("Shellder Votes", {
           Code: level.Code,
           Shellder: shellder.Name,
           Type: sb_command == "tsreject" ? "reject" : "approve",
@@ -167,37 +165,35 @@ class TSApprove extends Command {
           update: updateJson
         });
         if(updateVote.Code == level.Code && updateVote.Shellder == shellder.Name){
-          await gs.batchUpdate(updateVote.update_ranges);
+          gs.batchUpdate(updateVote.update_ranges);
         }
       }
 
       //Get all current votes for this level
-      var votes=gs.select("Shellder Votes",{"Code":args.code});
+      var rejectVotes = gs.select("Shellder Votes",{"Code":args.code, "Type": "reject"});
+      var approveVotes = gs.select("Shellder Votes",{"Code":args.code, "Type": "approve"});      
 
-      console.log("votes", votes);
-
-      var rejectVotes = [];
-      var approveVotes = [];
-
-      for(var i = 0; i < votes.length; i++){
-        if(votes[i].Type == "reject"){
-          rejectVotes.push(votes[i]);
-        } else {
-          approveVotes.push(votes[i]);
-        }
-      }
+      console.log("votes", approveVotes, rejectVotes);
 
       //Update/Post Overview post in discussion channel
       var postString = "**The Judgement for " + level["Level Name"] + " (" + level.Code + ") by <@" + author.discord_id + "> has now begun!**\n\nCurrent Votes for approving the level:\n";
       
-      for(var i = 0; i < approveVotes.length; i++){
-        postString += approveVotes[i].Shellder + " - Difficulty: " + approveVotes[i].Difficulty + ", Reason: " + approveVotes[i].Reason + "\n";
+      if(approveVotes.length == 0){
+        postString += "None\n";
+      } else {
+        for(var i = 0; i < approveVotes.length; i++){
+          postString += approveVotes[i].Shellder + " - Difficulty: " + approveVotes[i].Difficulty + ", Reason: " + approveVotes[i].Reason + "\n";
+        }
       }
 
       postString += "\nCurrent votes for rejecting the level:\n";
 
-      for(var i = 0; i < rejectVotes.length; i++){
-        postString += rejectVotes[i].Shellder + " - Reason: " + rejectVotes[i].Reason + "\n";
+      if(rejectVotes.length == 0){
+        postString += "None\n";
+      } else {
+        for(var i = 0; i < rejectVotes.length; i++){
+          postString += rejectVotes[i].Shellder + " - Reason: " + rejectVotes[i].Reason + "\n";
+        }
       }
 
       if(!overviewMessage){
