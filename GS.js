@@ -55,7 +55,7 @@ var GS=function(config){
             row[header[k]]=data.valueRanges[i].values[j][k]
           }
           row["GS_sheet_name"]=range
-          row["GS_row_id"]=(j+2); //for r1c1. header is r1
+          row["GS_row_id"]=(j+1); //for r1c1. header is r1
           returnData[range].push(row)
         }
         SheetCache[range]=returnData[range]
