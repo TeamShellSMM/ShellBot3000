@@ -44,10 +44,10 @@ class TSJudge extends Command {
       }
 
       //Count Approval and Rejection Votes
-      var approvalVotes = approveVotes.length;
-      var rejectVotes = rejectVotes.length;
+      var approvalVoteCount = approveVotes.length;
+      var rejectVoteCount = rejectVotes.length;
 
-      if(rejectVotes >= 3){
+      if(rejectVoteCount >= 3){
         //Reject level
         var updateLevel = gs.query("Raw Levels", {
           filter: {"Code":levelCode},
@@ -68,7 +68,7 @@ class TSJudge extends Command {
         this.client.channels.get(channels.shellderLevelChanges).send(postMessage);
         
         message.channel.delete("Justice has been met!");
-      } else if (approvalVotes >= 3){
+      } else if (approvalVoteCount >= 3){
         if(level.Approved === "0"){
           //Get the average difficulty and round to nearest .5, build the message at the same time
           var reasonsMessage = "";
