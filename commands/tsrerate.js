@@ -68,7 +68,7 @@ class TSRerate extends Command {
         update: {"Difficulty": args.difficulty}
       });
       if(updateLevel.Code == args.code){
-        console.log(await gs.batchUpdate(updateLevel.update_ranges));
+        await gs.batchUpdate(updateLevel.update_ranges);
       }
       
       this.client.channels.get(channels.shellderLevelChanges).send(level["Level Name"] + " (" + level.Code + ") by <@" + author.discord_id + ">: Difficulty changed by <@" +message.member.id + "> - " + oldDiff + " to " + args.difficulty + " (Reason: " + args.reason + ")");
