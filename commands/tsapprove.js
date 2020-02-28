@@ -128,7 +128,7 @@ class TSApprove extends Command {
       if(!inCodeDiscussionChannel){
         //Check if channel already exists
         discussionChannel = message.guild.channels.find(channel => channel.name === level.Code);;
-        console.log("found discussionChannel", discussionChannel, args.code, message.guild.channels);
+        console.log("found discussionChannel", discussionChannel, args.code, message.guild.channels.map(channel => channel.name));
         if(!discussionChannel){
           //Create new channel and set parent to category
           discussionChannel = await message.guild.createChannel(args.code, {
@@ -143,13 +143,13 @@ class TSApprove extends Command {
       console.log("vote before everything", vote);
       //Add/Update Approval/Rejection to new sheet 'shellder votes?' + difficulty + reason
       if(!vote){
-        console.log(await gs.insert("Shellder Votes", {
+        await gs.insert("Shellder Votes", {
           Code: level.Code,
           Shellder: shellder.Name,
           Type: sb_command == "tsreject" ? "reject" : "approve",
           Difficulty: sb_command == "tsapprove" ? args.difficulty : "",
           Reason: args.reason
-        }));
+        });
       } else {
         var updateJson = {
           "Type": sb_command == "tsreject" ? "reject" : "approve"
@@ -167,12 +167,14 @@ class TSApprove extends Command {
           update: updateJson
         });
         if(updateVote.Code == level.Code && updateVote.Shellder == shellder.Name){
-          console.log(await gs.batchUpdate(updateVote.update_ranges));
+          await gs.batchUpdate(updateVote.update_ranges);
         }
       }
 
       //Get all current votes for this level
       var votes=gs.select("Shellder Votes",{"Code":args.code});
+
+      console.log("votes", votes);
 
       var rejectVotes = [];
       var approveVotes = [];
