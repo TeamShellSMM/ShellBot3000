@@ -120,7 +120,6 @@ var GS=function(config){
         ret.push(obj)  
       }
     } 
-    console.log("query done");
     return (ret.length>1) ? ret : ret[0]
   }
 
@@ -164,7 +163,6 @@ var GS=function(config){
       body: JSON.stringify(data)
     });
     
-    console.log("insert done");
     return response
 
   }
@@ -189,7 +187,6 @@ var GS=function(config){
       gzip: true,
       body: JSON.stringify(data)
     })
-    console.log("batch done");
     return response
   }
 }
