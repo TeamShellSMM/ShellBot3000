@@ -21,15 +21,12 @@ class points extends Command {
         })
 
         if(!player) message.reply("You haven't registered yet")
+        var earned_points=ts.calculatePoints(player.Name) 
+        var rank=ts.get_rank(earned_points.clearPoints)
+        var user_reply="<@"+message.author.id+">"+rank.Pips+" "
 
         var all_ranks=gs.select("TeamShell Ranks");
         var all_ranks_id=all_ranks.map(r=>r.discord_roles)
-        
-         var earned_points=ts.calculatePoints(player.Name) 
-         var rank=ts.get_rank(earned_points.clearPoints)
-         var user_reply="<@"+message.author.id+">"+rank.Pips+" "
-
-
         if(args.role=="role" || args.role=="norole"){
           await message.member.removeRoles(all_ranks_id)
         }
