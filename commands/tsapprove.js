@@ -139,7 +139,7 @@ class TSApprove extends Command {
             parent: this.client.channels.get(channels.levelDiscussionCategory )
           });
           //Post empty overview post
-          overviewMessage = await discussionChannel.send("**The Judgement for " + level["Level Name"] + " (" + level.Code + ") by <@" + author.discord_id + "> has now begun!**\n\nCurrent Votes for approving the level:\nNone\n\nCurrent votes for rejecting the level:\nNone");
+          overviewMessage = await discussionChannel.send("**The Judgement for " + level["Level Name"] + " (" + level.Code + ") by <@" + author.discord_id + "> has now begun!**\n\n> Current Votes for approving the level:\n> None\n\n> Current votes for rejecting the level:\n> None");
           overviewMessage = await overviewMessage.pin();
         }
       } else {
@@ -195,7 +195,7 @@ class TSApprove extends Command {
       var postString = "**The Judgement for " + level["Level Name"] + " (" + level.Code + ") by <@" + author.discord_id + "> has now begun!**\n\n> __Current Votes for approving the level:__\n";
       
       if(approveVotes == undefined || approveVotes.length == 0){
-        postString += "None\n";
+        postString += "> None\n";
       } else {
         for(var i = 0; i < approveVotes.length; i++){
           const curShellder = gs.select("Raw Members",{"Name":approveVotes[i].Shellder});
@@ -206,7 +206,7 @@ class TSApprove extends Command {
       postString += "\n> __Current votes for rejecting the level:__\n";
 
       if(rejectVotes == undefined || rejectVotes.length == 0){
-        postString += "None\n";
+        postString += "> None\n";
       } else {
         for(var i = 0; i < rejectVotes.length; i++){
           const curShellder = gs.select("Raw Members",{"Name":rejectVotes[i].Shellder});
