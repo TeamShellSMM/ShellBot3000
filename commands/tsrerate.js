@@ -34,12 +34,8 @@ class TSRerate extends Command {
       await gs.loadSheets(["Raw Levels"]);
       const level=gs.select("Raw Levels",{"Code":args.code});
 
-      console.log("tsrerate log 1:", level);
-
       await gs.loadSheets(["Raw Members"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
-      const author = gs.select("Raw Members",{"Name":level.creator});
-
-      console.log("tsrerate log 2:", author);
+      const author = gs.select("Raw Members",{"Name":level.Creator});
 
       var oldDiff = level.Difficulty;
 
