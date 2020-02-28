@@ -87,6 +87,7 @@ class TSApprove extends Command {
       }
 
       //Check if vote already exists
+      await gs.loadSheets(["Raw Levels", "Shellder Votes"]);
       var vote=gs.select("Shellder Votes",{"Code":args.code, "Shellder": shellder.Name});
 
       if(!vote){
@@ -97,7 +98,6 @@ class TSApprove extends Command {
         }
       }      
 
-      await gs.loadSheets(["Raw Levels", "Shellder Votes"]);
       const level=gs.select("Raw Levels",{"Code":args.code});
 
       if(!level){
@@ -127,7 +127,7 @@ class TSApprove extends Command {
       var discussionChannel;
       if(!inCodeDiscussionChannel){
         //Check if channel already exists
-        discussionChannel = this.client.channels.find(channel => channel.name === args.code);
+        discussionChannel = message.guild.channels.find(channel => channel.name === level.Code);;
         console.log("found discussionChannel", discussionChannel, args.code);
         if(!discussionChannel){
           //Create new channel and set parent to category
