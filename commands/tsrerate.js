@@ -5,6 +5,7 @@ class TSRerate extends Command {
     constructor() {
         super('tsrerate', {
            aliases: ['tsrerate'],
+           split: 'quoted',
             args: [{
               id: 'code',
               type: 'string',
@@ -30,23 +31,47 @@ class TSRerate extends Command {
       )) return false;
 
       //Check all the args first
+      if(!TS.valid_code(args.code)){
+        message.reply("Level Code is invalid! " + emotes.think);
+        return false;
+      }
 
-      await gs.loadSheets(["Raw Levels"]);
+      await gs.loadSheets(["Raw Levels", "Raw Members"]);
       const level=gs.select("Raw Levels",{"Code":args.code});
 
-      await gs.loadSheets(["Raw Members"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
+      if(!level){
+        message.reply("Level Code was not found! " + emotes.think);
+        return false;
+      }
+
       const author = gs.select("Raw Members",{"Name":level.Creator});
+
+      if(!author){
+        message.reply("Author was not found in Members List! " + emotes.think);
+        return false;
+      }
+
+      if(!TS.valid_difficulty(args.difficulty)){
+        message.reply("Invalid difficulty format! " + emotes.think);
+        return false;
+      }
+
+      if(!args.reason){
+        message.reply("You need to give a reason for the change (in quotation marks)!");
+        return false;
+      }
 
       var oldDiff = level.Difficulty;
 
-      level.Difficulty = args.difficulty;
       var updateLevel = gs.query("Raw Levels", {
         filters: {"Code":args.code},
         update: {"Difficulty": args.difficulty}
       });
+      console.log("tsrerate log 3", updateLevel);
       gs.batchUpdate([updateLevel.update_ranges]);
       
-      this.client.channels.get(channels.initiateChannel).send(level["Level Name"] + " (" + level.Code + ") by <@" + author.discord_id + ">: Difficulty change by <@" +message.member.id + "> - " + oldDiff + " to " + args.difficulty + " (Reason: " + args.reason + ")");
+      this.client.channels.get(channels.shellderLevelChanges).send(level["Level Name"] + " (" + level.Code + ") by <@" + author.discord_id + ">: Difficulty changed by <@" +message.member.id + "> - " + oldDiff + " to " + args.difficulty + " (Reason: " + args.reason + ")");
+      message.reply("Difficulty was successfully changed!");
     }
 }
 module.exports = TSRerate;
