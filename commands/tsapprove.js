@@ -78,6 +78,13 @@ class TSApprove extends Command {
         return false;
       }
 
+      const author = gs.select("Raw Members",{"Name":level.Creator});
+
+      if(!author){
+        message.reply("Author was not found in Members List! " + emotes.think);
+        return false;
+      }
+
       var raw_command=message.content.trim();
       raw_command=raw_command.split(" ");
       var sb_command=raw_command.shift().toLowerCase().substring(1);
