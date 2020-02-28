@@ -33,9 +33,13 @@ class TSJudge extends Command {
 
       if(approveVotes !== undefined && !Array.isArray(approveVotes)){
         approveVotes = [approveVotes];
+      } else {
+        approveVotes = [];
       }
       if(rejectVotes !== undefined && !Array.isArray(rejectVotes)){
         rejectVotes = [rejectVotes];
+      } else {
+        rejectVotes = [];
       }
 
       //Count Approval and Rejection Votes
