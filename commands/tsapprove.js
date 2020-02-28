@@ -128,7 +128,7 @@ class TSApprove extends Command {
       if(!inCodeDiscussionChannel){
         //Check if channel already exists
         discussionChannel = message.guild.channels.find(channel => channel.name === level.Code);;
-        console.log("found discussionChannel", discussionChannel, args.code);
+        console.log("found discussionChannel", discussionChannel, args.code, message.guild.channels);
         if(!discussionChannel){
           //Create new channel and set parent to category
           discussionChannel = await message.guild.createChannel(args.code, {
@@ -145,7 +145,7 @@ class TSApprove extends Command {
       if(!vote){
         console.log(await gs.insert("Shellder Votes", {
           Code: level.Code,
-          Shellder: shellder.name,
+          Shellder: shellder.Name,
           Type: sb_command == "tsreject" ? "reject" : "approve",
           Difficulty: sb_command == "tsapprove" ? args.difficulty : "",
           Reason: args.reason
