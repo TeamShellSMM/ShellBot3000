@@ -204,7 +204,7 @@ class TSApprove extends Command {
       }
 
       if(!overviewMessage){
-        overviewMessage = discussionChannel.messages.first();
+        overviewMessage = await discussionChannel.messages.first();
       }
 
       await overviewMessage.edit(postString);
