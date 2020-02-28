@@ -140,7 +140,7 @@ class TSApprove extends Command {
           });
           //Post empty overview post
           overviewMessage = await discussionChannel.send("**The Judgement for " + level["Level Name"] + " (" + level.Code + ") by <@" + author.discord_id + "> has now begun!**\n\nCurrent Votes for approving the level:\nNone\n\nCurrent votes for rejecting the level:\nNone");
-          //overviewMessage = await overviewMessage.pin();
+          overviewMessage = await overviewMessage.pin();
         }
       } else {
         discussionChannel = message.channel;
@@ -215,7 +215,7 @@ class TSApprove extends Command {
       }
 
       if(!overviewMessage){
-        overviewMessage = (await discussionChannel.fetchMessages()).last();
+        overviewMessage = (await discussionChannel.fetchPinnedMessages()).last();
       }
 
       await overviewMessage.edit(postString);
