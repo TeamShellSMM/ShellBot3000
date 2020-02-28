@@ -31,7 +31,7 @@ class TSRerate extends Command {
       )) return false;
 
       //Check all the args first
-      if(!TS.valid_code(args.code)){
+      if(!ts.valid_code(args.code)){
         message.reply("Level Code is invalid! " + emotes.think);
         return false;
       }
@@ -51,7 +51,7 @@ class TSRerate extends Command {
         return false;
       }
 
-      if(!TS.valid_difficulty(args.difficulty)){
+      if(!ts.valid_difficulty(args.difficulty)){
         message.reply("Invalid difficulty format! " + emotes.think);
         return false;
       }
