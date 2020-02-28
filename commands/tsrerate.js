@@ -67,7 +67,9 @@ class TSRerate extends Command {
         filter: {"Code":args.code},
         update: {"Difficulty": args.difficulty}
       });
+      console.log("tsrerate log 3: ", updateLevel, args.code);
       if(updateLevel.Code == args.code){
+        console.log("tsrerate log 4");
         gs.batchUpdate([updateLevel.update_ranges]);
       }
       
