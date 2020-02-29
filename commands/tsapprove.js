@@ -54,6 +54,7 @@ class TSApprove extends Command {
           return false;
         }
       }
+      args.code = args.code.toUpperCase();
 
       var raw_command=message.content.trim();
       raw_command=raw_command.split(" ");
@@ -223,7 +224,7 @@ class TSApprove extends Command {
       if(updating){
         message.reply("Your vote was changed!");
       } else {
-        message.reply("Your vote was added!")
+        message.reply("Your vote was added to <#" + discussionChannel.name + ">!")
       }
     }
 }
