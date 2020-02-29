@@ -44,11 +44,7 @@ class TSApprove extends Command {
       raw_command=raw_command.split(" ");
       var sb_command=raw_command.shift().toLowerCase().substring(1);      
 
-      var inCodeDiscussionChannel = false;
-
-      if(args.code){        
-        args.code = args.code.toUpperCase();
-      }
+      var inCodeDiscussionChannel = false;      
 
       //Check if in level discussion channel
       if(ts.valid_code(message.channel.name.toUpperCase())){
@@ -58,7 +54,7 @@ class TSApprove extends Command {
         args.code = message.channel.name.toUpperCase();
       } else {
         //Check the code only if not in discussion channel
-        if(!ts.valid_code(args.code)){
+        if(!ts.valid_code(args.code.toUpperCase())){
           message.reply("Level Code is invalid! " + emotes.think);
           return false;
         }
@@ -69,6 +65,10 @@ class TSApprove extends Command {
         //Difficulty doesn't exist in reject, so it get replaced by reason
         args.reason = args.difficulty;
         args.difficulty = "";
+      }
+
+      if(args.code){        
+        args.code = args.code.toUpperCase();
       }
 
       if(!( 
