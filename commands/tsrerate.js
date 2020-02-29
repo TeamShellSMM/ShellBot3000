@@ -30,12 +30,15 @@ class TSRerate extends Command {
         message.channel.id === channels.shellderShellbot  //only in bot-test channel
       )) return false;
 
+      if(args.code){        
+        args.code = args.code.toUpperCase();
+      }
+
       //Check all the args first
       if(!ts.valid_code(args.code)){
         message.reply("Level Code is invalid! " + emotes.think);
         return false;
       }
-      args.code = args.code.toUpperCase();
 
       await gs.loadSheets(["Raw Levels", "Raw Members"]);
       const level=gs.select("Raw Levels",{"Code":args.code});

@@ -41,6 +41,10 @@ class TSApprove extends Command {
 
       var inCodeDiscussionChannel = false;
 
+      if(args.code){        
+        args.code = args.code.toUpperCase();
+      }
+
       //Check if in level discussion channel
       if(ts.valid_code(message.channel.name.toUpperCase())){
         inCodeDiscussionChannel = true;
@@ -54,7 +58,6 @@ class TSApprove extends Command {
           return false;
         }
       }
-      args.code = args.code.toUpperCase();
 
       var raw_command=message.content.trim();
       raw_command=raw_command.split(" ");
@@ -222,9 +225,9 @@ class TSApprove extends Command {
       await overviewMessage.edit(postString);
 
       if(updating){
-        message.reply("Your vote was changed in <#" + discussionChannel.name + ">!");
+        message.reply("Your vote was changed in <#" + discussionChannel.id + ">!");
       } else {
-        message.reply("Your vote was added to <#" + discussionChannel.name + ">!")
+        message.reply("Your vote was added to <#" + discussionChannel.id + ">!");
       }
     }
 }
