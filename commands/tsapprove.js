@@ -37,6 +37,8 @@ class TSApprove extends Command {
         !tsreject reason
       */
 
+      const clearCommands = ['tsapprove+c', 'tsapprove+cl', 'tsapprove+lc'];
+      const likeCommands =  ['tsapprove+cl', 'tsapprove+lc'];
       
       var raw_command=message.content.trim();
       raw_command=raw_command.split(" ");
@@ -75,7 +77,7 @@ class TSApprove extends Command {
       )) return false;
 
       //Then Check the other args
-      if(sb_command == "tsapprove"){
+      if(sb_command == "tsapprove" || clearCommands.indexOf(sb_command) !== -1){
         //We only check difficulty in tsapprove mode
         if(!ts.valid_difficulty(args.difficulty)){
           message.reply("Invalid difficulty format! " + emotes.think);
@@ -119,7 +121,7 @@ class TSApprove extends Command {
 
       //Check if level is approved, if it's approved only allow rejection
       if(level.Approved === "1"){
-        if(raw_command == "tsapprove"){
+        if(raw_command == "tsapprove" || clearCommands.indexOf(sb_command) !== -1){
           message.reply("Level is already approved! " + emotes.think);
           return false;   
         }
@@ -157,7 +159,7 @@ class TSApprove extends Command {
           Code: level.Code,
           Shellder: shellder.Name,
           Type: sb_command == "tsreject" ? "reject" : "approve",
-          Difficulty: sb_command == "tsapprove" ? args.difficulty : "",
+          Difficulty: sb_command == "tsapprove" || clearCommands.indexOf(sb_command) !== -1 ? args.difficulty : "",
           Reason: args.reason
         });
       } else {
@@ -230,9 +232,6 @@ class TSApprove extends Command {
       } else {
         replyMessage += "Your vote was added to <#" + discussionChannel.id + ">!";
       }
-
-      const clearCommands = ['tsapprove+c', 'tsapprove+cl', 'tsapprove+lc'];
-      const likeCommands =  ['tsapprove+cl', 'tsapprove+lc'];
 
       if(clearCommands.indexOf(sb_command) !== -1){
         //Add a clear to the level if it's not already there
