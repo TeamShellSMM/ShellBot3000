@@ -104,6 +104,19 @@ class TSJudge extends Command {
             await gs.batchUpdate(updateLevel.update_ranges);
           }
 
+          //Update author to set cult_member if they're not already
+          if(author.cult_member !== "1"){
+            var updateAuthor = gs.query("Raw Members", {
+              filter: {"Name":author.Name},
+              update: {
+                "cult_member": "1"
+              }
+            });
+            if(updateAuthor.Name == author.Name){
+              await gs.batchUpdate(updateAuthor.update_ranges);
+            }
+          }
+
           //Build Status Message
           var postMessage = "<:Blank:669074779721957377>\n<:Blank:669074779721957377>\n**"+ level["Level Name"] + " (" + level.Code + ") by <@" + author.discord_id + ">: Level was approved for Difficulty: " + finalDiff + "!** <:bam:628731347724271647>\n\n> __Reasons:__\n" + reasonsMessage;
   
