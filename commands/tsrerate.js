@@ -35,6 +35,7 @@ class TSRerate extends Command {
         message.reply("Level Code is invalid! " + emotes.think);
         return false;
       }
+      args.code = args.code.toUpperCase();
 
       await gs.loadSheets(["Raw Levels", "Raw Members"]);
       const level=gs.select("Raw Levels",{"Code":args.code});
