@@ -222,7 +222,7 @@ class TSApprove extends Command {
       await overviewMessage.edit(postString);
 
       if(updating){
-        message.reply("Your vote was changed!");
+        message.reply("Your vote was changed in <#" + discussionChannel.name + ">!");
       } else {
         message.reply("Your vote was added to <#" + discussionChannel.name + ">!")
       }
