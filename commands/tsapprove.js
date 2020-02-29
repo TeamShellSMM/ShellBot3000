@@ -259,7 +259,7 @@ class TSApprove extends Command {
           //Insert          
           await gs.insert("Raw Played", {
             "Code": level.Code,
-            "Shellder": shellder.Name,
+            "Player": shellder.Name,
             "Completed": "1",
             "Shelder": "1",
             "Liked": likeCommands.indexOf(sb_command) !== -1 ? "1" : "",
