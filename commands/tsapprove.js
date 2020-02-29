@@ -4,7 +4,7 @@ const emotes = require('../emotes.json');
 class TSApprove extends Command {
     constructor() {
         super('tsapprove', {
-           aliases: ['tsapprove', 'tsreject'],
+           aliases: ['tsapprove', 'tsreject', 'tsapprove+c', 'tsapprove+cl', 'tsapprove+lc'],
            split: 'quoted',
             args: [{
                 id: 'code',
@@ -38,6 +38,9 @@ class TSApprove extends Command {
       */
 
       
+      var raw_command=message.content.trim();
+      raw_command=raw_command.split(" ");
+      var sb_command=raw_command.shift().toLowerCase().substring(1);      
 
       var inCodeDiscussionChannel = false;
 
@@ -59,9 +62,6 @@ class TSApprove extends Command {
         }
       }
 
-      var raw_command=message.content.trim();
-      raw_command=raw_command.split(" ");
-      var sb_command=raw_command.shift().toLowerCase().substring(1);
 
       if(sb_command == "tsreject"){
         //Difficulty doesn't exist in reject, so it get replaced by reason
@@ -84,7 +84,7 @@ class TSApprove extends Command {
       }
 
       //Check if vote already exists
-      await gs.loadSheets(["Raw Levels", "Shellder Votes", "Raw Members"]);
+      await gs.loadSheets(["Raw Levels", "Raw Members", "Raw Played", "Shellder Votes"]);
 
       const shellder = gs.select("Raw Members",{"discord_id":message.member.id});
 
@@ -143,7 +143,7 @@ class TSApprove extends Command {
             parent: this.client.channels.get(channels.levelDiscussionCategory )
           });
           //Post empty overview post
-          overviewMessage = await discussionChannel.send("**The Judgement for " + level["Level Name"] + " (" + level.Code + ") by <@" + author.discord_id + "> has now begun!**\n\n> Current Votes for approving the level:\n> None\n\n> Current votes for rejecting the level:\n> None");
+          overviewMessage = await discussionChannel.send("**The Judgement for '" + level["Level Name"] + " (" + level.Code + ") by <@" + author.discord_id + ">' has now begun!**\n\n> Current Votes for approving the level:\n> None\n\n> Current votes for rejecting the level:\n> None");
           overviewMessage = await overviewMessage.pin();
         }
       } else {
@@ -183,7 +183,7 @@ class TSApprove extends Command {
       }
 
       //Reload sheets
-      await gs.loadSheets(["Raw Levels", "Raw Members", "Shellder Votes"]);
+      await gs.loadSheets(["Raw Levels", "Raw Members", "Raw Played", "Shellder Votes"]);
       //Get all current votes for this level
       var approveVotes = gs.select("Shellder Votes",{"Code":args.code, "Type": "approve"});   
       var rejectVotes = gs.select("Shellder Votes",{"Code":args.code, "Type": "reject"});
@@ -196,7 +196,7 @@ class TSApprove extends Command {
       }
 
       //Update Overview post in discussion channel
-      var postString = "**The Judgement for " + level["Level Name"] + " (" + level.Code + ") by <@" + author.discord_id + "> has now begun!**\n\n> __Current Votes for approving the level:__\n";
+      var postString = "**The Judgement for '" + level["Level Name"] + " (" + level.Code + ") by <@" + author.discord_id + ">' has now begun!**\n\n> __Current Votes for approving the level:__\n";
       
       if(approveVotes == undefined || approveVotes.length == 0){
         postString += "> None\n";
@@ -224,11 +224,58 @@ class TSApprove extends Command {
 
       await overviewMessage.edit(postString);
 
+      var replyMessage = "";
       if(updating){
-        message.reply("Your vote was changed in <#" + discussionChannel.id + ">!");
+        replyMessage += "Your vote was changed in <#" + discussionChannel.id + ">!";
       } else {
-        message.reply("Your vote was added to <#" + discussionChannel.id + ">!");
+        replyMessage += "Your vote was added to <#" + discussionChannel.id + ">!";
       }
+
+      const clearCommands = ['tsapprove+c', 'tsapprove+cl', 'tsapprove+lc'];
+      const likeCommands =  ['tsapprove+cl', 'tsapprove+lc'];
+
+      if(clearCommands.indexOf(sb_command) !== -1){
+        //Add a clear to the level if it's not already there
+        var played=gs.select("Raw Played",{"Code":args.code, "Player": shellder.Name});
+        if(played){
+          //Update
+          var updatePlayed = gs.query("Raw Played", {
+            filter: {"Code":args.code, "Player": shellder.Name},
+            update: {
+              "Liked": likeCommands.indexOf(sb_command) !== -1 ? "1" : "",
+              "Difficulty Vote": args.difficulty
+            }
+          });
+          if(updatePlayed.Code == level.Code && updatePlayed.Player == shellder.Name){
+            await gs.batchUpdate(updatePlayed.update_ranges);
+          }
+
+          replyMessage += " You also updated your clear and community vote on this level!";
+
+          if(likeCommands.indexOf(sb_command) !== -1){
+            replyMessage += " You also liked the level " + emotes.love + "!";
+          }
+        } else {
+          //Insert          
+          await gs.insert("Raw Played", {
+            "Code": level.Code,
+            "Shellder": shellder.Name,
+            "Completed": "1",
+            "Shelder": "1",
+            "Liked": likeCommands.indexOf(sb_command) !== -1 ? "1" : "",
+            "Difficulty Vote": args.difficulty,
+            "Timestamp": Math.floor(Date.now() / 1000)
+          });
+
+          replyMessage += " You also added a clear and community vote on this level!";
+
+          if(likeCommands.indexOf(sb_command) !== -1){
+            replyMessage += " You also liked the level " + emotes.love + "!";
+          }
+        }
+      }
+
+      message.reply(replyMessage);
     }
 }
 module.exports = TSApprove;
