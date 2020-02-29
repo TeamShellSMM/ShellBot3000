@@ -105,7 +105,7 @@ class TSJudge extends Command {
           }
 
           //Build Status Message
-          var postMessage = level["Level Name"] + " (" + level.Code + ") by <@" + author.discord_id + ">: Level was approved for Difficulty: " + finalDiff + "!\n\n> __Reasons:__\n" + reasonsMessage;
+          var postMessage = "<:Blank:669074779721957377>\n<:Blank:669074779721957377>\n**"+ level["Level Name"] + " (" + level.Code + ") by <@" + author.discord_id + ">: Level was approved for Difficulty: " + finalDiff + "!** <:bam:628731347724271647>\n\n> __Reasons:__\n" + reasonsMessage;
   
           //Send Approval to #shellder-level-changes
           await this.client.channels.get(channels.shellderLevelChanges).send(postMessage);
