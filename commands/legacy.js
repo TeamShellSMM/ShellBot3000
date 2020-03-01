@@ -13,14 +13,37 @@ var Shellbot2000Commands={
   "tsdifficulty":"difficulty",
   "tsremovelevel":"removelevel",
   "tsremoveclear":"removeclear",
+  
   "tslike":"like",
+  "like":"like",
+  
   "tsunlike":"unlike",
+  "unlike":"unlike",
+  
   "tsrename":"rename",
+  
   "addtags":"addtags",
-  "removetags":"removetags",
+  "addtag":"addtags",
+  "tsaddtags":"addtags",
+  "tsaddtag":"addtags",
+
   "addvids":"addvods",
+  "addvid":"addvods",
+  "tsaddvids":"addvods",
+  "tsaddvid":"addvods",
+
+  "removetags":"removetags",
+  "removetag":"removetags",
+  "tsremovetags":"removetags",
+  "tsremovetag":"removetags",
+
   "removevids":"removevods",
-  "tsadd":"add"
+  "removevid":"removevods",
+  "tsremovevids":"removevods",
+  "tsremovevid":"removevods",
+
+  "tsadd":"add",
+  "add":"add"
 }
 
 var ssb2000_commands=Object.keys(Shellbot2000Commands)
