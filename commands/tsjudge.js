@@ -77,13 +77,13 @@ class TSJudge extends Command {
         //Build embed
         var exampleEmbed = new Discord.RichEmbed()
           .setColor("#01A19F")
-          .setAuthor("Code: " + level.Code)
-          .setTitle(level["Level Name"] + " by <@" + author.discord_id + ">")
-          .setDescription("Level was " + (level.Approved === "0" ? "rejected" : "removed") + ", here are the reasons why!")
+          .setAuthor("Level was " + (level.Approved === "0" ? "rejected" : "removed") + "!")
+          .setTitle(level["Level Name"] + " (" + level.Code + ")")
+          .setDescription("made by <@" + author.discord_id + ">")
           .setThumbnail('https://teamshellsmm.github.io/assets/axemuncher.png');
 
         for(var i = 0; i < rejectVotes.length; i++){
-          exampleEmbed = exampleEmbed.addField(rejectVotes[i].Shellder, rejectVotes[i].Reason);
+          exampleEmbed = exampleEmbed.addField(rejectVotes[i].Shellder + " voted for rejection", rejectVotes[i].Reason);
         }
         
         exampleEmbed = exampleEmbed.setTimestamp();
@@ -135,9 +135,9 @@ class TSJudge extends Command {
           //Build Status Message
           var exampleEmbed = new Discord.RichEmbed()
             .setColor("#01A19F")
-            .setAuthor("Code: " + level.Code, "", "https://teamshellsmm.github.io/levels/?code=" + level.Code)
-            .setTitle(level["Level Name"] + "by <@" + author.discord_id + ">")
-            .setDescription("This level was approved for difficulty: " + finalDiff + "!")
+            .setAuthor("This level was approved for difficulty: " + finalDiff + "!")
+            .setTitle(level["Level Name"] + " (" + level.Code + ")")
+            .setDescription("made by <@" + author.discord_id + ">")
             .setThumbnail('https://teamshellsmm.github.io/assets/bam.png');
 
           for(var i = 0; i < approvalVotes.length; i++){
