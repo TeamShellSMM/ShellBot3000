@@ -77,7 +77,8 @@ class TSJudge extends Command {
         //Build embed
         var exampleEmbed = new Discord.RichEmbed()
           .setColor("#01A19F")
-          .setTitle(level["Level Name"] + " (" + level.Code + ") by <@" + author.discord_id + ">")
+          .setAuthor("Code: " + level.Code)
+          .setTitle(level["Level Name"] + " by <@" + author.discord_id + ">")
           .setURL("https://teamshellsmm.github.io/levels/?code=" + level.Code)
           .setDescription("Level was " + (level.Approved === "0" ? "rejected" : "removed") + "!")
           .setThumbnail('https://teamshellsmm.github.io/assets/axemuncher.png');
@@ -95,11 +96,9 @@ class TSJudge extends Command {
       } else if (approvalVoteCount >= 3){
         if(level.Approved === "0"){
           //Get the average difficulty and round to nearest .5, build the message at the same time
-          var reasonsMessage = "";
           var diffCounter = 0;
           var diffSum = 0;
           for(var i = 0; i < approvalVotes.length; i++){
-            reasonsMessage += "> `" + approvalVotes[i].Shellder + " voted " + approvalVotes[i].Difficulty + "`: `" + approvalVotes[i].Reason + "`\n";
             var diff = parseFloat(approvalVotes[i].Difficulty);
             if(!Number.isNaN(diff)){
               diffCounter++;
@@ -135,10 +134,21 @@ class TSJudge extends Command {
           }
 
           //Build Status Message
-          var postMessage = "**"+ level["Level Name"] + " (" + level.Code + ") by <@" + author.discord_id + ">: Level was approved for Difficulty: " + finalDiff + "!** <:bam:628731347724271647>\n" + reasonsMessage + "\n<:Blank:669074779721957377>";
-  
-          //Send Approval to #shellder-level-changes
-          await this.client.channels.get(channels.shellderLevelChanges).send(postMessage);
+          var exampleEmbed = new Discord.RichEmbed()
+            .setColor("#01A19F")
+            .setAuthor("Code: " + level.Code, "", "https://teamshellsmm.github.io/levels/?code=" + level.Code)
+            .setTitle(level["Level Name"] + "by <@" + author.discord_id + ">")
+            .setDescription("This level was approved for difficulty: " + finalDiff + "!")
+            .setThumbnail('https://teamshellsmm.github.io/assets/bam.png');
+
+          for(var i = 0; i < approvalVotes.length; i++){
+            exampleEmbed = exampleEmbed.addField(approvalVotes[i].Shellder + " voted " + approvalVotes[i].Difficulty, approvalVotes[i].Reason);
+          }
+          
+          exampleEmbed = exampleEmbed.setTimestamp();
+          
+          //Send Rejection to #shellder-level-changes
+          await this.client.channels.get(channels.shellderLevelChanges).send(exampleEmbed);
         }
 
         //Remove Discussion Channel
