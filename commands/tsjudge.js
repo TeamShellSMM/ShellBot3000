@@ -89,7 +89,7 @@ class TSJudge extends Command {
         exampleEmbed = exampleEmbed.setTimestamp();
         
         //Send Rejection to #shellder-level-changes
-        await this.client.channels.get(channels.shellderLevelChanges).sendEmbed(exampleEmbed);
+        await this.client.channels.get(channels.shellderLevelChanges).send(exampleEmbed);
         
         message.channel.delete("Justice has been met!");
       } else if (approvalVoteCount >= 3){
