@@ -65,11 +65,13 @@ class TSJudge extends Command {
         }
 
         //Build Status Message
-        var postMessage = level["Level Name"] + " (" + level.Code + ") by <@" + author.discord_id + ">: Level was " + (level.Approved === "0" ? "rejected" : "removed") + "!\n\n> __Reasons:__\n";
+        var postMessage = level["Level Name"] + " (" + level.Code + ") by <@" + author.discord_id + ">: Level was " + (level.Approved === "0" ? "rejected" : "removed") + "! <:AxeMuncher:680243176640217088> \n> __Reasons:__\n";
 
         for(var i = 0; i < rejectVotes.length; i++){
           postMessage += "> " + rejectVotes[i].Shellder + ": " + rejectVotes[i].Reason + "\n";
         }
+
+        postMessage += "\n<:Blank:669074779721957377>"
         
         //Send Rejection to #shellder-level-changes
         await this.client.channels.get(channels.shellderLevelChanges).send(postMessage);
@@ -118,7 +120,7 @@ class TSJudge extends Command {
           }
 
           //Build Status Message
-          var postMessage = "<:Blank:669074779721957377>\n<:Blank:669074779721957377>\n**"+ level["Level Name"] + " (" + level.Code + ") by <@" + author.discord_id + ">: Level was approved for Difficulty: " + finalDiff + "!** <:bam:628731347724271647>\n\n> __Reasons:__\n" + reasonsMessage;
+          var postMessage = "**"+ level["Level Name"] + " (" + level.Code + ") by <@" + author.discord_id + ">: Level was approved for Difficulty: " + finalDiff + "!** <:bam:628731347724271647>\n> __Reasons:__\n" + reasonsMessage + "\n<:Blank:669074779721957377>";
   
           //Send Approval to #shellder-level-changes
           await this.client.channels.get(channels.shellderLevelChanges).send(postMessage);
