@@ -79,8 +79,7 @@ class TSJudge extends Command {
           .setColor("#01A19F")
           .setAuthor("Code: " + level.Code)
           .setTitle(level["Level Name"] + " by <@" + author.discord_id + ">")
-          .setURL("https://teamshellsmm.github.io/levels/?code=" + level.Code)
-          .setDescription("Level was " + (level.Approved === "0" ? "rejected" : "removed") + "!")
+          .setDescription("Level was " + (level.Approved === "0" ? "rejected" : "removed") + ", here are the reasons why!")
           .setThumbnail('https://teamshellsmm.github.io/assets/axemuncher.png');
 
         for(var i = 0; i < rejectVotes.length; i++){
