@@ -1,4 +1,5 @@
 const { Command } = require('discord-akairo');
+const Discord = require('discord.js');
 const channels = require('../channels.json');
 const emotes = require('../emotes.json');
 class TSJudge extends Command {
@@ -65,16 +66,30 @@ class TSJudge extends Command {
         }
 
         //Build Status Message
-        var postMessage = "**"+ level["Level Name"] + " (" + level.Code + ") by <@" + author.discord_id + ">: Level was " + (level.Approved === "0" ? "rejected" : "removed") + "!** <:AxeMuncher:680243176640217088> \n> __Reasons:__\n";
+        /*var postMessage = "**"+ level["Level Name"] + " (" + level.Code + ") by <@" + author.discord_id + ">: Level was " + (level.Approved === "0" ? "rejected" : "removed") + "!!** <:AxeMuncher:680243176640217088> \n> __Reasons:__\n";
 
         for(var i = 0; i < rejectVotes.length; i++){
           postMessage += "> `" + rejectVotes[i].Shellder + "`: `" + rejectVotes[i].Reason + "`\n";
         }
 
-        postMessage += "\n<:Blank:669074779721957377>"
+        postMessage += "\n<:Blank:669074779721957377>"*/
+
+        //Build embed
+        var exampleEmbed = new Discord.RichEmbed()
+          .setColor("#01A19F")
+          .setTitle(level["Level Name"] + " (" + level.Code + ") by <@" + author.discord_id + ">")
+          .setURL("https://teamshellsmm.github.io/levels/?code=" + level.Code)
+          .setDescription("Level was " + (level.Approved === "0" ? "rejected" : "removed") + "!")
+          .setThumbnail('https://teamshellsmm.github.io/assets/axemuncher.png');
+
+        for(var i = 0; i < rejectVotes.length; i++){
+          exampleEmbed = exampleEmbed.addField(rejectVotes[i].Shellder, rejectVotes[i].Reason);
+        }
+        
+        exampleEmbed = exampleEmbed.setTimestamp();
         
         //Send Rejection to #shellder-level-changes
-        await this.client.channels.get(channels.shellderLevelChanges).send(postMessage);
+        await this.client.channels.get(channels.shellderLevelChanges).sendEmbed(exampleEmbed);
         
         message.channel.delete("Justice has been met!");
       } else if (approvalVoteCount >= 3){
