@@ -1,7 +1,5 @@
 const { Command } = require('discord-akairo');
 const Discord = require('discord.js');
-const channels = require('../channels.json');
-const emotes = require('../emotes.json');
 class TSJudge extends Command {
     constructor() {
         super('tsjudge', {
@@ -33,7 +31,7 @@ class TSJudge extends Command {
       const author = gs.select("Raw Members",{"Name":level.Creator});
 
       if(!author){
-        message.reply("Author was not found in Members List! " + emotes.think);
+        message.reply("Author was not found in Members List! " + ts.emotes.think);
         return false;
       }
 
@@ -89,7 +87,7 @@ class TSJudge extends Command {
         exampleEmbed = exampleEmbed.setTimestamp();
         
         //Send Rejection to #shellder-level-changes
-        await this.client.channels.get(channels.shellderLevelChanges).send(exampleEmbed);
+        await this.client.channels.get(ts.channels.shellderLevelChanges).send(exampleEmbed);
         
         message.channel.delete("Justice has been met!");
       } else if (approvalVoteCount >= 3){
@@ -147,13 +145,13 @@ class TSJudge extends Command {
           exampleEmbed = exampleEmbed.setTimestamp();
           
           //Send Rejection to #shellder-level-changes
-          await this.client.channels.get(channels.shellderLevelChanges).send(exampleEmbed);
+          await this.client.channels.get(ts.channels.shellderLevelChanges).send(exampleEmbed);
         }
 
         //Remove Discussion Channel
         message.channel.delete("Justice has been met!");
       } else {
-        message.reply("There must be at least 3 Shellders in agreement before this level can be judged! " + emotes.think);
+        message.reply("There must be at least 3 Shellders in agreement before this level can be judged! " + ts.emotes.think);
       }
     }
 }

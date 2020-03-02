@@ -1,6 +1,4 @@
 const { Command } = require('discord-akairo');
-const channels = require('../channels.json');
-const emotes = require('../emotes.json');
 class points extends Command {
     constructor() {
         super('points', {
@@ -37,9 +35,9 @@ class points extends Command {
          var msg="You have "+earned_points.clearPoints+" clear points. You have submitted "+earned_points.levelsMade+" level(s). "
 
          if(earned_points.available>=0){
-           msg+="You have enough points to upload a level "+emotes.PigChamp; 
+           msg+="You have enough points to upload a level "+ts.emotes.PigChamp; 
          } else {
-           msg+="You need "+Math.abs(earned_points.available).toFixed(1)+" points to upload a new level "+emotes.buzzyS+". Check how the points are mapped on http://bit.ly/teamshell.";
+           msg+="You need "+Math.abs(earned_points.available).toFixed(1)+" points to upload a new level "+ts.emotes.buzzyS+". Check how the points are mapped on http://bit.ly/teamshell.";
          }
          msg+=" You have earned the rank **"+rank.Rank+"** "+rank.Pips
 

@@ -1,6 +1,4 @@
 const { Command } = require('discord-akairo');
-const channels = require('../channels.json');
-const emotes = require('../emotes.json');
 class TSApprove extends Command {
     constructor() {
         super('tsapprove', {
@@ -55,7 +53,7 @@ class TSApprove extends Command {
       } else {
         //Check the code only if not in discussion channel
         if(!ts.valid_code(args.code.toUpperCase())){
-          message.reply("Level Code is invalid! " + emotes.think);
+          message.reply("Level Code is invalid! " + ts.emotes.think);
           return false;
         }
       }
@@ -72,7 +70,7 @@ class TSApprove extends Command {
       }
 
       if(!( 
-        message.channel.id === channels.shellderShellbot  //only in bot-test channel
+        message.channel.id === ts.channels.shellderShellbot  //only in bot-test channel
         || inCodeDiscussionChannel //should also work in the discussion channel for that level
       )) return false;
 
@@ -80,7 +78,7 @@ class TSApprove extends Command {
       if(sb_command == "tsapprove" || clearCommands.indexOf(sb_command) !== -1){
         //We only check difficulty in tsapprove mode
         if(!ts.valid_difficulty(args.difficulty)){
-          message.reply("Invalid difficulty format! " + emotes.think);
+          message.reply("Invalid difficulty format! " + ts.emotes.think);
           return false;
         }
       }
@@ -91,7 +89,7 @@ class TSApprove extends Command {
       const shellder = gs.select("Raw Members",{"discord_id":message.member.id});
 
       if(!shellder){
-        message.reply("You were not found in Members List! " + emotes.think);
+        message.reply("You were not found in Members List! " + ts.emotes.think);
         return false;
       }
 
@@ -108,27 +106,27 @@ class TSApprove extends Command {
       const level=gs.select("Raw Levels",{"Code":args.code});
 
       if(!level){
-        message.reply("Level Code was not found! " + emotes.think);
+        message.reply("Level Code was not found! " + ts.emotes.think);
         return false;
       }
 
       const author = gs.select("Raw Members",{"Name":level.Creator});
 
       if(!author){
-        message.reply("Author was not found in Members List! " + emotes.think);
+        message.reply("Author was not found in Members List! " + ts.emotes.think);
         return false;
       }
 
       //Check if level is approved, if it's approved only allow rejection
       if(level.Approved === "1"){
         if(raw_command == "tsapprove" || clearCommands.indexOf(sb_command) !== -1){
-          message.reply("Level is already approved! " + emotes.think);
+          message.reply("Level is already approved! " + ts.emotes.think);
           return false;   
         }
       } else if(level.Approved === "0"){
         //I don't care that this is empty, I can't be arsed anymore to think how to structure this if
       } else {
-        message.reply("Level is not pending! " + emotes.think);
+        message.reply("Level is not pending! " + ts.emotes.think);
         return false;  
       }
 
@@ -142,7 +140,7 @@ class TSApprove extends Command {
           //Create new channel and set parent to category
           discussionChannel = await message.guild.createChannel(args.code, {
             type: 'text',
-            parent: this.client.channels.get(channels.levelDiscussionCategory )
+            parent: this.client.channels.get(ts.channels.levelDiscussionCategory )
           });
           //Post empty overview post
           overviewMessage = await discussionChannel.send("**The Judgement for '" + level["Level Name"] + " (" + level.Code + ") by <@" + author.discord_id + ">' has now begun!**\n\n> Current Votes for approving the level:\n> None\n\n> Current votes for rejecting the level:\n> None");
@@ -252,7 +250,7 @@ class TSApprove extends Command {
           replyMessage += " You also updated your clear and community vote on this level!";
 
           if(likeCommands.indexOf(sb_command) !== -1){
-            replyMessage += " You also liked the level " + emotes.love + "!";
+            replyMessage += " You also liked the level " + ts.emotes.love + "!";
           }
         } else {
           //Insert          
@@ -269,7 +267,7 @@ class TSApprove extends Command {
           replyMessage += " You also added a clear and community vote on this level!";
 
           if(likeCommands.indexOf(sb_command) !== -1){
-            replyMessage += " You also liked the level " + emotes.love + "!";
+            replyMessage += " You also liked the level " + ts.emotes.love + "!";
           }
         }
       }

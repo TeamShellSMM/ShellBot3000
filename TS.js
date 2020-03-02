@@ -9,6 +9,8 @@ this.valid_code=function(code){
 return /^[1234567890QWERTYUPASDFGHJKLXCVBNM]{3}-[1234567890QWERTYUPASDFGHJKLXCVBNM]{3}-[1234567890QWERTYUPASDFGHJKLXCVBNM]{3}$/.test(code)
 }
 
+this.channels={}
+this.emotes={}
 
 //hard coded for now. 10.5 and 11 just in case
 var validDifficulty=[0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8,1.9,2,2.1,2.2,2.3,2.4,2.5,2.6,2.7,2.8,2.9,3,3.1,3.2,3.3,3.4,3.5,3.6,3.7,3.8,3.9,4,4.1,4.2,4.3,4.4,4.5,4.6,4.7,4.8,4.9,5,5.1,5.2,5.3,5.4,5.5,5.6,5.7,5.8,5.9,6,6.1,6.2,6.3,6.4,6.5,6.6,6.7,6.8,6.9,7,7.1,7.2,7.3,7.4,7.5,7.6,7.7,7.8,7.9,8,8.1,8.2,8.3,8.4,8.5,8.6,8.7,8.8,8.9,9,9.1,9.2,9.3,9.4,9.5,9.6,9.7,9.8,9.9,10,10.5,11];
@@ -20,7 +22,7 @@ this.valid_difficulty=function(str){ //whack code.
 }
 
 const static_vars=[
-"TeamShell Variable","Points","TeamShell Ranks","Seasons", //static vars
+"TeamShell Variable","Points","TeamShell Ranks","Seasons","Emotes","Channels", //static vars
 'Raw Members','Raw Levels','Raw Played' //play info
 ]; //initial vars to be loaded on bot load
 
@@ -28,13 +30,24 @@ var pointMap=null
 
 this.load=async function(){
   pointMap={}
-const response=await gs.loadSheets(static_vars) //loading initial sheets
+ this.channels={}
+ this.emotes={}
+ const response=await gs.loadSheets(static_vars) //loading initial sheets
   var _points=gs.select("Points");
   for(var i=0;i<_points.length;i++){
     pointMap[parseFloat(_points[i].Difficulty)]=parseFloat(_points[i].Points)
   }
+  var _channels=gs.select("Channels");
+  for(var i=0;i<_channels.length;i++){
+    this.channels[_channels[i].Name]=_channels[i].value
+  }
+    var _emotes=gs.select("Emotes");
+  for(var i=0;i<_emotes.length;i++){
+    this.emotes[_emotes[i].Name]=_emotes[i].value
+  }
 
   console.log("TS Vars loaded")
+  console.log(this.emotes)
 }
 
 function get_variable(var_name){

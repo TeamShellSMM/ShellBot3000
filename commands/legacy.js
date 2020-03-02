@@ -1,7 +1,5 @@
 const request = require('request-promise')
 const { Command } = require('discord-akairo');
-const channels = require('../channels.json');
-const emotes = require('../emotes.json');
 const config = require("../config.json");
 
 
@@ -83,7 +81,7 @@ class LegacyCommands extends Command {
           message.channel.send(response)
         } catch(error){
           console.error(error)
-          message.reply("Something went wrong "+emotes.buzzyS)
+          message.reply("Something went wrong "+ts.emotes.buzzyS)
         }
       }
 }

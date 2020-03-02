@@ -1,6 +1,4 @@
 const { Command } = require('discord-akairo');
-const channels = require('../channels.json');
-const emotes = require('../emotes.json');
 class TSClear extends Command {
     constructor() {
         super('tsclear', {
@@ -40,8 +38,8 @@ class TSClear extends Command {
             user_reply+=rank.Pips+" "
 
 
-            if(!ts.valid_format(args.code)) throw "Level code given was not in xxx-xxx-xxx format "+emotes.think
-            if(!ts.valid_code(args.code))   throw "There were some invalid characters in your level code "+emotes.think
+            if(!ts.valid_format(args.code)) throw "Level code given was not in xxx-xxx-xxx format "+ts.emotes.think
+            if(!ts.valid_code(args.code))   throw "There were some invalid characters in your level code "+ts.emotes.think
 
             if(args.difficulty.toUpperCase()=="LIKE"){
                args.difficulty=""
@@ -53,7 +51,7 @@ class TSClear extends Command {
                 !existing_level || //level doesn't exist
                 !(existing_level.Approved==0 || existing_level.Approved==1) //level is removed. not pending/accepted
                ){
-                throw "Level code was not found in Team Shell's list "+emotes.think;
+                throw "Level code was not found in Team Shell's list "+ts.emotes.think;
               }
 
             var existing_play=gs.select("Raw Played",{"Code":args.code,"Player":player.Name})
