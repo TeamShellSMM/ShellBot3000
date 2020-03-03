@@ -50,6 +50,7 @@ class LegacyCommands extends Command {
     constructor() {
         super('legacy', {
            aliases: ssb2000_commands,
+           cooldown:2000,
            channelRestriction: 'guild'
         });
     }
