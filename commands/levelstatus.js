@@ -26,9 +26,9 @@ class points extends Command {
         }
 
         if(level.Approved === "1"){
-            message.channel.send("This level has already been approved! " + ts.emotes.bam);
+            message.reply("This level has already been approved! " + ts.emotes.bam);
         } else if(level.Approved.startsWith("del")){
-            message.channel.send("This level has already been removed/rejected!");
+            message.reply("This level has already been removed/rejected!");
         } else if(level.Approved == "0"){
             var approvalVotes = gs.select("Shellder Votes",{"Code":level.Code, "Type": "approve"});   
             var rejectVotes = gs.select("Shellder Votes",{"Code":level.Code, "Type": "reject"});
@@ -65,9 +65,9 @@ class points extends Command {
                 message = "This level is not in judgement, no Shellders seem to have gotten to it yet!";
             }
 
-            message.channel.send(message);
+            message.reply(message);
         } else {            
-            message.channel.send("This level has probably already been approved or something!");
+            message.reply("This level has probably already been approved or something!");
         }        
     }
 }
