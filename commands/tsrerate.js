@@ -73,7 +73,17 @@ class TSRerate extends Command {
         await gs.batchUpdate(updateLevel.update_ranges);
       }
       
-      await this.client.channels.get(ts.channels.shellderLevelChanges).send(level["Level Name"] + " (" + level.Code + ") by <@" + author.discord_id + ">: Difficulty changed by <@" +message.member.id + "> - " + oldDiff + " to " + args.difficulty + " (Reason: " + args.reason + ")");
+      var rerateEmbed = this.client.util.embed()
+            .setColor("#17a2b8")
+            .setAuthor("Difficulty rating updated from "+oldDiff + " to " + args.difficulty)
+            .setTitle(level["Level Name"] + " (" + level.Code + ")")
+            .setDescription("made by <@" + author.discord_id + ">")
+
+          rerateEmbed.addField("\u200b","**Reason** :\n```"+args.reason+"```\nRerated by <@" +message.member.id + ">");
+          rerateEmbed = rerateEmbed.setTimestamp();
+          
+          //Send Rejection to #shellder-level-changes
+      await this.client.channels.get(ts.channels.shellderLevelChanges).send(rerateEmbed);
       message.reply("Difficulty was successfully changed!");
     }
 }
