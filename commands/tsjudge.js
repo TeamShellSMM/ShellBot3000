@@ -73,7 +73,7 @@ class TSJudge extends Command {
         postMessage += "\n<:Blank:669074779721957377>"*/
 
         //Build embed
-        var mention = "**<@" + author.discord_id + ">, new level update: **";
+        var mention = "**<@" + author.discord_id + ">, we got some news for you: **";
 
         var exampleEmbed = new Discord.RichEmbed()
           .setColor("#dc3545")
@@ -135,7 +135,7 @@ class TSJudge extends Command {
           }
 
           //Build Status Message
-          var mention = "<@" + author.discord_id + ">";
+          var mention = "**<@" + author.discord_id + ">, we got some news for you: **";
 
           var exampleEmbed = new Discord.RichEmbed()
             .setColor("#01A19F")
