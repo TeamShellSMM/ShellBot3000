@@ -79,7 +79,7 @@ class TSJudge extends Command {
           .setColor("#dc3545")
           .setAuthor("Level was " + (level.Approved === "0" ? "rejected" : "removed") + "!")
           .setTitle(level["Level Name"] + " (" + level.Code + ")")
-          .setUrl("https://teamshell.net/levels/?code=" + level.Code)
+          .setURL("https://teamshell.net/levels/?code=" + level.Code)
           .setDescription("made by [" + author.Name + "](https://teamshell.net/levels/?creator=" + urlencode(author.Name) + ")")
           .setThumbnail('https://teamshellsmm.github.io/assets/axemuncher.png');
 
@@ -141,7 +141,7 @@ class TSJudge extends Command {
             .setColor("#01A19F")
             .setAuthor("This level was approved for difficulty: " + finalDiff + "!")
             .setTitle(level["Level Name"] + " (" + level.Code + ")")
-            .setUrl("https://teamshell.net/levels/?code=" + level.Code)
+            .setURL("https://teamshell.net/levels/?code=" + level.Code)
             .setDescription("made by [" + author.Name + "](https://teamshell.net/levels/?creator=" + urlencode(author.Name) + ")")
             .setThumbnail('https://teamshellsmm.github.io/assets/bam.png');
 
