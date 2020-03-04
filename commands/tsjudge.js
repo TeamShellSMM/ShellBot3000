@@ -73,11 +73,14 @@ class TSJudge extends Command {
         postMessage += "\n<:Blank:669074779721957377>"*/
 
         //Build embed
+        var mention = "**<@" + author.discord_id + ">, we got some news for you: **";
+
         var exampleEmbed = new Discord.RichEmbed()
           .setColor("#dc3545")
           .setAuthor("Level was " + (level.Approved === "0" ? "rejected" : "removed") + "!")
           .setTitle(level["Level Name"] + " (" + level.Code + ")")
-          .setDescription("made by <@" + author.discord_id + ">")
+          .setURL("https://teamshell.net/levels/?code=" + level.Code)
+          .setDescription("made by [" + author.Name + "](https://teamshell.net/levels/?creator=" + encodeURIComponent(author.Name) + ")")
           .setThumbnail('https://teamshellsmm.github.io/assets/axemuncher.png');
 
         for(var i = 0; i < rejectVotes.length; i++){
@@ -87,6 +90,7 @@ class TSJudge extends Command {
         exampleEmbed = exampleEmbed.setTimestamp();
         
         //Send Rejection to #shellder-level-changes
+        await this.client.channels.get(ts.channels.shellderLevelChanges).send(mention);
         await this.client.channels.get(ts.channels.shellderLevelChanges).send(exampleEmbed);
         
         message.channel.delete("Justice has been met!");
@@ -131,11 +135,14 @@ class TSJudge extends Command {
           }
 
           //Build Status Message
+          var mention = "**<@" + author.discord_id + ">, we got some news for you: **";
+
           var exampleEmbed = new Discord.RichEmbed()
             .setColor("#01A19F")
             .setAuthor("This level was approved for difficulty: " + finalDiff + "!")
             .setTitle(level["Level Name"] + " (" + level.Code + ")")
-            .setDescription("made by <@" + author.discord_id + ">")
+            .setURL("https://teamshell.net/levels/?code=" + level.Code)
+            .setDescription("made by [" + author.Name + "](https://teamshell.net/levels/?creator=" + encodeURIComponent(author.Name) + ")")
             .setThumbnail('https://teamshellsmm.github.io/assets/bam.png');
 
           for(var i = 0; i < approvalVotes.length; i++){
@@ -145,6 +152,7 @@ class TSJudge extends Command {
           exampleEmbed = exampleEmbed.setTimestamp();
           
           //Send Rejection to #shellder-level-changes
+          await this.client.channels.get(ts.channels.shellderLevelChanges).send(mention);
           await this.client.channels.get(ts.channels.shellderLevelChanges).send(exampleEmbed);
         }
 
