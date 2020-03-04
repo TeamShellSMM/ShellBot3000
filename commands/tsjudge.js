@@ -74,7 +74,7 @@ class TSJudge extends Command {
 
         //Build embed
         var exampleEmbed = new Discord.RichEmbed()
-          .setColor("#01A19F")
+          .setColor("#dc3545")
           .setAuthor("Level was " + (level.Approved === "0" ? "rejected" : "removed") + "!")
           .setTitle(level["Level Name"] + " (" + level.Code + ")")
           .setDescription("made by <@" + author.discord_id + ">")
