@@ -1,5 +1,5 @@
 const { Command } = require('discord-akairo');
-class points extends Command {
+class TSLevelStatus extends Command {
     constructor() {
         super('tslevelstatus', {
            aliases: ['tslevelstatus'],
@@ -71,4 +71,4 @@ class points extends Command {
         }        
     }
 }
-module.exports = points;
+module.exports = TSLevelStatus;
