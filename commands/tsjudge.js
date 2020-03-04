@@ -80,7 +80,7 @@ class TSJudge extends Command {
           .setAuthor("Level was " + (level.Approved === "0" ? "rejected" : "removed") + "!")
           .setTitle(level["Level Name"] + " (" + level.Code + ")")
           .setURL("https://teamshell.net/levels/?code=" + level.Code)
-          .setDescription("made by [" + author.Name + "](https://teamshell.net/levels/?creator=" + urlencode(author.Name) + ")")
+          .setDescription("made by [" + author.Name + "](https://teamshell.net/levels/?creator=" + encodeURIComponent(author.Name) + ")")
           .setThumbnail('https://teamshellsmm.github.io/assets/axemuncher.png');
 
         for(var i = 0; i < rejectVotes.length; i++){
@@ -142,7 +142,7 @@ class TSJudge extends Command {
             .setAuthor("This level was approved for difficulty: " + finalDiff + "!")
             .setTitle(level["Level Name"] + " (" + level.Code + ")")
             .setURL("https://teamshell.net/levels/?code=" + level.Code)
-            .setDescription("made by [" + author.Name + "](https://teamshell.net/levels/?creator=" + urlencode(author.Name) + ")")
+            .setDescription("made by [" + author.Name + "](https://teamshell.net/levels/?creator=" + encodeURIComponent(author.Name) + ")")
             .setThumbnail('https://teamshellsmm.github.io/assets/bam.png');
 
           for(var i = 0; i < approvalVotes.length; i++){
