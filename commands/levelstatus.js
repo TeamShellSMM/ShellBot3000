@@ -49,18 +49,19 @@ class TSLevelStatus extends Command {
             var rejectVoteCount = rejectVotes.length;
 
             var text = "";
-            if(approvalVoteCount >= 3 && rejectVoteCount >= 3){
-                text = "This level is ready to be judged, but the votes are split so this might get interesting!";
-            } else if(approvalVoteCount >= 3){
-                text = "This level is ready to be judged, good news are probably coming soon!";
-            } else if(rejectVoteCount >= 3){
-                text = "This level is ready to be judged, bad news are probably coming soon!";
-            } else if(approvalVoteCount > 0 && rejectVoteCount > 0){
-                text = "This level is in judgement right now: " + approvalVoteCount + "/3 votes for approval, " + rejectVoteCount + "/3 votes for rejection!";
+            
+            if(approvalVoteCount > 3 || rejectVoteCount > 3){
+                text = "This level is in judgement right now: ";
+            } else {
+                text = "This level is ready to be judged: ";
+            }
+
+            if(approvalVoteCount > 0 && rejectVoteCount > 0){
+                text +=  approvalVoteCount + "/3 votes for approval, " + rejectVoteCount + "/3 votes for rejection!";
             } else if(approvalVoteCount > 0){
-                text = "This level is in judgement right now: " + approvalVoteCount + "/3 votes for approval!";
+                text += approvalVoteCount + "/3 votes for approval!";
             } else if(rejectVoteCount > 0){
-                text = "This level is in judgement right now: " + rejectVoteCount + "/3 votes for rejection!";
+                text += rejectVoteCount + "/3 votes for rejection!";
             } else {
                 text = "This level is not in judgement, no Shellders seem to have gotten to it yet!";
             }
