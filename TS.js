@@ -107,7 +107,7 @@ this.get_levels=function(isMap){ //get the aggregates
                 votetotal++;
                 votesum+=Number(clears[level.Code][player]["Difficulty Vote"])
               }
-              if(clears[level.Code][player].Liked){
+              if(clears[level.Code][player].Liked=="1"){
                 likes++;
               }
             }

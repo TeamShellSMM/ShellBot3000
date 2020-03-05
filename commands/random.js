@@ -1,4 +1,11 @@
 const { Command } = require('discord-akairo');
+
+function getRandomInt(min, max) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min)) + min; //The maximum is exclusive and the minimum is inclusive
+}
+
 class tsrandom extends Command {
     constructor() {
         super('tsrandom', {
@@ -53,9 +60,12 @@ class tsrandom extends Command {
         var played=[];
         gs.select("Raw Played",{"Player":player.Name,"Completed":1}).forEach((clear)=>{
           const level=levels[clear.Code]
-          if(level && level.Approved=="1"){
+          if(level && level.Approved=="1" && level.Creator!=player.Name){
             played.push(level.Code)
             difficulties.push(level.Difficulty)
+          }
+          if(level && level.Creator==player.Name){
+            played.push(level.Code)
           }
         })
 
@@ -65,28 +75,74 @@ class tsrandom extends Command {
         } else {
           if(difficulties.length>0){
             var middle=(difficulties.length-1)/2
-            console.log(middle)
-            var min=difficulties[Math.floor(middle)]
-            console.log(min)
-            var max=difficulties[Math.ceil(middle)]
-            console.log(max)
             difficulties.sort(function(a,b){
               return parseFloat(a)-parseFloat(b)
             })
+            var min=difficulties[Math.floor(middle)]
+            var max=difficulties[difficulties.length-1]
           } else {
             var min=0.5
             var max=1
           }
         }
 
-        
-        console.log(min)
-        console.log(max)
-        //console.log(difficulties)
-        //console.log(played)
+        min=parseFloat(min)
+        max=parseFloat(max)
 
-        var reply=""
-        message.channel.send(user_reply+reply)
+        var filtered_levels=[]
+        ts.get_levels().forEach((level)=>{
+          var currDifficulty=parseFloat(level.Difficulty)
+          if(
+            level.Approved=="1" &&
+            currDifficulty>=min &&
+            currDifficulty<=max &&
+            played.indexOf(level.Code)==-1
+          ){
+            filtered_levels.push(level)
+          }
+        })
+        filtered_levels.sort(function(a,b){
+          return parseFloat(a.likes)-parseFloat(b.likes)
+        })
+
+        var borderLine=Math.floor(filtered_levels.length*0.6)
+        if(Math.random()<0.2){
+          var randNum=getRandomInt(0,borderLine)
+        } else {
+          var randNum=getRandomInt(borderLine,filtered_levels.length)
+        }
+        var level=filtered_levels[randNum]
+        var videoStr=[]
+        level["Clear Video"].split(",").forEach((vid,i)=>{
+          if(vid) videoStr.push("[ 🎬 ]("+vid+")")
+        })
+        videoStr=videoStr.join(",")
+        var tagStr=[]
+        level.Tags.split(",").forEach((tag)=>{
+          if(tag) tagStr.push("["+tag+"](https://teamshellsmm.github.io/levels/?tag="+encodeURIComponent(tag)+")")
+        })
+        tagStr=tagStr.join(",")
+        
+        var randomEmbed = this.client.util.embed()
+            .setColor("#007bff")
+            .setAuthor("ShellBot rolled a d97 and found this level for you")
+            .setTitle(level["Level Name"] + " (" + level.Code + ")")
+            .setURL("https://teamshellsmm.github.io/levels/?code=" + level.Code)
+            .setDescription(
+              "made by [" + level.Creator + "](https://teamshellsmm.github.io/levels/?creator=" + encodeURIComponent(level.Creator) + ")\n"+
+              "Difficulty: "+level.Difficulty+", Clears: "+level.clears+", Likes: "+level.likes+"\n"+
+                (tagStr?"Tags: "+tagStr+"\n":"")+
+                (videoStr?"Clear Video: "+videoStr:"")
+             )
+
+        
+        
+        //randomEmbed.addField(,);
+        randomEmbed = randomEmbed.setTimestamp();
+          
+
+        await message.channel.send(user_reply)
+        await message.channel.send(randomEmbed)
       } catch (error) {
         message.reply(ts.getUserErrorMsg(error))
       }
