@@ -47,7 +47,6 @@ this.load=async function(){
   }
 
   console.log("TS Vars loaded")
-  console.log(this.emotes)
 }
 
 function get_variable(var_name){
@@ -70,6 +69,21 @@ function levelsAvailable(points,levelsUploaded){
   return pointsDifference
 }
 
+this.userError=function(errorStr){
+  throw {
+    "errorType":"user",
+    "msg":errorStr
+  }
+}
+this.getUserErrorMsg=function(obj){
+  if(typeof obj=="object" && obj.errorType=="user"){
+    return obj.msg+" "+this.emotes.think
+  } else {
+    console.error(obj)
+    return "Something went wrong "+this.emotes.buzzyS
+  }
+}
+
 this.get_rank=function(points){
   var point_rank=gs.select("TeamShell Ranks")
   for(var i=point_rank.length-1;i>=0;i--){
@@ -80,7 +94,7 @@ this.get_rank=function(points){
   return false
 }
 
-this.calculatePoints=function(user){
+this.calculatePoints=function(user,if_remove_check){ //delta check is to see if we can add a level if we remove it
    var currentLevels = gs.select("Raw Levels");
    var levelMap={};
    var ownLevels=[];
@@ -101,7 +115,7 @@ this.calculatePoints=function(user){
            levelMap[currentLevels[row].Code]=pointMap[parseFloat(currentLevels[row].Difficulty)]
          }
        }
-     } else if(currentLevels[row].Approved=="0" && currentLevels[row].Creator==user){
+     } else if((currentLevels[row].Approved==null || currentLevels[row].Approved=="" || currentLevels[row].Approved=="0") && currentLevels[row].Creator==user){
        ownLevels.push(currentLevels[row].Code)
      }
       
@@ -113,7 +127,7 @@ this.calculatePoints=function(user){
    })
   
    var userCleared={};
-   for (var row = 0; row < playedLevels.length; row++){
+   for (var row = 0; playedLevels && row < playedLevels.length; row++){
        var id= reuploads[playedLevels[row].Code] ? reuploads[playedLevels[row].Code] : playedLevels[row].Code
        userCleared[id]= Math.max( userCleared[id]?userCleared[id]:0, levelMap[playedLevels[row].Code] )
    }
@@ -124,10 +138,11 @@ this.calculatePoints=function(user){
   }
 
    
+  var ownLevelNumbers=ownLevels.length + (if_remove_check?-1:0) //check if can upload a level if we removed one. for reuploads
   return {
     clearPoints:clearPoints.toFixed(1),
     levelsMade:ownLevels.length,
-    available:levelsAvailable(clearPoints,ownLevels.length),
+    available:levelsAvailable(clearPoints,ownLevelNumbers),
   }
 }
 

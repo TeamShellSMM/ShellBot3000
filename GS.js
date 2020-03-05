@@ -147,7 +147,10 @@ var GS=function(config){
     let url = "https://sheets.googleapis.com/v4/spreadsheets/"+config.spreadsheetId+"/values/"+encodeURI("'"+sheet+"'")+":append?insertDataOption=INSERT_ROWS&valueInputOption=USER_ENTERED"
     var new_row=[],hasData=false;
     for(var i=0;i<header.length;i++){
-      var cur_col=pData[header[i]]?pData[header[i]]:'';
+      var cur_col=pData[header[i]]
+      if(cur_col===undefined || cur_col===null){
+        cur_col=''
+      }
       if(!cur_col && header[i]==this.timestampVarName){
         cur_col=this.timestamp();
       }

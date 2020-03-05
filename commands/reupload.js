@@ -20,20 +20,26 @@ class tsreupload extends Command {
          //if(!( 
         //    message.channel.id === ts.channels.shellderShellbot  //only in bot-test channel
         //)) return false;
-
       try {
-        await gs.loadSheets(["Raw Members","Raw Levels"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
+        await gs.loadSheets(["Raw Members","Raw Levels","Raw Played"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
   
         var player=gs.select("Raw Members",{
           "discord_id":message.author.id
         })
-        if(!player) throw "You are not yet registered";
 
-        var oldCode=args.oldCode.toUpperCase()
-        var newCode=args.newCode.toUpperCase()
+        if(!player)
+          ts.userError("You are not yet registered");
+        var earned_points=ts.calculatePoints(player.Name);
+        var rank=ts.get_rank(earned_points.clearPoints);
+        var user_reply="<@"+message.author.id+">"+rank.Pips+" ";
 
-        if(!ts.valid_code(oldCode)) throw "You did not provide a valid code for the old level"
-        if(!ts.valid_code(newCode)) throw "You did not provide a valid code for the new level"
+        var oldCode=args.oldCode.toUpperCase();
+        var newCode=args.newCode.toUpperCase();
+
+        if(!ts.valid_code(oldCode))
+          ts.userError("You did not provide a valid code for the old level")
+        if(!ts.valid_code(newCode))
+          ts.userError("You did not provide a valid code for the new level")
 
         var level=gs.select("Raw Levels",{"Code":oldCode}) //old level to be reuploadd
         var new_level=gs.select("Raw Levels",{"Code":newCode}) //new level just incase they've already tsadded
@@ -43,13 +49,20 @@ class tsreupload extends Command {
           update:{"NewCode":newCode}
         })
 
+        if(!level) ts.userError("Level not found");
 
-        if(!level) throw "Level not found";
-        if(new_level && level.Creator!=new_level.Creator) throw "The new level uploaded doesn't have the same creator as the old level";
-        if(new_level && new_level.Approved!=0 && new_level!=1) throw "The new level is not approved or pending";
+        var creator_points=ts.calculatePoints(level.Creator,level.Approved=="1" || level.Approved=="0")
+        
+        if(new_level && level.Creator!=new_level.Creator)
+          ts.userError("The new level uploaded doesn't have the same creator as the old level");
+        if(new_level && new_level.Approved!=0 && new_level!=1)
+          ts.userError("The new level is not approved or pending");
+        if(!new_level && creator_points.available<0)
+          ts.userError("Creator doesn't have enough to upload a new level");
 
         //only creator and shellder can reupload a level
-        if(!(level.Creator==player.Name || player.shelder=="1")) throw "You can't reupload \""+level["Level Name"]+"\" by "+level.Creator;
+        if(!(level.Creator==player.Name || player.shelder=="1"))
+          ts.userError("You can't reupload \""+level["Level Name"]+"\" by "+level.Creator);
   
         level=gs.query("Raw Levels",{
           filter:{"Code":oldCode},
@@ -79,10 +92,9 @@ class tsreupload extends Command {
         if(!new_level){
           reply+=" If you want to rename the new level, you can use !tsrename new-code level name."
         }
-        message.reply(reply)
-        
+        message.channel.send(user_reply+reply)
       } catch (error) {
-        message.reply(error+" "+ts.emotes.think)
+        message.reply(ts.getUserErrorMsg(error))
       }
     }
 }
