@@ -28,6 +28,7 @@ var GS=function(config){
   let json_header={}
   let SheetCache={} //not sure if I need a mutex here or not
   this.loadSheets=async function(ranges){ //input is sheets to be loaded. load to cache to be stored
+    try {
     let authClient=await get_token()
     ranges=ranges?ranges.join("&ranges="):""
     let url = "https://sheets.googleapis.com/v4/spreadsheets/"+config.spreadsheetId+"/values:batchGet?ranges="+ranges
@@ -62,6 +63,9 @@ var GS=function(config){
       }
     }
     return returnData
+    } catch (error){
+      console.error(error)
+    }
   }
 
   //need to load 
@@ -72,6 +76,7 @@ var GS=function(config){
   }
   
   this.query=function (sheet,parameters){ //may break if column named updated or row
+    try{
     var querySheet = SheetCache[sheet]
     if(!querySheet) return "No sheet found"
     var headers=json_header[sheet];
@@ -121,6 +126,9 @@ var GS=function(config){
       }
     } 
     return (ret.length>1) ? ret : ret[0]
+    } catch (error){
+      console.error(error)
+    }
   }
 
 
@@ -131,6 +139,7 @@ var GS=function(config){
   
 
   this.insert =async function(sheet,pData){
+    try {
     var header=json_header[sheet];
     if(!sheet) throw "No sheet selected";
     if(!header) throw "Sheet has not been loaded or doesn't exist";
@@ -164,12 +173,15 @@ var GS=function(config){
     });
     
     return response
+    } catch(error){
+      console.log(error)
+    }
 
   }
 
   //store batchUpdates in a cache then run batchUpdate to save changes?
   this.batchUpdate=async function(ranges){ //for ease of use format will be strictly r1c1
-    //'Team Shell Data Guide'!r1c2
+    try {
     let url="https://sheets.googleapis.com/v4/spreadsheets/"+config.spreadsheetId+"/values:batchUpdate"
     var data={
       "valueInputOption": "USER_ENTERED",
@@ -188,6 +200,9 @@ var GS=function(config){
       body: JSON.stringify(data)
     })
     return response
+    } catch(error){
+      console.log(error)
+    }
   }
 }
 
