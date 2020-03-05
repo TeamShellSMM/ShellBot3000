@@ -104,6 +104,9 @@ class tsrandom extends Command {
         filtered_levels.sort(function(a,b){
           return parseFloat(a.likes)-parseFloat(b.likes)
         })
+        if(filtered_levels.length==0){
+          ts.userError("You have ran out of levels in this range")
+        }
 
         var borderLine=Math.floor(filtered_levels.length*0.6)
         if(Math.random()<0.2){
