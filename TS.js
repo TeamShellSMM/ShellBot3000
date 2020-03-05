@@ -13,7 +13,7 @@ this.channels={}
 this.emotes={}
 
 //hard coded for now. 10.5 and 11 just in case
-var validDifficulty=[0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8,1.9,2,2.1,2.2,2.3,2.4,2.5,2.6,2.7,2.8,2.9,3,3.1,3.2,3.3,3.4,3.5,3.6,3.7,3.8,3.9,4,4.1,4.2,4.3,4.4,4.5,4.6,4.7,4.8,4.9,5,5.1,5.2,5.3,5.4,5.5,5.6,5.7,5.8,5.9,6,6.1,6.2,6.3,6.4,6.5,6.6,6.7,6.8,6.9,7,7.1,7.2,7.3,7.4,7.5,7.6,7.7,7.8,7.9,8,8.1,8.2,8.3,8.4,8.5,8.6,8.7,8.8,8.9,9,9.1,9.2,9.3,9.4,9.5,9.6,9.7,9.8,9.9,10,10.5,11];
+var validDifficulty=[0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8,1.9,2,2.1,2.2,2.3,2.4,2.5,2.6,2.7,2.8,2.9,3,3.1,3.2,3.3,3.4,3.5,3.6,3.7,3.8,3.9,4,4.1,4.2,4.3,4.4,4.5,4.6,4.7,4.8,4.9,5,5.1,5.2,5.3,5.4,5.5,5.6,5.7,5.8,5.9,6,6.1,6.2,6.3,6.4,6.5,6.6,6.7,6.8,6.9,7,7.1,7.2,7.3,7.4,7.5,7.6,7.7,7.8,7.9,8,8.1,8.2,8.3,8.4,8.5,8.6,8.7,8.8,8.9,9,9.1,9.2,9.3,9.4,9.5,9.6,9.7,9.8,9.9,10,10.5,11,12];
 this.valid_difficulty=function(str){ //whack code. 
   for(var i=0;i<validDifficulty.length;i++){
     if(validDifficulty[i]==str) return true
@@ -82,6 +82,48 @@ this.getUserErrorMsg=function(obj){
     console.error(obj)
     return "Something went wrong "+this.emotes.buzzyS
   }
+}
+
+this.get_levels=function(isMap){ //get the aggregates
+    var clears={}
+    gs.select("Raw Played").forEach((played)=>{
+      if(!clears[played.Code]) clears[played.Code]={}
+      clears[played.Code][played.Player]=played
+    })
+    var levels=isMap?{}:[]
+    gs.select("Raw Levels").forEach((level)=>{
+        var tsclears=0;
+        var votesum=0;
+        var votetotal=0;
+        var likes=0;
+
+        if(clears[level.Code]){
+          for(var player in clears[level.Code]){
+            if(player!=level.Creator){
+              if(clears[level.Code][player].Completed=="1"){
+                tsclears++;
+              }
+              if(clears[level.Code][player]["Difficulty Vote"]){
+                votetotal++;
+                votesum+=Number(clears[level.Code][player]["Difficulty Vote"])
+              }
+              if(clears[level.Code][player].Liked=="1"){
+                likes++;
+              }
+            }
+          }
+        }
+        level.clears=tsclears //no. of clears
+        level.vote=votetotal>0? ((votesum/votetotal).toFixed(1)):0 //avg vote, num votes
+        level.votetotal=votetotal
+        level.likes=likes
+        if(isMap){
+          levels[level.Code]=level
+        } else {
+          levels.push(level)  
+        }
+    })
+    return levels
 }
 
 this.get_rank=function(points){
