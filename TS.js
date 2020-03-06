@@ -84,6 +84,34 @@ this.getUserErrorMsg=function(obj){
   }
 }
 
+this.get_user=function(message){
+  var player=gs.select("Raw Members",{
+    "discord_id":message.author.id
+  })
+
+  if(!player)
+    ts.userError("You are not yet registered");
+  player.earned_points=this.calculatePoints(player.Name);
+  player.rank=this.get_rank(player.earned_points.clearPoints);
+  player.user_reply="<@"+message.author.id+">"+player.rank.Pips+" ";
+  return player
+}
+
+this.parse_command=function(message){ //assumes there's prefix
+  var raw_command=message.content.trim();
+  raw_command=raw_command.split(" ");
+  var sb_command=raw_command.shift().toLowerCase().substring(1);
+  var filtered=[]
+  raw_command.forEach((s)=>{
+    if(s) filtered.push(s)
+  })
+  return {
+    command:sb_command,
+    arguments:filtered,
+    argumentString:filtered.join(" "),
+  }
+}
+
 this.get_levels=function(isMap){ //get the aggregates
     var clears={}
     gs.select("Raw Played").forEach((played)=>{

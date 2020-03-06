@@ -9,7 +9,7 @@ var Shellbot2000Commands={
   "dontatmebot":"dontatme",
   "tsclear":"clear",
   "tsdifficulty":"difficulty",
-  "tsremovelevel":"removelevel",
+  //"tsremovelevel":"removelevel",
   "tsremoveclear":"removeclear",
   
   "tslike":"like",

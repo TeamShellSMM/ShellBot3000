@@ -82,7 +82,7 @@ class TSRerate extends Command {
             .setURL("https://teamshell.net/levels/?code=" + level.Code)
             .setDescription("made by [" + author.Name + "](https://teamshell.net/levels/?creator=" + encodeURIComponent(author.Name) + ")")
 
-          rerateEmbed.addField("\u200b","**Reason** :\n```"+args.reason+"```\nRerated by <@" +message.member.id + ">");
+          rerateEmbed.addField("\u200b","**Reason** :\n```"+args.reason+"```Rerated by <@" +message.member.id + ">");
           rerateEmbed = rerateEmbed.setTimestamp();
           
           //Send Rejection to #shellder-level-changes
