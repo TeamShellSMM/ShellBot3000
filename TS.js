@@ -49,6 +49,15 @@ this.load=async function(){
   console.log("TS Vars loaded")
 }
 
+this.creator_str=function(level){
+  var creator=gs.select("Raw Members",{"Name":level.Creator});
+   if(creator && creator.atme=="1" && creator.discord_id){
+     return "<@"+creator.discord_id+">"
+    } else {
+     return level.Creator
+    }
+}
+
 function get_variable(var_name){
   var ret=gs.select("TeamShell Variable",{
     "Variable":var_name

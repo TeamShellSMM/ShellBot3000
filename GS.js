@@ -106,7 +106,7 @@ var GS=function(config){
         if(parameters && parameters.update){
           var data=[]
           for(var u in parameters.update){
-            if(row[u]!=parameters.update[u]){
+            if(obj[u]!=parameters.update[u]){
               data.push({ 
                 range: r1c1(sheet,querySheet[row]["GS_row_id"],header_to_id[u]),
                 values: [[parameters.update[u]]]
