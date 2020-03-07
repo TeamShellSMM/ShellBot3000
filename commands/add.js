@@ -21,7 +21,7 @@ class tsadd extends Command {
           code=code.toUpperCase()
 
         if(!ts.valid_code(code))
-          ts.userError("You did not provide a valid code for the old level")
+          ts.userError("You did not provide a valid level code")
 
         const level_name=command.arguments.join(" ")
 

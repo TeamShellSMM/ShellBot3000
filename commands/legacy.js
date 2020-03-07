@@ -3,9 +3,7 @@ const { Command } = require('discord-akairo');
 const config = require("../config.json");
 
 
-var Shellbot2000Commands={
-  "tsrename":"rename",
-  
+var Shellbot2000Commands={  
   "addtags":"addtags",
   "addtag":"addtags",
   "tsaddtags":"addtags",
