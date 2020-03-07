@@ -13,15 +13,9 @@ class points extends Command {
     }
     
     async exec(message,args) {     
+        try{
         await gs.loadSheets(["Raw Members","Raw Levels","Raw Played"]);
-        var player=gs.select("Raw Members",{
-          "discord_id":message.author.id
-        })
-
-        if(!player) message.reply("You haven't registered yet")
-        var earned_points=ts.calculatePoints(player.Name) 
-        var rank=ts.get_rank(earned_points.clearPoints)
-        var user_reply="<@"+message.author.id+">"+rank.Pips+" "
+        const player=ts.get_user(message);
 
         var all_ranks=gs.select("TeamShell Ranks");
         var all_ranks_id=all_ranks.map(r=>r.discord_roles)
@@ -29,20 +23,22 @@ class points extends Command {
           await message.member.removeRoles(all_ranks_id)
         }
         if(args.role=="role"){
-          await message.member.addRole(rank.discord_roles)
+          await message.member.addRole(player.rank.discord_roles)
         }
 
-         var msg="You have "+earned_points.clearPoints+" clear points. You have submitted "+earned_points.levelsMade+" level(s). "
+        var msg="You have "+player.earned_points.clearPoints+" clear points. You have submitted "+player.earned_points.levelsMade+" level(s). "
 
-         if(earned_points.available>=0){
+        if(player.earned_points.available>=0){
            msg+="You have enough points to upload a level "+ts.emotes.PigChamp; 
-         } else {
-           msg+="You need "+Math.abs(earned_points.available).toFixed(1)+" points to upload a new level "+ts.emotes.buzzyS+". Check how the points are mapped on http://bit.ly/teamshell.";
-         }
-         msg+=" You have earned the rank **"+rank.Rank+"** "+rank.Pips
+        } else {
+           msg+="You need "+Math.abs(player.earned_points.available).toFixed(1)+" points to upload a new level "+ts.emotes.buzzyS+". Check how the points are mapped on http://bit.ly/teamshell.";
+        }
+        msg+=" You have earned the rank **"+player.rank.Rank+"** "+player.rank.Pips
 
-        message.channel.send(user_reply+msg)
-        
+            message.channel.send(player.user_reply+msg)
+        } catch (error) {
+            message.reply(ts.getUserErrorMsg(error))
+        }
     }
 }
 module.exports = points;

@@ -25,9 +25,6 @@ var Shellbot2000Commands={
   "removevid":"removevods",
   "tsremovevids":"removevods",
   "tsremovevid":"removevods",
-
-  //"tsadd":"add",
-  //"add":"add"
 }
 
 var ssb2000_commands=Object.keys(Shellbot2000Commands)
