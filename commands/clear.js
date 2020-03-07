@@ -22,10 +22,7 @@ class TSClear extends Command {
     
     async exec(message,args) {
         try{
-          await gs.loadSheets(["Raw Members","Raw Levels","Raw Played"]);
           args.code=args.code.toUpperCase();
-          
-          const player=ts.get_user(message);
           var command=ts.parse_command(message);
 
           if(!ts.valid_code(args.code))
@@ -44,6 +41,8 @@ class TSClear extends Command {
             ts.userError("You did not provide a valid difficulty vote");
           }
       
+          await gs.loadSheets(["Raw Members","Raw Levels","Raw Played"]);
+          const player=ts.get_user(message);
           var level=gs.select("Raw Levels",{"Code":args.code})
            if(
               !level || //level doesn't exist

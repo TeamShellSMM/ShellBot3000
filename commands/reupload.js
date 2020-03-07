@@ -2,7 +2,7 @@ const { Command } = require('discord-akairo');
 class tsreupload extends Command {
     constructor() {
         super('tsreupload', {
-           aliases: ['tsreupload'],
+           aliases: ['tsreupload','reupload'],
             args: [{
                     id: 'oldCode',
                     type: 'string',
@@ -21,6 +21,17 @@ class tsreupload extends Command {
         //    message.channel.id === ts.channels.shellderShellbot  //only in bot-test channel
         //)) return false;
       try {
+
+        var oldCode=args.oldCode.toUpperCase();
+        var newCode=args.newCode.toUpperCase();
+
+        if(!ts.valid_code(oldCode))
+          ts.userError("You did not provide a valid code for the old level")
+        if(!ts.valid_code(newCode))
+          ts.userError("You did not provide a valid code for the new level")
+        if(oldCode==newCode)
+          ts.userError("The codes given were the same")
+
         await gs.loadSheets(["Raw Members","Raw Levels","Raw Played"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
   
         var player=gs.select("Raw Members",{
@@ -33,13 +44,6 @@ class tsreupload extends Command {
         var rank=ts.get_rank(earned_points.clearPoints);
         var user_reply="<@"+message.author.id+">"+rank.Pips+" ";
 
-        var oldCode=args.oldCode.toUpperCase();
-        var newCode=args.newCode.toUpperCase();
-
-        if(!ts.valid_code(oldCode))
-          ts.userError("You did not provide a valid code for the old level")
-        if(!ts.valid_code(newCode))
-          ts.userError("You did not provide a valid code for the new level")
 
         var level=gs.select("Raw Levels",{"Code":oldCode}) //old level to be reuploadd
         var new_level=gs.select("Raw Levels",{"Code":newCode}) //new level just incase they've already tsadded

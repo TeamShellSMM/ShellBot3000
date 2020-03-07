@@ -13,9 +13,7 @@ class tsremove extends Command {
         //    message.channel.id === ts.channels.shellderShellbot  //only in bot-test channel
         //)) return false;
       try {
-        await gs.loadSheets(["Raw Members","Raw Levels","Raw Played"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
-  
-        const player=ts.get_user(message);
+
         var command=ts.parse_command(message) 
 
         var level_code=command.arguments.shift().toUpperCase();
@@ -27,6 +25,9 @@ class tsremove extends Command {
         if(!reason)
           ts.userError("You did not provide a reason to remove this level. If you want to reupload, we recommend using the `!tsreupload` command. If you want to remove it now and reupload it later make sure __you don't lose the old code__")
 
+
+        await gs.loadSheets(["Raw Members","Raw Levels","Raw Played"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff  
+        const player=ts.get_user(message);
         var level=gs.select("Raw Levels",{"Code":level_code}) //old level to be reuploadd
         if(!level)
           ts.userError("Level not found");

@@ -9,7 +9,7 @@ function getRandomInt(min, max) {
 class tsrandom extends Command {
     constructor() {
         super('tsrandom', {
-           aliases: ['tsrandom'],
+           aliases: ['tsrandom','random'],
             args: [{
                     id: 'minDifficulty',
                     type: 'string',
@@ -28,19 +28,9 @@ class tsrandom extends Command {
         //    message.channel.id === ts.channels.shellderShellbot  //only in bot-test channel
         //)) return false;
       try {
-        await gs.loadSheets(["Raw Members","Raw Levels","Raw Played"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
-  
-        const player=gs.select("Raw Members",{
-          "discord_id":message.author.id
-        })
 
-        if(!player)
-          ts.userError("You are not yet registered");
-        const earned_points=ts.calculatePoints(player.Name);
-        const rank=ts.get_rank(earned_points.clearPoints);
-        const user_reply="<@"+message.author.id+">"+rank.Pips+" ";
 
-        if(args.minDifficulty && !ts.valid_difficulty(args.minDifficulty)){
+         if(args.minDifficulty && !ts.valid_difficulty(args.minDifficulty)){
           ts.userError(args.maxDifficulty? "You didn't specify a valid minimum difficulty" : "You didn't specify a valid difficulty")
         }
         
@@ -53,6 +43,23 @@ class tsrandom extends Command {
             args.maxDifficulty=args.minDifficulty
           }
         }
+
+        if(args.minDifficulty>args.maxDifficulty){
+          let temp=args.maxDifficulty
+          args.maxDifficulty=args.minDifficulty
+          args.minDifficulty=temp
+        }
+
+        await gs.loadSheets(["Raw Members","Raw Levels","Raw Played"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
+        const player=gs.select("Raw Members",{
+          "discord_id":message.author.id
+        })
+
+        if(!player)
+          ts.userError("You are not yet registered");
+        const earned_points=ts.calculatePoints(player.Name);
+        const rank=ts.get_rank(earned_points.clearPoints);
+        const user_reply="<@"+message.author.id+">"+rank.Pips+" ";
 
 
         const levels=ts.get_levels(true) //get levels with aggregates and stats

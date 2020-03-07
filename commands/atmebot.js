@@ -15,10 +15,9 @@ class atmebot extends Command {
     async exec(message,args) {
         try{
           const atmeCommands=["atmebot",'atme']
-          await gs.loadSheets(["Raw Members","Raw Levels","Raw Played"]);
-          args.code=args.code.toUpperCase();
-
           var command=ts.parse_command(message);
+
+          await gs.loadSheets(["Raw Members","Raw Levels","Raw Played"]);
           const player=ts.get_user(message);
 
           if(atmeCommands.indexOf(command.command)!=-1){

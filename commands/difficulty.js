@@ -18,14 +18,17 @@ class tsdifficulty extends Command {
     
     async exec(message,args) {
         try{
-          await gs.loadSheets(["Raw Members","Raw Levels","Raw Played"]);
-          args.code=args.code.toUpperCase();
-          
-          const player=ts.get_user(message);
 
+                    
+          args.code=args.code.toUpperCase();
           if(!ts.valid_code(args.code))
             ts.userError("You did not provide a valid code for the level");
+
+          if(!ts.valid_difficulty(args.difficulty))
+            ts.userError("You didn't provide a valid difficulty vote")
       
+          await gs.loadSheets(["Raw Members","Raw Levels","Raw Played"]);
+          const player=ts.get_user(message);
           var level=gs.select("Raw Levels",{"Code":args.code})
            if(
               !level || //level doesn't exist
@@ -36,9 +39,6 @@ class tsdifficulty extends Command {
 
           if(level.Creator==player.Name)
             ts.userError("You can't submit a difficulty vote for your own level")
-
-          if(!ts.valid_difficulty(args.difficulty))
-            ts.userError("You didn't provide a valid difficulty vote")
 
           var existing_play=gs.select("Raw Played",{"Code":args.code,"Player":player.Name})
           if(!existing_play || existing_play && existing_play.Completed!="1")

@@ -14,13 +14,14 @@ class TSRemoveclear extends Command {
     
     async exec(message,args) {
         try{
-          await gs.loadSheets(["Raw Members","Raw Levels","Raw Played"]);
+          
           args.code=args.code.toUpperCase();
-          const player=ts.get_user(message);
-
           if(!ts.valid_code(args.code))
             ts.userError("You did not provide a valid code for the level");
-      
+
+          await gs.loadSheets(["Raw Members","Raw Levels","Raw Played"]);
+          const player=ts.get_user(message);
+
           var level=gs.select("Raw Levels",{"Code":args.code})
            if(
               !level || //level doesn't exist

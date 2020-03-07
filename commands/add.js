@@ -12,9 +12,7 @@ class tsadd extends Command {
         //    message.channel.id === ts.channels.shellderShellbot  //only in bot-test channel
         //)) return false;
       try {
-        await gs.loadSheets(["Raw Members","Raw Levels","Raw Played"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
-  
-        const player=ts.get_user(message);
+
         let command=ts.parse_command(message);
         let code=command.arguments.shift()
         if(code)
@@ -28,6 +26,8 @@ class tsadd extends Command {
         if(!level_name)
           ts.userError("You didn't give a level name")
 
+        await gs.loadSheets(["Raw Members","Raw Levels","Raw Played"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
+        const player=ts.get_user(message);
         var existing_level=gs.select("Raw Levels",{"Code":code})
 
         if(existing_level)
