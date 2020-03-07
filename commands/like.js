@@ -2,7 +2,7 @@ const { Command } = require('discord-akairo');
 class tslike extends Command {
     constructor() {
         super('tslike', {
-           aliases: ['tslike','like'],
+           aliases: ['tslike','like','tsunlike','unlike'],
             args: [{
                     id: 'code',
                     type: 'string',
@@ -14,9 +14,11 @@ class tslike extends Command {
     
     async exec(message,args) {
         try{
+          const likeCommands=["tslike","like"];
           await gs.loadSheets(["Raw Members","Raw Levels","Raw Played"]);
           args.code=args.code.toUpperCase();
-          
+
+          var command=ts.parse_command(message);
           const player=ts.get_user(message);
 
           if(!ts.valid_code(args.code))
@@ -39,17 +41,27 @@ class tslike extends Command {
 
           var creator_str=ts.creator_str(level) //will return discord id if wants to be atted
 
+          if(likeCommands.indexOf(command.command)!=-1){
+            var likeVal=1
+            var alreadyError="You have already liked \""+level["Level Name"]+" by "+level.Creator;
+            var msg="You have liked \""+level["Level Name"]+"\"  by "+creator_str+" "+ts.emotes.love
+          } else {
+            var likeVal=''
+            var alreadyError="You have not liked \""+level["Level Name"]+" by "+level.Creator;
+            var msg="You have unliked \""+level["Level Name"]+"\"  by "+creator_str+" "+ts.emotes.bam
+          }
+
           existing_play=gs.query("Raw Played",{
             filter:{"Code":args.code,"Player":player.Name},
-            update:{"Liked":1}
+            update:{"Liked":likeVal}
           })
 
           if(!existing_play.updated["Liked"])
-            ts.userError("You have already liked \""+level["Level Name"]+" by "+level.Creator)
+            ts.userError(alreadyError)
           
           await gs.batchUpdate(existing_play.update_ranges)
 
-          var msg="You have liked \""+level["Level Name"]+"\"  by "+creator_str+" "+ts.emotes.love
+          
           message.channel.send(player.user_reply+msg)
         } catch(error){
             message.reply(ts.getUserErrorMsg(error))

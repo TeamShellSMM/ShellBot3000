@@ -9,9 +9,6 @@ var Shellbot2000Commands={
   "dontatmebot":"dontatme",
   "tsremoveclear":"removeclear",
   
-  "tsunlike":"unlike",
-  "unlike":"unlike",
-  
   "tsrename":"rename",
   
   "addtags":"addtags",
