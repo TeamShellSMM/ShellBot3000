@@ -41,7 +41,7 @@ class tsdifficulty extends Command {
             ts.userError("You didn't provide a valid difficulty vote")
 
           var existing_play=gs.select("Raw Played",{"Code":args.code,"Player":player.Name})
-          if(!existing_play)
+          if(!existing_play || existing_play && existing_play.Completed!="1")
             ts.userError("You haven't submitted a clear for \""+level["Level Name"]+" by "+level.Creator)
 
           var creator_str=ts.creator_str(level) //will return discord id if wants to be atted
