@@ -5,8 +5,6 @@ const config = require("../config.json");
 
 var Shellbot2000Commands={
   "register":"register",
-  "atmebot":"atme",
-  "dontatmebot":"dontatme",
   "tsremoveclear":"removeclear",
   
   "tsrename":"rename",

@@ -78,7 +78,7 @@ var GS=function(config){
   this.query=function (sheet,parameters){ //may break if column named updated or row
     try{
     var querySheet = SheetCache[sheet]
-    if(!querySheet) return "No sheet found"
+    if(!querySheet) throw "No cached sheet found"
     var headers=json_header[sheet];
     
     var header_to_id={}
