@@ -51,8 +51,8 @@ class TSClear extends Command {
              ){
             ts.userError("Level code was not found in Team Shell's list ");
           }
-
-          if(gs.select("Raw Played",{"Code":args.code,"Player":player.Name}))
+          var existing_play=gs.select("Raw Played",{"Code":args.code,"Player":player.Name})
+          if(existing_play && existing_play.Completed=="1")
             ts.userError("You have already submitted a clear for \""+level["Level Name"]+" by "+level.Creator)
 
           if(level.Creator==player.Name)
@@ -64,7 +64,6 @@ class TSClear extends Command {
           } else {
            var creator_str=level.Creator
           }
-
           var row={
             "Code":args.code,
             "Player":player.Name,
@@ -72,9 +71,17 @@ class TSClear extends Command {
             "Shelder":player.shelder,
             "Liked":args.like,
             "Difficulty Vote":args.difficulty,
+            "Timestamp":gs.timestamp()
           }
-
-          await gs.insert("Raw Played",row);
+          if(existing_play){
+            var update=gs.query("Raw Played",{
+              filter:{"Code":args.code,"Player":player.Name},
+              update:row,
+            })
+            await gs.batchUpdate(update.update_ranges)
+          } else {
+            await gs.insert("Raw Played",row);
+          }
  
           var msg=["You have cleared \""+level["Level Name"]+"\"  by "+creator_str+" "+ts.emotes.GG]
           if(args.difficulty)
