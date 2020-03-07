@@ -5,7 +5,7 @@ const config = require("../config.json");
 
 var Shellbot2000Commands={
   "register":"register",
-  "tsremoveclear":"removeclear",
+  //"tsremoveclear":"removeclear",
   
   "tsrename":"rename",
   
