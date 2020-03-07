@@ -84,7 +84,22 @@ class TSJudge extends Command {
           .setThumbnail('https://teamshellsmm.github.io/assets/axemuncher.png');
 
         for(var i = 0; i < rejectVotes.length; i++){
-          exampleEmbed = exampleEmbed.addField(rejectVotes[i].Shellder + " voted for rejection", rejectVotes[i].Reason);
+          var embedHeader=rejectVotes[i].Shellder + " voted " + rejectVotes[i].Difficulty
+            var reasonArr=rejectVotes[i].Reason.split(".")
+            var reasonStr=[""];
+            for(var k=0,l=0;k<reasonArr.length;k++){
+              if(reasonArr[k]){
+              if( (reasonStr[l].length+reasonArr[k].length+1) > 980 ){
+                l++;
+                reasonStr[l]=""
+              }
+                reasonStr[l]+=reasonArr[k]+"."
+              }
+            }
+            for(var k=0;k<reasonStr.length;k++){
+              exampleEmbed = exampleEmbed.addField(embedHeader,reasonStr[k]);
+              embedHeader = "\u200b"
+            }
         }
         
         exampleEmbed = exampleEmbed.setTimestamp();
@@ -146,7 +161,22 @@ class TSJudge extends Command {
             .setThumbnail('https://teamshellsmm.github.io/assets/bam.png');
 
           for(var i = 0; i < approvalVotes.length; i++){
-            exampleEmbed = exampleEmbed.addField(approvalVotes[i].Shellder + " voted " + approvalVotes[i].Difficulty, approvalVotes[i].Reason);
+            var embedHeader=approvalVotes[i].Shellder + " voted " + approvalVotes[i].Difficulty
+            var reasonArr=approvalVotes[i].Reason.split(".")
+            var reasonStr=[""];
+            for(var k=0,l=0;k<reasonArr.length;k++){
+              if(reasonArr[k]){
+              if( (reasonStr[l].length+reasonArr[k].length+1) > 980 ){
+                l++
+                reasonStr[l]=""
+              }
+                reasonStr[l]+=reasonArr[k]+"."
+              }
+            }
+            for(var k=0;k<reasonStr.length;k++){
+              exampleEmbed = exampleEmbed.addField(embedHeader,reasonStr[k]);
+              embedHeader = "\u200b"
+            }
           }
           
           exampleEmbed = exampleEmbed.setTimestamp();
