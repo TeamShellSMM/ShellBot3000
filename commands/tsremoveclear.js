@@ -1,5 +1,5 @@
 const { Command } = require('discord-akairo');
-class tsremoveclear extends Command {
+class TSRemoveclear extends Command {
     constructor() {
         super('tsremoveclear', {
            aliases: ['tsremoveclear',"removeclear"],
@@ -48,4 +48,4 @@ class tsremoveclear extends Command {
         }
     }
 }
-module.exports = tsremoveclear;
+module.exports = TSRemoveclear;

@@ -4,9 +4,6 @@ const config = require("../config.json");
 
 
 var Shellbot2000Commands={
-  "register":"register",
-  //"tsremoveclear":"removeclear",
-  
   "tsrename":"rename",
   
   "addtags":"addtags",
@@ -29,8 +26,8 @@ var Shellbot2000Commands={
   "tsremovevids":"removevods",
   "tsremovevid":"removevods",
 
-  "tsadd":"add",
-  "add":"add"
+  //"tsadd":"add",
+  //"add":"add"
 }
 
 var ssb2000_commands=Object.keys(Shellbot2000Commands)
