@@ -7,7 +7,7 @@ var Shellbot2000Commands={
   "register":"register",
   "atmebot":"atme",
   "dontatmebot":"dontatme",
-  "tsclear":"clear",
+  //"tsclear":"clear",
   "tsdifficulty":"difficulty",
   //"tsremovelevel":"removelevel",
   "tsremoveclear":"removeclear",

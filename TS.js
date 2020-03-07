@@ -26,16 +26,16 @@ const static_vars=[
 'Raw Members','Raw Levels','Raw Played' //play info
 ]; //initial vars to be loaded on bot load
 
-var pointMap=null
+this.pointMap=null
 
 this.load=async function(){
-  pointMap={}
+  this.pointMap={}
  this.channels={}
  this.emotes={}
  const response=await gs.loadSheets(static_vars) //loading initial sheets
   var _points=gs.select("Points");
   for(var i=0;i<_points.length;i++){
-    pointMap[parseFloat(_points[i].Difficulty)]=parseFloat(_points[i].Points)
+    this.pointMap[parseFloat(_points[i].Difficulty)]=parseFloat(_points[i].Points)
   }
   var _channels=gs.select("Channels");
   for(var i=0;i<_channels.length;i++){
@@ -174,7 +174,7 @@ this.calculatePoints=function(user,if_remove_check){ //delta check is to see if 
        if(currentLevels[row].Creator==user){
          ownLevels.push(currentLevels[row].Code)
        } else {
-         levelMap[currentLevels[row].Code]=pointMap[parseFloat(currentLevels[row].Difficulty)]  
+         levelMap[currentLevels[row].Code]=this.pointMap[parseFloat(currentLevels[row].Difficulty)]  
        }
      } else if(currentLevels[row].Approved=="2") { //reupload
        if(currentLevels[row].Creator==user){
@@ -182,7 +182,7 @@ this.calculatePoints=function(user,if_remove_check){ //delta check is to see if 
        } else {
          if(currentLevels[row].NewCode){
            reuploads[currentLevels[row].Code]=currentLevels[row].NewCode
-           levelMap[currentLevels[row].Code]=pointMap[parseFloat(currentLevels[row].Difficulty)]
+           levelMap[currentLevels[row].Code]=this.pointMap[parseFloat(currentLevels[row].Difficulty)]
          }
        }
      } else if((currentLevels[row].Approved==null || currentLevels[row].Approved=="" || currentLevels[row].Approved=="0") && currentLevels[row].Creator==user){
