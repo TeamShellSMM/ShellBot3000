@@ -1,9 +1,9 @@
 const { Command } = require('discord-akairo');
 
-class ReloadCommand extends Command {
+class ReloadData extends Command {
     constructor() {
-        super('reload', {
-            aliases: ['reload'],
+        super('refresh', {
+            aliases: ['refresh'],
             ownerOnly: true,
             category: 'owner'
         });
@@ -11,9 +11,9 @@ class ReloadCommand extends Command {
 
     async exec(message, args) {
         // `this` refers to the command object.
-        await this.handler.reloadAll();
-        return message.reply(`Reloaded commands`);
+        await ts.load()
+        return message.reply(`Reloaded data!`);
     }
 }
 
-module.exports = ReloadCommand;
+module.exports = ReloadData;
