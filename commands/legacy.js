@@ -9,20 +9,20 @@ var Shellbot2000Commands={
   "tsaddtags":"addtags",
   "tsaddtag":"addtags",
 
-  "addvids":"addvods",
-  "addvid":"addvods",
-  "tsaddvids":"addvods",
-  "tsaddvid":"addvods",
+//  "addvids":"addvods",
+//  "addvid":"addvods",
+//  "tsaddvids":"addvods",
+//  "tsaddvid":"addvods",
 
   "removetags":"removetags",
   "removetag":"removetags",
   "tsremovetags":"removetags",
   "tsremovetag":"removetags",
 
-  "removevids":"removevods",
-  "removevid":"removevods",
-  "tsremovevids":"removevods",
-  "tsremovevid":"removevods",
+//  "removevids":"removevods",
+//  "removevid":"removevods",
+//  "tsremovevids":"removevods",
+//  "tsremovevid":"removevods",
 }
 
 var ssb2000_commands=Object.keys(Shellbot2000Commands)

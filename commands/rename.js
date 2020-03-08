@@ -32,7 +32,7 @@ class TSRename extends Command {
         const player=ts.get_user(message);
         var level=gs.select("Raw Levels",{"Code":code})
 
-        if(!level || level && (level.Approved!="0" || level.Approved!="1"))
+        if(!level || level && level.Approved!="0" && level.Approved!="1")
           ts.userError("Level code not found");
         
         if(!(level.Creator==player.Name || player.shelder=="1"))

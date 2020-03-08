@@ -28,6 +28,10 @@ const static_vars=[
 
 this.pointMap=null
 
+this.levelRemoved=function(level){
+  return !level || level && level.Approved!="0" && level.Approved!="1"
+}
+
 this.load=async function(){
   this.pointMap={}
  this.channels={}
