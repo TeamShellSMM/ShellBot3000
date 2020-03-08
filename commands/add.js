@@ -33,7 +33,7 @@ class tsadd extends Command {
         if(existing_level)
           ts.userError("Level code has already been submitted as \""+existing_level["Level Name"]+"\" by "+existing_level.Creator);
         
-        if(Math.abs(player.earned_points.available).toFixed(1)>0)
+        if(player.earned_points.available.toFixed(1)<0)
           ts.userError("You need "+Math.abs(player.earned_points.available).toFixed(1)+" points to upload a new level");
 
         await gs.insert("Raw Levels",{
