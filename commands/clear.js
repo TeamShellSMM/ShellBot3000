@@ -43,13 +43,8 @@ class TSClear extends Command {
       
           await gs.loadSheets(["Raw Members","Raw Levels","Raw Played"]);
           const player=ts.get_user(message);
-          var level=gs.select("Raw Levels",{"Code":args.code})
-           if(
-              !level || //level doesn't exist
-              !(level.Approved==0 || level.Approved==1) //level is removed. not pending/accepted
-             ){
-            ts.userError("Level code was not found in Team Shell's list ");
-          }
+          var level=ts.getExistingLevel(args.code)
+
           var existing_play=gs.select("Raw Played",{"Code":args.code,"Player":player.Name})
           if(existing_play && existing_play.Completed=="1")
             ts.userError("You have already submitted a clear for \""+level["Level Name"]+" by "+level.Creator)

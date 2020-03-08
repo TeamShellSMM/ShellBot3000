@@ -34,11 +34,7 @@ class TSAddtags extends Command {
       
   
         const player=ts.get_user(message);
-        var level=gs.select("Raw Levels",{"Code":code})
-
-        if(ts.levelRemoved(level))
-          ts.userError("Level code not found");
-
+        var level=ts.getExistingLevel(code)
         //First we get all available tags
         var all_tags = [];
         gs.select("Raw Levels").forEach((level)=>{

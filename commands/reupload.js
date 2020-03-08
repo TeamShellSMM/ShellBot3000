@@ -44,8 +44,7 @@ class tsreupload extends Command {
         var rank=ts.get_rank(earned_points.clearPoints);
         var user_reply="<@"+message.author.id+">"+rank.Pips+" ";
 
-
-        var level=gs.select("Raw Levels",{"Code":oldCode}) //old level to be reuploadd
+        var level=ts.getExistingLevel(oldCode)
         var new_level=gs.select("Raw Levels",{"Code":newCode}) //new level just incase they've already tsadded
 
         var older_level=gs.query("Raw Levels",{ //this is just in case this is not the first reupload. assign 

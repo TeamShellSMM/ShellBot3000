@@ -28,9 +28,7 @@ class tsremove extends Command {
 
         await gs.loadSheets(["Raw Members","Raw Levels","Raw Played"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff  
         const player=ts.get_user(message);
-        var level=gs.select("Raw Levels",{"Code":level_code}) //old level to be reuploadd
-        if(!level)
-          ts.userError("Level not found");
+        var level=ts.getExistingLevel(level_code)
 
         if(level.Approved!="0" && level.Approved!="1") 
           ts.userError("\""+level["Level Name"]+"\" by "+level.Creator+" has already been removed");

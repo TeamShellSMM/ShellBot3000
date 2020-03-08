@@ -1,4 +1,5 @@
 'use strict'
+const stringSimilarity = require('string-similarity')
 var TS=function(gs){ //loaded after gs
   
 this.valid_format=function(code){
@@ -60,6 +61,30 @@ this.creator_str=function(level){
     } else {
      return level.Creator
     }
+}
+
+this.getExistingLevel=function(code){
+  var level=gs.select("Raw Levels",{"Code":code})
+   if(!level){ //level doesn't exist
+    let notDeletedLevels={}
+    gs.select("Raw Levels").forEach((level)=>{
+      if(level && (level.Approved=="0" || level.Approved=="1")){
+        notDeletedLevels[level.Code]=level.Code+" - \""+level["Level Name"]+"\" by "+level.Creator
+      }
+    })
+    const match=stringSimilarity.findBestMatch(code,Object.keys(notDeletedLevels))
+    if(match.bestMatch && match.bestMatch.rating>=0.6){
+      var matchStr=" Did you mean:```\n"+notDeletedLevels[match.bestMatch.target]+"```"
+    } else {
+      var matchStr=""
+    }
+    
+    ts.userError("The code `"+code+"` was not found in Team Shell's list."+matchStr);
+   }
+   if(!(level.Approved==0 || level.Approved==1)){ //level is removed. not pending/accepted
+    ts.userError("The level \""+level["Level Name"]+"\" has been removed from Team Shell's list ");
+  }
+  return level
 }
 
 function get_variable(var_name){

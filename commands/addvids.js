@@ -49,10 +49,7 @@ class TSAddvids extends Command {
         await gs.loadSheets(["Raw Members","Raw Levels","Raw Played"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
   
         const player=ts.get_user(message);
-        var level=gs.select("Raw Levels",{"Code":code})
-
-        if(ts.levelRemoved(level))
-          ts.userError("Level code not found");
+        var level=ts.getExistingLevel(code)
         
         let old_vids=level["Clear Video"]?level["Clear Video"].split(","):[]
 

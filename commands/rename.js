@@ -30,10 +30,7 @@ class TSRename extends Command {
         await gs.loadSheets(["Raw Members","Raw Levels","Raw Played"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
   
         const player=ts.get_user(message);
-        var level=gs.select("Raw Levels",{"Code":code})
-
-        if(!level || level && level.Approved!="0" && level.Approved!="1")
-          ts.userError("Level code not found");
+        var level=ts.getExistingLevel(code)
         
         if(!(level.Creator==player.Name || player.shelder=="1"))
           ts.userError("You can't rename \""+level["Level Name"]+"\" by "+level.Creator);
