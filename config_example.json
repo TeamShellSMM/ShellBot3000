@@ -10,7 +10,6 @@
   "token_uri":"PLACEHOLDER",
   "auth_provider_x509_cert_url":"PLACEHOLDER",
   "client_x509_cert_url":"PLACEHOLDER",
-  "shellbot2000":"PLACEHOLDER",
   "prefix":"PLACEHOLDER",
   "ownerID":["DISCORD_ID","DISCORD_ID"],
   "defaultCooldown": 1000,
