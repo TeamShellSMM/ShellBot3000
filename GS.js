@@ -34,6 +34,16 @@ var GS=function(config){
     return json_header
   }
 
+  this.getArrayFormat=function(sheets){
+  var SheetCache={}
+  sheets.forEach((sheet)=>{
+    var range=sheet.split('!')
+      var sheet_name=range[0].replace(/'/g,'')
+    SheetCache[sheet_name]=this.getArray(sheet)
+  })
+  return SheetCache
+}
+
   this.getArray=function(range){
     range=range.replace(/\\/g,'').split('!')
     var sheet_name=range[0].replace(/'/g,'')

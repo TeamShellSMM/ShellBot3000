@@ -17,8 +17,8 @@ const client = new AkairoClient(config, { //not sure this is a good idea or not
   try {
     await ts.load()
     await client.login(config.token); 
-    await app.listen(config.webPort, () => console.log('Web server now listening on '+config.webPort));
-   console.log("ShellBot 3000, logged in")
+    await app.listen(config.webPort, () => console.log(config.botName+':Web server now listening on '+config.webPort));
+   console.log(config.botName+":logged in")
 
  } catch(error){
  	console.error(error)
@@ -28,17 +28,6 @@ const client = new AkairoClient(config, { //not sure this is a good idea or not
 app.get('/', (req, res) => {
     res.send('buzzyS');
 });
-
-
-gs.getArrayFormat=function(sheets){
-	var SheetCache={}
-	sheets.forEach((sheet)=>{
-		var range=sheet.split('!')
-    	var sheet_name=range[0].replace(/'/g,'')
-		SheetCache[sheet_name]=gs.getArray(sheet)
-	})
-	return SheetCache
-}
 
 app.get('/json', (req, res) => {
 

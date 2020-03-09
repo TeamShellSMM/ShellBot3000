@@ -1,5 +1,6 @@
 {
   //copy your google service account here. add it to the sheet to edit
+  "botName":"PLACEHOLDER",
   "type":"PLACEHOLDER",
   "project_id":"PLACEHOLDER",
   "private_key_id":"PLACEHOLDER",
