@@ -20,6 +20,7 @@ var GS=function(config){
     return google_auth
   }
 
+  this.lastUpdated=null
   this.timestampVarName="Timestamp"
   this.timestamp=function(){
     return Math.floor(Date.now() / 1000) //seconds epoch
@@ -27,6 +28,35 @@ var GS=function(config){
 
   let json_header={}
   let SheetCache={} //not sure if I need a mutex here or not
+  let ArrayCache={}
+
+  this.getHeaders=function(){
+    return json_header
+  }
+
+  this.getArrayFormat=function(sheets){
+  var SheetCache={}
+  sheets.forEach((sheet)=>{
+    var range=sheet.split('!')
+      var sheet_name=range[0].replace(/'/g,'')
+    SheetCache[sheet_name]=this.getArray(sheet)
+  })
+  return SheetCache
+}
+
+  this.getArray=function(range){
+    range=range.replace(/\\/g,'').split('!')
+    var sheet_name=range[0].replace(/'/g,'')
+    var sheet=JSON.parse(ArrayCache[sheet_name])
+    if(sheet && range[1]&&range[1].length==1){
+      var rangeLength=range[1].charCodeAt(0)-64
+      for(var i=0;i<sheet.length;i++){
+        sheet[i]=sheet[i].slice(0,rangeLength)
+      }
+    }
+    return sheet
+  }
+
   this.loadSheets=async function(ranges){ //input is sheets to be loaded. load to cache to be stored
     try {
     let authClient=await get_token()
@@ -42,11 +72,13 @@ var GS=function(config){
     })
     var returnData={}
     let data=JSON.parse(response)
+    this.lastUpdated=this.timestamp()
 
     if(data.valueRanges){
       for(var i=0;i<data.valueRanges.length;i++){
         var range=data.valueRanges[i].range.split("!")
         range=range[0].replace(/'/g,'')
+        ArrayCache[range]=JSON.stringify(data.valueRanges[i].values)
         var header=data.valueRanges[i].values.shift()
         json_header[range]=header;
         returnData[range]=[]
@@ -177,7 +209,7 @@ var GS=function(config){
     
     return response
     } catch(error){
-      console.log(error)
+      console.error(error)
     }
 
   }
@@ -204,7 +236,7 @@ var GS=function(config){
     })
     return response
     } catch(error){
-      console.log(error)
+      console.error(error)
     }
   }
 }

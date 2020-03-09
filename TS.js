@@ -23,7 +23,7 @@ this.valid_difficulty=function(str){ //whack code.
 }
 
 const static_vars=[
-"TeamShell Variable","Points","TeamShell Ranks","Seasons","Emotes","Channels","tags", //static vars
+"TeamShell Variable","Points","TeamShell Ranks","Seasons","Emotes","Channels","tags","Competition Winners", //static vars
 'Raw Members','Raw Levels','Raw Played' //play info
 ]; //initial vars to be loaded on bot load
 
