@@ -18,4 +18,6 @@
   "token":"PLACEHOLDER",
   //spreadsheet id
   "spreadsheetId":"PLACEHOLDER",
+  //Web port
+  "webPort":3000
 }
