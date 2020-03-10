@@ -10,6 +10,7 @@ class TSJudge extends Command {
     }
     
     async exec(message,args) {     
+      try{
       var inCodeDiscussionChannel = false;
 
       var levelCode;
@@ -57,20 +58,11 @@ class TSJudge extends Command {
         //Reject level
         var updateLevel = gs.query("Raw Levels", {
           filter: {"Code":levelCode},
-          update: {"Approved": "del:" + level.Approved}
+          update: {"Approved": -2}
         });
         if(updateLevel.Code == levelCode){
           await gs.batchUpdate(updateLevel.update_ranges);
         }
-
-        //Build Status Message
-        /*var postMessage = "**"+ level["Level Name"] + " (" + level.Code + ") by <@" + author.discord_id + ">: Level was " + (level.Approved === "0" ? "rejected" : "removed") + "!!** <:AxeMuncher:680243176640217088> \n> __Reasons:__\n";
-
-        for(var i = 0; i < rejectVotes.length; i++){
-          postMessage += "> `" + rejectVotes[i].Shellder + "`: `" + rejectVotes[i].Reason + "`\n";
-        }
-
-        postMessage += "\n<:Blank:669074779721957377>"*/
 
         //Build embed
         var mention = "**<@" + author.discord_id + ">, we got some news for you: **";
@@ -189,7 +181,10 @@ class TSJudge extends Command {
         //Remove Discussion Channel
         message.channel.delete("Justice has been met!");
       } else {
-        message.reply("There must be at least "+ts.get_variable("VotesNeeded")+" Shellders in agreement before this level can be judged! " + ts.emotes.think);
+        ts.userError("There must be at least "+ts.get_variable("VotesNeeded")+" Shellders in agreement before this level can be judged!");
+      }
+      } catch (error){
+        message.reply(ts.getUserErrorMessage(error))
       }
     }
 }

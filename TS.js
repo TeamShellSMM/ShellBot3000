@@ -1,7 +1,7 @@
 'use strict'
 const stringSimilarity = require('string-similarity')
-var TS=function(gs){ //loaded after gs
-  
+var TS=function(gs,client){ //loaded after gs
+var ts=this
 this.valid_format=function(code){
   return /^[0-9A-Z]{3}-[0-9A-Z]{3}-[0-9A-Z]{3}$/.test(code)
 }
@@ -94,7 +94,7 @@ this.get_variable=function(var_name){
   return ret?ret.Value:false
 }
 
-function levelsAvailable(points,levelsUploaded){
+this.levelsAvailable=function(points,levelsUploaded){
   var min=parseFloat(this.get_variable("Minimum Point"));
   var next=parseFloat(this.get_variable("New Level"));
   
@@ -133,6 +133,33 @@ this.get_user=function(message){
   player.rank=this.get_rank(player.earned_points.clearPoints);
   player.user_reply="<@"+message.author.id+">"+player.rank.Pips+" ";
   return player
+}
+
+
+this.levelEmbed=function(level){
+  var videoStr=[]
+  level["Clear Video"].split(",").forEach((vid,i)=>{
+    if(vid) videoStr.push("[ 🎬 ]("+vid+")")
+  })
+  videoStr=videoStr.join(",")
+  var tagStr=[]
+  level.Tags.split(",").forEach((tag)=>{
+    if(tag) tagStr.push("["+tag+"](https://teamshellsmm.github.io/levels/?tag="+encodeURIComponent(tag)+")")
+  })
+  tagStr=tagStr.join(",")
+  var embed = client.util.embed()
+      .setColor("#007bff")
+      .setTitle(level["Level Name"] + " (" + level.Code + ")")
+      .setURL("https://teamshellsmm.github.io/levels/?code=" + level.Code)
+      .setDescription(
+        "made by [" + level.Creator + "](https://teamshellsmm.github.io/levels/?creator=" + encodeURIComponent(level.Creator) + ")\n"+
+        (level.clears!=undefined ? "Difficulty: "+level.Difficulty+", Clears: "+level.clears+", Likes: "+level.likes+"\n":"")+
+          (tagStr?"Tags: "+tagStr+"\n":"")+
+          (videoStr?"Clear Video: "+videoStr:"")
+       )
+        //randomEmbed.addField(,);
+   embed = embed.setTimestamp();
+   return embed
 }
 
 this.parse_command=function(message){ //assumes there's prefix
@@ -250,7 +277,7 @@ this.calculatePoints=function(user,if_remove_check){ //delta check is to see if 
   return {
     clearPoints:clearPoints.toFixed(1),
     levelsMade:ownLevels.length,
-    available:levelsAvailable(clearPoints,ownLevelNumbers),
+    available:this.levelsAvailable(clearPoints,ownLevelNumbers),
   }
 }
 

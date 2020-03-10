@@ -8,11 +8,11 @@ const app = express();
 app.use(express.static('static'));
 app.use(compression())
 
-global.gs=new GS(config); //not sure if this is a good idea or not
-global.ts=new TS(gs);
 const client = new AkairoClient(config, { //not sure this is a good idea or not
     disableEveryone: true
 });
+global.gs=new GS(config); //not sure if this is a good idea or not
+global.ts=new TS(gs,client);
 
 (async () => { //main thread
   try {

@@ -122,34 +122,7 @@ class tsrandom extends Command {
           var randNum=getRandomInt(borderLine,filtered_levels.length)
         }
         var level=filtered_levels[randNum]
-        var videoStr=[]
-        level["Clear Video"].split(",").forEach((vid,i)=>{
-          if(vid) videoStr.push("[ 🎬 ]("+vid+")")
-        })
-        videoStr=videoStr.join(",")
-        var tagStr=[]
-        level.Tags.split(",").forEach((tag)=>{
-          if(tag) tagStr.push("["+tag+"](https://teamshellsmm.github.io/levels/?tag="+encodeURIComponent(tag)+")")
-        })
-        tagStr=tagStr.join(",")
-        
-        var randomEmbed = this.client.util.embed()
-            .setColor("#007bff")
-            .setAuthor("ShellBot rolled a d97 and found this level for you")
-            .setTitle(level["Level Name"] + " (" + level.Code + ")")
-            .setURL("https://teamshellsmm.github.io/levels/?code=" + level.Code)
-            .setDescription(
-              "made by [" + level.Creator + "](https://teamshellsmm.github.io/levels/?creator=" + encodeURIComponent(level.Creator) + ")\n"+
-              "Difficulty: "+level.Difficulty+", Clears: "+level.clears+", Likes: "+level.likes+"\n"+
-                (tagStr?"Tags: "+tagStr+"\n":"")+
-                (videoStr?"Clear Video: "+videoStr:"")
-             )
-
-        
-        
-        //randomEmbed.addField(,);
-        randomEmbed = randomEmbed.setTimestamp();
-          
+        var randomEmbed=ts.levelEmbed(level).setAuthor("ShellBot rolled a d97 and found this level for you")
 
         await message.channel.send(user_reply)
         await message.channel.send(randomEmbed)
