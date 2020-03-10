@@ -5,6 +5,7 @@ const GS=require('./GS.js')
 const express = require('express');
 var compression = require('compression')
 const app = express();
+app.use(express.static('static'));
 app.use(compression())
 
 global.gs=new GS(config); //not sure if this is a good idea or not

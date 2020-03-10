@@ -1,0 +1,226 @@
+
+.banger,th,h1,h2,h3,h4 {font-family: 'Bangers', sans-serif;}
+/* tr td:nth-child(3), maybe use classes next time */
+th {font-size: 12pt}
+h1 {font-size:64pt;}
+table {width:100%;}
+img {width: 36px}
+#logo {position: relative;right:0px;background: #FFF}
+.green {color:#01a09e;}
+.orange {color:#f88501;}
+.copy,.copyLike {cursor:pointer;-webkit-transition: color 0.5s; /* Safari prior 6.1 */
+    transition: color 0.5s;}
+#refresh {cursor: pointer;}
+
+
+/* Dark Mode */
+html.dark body {
+    background:#121212;
+    color:#FFF;
+}
+
+html.dark .text-muted {
+    color: #aaa !important
+}
+
+/* Dark Tables */
+html.dark table.dataTable.stripe tbody tr.odd,
+html.dark table.dataTable.display tbody tr.odd {
+    background-color: #222;
+}
+html.dark table.dataTable tbody tr {
+    background-color: #111;
+}
+
+html.dark table.dataTable tbody tr {
+    background-color: #111;
+}
+
+html.dark table.dataTable.stripe.hover tbody tr.odd:hover,
+html.dark table.dataTable.display.hover tbody tr.odd:hover {
+    background-color: #444;
+}
+
+html.dark table.dataTable.hover tbody tr:hover {
+    background-color: #fff4;
+}
+
+table.dataTable.row-border tbody td {
+    border-color: #444;
+}
+
+html.dark .dataTables_wrapper .dataTables_length,
+html.dark .dataTables_wrapper .dataTables_filter,
+html.dark .dataTables_wrapper .dataTables_info,
+html.dark .dataTables_wrapper .dataTables_processing,
+html.dark .dataTables_wrapper .dataTables_paginate {
+    color: #fff;
+}
+
+/* Dark Input boxes */
+html.dark .form-control {
+    background-color: #666;
+    color: #fff;
+    border-color: #888;
+}
+html.dark .form-control::placeholder {
+    color: #aaa;
+}
+
+/* Dark Dropdown menus */
+html.dark .dropdown-menu {
+    background-color: #888;
+    color: #fff
+}
+html.dark .dropdown-item {
+    color: #fff;
+}
+html.dark .dropdown-item:focus, html.dark .dropdown-item:hover {
+    background-color: #aaa;
+    color: #fff;
+}
+html.dark select option {
+    background-color: #888;
+    color: #fff;
+}
+
+.form-check {
+    padding-bottom: 5px;
+}
+
+h1 {
+    margin-bottom: 0;
+}
+
+ul#nav {
+    padding: 0;
+    margin: 0 0 5px;
+}
+
+ul#nav li {
+    font-family: 'Bangers', 'sans-serif';
+    display: inline-block;
+    font-size: 24px;
+    margin: 0 15px 0 0;
+}
+
+ul#nav a {
+    font-weight: normal;
+}
+
+ul#nav li.active a {
+    text-decoration: underline;
+    font-weight: normal;
+}
+
+ul#nav li.active a:hover {
+    color: #007bff;
+    font-weight: normal;
+}
+
+.container {
+    max-width: 1440px;
+}
+
+.medals {
+display:inline-block;
+margin-left:-10px;
+}
+.medals:first-of-type {
+margin-left:10px;
+}
+
+.medal {
+width: 20px;
+height: 20px;
+display: inline-block;  
+padding-top: 4px;
+margin-left: -12px;
+}
+.medal:first-of-type {  
+margin-left: 0;
+}
+.coin {
+border-radius: 50%;
+width: 20px;
+height: 20px;
+position: relative;
+margin: 0px auto 0 auto;
+box-shadow: 0px 0px 2px 0px #989898;
+
+}
+.coin:after {
+content: '';
+position: absolute;
+transform: translate(-50%, -50%);
+top: 50%;
+left: 50%;
+width: 12px;
+height: 12px;
+border-radius: inherit;
+}
+.coin-gold {
+border: 1px solid #e0a818;
+background: #F0CD73;
+}
+.coin-gold:after {
+box-shadow: 0 0 0 3px #eabb42;
+}
+.coin-silver {
+border: 1px solid #8fa2ac;
+background: #dde3e6;
+}
+.coin-silver:after {
+box-shadow: 0 0 0 3px #b6c2c9;
+}
+.coin-bronze {
+border: 1px solid #9c5805;
+background: #df7e08;
+}
+.coin-bronze:after {
+box-shadow: 0 0 0 3px #bd6b06;
+}
+.coin-iron {
+border: 1px solid #6c6c6c;
+background: #9b9b9b;
+}
+.coin-iron:after {
+box-shadow: 0 0 0 3px #838383;
+}
+
+.comp-winners {
+height: calc(100% - 40px);
+padding: 10px;
+background-color: #f9f9f9;
+border-radius: 20px;
+margin-top:20px;
+}
+
+.comp-winners i {
+color: #F0CD73;
+font-size:80px;
+top: calc(50% - 40px);
+position:relative;
+}
+
+.comp-winners h4 {
+    text-align:center;
+}
+
+.loader-img {
+    width: 120px;
+    height: 120px;
+    position:absolute;
+    top: calc(50% - 60px);
+    left: calc(50% - 60px);
+    z-index: 600;
+    opacity: 0.8;
+}
+
+.loader-bg {
+    height:100%;
+    width:100%;
+    position:absolute;
+    background-color: rgba(255,255,255, 0.6);
+    z-index: 500;
+}
