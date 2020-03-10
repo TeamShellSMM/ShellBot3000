@@ -53,7 +53,7 @@ class TSJudge extends Command {
       var approvalVoteCount = approvalVotes.length;
       var rejectVoteCount = rejectVotes.length;
 
-      if(rejectVoteCount >= 3){
+      if(rejectVoteCount >= ts.get_variable("VotesNeeded")){
         //Reject level
         var updateLevel = gs.query("Raw Levels", {
           filter: {"Code":levelCode},
@@ -79,8 +79,8 @@ class TSJudge extends Command {
           .setColor("#dc3545")
           .setAuthor("Level was " + (level.Approved === "0" ? "rejected" : "removed") + "!")
           .setTitle(level["Level Name"] + " (" + level.Code + ")")
-          .setURL("https://teamshell.net/levels/?code=" + level.Code)
-          .setDescription("made by [" + author.Name + "](https://teamshell.net/levels/?creator=" + encodeURIComponent(author.Name) + ")")
+          .setURL("https://teamshellsmm.github.io/levels/?code=" + level.Code)
+          .setDescription("made by [" + author.Name + "](https://teamshellsmm.github.io/levels/?creator=" + encodeURIComponent(author.Name) + ")")
           .setThumbnail('https://teamshellsmm.github.io/assets/axemuncher.png');
 
         for(var i = 0; i < rejectVotes.length; i++){
@@ -109,7 +109,7 @@ class TSJudge extends Command {
         await this.client.channels.get(ts.channels.shellderLevelChanges).send(exampleEmbed);
         
         message.channel.delete("Justice has been met!");
-      } else if (approvalVoteCount >= 3){
+      } else if (approvalVoteCount >= ts.get_variable("VotesNeeded")){
         if(level.Approved === "0"){
           //Get the average difficulty and round to nearest .5, build the message at the same time
           var diffCounter = 0;
@@ -156,8 +156,8 @@ class TSJudge extends Command {
             .setColor("#01A19F")
             .setAuthor("This level was approved for difficulty: " + finalDiff + "!")
             .setTitle(level["Level Name"] + " (" + level.Code + ")")
-            .setURL("https://teamshell.net/levels/?code=" + level.Code)
-            .setDescription("made by [" + author.Name + "](https://teamshell.net/levels/?creator=" + encodeURIComponent(author.Name) + ")")
+            .setURL("https://teamshellsmm.github.io/levels/?code=" + level.Code)
+            .setDescription("made by [" + author.Name + "](https://teamshellsmm.github.io/levels/?creator=" + encodeURIComponent(author.Name) + ")")
             .setThumbnail('https://teamshellsmm.github.io/assets/bam.png');
 
           for(var i = 0; i < approvalVotes.length; i++){
@@ -189,7 +189,7 @@ class TSJudge extends Command {
         //Remove Discussion Channel
         message.channel.delete("Justice has been met!");
       } else {
-        message.reply("There must be at least 3 Shellders in agreement before this level can be judged! " + ts.emotes.think);
+        message.reply("There must be at least "+ts.get_variable("VotesNeeded")+" Shellders in agreement before this level can be judged! " + ts.emotes.think);
       }
     }
 }

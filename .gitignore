@@ -2,6 +2,8 @@ config.json
 token.json
 test.js
 
+*.sqlite3
+
 # Logs
 logs
 *.log

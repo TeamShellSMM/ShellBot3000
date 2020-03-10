@@ -87,7 +87,7 @@ this.getExistingLevel=function(code){
   return level
 }
 
-function get_variable(var_name){
+this.get_variable=function(var_name){
   var ret=gs.select("TeamShell Variable",{
     "Variable":var_name
   })
@@ -95,8 +95,8 @@ function get_variable(var_name){
 }
 
 function levelsAvailable(points,levelsUploaded){
-  var min=parseFloat(get_variable("Minimum Point"));
-  var next=parseFloat(get_variable("New Level"));
+  var min=parseFloat(this.get_variable("Minimum Point"));
+  var next=parseFloat(this.get_variable("New Level"));
   
   var nextLevel=levelsUploaded+1;
   var nextPoints= nextLevel==1? min : min+ (nextLevel-1)*next
