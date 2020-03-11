@@ -1,4 +1,24 @@
 const { Command } = require('discord-akairo');
+
+ts.embedAddLongField=function(embed,header,body){
+  if(!header) header="\u200b"
+  var bodyArr=body.split(".")
+  var bodyStr=[""];
+  for(var k=0,l=0;k<bodyArr.length;k++){
+    if(bodyArr[k]){
+    if( (bodyStr[l].length+bodyArr[k].length+1) > 980 ){
+      l++
+      bodyStr[l]=""
+    }
+      bodyStr[l]+=bodyArr[k]+"."
+    }
+  }
+  for(var k=0;k<bodyStr.length;k++){
+    embed.addField(header,bodyStr[k]);
+    header = "\u200b"
+  }
+}
+
 class TSApprove extends Command {
     constructor() {
         super('tsapprove', {
@@ -25,6 +45,7 @@ class TSApprove extends Command {
     }
     
     async exec(message,args) {     
+      try{
       /*
         Possible command syntax:
         !tsapprove code difficulty reason
@@ -35,13 +56,11 @@ class TSApprove extends Command {
         !tsreject reason
       */
 
+
       const clearCommands = ['tsapprove+c', 'tsapprove+cl', 'tsapprove+lc'];
       const likeCommands =  ['tsapprove+cl', 'tsapprove+lc'];
       
-      var raw_command=message.content.trim();
-      raw_command=raw_command.split(" ");
-      var sb_command=raw_command.shift().toLowerCase().substring(1);      
-
+      var command=ts.parse_command(message);
       var inCodeDiscussionChannel = false;      
 
       //Check if in level discussion channel
@@ -59,7 +78,7 @@ class TSApprove extends Command {
       }
 
 
-      if(sb_command == "tsreject"){
+      if(command.command == "tsreject"){
         //Difficulty doesn't exist in reject, so it get replaced by reason
         args.reason = args.difficulty;
         args.difficulty = "";
@@ -75,58 +94,44 @@ class TSApprove extends Command {
       )) return false;
 
       //Then Check the other args
-      if(sb_command == "tsapprove" || clearCommands.indexOf(sb_command) !== -1){
+      if(command.command == "tsapprove" || clearCommands.indexOf(command.command) !== -1){
         //We only check difficulty in tsapprove mode
         if(!ts.valid_difficulty(args.difficulty)){
-          message.reply("Invalid difficulty format! " + ts.emotes.think);
-          return false;
+          ts.userError("Invalid difficulty format!");
         }
       }
 
       //Check if vote already exists
       await gs.loadSheets(["Raw Levels", "Raw Members", "Raw Played", "Shellder Votes"]);
 
-      const shellder = gs.select("Raw Members",{"discord_id":message.member.id});
-
-      if(!shellder){
-        message.reply("You were not found in Members List! " + ts.emotes.think);
-        return false;
-      }
+      const shellder=ts.get_user(message);
 
       var vote=gs.select("Shellder Votes",{"Code":args.code, "Shellder": shellder.Name});
 
       if(!vote){
         //We only check reason if we have no vote yet
         if(!args.reason){
-          message.reply("You need to give a reason for the change (in quotation marks)!");
-          return false;
+          ts.userError("You need to give a reason for the change (in quotation marks)!");
         }
       }      
 
-      const level=gs.select("Raw Levels",{"Code":args.code});
-
-      if(!level){
-        message.reply("Level Code was not found! " + ts.emotes.think);
-        return false;
-      }
+      const level=ts.getExistingLevel(args.code);
 
       const author = gs.select("Raw Members",{"Name":level.Creator});
 
       if(!author){
-        message.reply("Author was not found in Members List! " + ts.emotes.think);
-        return false;
+        ts.userError("Author was not found in Members List!");
       }
 
       //Check if level is approved, if it's approved only allow rejection
       if(level.Approved === "1"){
-        if(raw_command == "tsapprove" || clearCommands.indexOf(sb_command) !== -1){
-          message.reply("Level is already approved! " + ts.emotes.think);
-          return false;   
+        if(raw_command == "tsapprove" || clearCommands.indexOf(command.command) !== -1){
+          ts.userError("Level is already approved!");
         }
       } else if(level.Approved === "0"){
         //I don't care that this is empty, I can't be arsed anymore to think how to structure this if
       } else {
-        message.reply("Level is not pending! " + ts.emotes.think);
+        ts.userError("Level is not pending!");
         return false;  
       }
 
@@ -156,14 +161,14 @@ class TSApprove extends Command {
         await gs.insert("Shellder Votes", {
           Code: level.Code,
           Shellder: shellder.Name,
-          Type: sb_command == "tsreject" ? "reject" : "approve",
-          Difficulty: sb_command == "tsapprove" || clearCommands.indexOf(sb_command) !== -1 ? args.difficulty : "",
+          Type: command.command == "tsreject" ? "reject" : "approve",
+          Difficulty: command.command == "tsapprove" || clearCommands.indexOf(command.command) !== -1 ? args.difficulty : "",
           Reason: args.reason
         });
       } else {
         updating = true;
         var updateJson = {
-          "Type": sb_command == "tsreject" ? "reject" : "approve"
+          "Type": command.command == "tsreject" ? "reject" : "approve"
         }
 
         if(args.reason){
@@ -196,33 +201,38 @@ class TSApprove extends Command {
       }
 
       //Update Overview post in discussion channel
-      var postString = "**The Judgement for '" + level["Level Name"] + " (" + level.Code + ") by <@" + author.discord_id + ">' has now begun!**\n\n> __Current Votes for approving the level:__\n";
+
       
+      var voteEmbed=ts.levelEmbed(level).setAuthor("The Judgement  has now begun for this level:")
+
+      var postString = "__Current Votes for approving the level:__\n";
       if(approveVotes == undefined || approveVotes.length == 0){
         postString += "> None\n";
       } else {
         for(var i = 0; i < approveVotes.length; i++){
           const curShellder = gs.select("Raw Members",{"Name":approveVotes[i].Shellder});
-          postString += "> <@" + curShellder.discord_id + "> - Difficulty: " + approveVotes[i].Difficulty + ", Reason: " + approveVotes[i].Reason + "\n";
+          postString += "<@" + curShellder.discord_id + "> - Difficulty: " + approveVotes[i].Difficulty + ", Reason: " + approveVotes[i].Reason + "\n";
         }
       }
 
-      postString += "\n> __Current votes for rejecting the level:__\n";
+      postString += "\n__Current votes for rejecting the level:__\n";
 
       if(rejectVotes == undefined || rejectVotes.length == 0){
-        postString += "> None\n";
+        postString += "None\n";
       } else {
         for(var i = 0; i < rejectVotes.length; i++){
           const curShellder = gs.select("Raw Members",{"Name":rejectVotes[i].Shellder});
-          postString += "> <@" + curShellder.discord_id + "> - Reason: " + rejectVotes[i].Reason + "\n";
+          postString += "<@" + curShellder.discord_id + "> - Reason: " + rejectVotes[i].Reason + "\n";
         }
       }
+
+      ts.embedAddLongField(voteEmbed,"",postString)
 
       if(!overviewMessage){
         overviewMessage = (await discussionChannel.fetchPinnedMessages()).last();
       }
 
-      await overviewMessage.edit(postString);
+      await overviewMessage.edit(voteEmbed);
 
       var replyMessage = "";
       if(updating){
@@ -231,7 +241,7 @@ class TSApprove extends Command {
         replyMessage += "Your vote was added to <#" + discussionChannel.id + ">!";
       }
 
-      if(clearCommands.indexOf(sb_command) !== -1){
+      if(clearCommands.indexOf(command.command) !== -1){
         //Add a clear to the level if it's not already there
         var played=gs.select("Raw Played",{"Code":args.code, "Player": shellder.Name});
         if(played){
@@ -239,7 +249,7 @@ class TSApprove extends Command {
           var updatePlayed = gs.query("Raw Played", {
             filter: {"Code":args.code, "Player": shellder.Name},
             update: {
-              "Liked": likeCommands.indexOf(sb_command) !== -1 ? "1" : "",
+              "Liked": likeCommands.indexOf(command.command) !== -1 ? "1" : "",
               "Difficulty Vote": args.difficulty
             }
           });
@@ -249,7 +259,7 @@ class TSApprove extends Command {
 
           replyMessage += " You also updated your clear and community vote on this level!";
 
-          if(likeCommands.indexOf(sb_command) !== -1){
+          if(likeCommands.indexOf(command.command) !== -1){
             replyMessage += " You also liked the level " + ts.emotes.love + "!";
           }
         } else {
@@ -259,20 +269,23 @@ class TSApprove extends Command {
             "Player": shellder.Name,
             "Completed": "1",
             "Shelder": "1",
-            "Liked": likeCommands.indexOf(sb_command) !== -1 ? "1" : "",
+            "Liked": likeCommands.indexOf(command.command) !== -1 ? "1" : "",
             "Difficulty Vote": args.difficulty,
             "Timestamp": Math.floor(Date.now() / 1000)
           });
 
           replyMessage += " You also added a clear and community vote on this level!";
 
-          if(likeCommands.indexOf(sb_command) !== -1){
+          if(likeCommands.indexOf(command.command) !== -1){
             replyMessage += " You also liked the level " + ts.emotes.love + "!";
           }
         }
       }
+        message.reply(replyMessage);
 
-      message.reply(replyMessage);
+      } catch(error){
+        message.reply(ts.getUserErrorMsg(error))
+      }
     }
 }
 module.exports = TSApprove;

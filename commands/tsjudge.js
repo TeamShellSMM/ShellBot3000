@@ -184,7 +184,7 @@ class TSJudge extends Command {
         ts.userError("There must be at least "+ts.get_variable("VotesNeeded")+" Shellders in agreement before this level can be judged!");
       }
       } catch (error){
-        message.reply(ts.getUserErrorMessage(error))
+        message.reply(ts.getUserErrorMsg(error))
       }
     }
 }
