@@ -3,11 +3,11 @@ const stringSimilarity = require('string-similarity')
 var TS=function(gs,client){ //loaded after gs
 var ts=this
 this.valid_format=function(code){
-  return /^[0-9A-Z]{3}-[0-9A-Z]{3}-[0-9A-Z]{3}$/.test(code)
+  return /^[0-9A-Z]{3}-[0-9A-Z]{3}-[0-9A-Z]{3}$/.test(code.toUpperCase())
 }
 
 this.valid_code=function(code){
-return /^[1234567890QWERTYUPASDFGHJKLXCVBNM]{3}-[1234567890QWERTYUPASDFGHJKLXCVBNM]{3}-[1234567890QWERTYUPASDFGHJKLXCVBNM]{3}$/.test(code)
+  return /^[1234567890QWERTYUPASDFGHJKLXCVBNM]{3}-[1234567890QWERTYUPASDFGHJKLXCVBNM]{3}-[1234567890QWERTYUPASDFGHJKLXCVBNM]{3}$/.test(code.toUpperCase())
 }
 
 this.channels={}
@@ -61,6 +61,25 @@ this.creator_str=function(level){
     } else {
      return level.Creator
     }
+}
+
+this.embedAddLongField=function(embed,header,body){
+  if(!header) header="\u200b"
+  var bodyArr=body?body.split("."):[]
+  var bodyStr=[""];
+  for(var k=0,l=0;k<bodyArr.length;k++){
+    if(bodyArr[k]){
+    if( (bodyStr[l].length+bodyArr[k].length+1) > 980 ){
+      l++
+      bodyStr[l]=""
+    }
+      bodyStr[l]+=bodyArr[k]+"."
+    }
+  }
+  for(var k=0;k<bodyStr.length;k++){
+    embed.addField(header,bodyStr[k]);
+    header = "\u200b"
+  }
 }
 
 this.getExistingLevel=function(code){
@@ -136,7 +155,136 @@ this.get_user=function(message){
 }
 
 
-this.levelEmbed=function(level){
+this.judge=async function(levelCode){
+  var guild=client.guilds.get(this.channels.guild_id)
+  await gs.loadSheets(["Raw Levels", "Raw Members", "Shellder Votes"]);
+  var level = ts.getExistingLevel(levelCode);
+  const author = gs.select("Raw Members",{"Name":level.Creator});
+
+  if(!author){
+    ts.userError("Author was not found in Members List!")
+  }
+
+  //Get all current votes for this level
+  var approvalVotes = gs.select("Shellder Votes",{"Code":levelCode, "Type": "approve"});   
+  var rejectVotes = gs.select("Shellder Votes",{"Code":levelCode, "Type": "reject"});
+
+  if(approvalVotes !== undefined && !Array.isArray(approvalVotes)){
+    approvalVotes = [approvalVotes];
+  } else if(!approvalVotes){
+    approvalVotes = [];
+  }
+  if(rejectVotes !== undefined && !Array.isArray(rejectVotes)){
+    rejectVotes = [rejectVotes];
+  } else if(!rejectVotes) {
+    rejectVotes = [];
+  }
+
+  //Count Approval and Rejection Votes
+  var approvalVoteCount = approvalVotes.length;
+  var rejectVoteCount = rejectVotes.length;
+
+  if(rejectVoteCount >= ts.get_variable("VotesNeeded") && rejectVoteCount>approvalVoteCount){
+    //Reject level
+    var updateLevel = gs.query("Raw Levels", {
+      filter: {"Code":levelCode},
+      update: {"Approved": -2}
+    });
+    if(updateLevel.Code == levelCode){
+      await gs.batchUpdate(updateLevel.update_ranges);
+    }
+
+    //Build embed
+    var color="#dc3545";
+    var title="Level was " + (level.Approved === "0" ? "rejected" : "removed") + "!";
+    var image='https://teamshellsmm.github.io/assets/axemuncher.png';
+    var voteComments=rejectVotes;
+
+  } else if (approvalVoteCount >= ts.get_variable("VotesNeeded")  && approvalVoteCount>rejectVoteCount ){
+    if(level.Approved !== "0")
+      ts.userError("Level is not pending")
+      //Get the average difficulty and round to nearest .5, build the message at the same time
+      var diffCounter = 0;
+      var diffSum = 0;
+      for(var i = 0; i < approvalVotes.length; i++){
+        var diff = parseFloat(approvalVotes[i].Difficulty);
+        if(!Number.isNaN(diff)){
+          diffCounter++;
+          diffSum += diff;
+        }
+      }
+
+      var finalDiff = Math.round((diffSum/diffCounter)*2)/2;
+
+      //Only if the level is pending we approve it and send the message
+      var updateLevel = gs.query("Raw Levels", {
+        filter: {"Code":levelCode},
+        update: {
+          "Approved": "1",
+          "Difficulty": finalDiff
+        }
+      });
+      if(updateLevel.Code == levelCode){
+        await gs.batchUpdate(updateLevel.update_ranges);
+      }
+
+      //Update author to set cult_member if they're not already. send initiate message and assign cult role
+      if(author.cult_member !== "1"){
+        var updateAuthor = gs.query("Raw Members", {
+          filter: {"Name":author.Name},
+          update: {
+            "cult_member": "1"
+          }
+        });
+
+        if(updateAuthor.Name == author.Name){
+          await gs.batchUpdate(updateAuthor.update_ranges); //should combine the batch updates
+          if(author.discord_id){
+            var curr_user=await guild.members.get(author.discord_id)
+            if(curr_user){ //assign role
+              await curr_user.addRole(ts.channels.shellcult_id)
+              await client.channels.get(ts.channels.initiateChannel).send("<a:ts_2:632758958284734506><a:ts_2:632758958284734506><a:ts_1:632758942992302090> <:SpigLove:628057762449850378> We welcome <@"+author.discord_id+"> into the shell cult <:PigChamp:628055057690132481> <a:ts_2:632758958284734506><a:ts_2:632758958284734506><a:ts_1:632758942992302090> <:bam:628731347724271647>")                        
+            } else { 
+              console.error(author.Name+" was not found in the discord") //not a breaking error.
+            }
+          }
+        }
+      }
+
+      //Build Status Message
+      var color="#01A19F";
+      var title="This level was approved for difficulty: " + finalDiff + "!";
+      var image='https://teamshellsmm.github.io/assets/bam.png';
+      var voteComments=approvalVotes;
+    } else {
+      ts.userError("There must be at least "+ts.get_variable("VotesNeeded")+" Shellders in agreement before this level can be judged!");
+    }
+    
+    var mention = "**<@" + author.discord_id + ">, we got some news for you: **";
+    var exampleEmbed = ts.levelEmbed(level)
+      .setColor(color)
+      .setAuthor(title)
+      .setThumbnail(image);
+
+    for(var i = 0; i < voteComments.length; i++){
+      var embedHeader=voteComments[i].Shellder + (voteComments[i].Difficulty?" voted " + voteComments[i].Difficulty:":")
+      ts.embedAddLongField(exampleEmbed,embedHeader,voteComments[i].Reason)
+    }
+
+    await client.channels.get(ts.channels.shellderLevelChanges).send(mention);
+    await client.channels.get(ts.channels.shellderLevelChanges).send(exampleEmbed);
+
+    //if(client.util.resolveChannel())
+  
+    //Remove Discussion Channel
+    var levelChannel=guild.channels.find(channel => channel.name === level.Code.toLowerCase())
+    if(levelChannel){
+      levelChannel.delete("Justice has been met!")
+    }
+}
+
+
+this.levelEmbed=function(level,noLink){
   var videoStr=[]
   level["Clear Video"].split(",").forEach((vid,i)=>{
     if(vid) videoStr.push("[ 🎬 ]("+vid+")")
@@ -150,13 +298,17 @@ this.levelEmbed=function(level){
   var embed = client.util.embed()
       .setColor("#007bff")
       .setTitle(level["Level Name"] + " (" + level.Code + ")")
-      .setURL("https://teamshellsmm.github.io/levels/?code=" + level.Code)
       .setDescription(
-        "made by [" + level.Creator + "](https://teamshellsmm.github.io/levels/?creator=" + encodeURIComponent(level.Creator) + ")\n"+
+        "made by "+
+        (noLink?level.Creator:"[" + level.Creator + "](https://teamshellsmm.github.io/levels/?creator=" + encodeURIComponent(level.Creator) + ")")+"\n"+
         (level.clears!=undefined ? "Difficulty: "+level.Difficulty+", Clears: "+level.clears+", Likes: "+level.likes+"\n":"")+
           (tagStr?"Tags: "+tagStr+"\n":"")+
           (videoStr?"Clear Video: "+videoStr:"")
        )
+    if(!noLink){
+      embed.setURL("https://teamshellsmm.github.io/levels/?code=" + level.Code)
+    }
+
         //randomEmbed.addField(,);
    embed = embed.setTimestamp();
    return embed

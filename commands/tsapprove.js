@@ -1,23 +1,5 @@
 const { Command } = require('discord-akairo');
 
-ts.embedAddLongField=function(embed,header,body){
-  if(!header) header="\u200b"
-  var bodyArr=body.split(".")
-  var bodyStr=[""];
-  for(var k=0,l=0;k<bodyArr.length;k++){
-    if(bodyArr[k]){
-    if( (bodyStr[l].length+bodyArr[k].length+1) > 980 ){
-      l++
-      bodyStr[l]=""
-    }
-      bodyStr[l]+=bodyArr[k]+"."
-    }
-  }
-  for(var k=0;k<bodyStr.length;k++){
-    embed.addField(header,bodyStr[k]);
-    header = "\u200b"
-  }
-}
 
 class TSApprove extends Command {
     constructor() {

@@ -24,6 +24,9 @@ class TSRerate extends Command {
     }
     
     async exec(message,args) {
+            console.log(Object.keys(this.client.guilds.guilds))
+
+      try{
       if(!( 
         message.channel.id === ts.channels.shellderShellbot  //only in bot-test channel
       )) return false;
@@ -33,35 +36,22 @@ class TSRerate extends Command {
       }
 
       //Check all the args first
-      if(!ts.valid_code(args.code)){
-        message.reply("Level Code is invalid! " + ts.emotes.think);
-        return false;
-      }
+      if(!ts.valid_code(args.code))
+        ts.userError("Level Code is invalid!")
+
+      if(!ts.valid_difficulty(args.difficulty))
+          ts.userError("Invalid difficulty format!");
 
       await gs.loadSheets(["Raw Levels", "Raw Members"]);
-      const level=gs.select("Raw Levels",{"Code":args.code});
-
-      if(!level){
-        message.reply("Level Code was not found! " + ts.emotes.think);
-        return false;
-      }
-
+      const level=ts.getExistingLevel(args.code);
       const author = gs.select("Raw Members",{"Name":level.Creator});
 
-      if(!author){
-        message.reply("Author was not found in Members List! " + ts.emotes.think);
-        return false;
-      }
+      if(level.Approve!=="1")
+        ts.userError("Level is not an approved level")
+      
 
-      if(!ts.valid_difficulty(args.difficulty)){
-        message.reply("Invalid difficulty format! " + ts.emotes.think);
-        return false;
-      }
-
-      if(!args.reason){
-        message.reply("You need to give a reason for the change (in quotation marks)!");
-        return false;
-      }
+      if(!args.reason)
+        ts.userError("You need to give a reason for the change (in quotation marks)!");
 
       var oldDiff = level.Difficulty;
 
@@ -69,26 +59,30 @@ class TSRerate extends Command {
         filter: {"Code":args.code},
         update: {"Difficulty": args.difficulty}
       });
+
+      if(!updateLevel.updated["Difficulty"])
+        ts.userError("\""+level["Level Name"]+"\" is already rated "+args.difficulty)
+
       if(updateLevel.Code == args.code){
         await gs.batchUpdate(updateLevel.update_ranges);
       }
       
-      var mention = "**<@" + author.discord_id + ">, we got some news for you: **";
-      
-      var rerateEmbed = this.client.util.embed()
+      var rerateEmbed = ts.levelEmbed(level)
             .setColor("#17a2b8")
             .setAuthor("Difficulty rating updated from "+oldDiff + " to " + args.difficulty)
-            .setTitle(level["Level Name"] + " (" + level.Code + ")")
-            .setURL("https://teamshell.net/levels/?code=" + level.Code)
-            .setDescription("made by [" + author.Name + "](https://teamshell.net/levels/?creator=" + encodeURIComponent(author.Name) + ")")
+            .addField("\u200b","**Reason** :\n```"+args.reason+"```Rerated by <@" +message.member.id + ">")
 
-          rerateEmbed.addField("\u200b","**Reason** :\n```"+args.reason+"```Rerated by <@" +message.member.id + ">");
-          rerateEmbed = rerateEmbed.setTimestamp();
-          
-          //Send Rejection to #shellder-level-changes
-      await this.client.channels.get(ts.channels.shellderLevelChanges).send(mention);
-      await this.client.channels.get(ts.channels.shellderLevelChanges).send(rerateEmbed);
+      var levelChangeChannel=await this.client.channels.get(ts.channels.shellderLevelChanges)
+
+      if(author){ //edge case of no discord_id
+        var mention = "**<@" + author.discord_id + ">, we got some news for you: **";
+        await levelChangeChannel.send(mention);
+      }
+      await levelChangeChannel.send(rerateEmbed);
       message.reply("Difficulty was successfully changed!");
+    } catch(error){
+      message.reply(ts.getUserErrorMsg(error))
     }
+  }
 }
 module.exports = TSRerate;
