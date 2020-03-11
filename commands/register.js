@@ -16,6 +16,9 @@ class TSRegister extends Command {
         try{
           await gs.loadSheets(["Raw Members"]);
           const player=gs.select("Raw Members",{"discord_id":message.author.id});
+          if(player && player.banned){
+            ts.userError("You're barred from using this service")
+          }
           if(player){
             ts.userError("You're already registered as **"+player.Name+"**")
           }

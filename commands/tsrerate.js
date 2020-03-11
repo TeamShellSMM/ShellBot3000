@@ -24,8 +24,6 @@ class TSRerate extends Command {
     }
     
     async exec(message,args) {
-            console.log(Object.keys(this.client.guilds.guilds))
-
       try{
       if(!( 
         message.channel.id === ts.channels.shellderShellbot  //only in bot-test channel

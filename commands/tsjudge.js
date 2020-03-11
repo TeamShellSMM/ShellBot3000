@@ -12,8 +12,6 @@ class TSJudge extends Command {
     async exec(message,args) {     
       try{
       var inCodeDiscussionChannel = false;
-      var client=this.client
-
       var levelCode;
       //Check if in level discussion channel
       if(ts.valid_code(message.channel.name.toUpperCase())){

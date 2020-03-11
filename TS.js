@@ -148,6 +148,10 @@ this.get_user=function(message){
 
   if(!player)
     ts.userError("You are not yet registered");
+
+  if(player.banned)
+    ts.userError("You have been barred from using this service")
+
   player.earned_points=this.calculatePoints(player.Name);
   player.rank=this.get_rank(player.earned_points.clearPoints);
   player.user_reply="<@"+message.author.id+">"+player.rank.Pips+" ";

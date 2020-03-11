@@ -24,6 +24,7 @@ class TSClear extends Command {
         try{
           args.code=args.code.toUpperCase();
           var command=ts.parse_command(message);
+          var strOnly=false;
 
           if(!ts.valid_code(args.code))
             ts.userError("You did not provide a valid code for the level");
@@ -43,8 +44,10 @@ class TSClear extends Command {
       
           await gs.loadSheets(["Raw Members","Raw Levels","Raw Played"]);
           const player=ts.get_user(message);
-          var level=ts.getExistingLevel(args.code)
 
+          //convert below to be function
+          //call it in approve
+          var level=ts.getExistingLevel(args.code)
           var existing_play=gs.select("Raw Played",{"Code":args.code,"Player":player.Name})
           if(existing_play && existing_play.Completed=="1")
             ts.userError("You have already submitted a clear for \""+level["Level Name"]+" by "+level.Creator)
@@ -53,7 +56,7 @@ class TSClear extends Command {
             ts.userError("You can't submit a clear for your own level")
 
           var creator=gs.select("Raw Members",{"Name":level.Creator});
-          if(creator && creator.atme=="1" && creator.discord_id){
+          if(creator && creator.atme=="1" && creator.discord_id && !strOnly){
            var creator_str="<@"+creator.discord_id+">"
           } else {
            var creator_str=level.Creator
