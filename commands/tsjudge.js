@@ -137,7 +137,17 @@ class TSJudge extends Command {
               }
             });
             if(updateAuthor.Name == author.Name){
-              await gs.batchUpdate(updateAuthor.update_ranges);
+              await gs.batchUpdate(updateAuthor.update_ranges); //should combine the batch updates
+              if(author.discord_id){
+                console.log(author)
+                var curr_user=await message.guild.members.get(author.discord_id)
+                if(!curr_user){
+                  console.error(author.Name+" was not found in the discord")
+                } else {
+                  await curr_user.addRole(ts.channels.shellcult_id)
+                  await this.client.channels.get(ts.channels.initiateChannel).send("<a:ts_2:632758958284734506><a:ts_2:632758958284734506><a:ts_1:632758942992302090> <:SpigLove:628057762449850378> We welcome <@"+author.discord_id+"> into the shell cult <:PigChamp:628055057690132481> <a:ts_2:632758958284734506><a:ts_2:632758958284734506><a:ts_1:632758942992302090> <:bam:628731347724271647>")      
+                }
+              }
             }
           }
 
