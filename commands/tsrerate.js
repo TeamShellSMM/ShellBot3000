@@ -44,7 +44,7 @@ class TSRerate extends Command {
       const level=ts.getExistingLevel(args.code);
       const author = gs.select("Raw Members",{"Name":level.Creator});
 
-      if(level.Approve!=="1")
+      if(level.Approved!=="1")
         ts.userError("Level is not an approved level")
       
 
