@@ -10,6 +10,7 @@
     "express": "^4.17.1",
     "googleapis": "^39.2.0",
     "request": "^2.88.2",
+    "request-promise": "^4.2.5",
     "string-similarity": "^4.0.1",
     "valid-url": "^1.0.9"
   },
