@@ -101,13 +101,13 @@ var GS=function(config){
   }
 
   //need to load 
-  this.select=function(sheet,filter){
+  this.select=function(sheet,filter,forceArray){
     return this.query(sheet,{
       filter:filter
-    })
+    },forceArray)
   }
   
-  this.query=function (sheet,parameters){ //may break if column named updated or row
+  this.query=function (sheet,parameters,forceArray){ //may break if column named updated or row
     try{
     var querySheet = SheetCache[sheet]
     if(!querySheet) throw "No cached sheet found"
@@ -157,7 +157,10 @@ var GS=function(config){
         ret.push(obj)  
       }
     } 
-    return (ret.length>1) ? ret : ret[0]
+    if(forceArray)
+      return ret;
+
+    return (ret.length>1) ? ret : ret[0];
     } catch (error){
       console.error(error)
     }

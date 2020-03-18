@@ -65,7 +65,7 @@ class tsrandom extends Command {
         const levels=ts.get_levels(true) //get levels with aggregates and stats
         var difficulties=[]
         var played=[];
-        gs.select("Raw Played",{"Player":player.Name,"Completed":1}).forEach((clear)=>{
+        gs.select("Raw Played",{"Player":player.Name,"Completed":1},true).forEach((clear)=>{
           const level=levels[clear.Code]
           if(level && level.Approved=="1" && level.Creator!=player.Name){
             played.push(level.Code)
