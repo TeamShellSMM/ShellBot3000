@@ -4,7 +4,7 @@ const { Command } = require('discord-akairo');
 class tsinfo extends Command {
     constructor() {
         super('tsinfo', {
-           aliases: ['tsinfo','info'],
+           aliases: ['tsinfo','info','level'],
             args: [{
                     id: 'code',
                     type: 'string',

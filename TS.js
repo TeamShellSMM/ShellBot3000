@@ -10,6 +10,12 @@ this.valid_code=function(code){
   return /^[1234567890QWERTYUPASDFGHJKLXCVBNM]{3}-[1234567890QWERTYUPASDFGHJKLXCVBNM]{3}-[1234567890QWERTYUPASDFGHJKLXCVBNM]{3}$/.test(code.toUpperCase())
 }
 
+this.getEmoteUrl=function(emote){
+  if(!emote) return ""
+  let id=emote.split(":")[2].slice(0,-1)
+  return "https://cdn.discordapp.com/emojis/"+id+"?v=100"
+}
+
 this.channels={}
 this.emotes={}
 
@@ -201,7 +207,7 @@ this.judge=async function(levelCode){
     //Build embed
     var color="#dc3545";
     var title="Level was " + (level.Approved === "0" ? "rejected" : "removed") + "!";
-    var image='https://teamshellsmm.github.io/assets/axemuncher.png';
+    var image=this.getEmoteUrl(this.emotes.axemuncher);
     var voteComments=rejectVotes;
 
   } else if (approvalVoteCount >= ts.get_variable("VotesNeeded")  && approvalVoteCount>rejectVoteCount ){
@@ -258,7 +264,7 @@ this.judge=async function(levelCode){
       //Build Status Message
       var color="#01A19F";
       var title="This level was approved for difficulty: " + finalDiff + "!";
-      var image='https://teamshellsmm.github.io/assets/bam.png';
+      var image=this.getEmoteUrl(this.emotes.bam);
       var voteComments=approvalVotes;
     } else {
       ts.userError("There must be at least "+ts.get_variable("VotesNeeded")+" Shellders in agreement before this level can be judged!");

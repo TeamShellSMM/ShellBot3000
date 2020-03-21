@@ -107,7 +107,7 @@ class TSApprove extends Command {
 
       //Check if level is approved, if it's approved only allow rejection
       if(level.Approved === "1"){
-        if(raw_command == "tsapprove" || clearCommands.indexOf(command.command) !== -1){
+        if(command.command == "tsapprove" || clearCommands.indexOf(command.command) !== -1){
           ts.userError("Level is already approved!");
         }
       } else if(level.Approved === "0"){
@@ -185,7 +185,9 @@ class TSApprove extends Command {
       //Update Overview post in discussion channel
 
       
-      var voteEmbed=ts.levelEmbed(level).setAuthor("The Judgement  has now begun for this level:")
+      var voteEmbed=ts.levelEmbed(level)
+        .setAuthor("The Judgement  has now begun for this level:")
+        .setThumbnail(ts.getEmoteUrl(ts.emotes.judgement));
 
       var postString = "__Current Votes for approving the level:__\n";
       if(approveVotes == undefined || approveVotes.length == 0){

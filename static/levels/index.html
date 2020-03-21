@@ -119,8 +119,13 @@
 
 
       //adding automatic tags
-
       var include=true;
+      var curr_tags=data.levels[i][9].split(",")
+      if(data.levels[i][5]=="0"){
+        curr_tags.unshift("Pending")
+      }
+      data.levels[i][9]=curr_tags.join(",")
+
       if(params.get("code")){
           if(data.levels[i][headers.levels.Code]!=params.get("code")){
             include=false
@@ -141,12 +146,6 @@
           include=false
         }
       } else { //only run filters when not showing code or creators
-
-        var curr_tags=data.levels[i][9].split(",")
-        if(data.levels[i][5]=="0"){
-          curr_tags.unshift("Pending")
-        }
-        data.levels[i][9]=curr_tags.join(",")
 
         //get all the tags used from the data set
         for(var k=0;k<curr_tags.length;k++){
@@ -233,16 +232,21 @@
       datatable2.draw();
     }
     //
-    if(!get_input('approved') || get_input('approved')=="1"||get_input('approved')=="2"){
-      datatable.column(5).search( (get_input('approved')=="2"?'"0"':'"1"'),false,true)  
-    } else {
-      datatable.column(5).search( "",false,true)  
-    }
-
-    if(get_input("cleared")=="2"||get_input("cleared")=="3"){
-      datatable.column(14).search(get_input('cleared')=="3"?'"1"':'"0"',false,true)  
-    } else {
+    if(params.get("creator") || params.get("code")){
+      datatable.column(5).search("",false,true); 
       datatable.column(14).search("",false,true);
+    } else {
+      if(!get_input('approved') || get_input('approved')=="1"||get_input('approved')=="2"){
+        datatable.column(5).search( (get_input('approved')=="2"?'"0"':'"1"'),false,true)  
+      } else {
+        datatable.column(5).search("",false,true)  
+      }
+
+      if(get_input("cleared")=="2"||get_input("cleared")=="3"){
+        datatable.column(14).search(get_input('cleared')=="3"?'"1"':'"0"',false,true)  
+      } else {
+        datatable.column(14).search("",false,true);
+      }
     }
     
 
@@ -579,7 +583,7 @@ getData()
     <div class="col-12">
       <h1><img src="../assets/buzzySpin.gif"/> <span class="green">#Team</span><span class="orange">Shell</span> Levels</h1>
       <ul id="nav"><li class="active"><a href="./">Levels</a></li><li><a href="../makers">Makers</a></li><li><a href="../members">Members</a></li></ul>
-      <h4>Join the discord for more information: <a href="//discord.gg/7tQJewa">//discord.gg/7tQJewa</a></h4>
+      <h4>Join the discord for more information: <a href="https://discord.gg/7tQJewa">https://discord.gg/7tQJewa</a></h4>
       <div class="form-check">
         <input class="form-check-input" type="checkbox" value="" id="darkmode">
         <label class="form-check-label" for="darkmode">Dark Mode <i class="fa fa-moon-o" aria-hidden="true"></i></label>

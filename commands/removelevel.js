@@ -48,13 +48,11 @@ class tsremove extends Command {
         var batch_updates=level.update_ranges
         await gs.batchUpdate(batch_updates)
 
-
-        var removeEmbed = this.client.util.embed()
+        var removeEmbed=ts.levelEmbed(level,1)
             .setColor("#dc3545")
             .setAuthor("This level has been removed by "+player.Name)
-            .setTitle(level["Level Name"] + " (" + level.Code + ")")
-            .setDescription("made by [" + level.Creator + "](https://teamshell.net/levels/?creator=" + encodeURIComponent(level.Creator) + ")")
-
+            .setThumbnail(ts.getEmoteUrl(ts.emotes.buzzyS));
+        
           removeEmbed.addField("\u200b","**Reason for removal** :```"+reason+"```-<@" +player.discord_id + ">");
           removeEmbed = removeEmbed.setTimestamp();
           //Send updates to to #shellbot-level-update
