@@ -4,10 +4,9 @@ const TS=require('./TS.js')
 const GS=require('./GS.js')
 const express = require('express');
 var compression = require('compression')
-const app = express();
-app.use(express.static('static'));
-app.use(compression())
 
+
+const app = express();
 const client = new AkairoClient(config, { //not sure this is a good idea or not
     disableEveryone: true
 });
@@ -25,10 +24,6 @@ global.ts=new TS(gs,client);
  	console.error(error)
  }
 })();
-
-app.get('/', (req, res) => {
-    res.send('buzzyS');
-});
 
 app.get('/json', (req, res) => {
 
