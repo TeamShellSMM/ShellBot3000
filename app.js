@@ -7,6 +7,12 @@ var compression = require('compression')
 
 
 const app = express();
+app.use(compression())
+
+if(config.json_dev){
+  app.use("/dev", express.static(__dirname + '/json_dev.html'));
+}
+
 const client = new AkairoClient(config, { //not sure this is a good idea or not
     disableEveryone: true
 });

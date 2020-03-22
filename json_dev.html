@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>#TeamShell</title>
+</head>
+<body>
+<h1>ShellBot API tester</h1>
+<form id="login" method="post">
+  <input class="form-controls" type="text" name="username"/>
+  <input class="form-controls" type="password" name="otp"/>
+  <input class="form-controls" type="submit"/>
+</form>
+<code id="loginOut"></code>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+<script>
+
+$("#login").submit(function(event){
+  event.preventDefault(); //prevent default action 
+
+  var post_url = "/json"
+  var request_method = $(this).attr("method"); //get form GET/POST method
+  var form_data = $(this).serialize(); //Encode form elements for submission
+  
+  $("#loginOut").html(form_data)
+  /*
+  $.ajax({
+    url : post_url,
+    type: request_method,
+    data : form_data
+  }).done(function(response){ //
+    $("#server-results").html(response);
+  });*/
+})
+
+</script>
+</body>
+</html>
