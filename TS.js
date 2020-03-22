@@ -302,7 +302,7 @@ this.levelEmbed=function(level,noLink){
   videoStr=videoStr.join(",")
   var tagStr=[]
   level.Tags.split(",").forEach((tag)=>{
-    if(tag) tagStr.push("["+tag+"](https://teamshellsmm.github.io/levels/?tag="+encodeURIComponent(tag)+")")
+    if(tag) tagStr.push("["+tag+"](https://teamshell.net/levels/"+encodeURIComponent(tag)+")")
   })
   tagStr=tagStr.join(",")
   var embed = client.util.embed()
@@ -310,13 +310,13 @@ this.levelEmbed=function(level,noLink){
       .setTitle(level["Level Name"] + " (" + level.Code + ")")
       .setDescription(
         "made by "+
-        (noLink?level.Creator:"[" + level.Creator + "](https://teamshellsmm.github.io/levels/?creator=" + encodeURIComponent(level.Creator) + ")")+"\n"+
+        (noLink?level.Creator:"[" + level.Creator + "](https://teamshell.net/maker/" + encodeURIComponent(level.Creator) + ")")+"\n"+
         (level.clears!=undefined ? "Difficulty: "+level.Difficulty+", Clears: "+level.clears+", Likes: "+level.likes+"\n":"")+
           (tagStr?"Tags: "+tagStr+"\n":"")+
           (videoStr?"Clear Video: "+videoStr:"")
        )
     if(!noLink){
-      embed.setURL("https://teamshellsmm.github.io/levels/?code=" + level.Code)
+      embed.setURL("https://teamshell.net/level/" + level.Code)
     }
 
         //randomEmbed.addField(,);
