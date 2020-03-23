@@ -146,7 +146,7 @@ async function generateSiteJson(isShellder){
 
 }
 
-app.get('/json', (req, res) => {
+app.get('/json', async (req, res) => {
 
   var lastUpdated = gs.lastUpdated
 
