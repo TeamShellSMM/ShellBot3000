@@ -37,7 +37,8 @@ class tsdifficulty extends Command {
 
           var existing_play = await Plays.query()
             .where('code', '=', args.code)
-            .where('player', '=', player.Name);
+            .where('player', '=', player.Name)
+            .first();
 
           if(!existing_play || existing_play && existing_play.completed!="1")
             ts.userError("You haven't submitted a clear for \""+level["Level Name"]+" by "+level.Creator)

@@ -33,7 +33,8 @@ class tslike extends Command {
 
           var existing_play = await Plays.query()
             .where("code", "=", args.code)
-            .where("player", "=", args.player);
+            .where("player", "=", args.player)
+            .first();
 
           if(!existing_play || existing_play && existing_play.completed!="1")
             ts.userError("You haven't submitted a clear for \""+level["Level Name"]+" by "+level.Creator)
