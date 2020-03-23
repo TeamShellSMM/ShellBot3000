@@ -76,6 +76,7 @@ class TSClear extends Command {
             "difficulty_vote":args.difficulty
           }
           if(existing_play){
+            console.log(existing_play);
             await Plays.query()
               .findById(existing_play.id)
               .patch(row);
