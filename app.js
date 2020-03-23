@@ -8,6 +8,7 @@ const moment = require('moment');
 var compression = require('compression')
 const db={}
 db.Tokens=require('./models/Tokens.js');
+db.Plays = require('./models/Plays.js');
 
 
 const app = express();
@@ -27,7 +28,7 @@ global.ts=new TS(gs,client);
 (async () => { //main thread
   try {
     await ts.load()
-    await client.login(config.token); 
+    await client.login(config.token);
     await app.listen(config.webPort, () => console.log(config.botName+':Web server now listening on '+config.webPort));
    console.log(config.botName+":logged in")
 
@@ -38,26 +39,23 @@ global.ts=new TS(gs,client);
 
 function generateSiteJson(isShellder){
   var SheetCache = gs.getArrayFormat([
-        "Raw Levels!J", 
+        "Raw Levels!J",
         "Seasons!B",
         "tags",
         "Competition Winners",
-        "Raw Played", 
         "Raw Members!C",
         "Points!B"
       ])
-    
+
     var _rawLevels = SheetCache["Raw Levels"]
     var _seasons = SheetCache["Seasons"]
     var tags = SheetCache["tags"];
     var competiton_winners = SheetCache["Competition Winners"];
-    var _playedLevels = SheetCache["Raw Played"];
     var _members = SheetCache["Raw Members"]
     var _points = SheetCache["Points"]
 
+    var _playedLevels = await db.Plays.query();
 
-    
-    
     var rawLevels=[_rawLevels[0]];
     var reuploaded=[]
     var pending=[]
@@ -72,19 +70,19 @@ function generateSiteJson(isShellder){
         reuploaded.push(_rawLevels[i])
       }
     }
-    
-    
+
+
     var tag_header=tags.shift()
     var comp_winners_header=competiton_winners.shift()
     var _tags={}
     var _seperate=[]
     for(var i=0;i<tags.length;i++){
       if(tags[i][2]=="1"){
-        _seperate.push(tags[i][0])  
+        _seperate.push(tags[i][0])
       }
-      _tags[tags[i][0]]=tags[i][1] 
+      _tags[tags[i][0]]=tags[i][1]
     }
-    
+
     var seasons_header=_seasons.shift()
     var Seasons=[]
     for(var i=0;i<_seasons.length;i++){
@@ -93,17 +91,17 @@ function generateSiteJson(isShellder){
         startdate:_seasons[i][0]
       })
     }
-    
+
     for(var i=0;i<_members.length;i++){
       if(_members[i].length==2){
-        _members[i].push("") 
+        _members[i].push("")
       } else if(_members[i].length==1){ //so hack
-        _members[i].push("") 
+        _members[i].push("")
         _members[i].push("")
       }
     }
-    
-    
+
+
     var d=new Date()
     var day = d.getDay();
     var DAY_START=(new Date(d.getFullYear(), d.getMonth(), d.getDate())).getTime()/1000;
@@ -115,7 +113,7 @@ function generateSiteJson(isShellder){
       "WEEK_START":WEEK_START,
       "MONTH_START":MONTH_START,
       "seasons":Seasons,
-      "comp_winners":competiton_winners,                                                                        
+      "comp_winners":competiton_winners,
       "levels":rawLevels,
       "reuploaded":reuploaded,
       "played":_playedLevels,
@@ -123,7 +121,7 @@ function generateSiteJson(isShellder){
       "tags":_tags,
       "seperate":_seperate,
       "points":_points,
-    };  
+    };
     if(isShellder){
       //console.log(pending)
       var _comments=gs.select("Shellder Votes")
