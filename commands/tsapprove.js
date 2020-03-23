@@ -255,7 +255,7 @@ class TSApprove extends Command {
             "code": level.Code,
             "player": shellder.Name,
             "completed": "1",
-            "is_shelder": "1",
+            "is_shellder": "1",
             "liked": likeCommands.indexOf(command.command) !== -1 ? 1 : 0,
             "difficulty_vote": args.difficulty
           });

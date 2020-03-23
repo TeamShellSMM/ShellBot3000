@@ -72,7 +72,7 @@ class TSClear extends Command {
             "code":args.code,
             "player":player.Name,
             "completed":"1",
-            "is_shelder":player.shelder,
+            "is_shellder":player.shelder,
             "liked":args.like,
             "difficulty_vote":args.difficulty
           }
