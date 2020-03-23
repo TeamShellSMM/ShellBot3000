@@ -1,5 +1,5 @@
 const { Command } = require('discord-akairo');
-const Plays = require('./models/Plays.js');
+const Plays = require('../models/Plays');
 
 class TSClear extends Command {
     constructor() {
