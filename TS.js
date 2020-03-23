@@ -1,9 +1,53 @@
 'use strict'
+const Tokens = require('./models/Tokens.js');
 const stringSimilarity = require('string-similarity')
+const crypto=require('crypto')
+const moment=require('moment')
+
 var TS=function(gs,client){ //loaded after gs
 var ts=this
 this.valid_format=function(code){
   return /^[0-9A-Z]{3}-[0-9A-Z]{3}-[0-9A-Z]{3}$/.test(code.toUpperCase())
+}
+
+this.generateOtp=async function(discord_id){
+  let newOtp=crypto.randomBytes(8).toString('hex').toUpperCase()
+  await Tokens.query().insert({
+    discord_id:discord_id,
+    token:newOtp,
+  })
+  //await client.get_user(discord_id).send("You have requested a login token. Use this in the website to login:"+newOtp)
+  return newOtp
+}
+
+this.checkBearerToken=async function(discord_id,token){
+  var token=await Tokens.query()
+      .where('discord_id','=',discord_id)
+      .where('token','=',token)
+
+  if(token.length){
+    token=token[0]
+    var tokenExpireAt=moment(token.created_at).add(30,'days').valueOf()
+    var now=moment().valueOf()
+    if(tokenExpireAt<now)
+      ts.userError("Token expired. Need to relogin")
+  } else {
+      ts.userError("Authentication error")
+  }
+  return true
+}
+
+
+this.login=async function(discord_id,row_id){
+  let bearer=crypto.randomBytes(16).toString('hex').toUpperCase()
+  await Tokens.query()
+  .findById(row_id)
+  .patch({
+    token: bearer,
+    authenticated:1
+  });
+  await client.guilds.get(this.channels.guild_id).members.get(discord_id).send("Your account was logged in on the website.")
+  return bearer
 }
 
 this.valid_code=function(code){
@@ -30,7 +74,7 @@ this.valid_difficulty=function(str){ //whack code.
 
 const static_vars=[
 "TeamShell Variable","Points","TeamShell Ranks","Seasons","Emotes","Channels","tags","Competition Winners", //static vars
-'Raw Members','Raw Levels','Raw Played' //play info
+'Raw Members','Raw Levels','Raw Played',"Shellder Votes" //play info
 ]; //initial vars to be loaded on bot load
 
 this.pointMap=null
@@ -147,9 +191,19 @@ this.getUserErrorMsg=function(obj){
   }
 }
 
+this.getWebUserErrorMsg=function(obj){
+  if(typeof obj=="object" && obj.errorType=="user"){
+    return { status:"error", message:obj.msg }
+  } else {
+    console.error(obj)
+    return { status:"error", message:"Something went wrong buzzyS"}
+  }
+}
+
 this.get_user=function(message){
+  var discord_id=typeof message=="string"?message:message.author.id
   var player=gs.select("Raw Members",{
-    "discord_id":message.author.id
+    "discord_id":discord_id
   })
 
   if(!player)
@@ -160,7 +214,7 @@ this.get_user=function(message){
 
   player.earned_points=this.calculatePoints(player.Name);
   player.rank=this.get_rank(player.earned_points.clearPoints);
-  player.user_reply="<@"+message.author.id+">"+player.rank.Pips+" ";
+  player.user_reply="<@"+discord_id+">"+player.rank.Pips+" ";
   return player
 }
 

@@ -6,24 +6,106 @@
 </head>
 <body>
 <h1>ShellBot API tester</h1>
+<div class="container">
+
+<div class="row">
+<div class="col-md-12">
+<h3>Login</h3>
 <form id="login" method="post">
-  <input class="form-controls" type="text" name="username"/>
-  <input class="form-controls" type="password" name="otp"/>
-  <input class="form-controls" type="submit"/>
+  <label>Username<input class="form-control" type="text" name="username"/></label>
+  <label>OTP<input class="form-control" type="password" name="otp"/></label>
+  <input class="form-control btn btn-primary" type="submit" name="action" value="Login"/>
 </form>
 <code id="loginOut"></code>
+</div>
+</div>
+
+
+<div class="row">
+<form>
+  
+</form>
+</div>
+
+
+<form id="postsJson" method="post">
+  <h3>Authentication Info (To be stored in localStorage)</h3>
+  <label>discord_id<input id="discord_id" name="discord_id" class="form-control"/></label>
+  <label>bearer token<input id="bearer_token" name="bearer_token" class="form-control"/></label>
+  <h3>Get Authenticated JSON</h3>
+  <input class="form-control btn btn-primary" type="submit" name="action" value="Login"/>
+</form>
+<code id="loginOut"></code>
+</div>
+
+<div class="row">
+<div class="col-md-12">
+<h3>Clear Checker</h3>
+<form id="clear" method="post">
+  <label>Code <input class="form-control" type="text" name="code"/></label>
+  <label>Difficulty vote<input type="text" class="form-control" name="difficulty"/></label>
+  <div class="form-check"><input type="checkbox" class="form-check-input" name="liked" value="1"/><label class="form-check-label">Liked</label></div>
+  <input class="form-control btn btn-primary" type="submit" name="action" value="Clear"/>
+</form>
+<code id="clearOut"></code>
+</div>
+</div>
+
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
 <script>
-
+var discord_id=null;
+var token=null;
+var lastUpdated=null;
 $("#login").submit(function(event){
   event.preventDefault(); //prevent default action 
+  var form_data = $(this).serialize(); //Encode form elements for submission
+  
+  $.ajax({
+    url : "/json/login",
+    type: "post",
+    data : form_data
+  }).done(function(response){ //
+    console.log(response)
+    if(response.status=="logged_in"){
+      discord_id=response.discord_id;
+      token=response.token
+      $("#discord_id").val(discord_id)
+      $("#bearer_token").val(token)
+      $("#loginOut").html(JSON.stringify(response))
+    } else {
+      $("#loginOut").html(JSON.stringify(response))
+    }
+    
+  });
+})
+
+$("#postsJson").submit(function(event){
+  event.preventDefault(); //prevent default action 
+  
+  $.ajax({
+    url : "/json",
+    type: "post",
+    data : {
+      discord_id:discord_id,
+      token:token,
+      lastLoaded:lastUpdated
+    }
+  }).done(function(response){ //
+    console.log(response)
+  });
+})
+
+$("#clear").submit(function(event){
+  event.preventDefault(); //prevent default action 
+
 
   var post_url = "/json"
   var request_method = $(this).attr("method"); //get form GET/POST method
   var form_data = $(this).serialize(); //Encode form elements for submission
   
-  $("#loginOut").html(form_data)
+  $("#clearOut").html(form_data+"&token="+token)
   /*
   $.ajax({
     url : post_url,
