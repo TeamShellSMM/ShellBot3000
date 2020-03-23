@@ -37,7 +37,7 @@ global.ts=new TS(gs,client);
  }
 })();
 
-function generateSiteJson(isShellder){
+async function generateSiteJson(isShellder){
   var SheetCache = gs.getArrayFormat([
         "Raw Levels!J",
         "Seasons!B",
