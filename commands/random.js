@@ -1,4 +1,5 @@
 const { Command } = require('discord-akairo');
+const Plays = require('../models/Plays');
 
 function getRandomInt(min, max) {
   min = Math.ceil(min);
@@ -22,9 +23,9 @@ class tsrandom extends Command {
            channelRestriction: 'guild'
         });
     }
-    
-    async exec(message,args) {     
-         //if(!( 
+
+    async exec(message,args) {
+         //if(!(
         //    message.channel.id === ts.channels.shellderShellbot  //only in bot-test channel
         //)) return false;
       try {
@@ -33,7 +34,7 @@ class tsrandom extends Command {
          if(args.minDifficulty && !ts.valid_difficulty(args.minDifficulty)){
           ts.userError(args.maxDifficulty? "You didn't specify a valid minimum difficulty" : "You didn't specify a valid difficulty")
         }
-        
+
 
         if(args.maxDifficulty){
           if(!ts.valid_difficulty(args.maxDifficulty))
@@ -50,14 +51,14 @@ class tsrandom extends Command {
           args.minDifficulty=temp
         }
 
-        await gs.loadSheets(["Raw Members","Raw Levels","Raw Played"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
+        await gs.loadSheets(["Raw Members","Raw Levels"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
         const player=gs.select("Raw Members",{
           "discord_id":message.author.id
         })
 
         if(!player)
           ts.userError("You are not yet registered");
-        const earned_points=ts.calculatePoints(player.Name);
+        const earned_points=await ts.calculatePoints(player.Name);
         const rank=ts.get_rank(earned_points.clearPoints);
         const user_reply="<@"+message.author.id+">"+rank.Pips+" ";
 
@@ -65,8 +66,13 @@ class tsrandom extends Command {
         const levels=ts.get_levels(true) //get levels with aggregates and stats
         var difficulties=[]
         var played=[];
-        gs.select("Raw Played",{"Player":player.Name,"Completed":1},true).forEach((clear)=>{
-          const level=levels[clear.Code]
+
+        var plays = await Plays.query()
+          .where('player', '=', play.Name)
+          .where('completed', 1);
+
+        plays.forEach((clear)=>{
+          const level=levels[clear.code]
           if(level && level.Approved=="1" && level.Creator!=player.Name){
             played.push(level.Code)
             difficulties.push(level.Difficulty)

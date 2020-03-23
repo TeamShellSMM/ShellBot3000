@@ -165,7 +165,7 @@ app.post('/json',async (req,res)=>{
 
     if(req.body.token && req.body.discord_id){
       await ts.checkBearerToken(req.body.discord_id,req.body.token)
-      var user=ts.get_user(req.body.discord_id)
+      var user=await ts.get_user(req.body.discord_id)
       //console.log(user)
     }
 

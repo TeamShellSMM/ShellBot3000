@@ -45,7 +45,7 @@ class TSClear extends Command {
           }
 
           await gs.loadSheets(["Raw Members","Raw Levels"]);
-          const player=ts.get_user(message);
+          const player=await ts.get_user(message);
 
           //convert below to be function
           //call it in approve

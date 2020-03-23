@@ -7,14 +7,14 @@ class tsremove extends Command {
            channelRestriction: 'guild'
         });
     }
-    
-    async exec(message,args) {     
-         //if(!( 
+
+    async exec(message,args) {
+         //if(!(
         //    message.channel.id === ts.channels.shellderShellbot  //only in bot-test channel
         //)) return false;
       try {
 
-        var command=ts.parse_command(message) 
+        var command=ts.parse_command(message)
 
         var level_code=command.arguments.shift().toUpperCase();
         var reason=command.arguments.join(" ")
@@ -26,17 +26,17 @@ class tsremove extends Command {
           ts.userError("You did not provide a reason to remove this level. If you want to reupload, we recommend using the `!tsreupload` command. If you want to remove it now and reupload it later make sure __you don't lose the old code__")
 
 
-        await gs.loadSheets(["Raw Members","Raw Levels","Raw Played"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff  
-        const player=ts.get_user(message);
+        await gs.loadSheets(["Raw Members","Raw Levels"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
+        const player=await ts.get_user(message);
         var level=ts.getExistingLevel(level_code)
 
-        if(level.Approved!="0" && level.Approved!="1") 
+        if(level.Approved!="0" && level.Approved!="1")
           ts.userError("\""+level["Level Name"]+"\" by "+level.Creator+" has already been removed");
 
         //only creator and shellder can reupload a level
         if(!(level.Creator==player.Name || player.shelder=="1"))
           ts.userError("You can't remove \""+level["Level Name"]+"\" by "+level.Creator);
-  
+
         const approvedStr=level.Approved=="1"?2: (level.Creator!=player.Name && player.shelder=="1"?-2:-1); //tsremove run by shellders and not their own levels get -2
         level=gs.query("Raw Levels",{
           filter:{"Code":level_code},
@@ -52,11 +52,11 @@ class tsremove extends Command {
             .setColor("#dc3545")
             .setAuthor("This level has been removed by "+player.Name)
             .setThumbnail(ts.getEmoteUrl(ts.emotes.buzzyS));
-        
+
           removeEmbed.addField("\u200b","**Reason for removal** :```"+reason+"```-<@" +player.discord_id + ">");
           removeEmbed = removeEmbed.setTimestamp();
           //Send updates to to #shellbot-level-update
-      
+
         if(level.Creator!=player.Name){ //moderation
           const creator=gs.select("Raw Members",{"Name":level.Creator})
           var mention = "**<@" + creator.discord_id + ">, we got some news for you: **";
