@@ -63,7 +63,7 @@ $("#login").submit(function(event){
   var form_data = $(this).serialize(); //Encode form elements for submission
   
   $.ajax({
-    url : "/json/login",
+    url : "./json/login",
     type: "post",
     data : form_data
   }).done(function(response){ //
@@ -85,7 +85,7 @@ $("#postsJson").submit(function(event){
   event.preventDefault(); //prevent default action 
   
   $.ajax({
-    url : "/json",
+    url : "./json",
     type: "post",
     data : {
       discord_id:discord_id,
@@ -101,7 +101,7 @@ $("#clear").submit(function(event){
   event.preventDefault(); //prevent default action 
 
 
-  var post_url = "/json"
+  var post_url = "./json"
   var request_method = $(this).attr("method"); //get form GET/POST method
   var form_data = $(this).serialize(); //Encode form elements for submission
   

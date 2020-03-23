@@ -20,5 +20,60 @@
   //spreadsheet id
   "spreadsheetId":"PLACEHOLDER",
   //Web port
-  "webPort":3000
+  "webPort":3000,
+  "json_dev":true,
+  "development":{
+    "client": "sqlite3",
+    "connection": {
+      "filename": "./data.sqlite3"
+    },
+    "migrations": {
+      "directory": "./db/migrations",
+      "tableName": "knex_migrations"
+    },
+    "seeds": {
+      "directory": "./db/seeds/development"
+    },
+    "useNullAsDefault":1
+  },
+    "staging":{
+    "client": "sqlite3",
+    "connection": {
+      "filename": "./data.sqlite3"
+    },
+    "migrations": {
+      "directory": "./db/migrations",
+      "tableName": "knex_migrations"
+    },
+    "seeds": {
+      "directory": "./db/seeds/staging"
+    }
+  },
+    "testing":{
+    "client": "sqlite3",
+    "connection": {
+      "filename": "./data.sqlite3"
+    },
+    "migrations": {
+      "directory": "./db/migrations",
+      "tableName": "knex_migrations"
+    },
+    "seeds": {
+      "directory": "./db/seeds/testing"
+    }
+  },
+    "production":{
+    "client": "sqlite3",
+    "connection": {
+      "filename": "./data.sqlite3"
+    },
+    "migrations": {
+      "directory": "./db/migrations",
+      "tableName": "knex_migrations"
+    },
+    "seeds": {
+      "directory": "./db/seeds/production"
+    }
+  },
+  "debug": true
 }
