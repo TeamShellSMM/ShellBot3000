@@ -153,7 +153,7 @@ app.get('/json', (req, res) => {
   if(req.query.lastLoaded==lastUpdated){
     json = "No Updated Needed"
   } else {
-    json = generateSiteJson()
+    json = await generateSiteJson()
   }
 
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -177,7 +177,7 @@ app.post('/json',async (req,res)=>{
         json = {status:"Authenticated",data:generateSiteJson()}
       }
 */
-      json = {status:"Authenticated",data:generateSiteJson(user.shelder)}
+      json = {status:"Authenticated",data:await generateSiteJson(user.shelder)}
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
       res.send(JSON.stringify(json));
     } catch (error){
