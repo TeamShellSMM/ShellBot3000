@@ -40,6 +40,7 @@ class TSApprove extends Command {
       */
 
 
+
       const clearCommands = ['tsapprove+c', 'tsapprove+cl', 'tsapprove+lc'];
       const likeCommands =  ['tsapprove+cl', 'tsapprove+lc'];
 
@@ -55,11 +56,14 @@ class TSApprove extends Command {
       } else {
         //Check the code only if not in discussion channel
         if(!ts.valid_code(args.code.toUpperCase())){
-          message.reply("Level Code is invalid! " + ts.emotes.think);
-          return false;
+          ts.userError("Level Code is invalid! ")
         }
       }
 
+      if(!(
+        message.channel.id === ts.channels.shellderShellbot  //only in shellder-bot channel
+        || inCodeDiscussionChannel //should also work in the discussion channel for that level
+      )) return false;
 
       if(command.command == "tsreject"){
         //Difficulty doesn't exist in reject, so it get replaced by reason
@@ -70,11 +74,6 @@ class TSApprove extends Command {
       if(args.code){
         args.code = args.code.toUpperCase();
       }
-
-      if(!(
-        message.channel.id === ts.channels.shellderShellbot  //only in bot-test channel
-        || inCodeDiscussionChannel //should also work in the discussion channel for that level
-      )) return false;
 
       //Then Check the other args
       if(command.command == "tsapprove" || clearCommands.indexOf(command.command) !== -1){

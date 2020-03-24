@@ -105,7 +105,6 @@ class tsrandom extends Command {
         var filtered_levels=[]
         var allLevels=await ts.get_levels()
         if(allLevels){
-          console.log(allLevels)
           allLevels.forEach((level)=>{
             var currDifficulty=parseFloat(level.Difficulty)
             if(
