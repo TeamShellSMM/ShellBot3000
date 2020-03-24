@@ -63,12 +63,12 @@ class tsrandom extends Command {
         const user_reply="<@"+message.author.id+">"+rank.Pips+" ";
 
 
-        const levels=ts.get_levels(true) //get levels with aggregates and stats
+        const levels=await ts.get_levels(true) //get levels with aggregates and stats
         var difficulties=[]
         var played=[];
 
         var plays = await Plays.query()
-          .where('player', '=', play.Name)
+          .where('player', '=', player.Name)
           .where('completed', 1);
 
         plays.forEach((clear)=>{
@@ -103,17 +103,23 @@ class tsrandom extends Command {
         max=parseFloat(max)
 
         var filtered_levels=[]
-        ts.get_levels().forEach((level)=>{
-          var currDifficulty=parseFloat(level.Difficulty)
-          if(
-            level.Approved=="1" &&
-            currDifficulty>=min &&
-            currDifficulty<=max &&
-            played.indexOf(level.Code)==-1
-          ){
-            filtered_levels.push(level)
-          }
-        })
+        var allLevels=await ts.get_levels()
+        if(allLevels){
+          console.log(allLevels)
+          allLevels.forEach((level)=>{
+            var currDifficulty=parseFloat(level.Difficulty)
+            if(
+              level.Approved=="1" &&
+              currDifficulty>=min &&
+              currDifficulty<=max &&
+              played.indexOf(level.Code)==-1
+            ){
+              filtered_levels.push(level)
+            }
+          })
+        } else {
+          throw "No levels found buzzyS"
+        }
         filtered_levels.sort(function(a,b){
           return parseFloat(a.likes)-parseFloat(b.likes)
         })
