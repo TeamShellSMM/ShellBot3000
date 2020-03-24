@@ -86,6 +86,7 @@ this.levelRemoved=function(level){
 }
 
 this.load=async function(){
+  gs.clearCache()
   this.pointMap={}
  this.channels={}
  this.emotes={}

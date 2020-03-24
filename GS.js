@@ -22,6 +22,11 @@ var GS=function(config){
     return google_auth
   }
 
+
+  this.clearCache=function(){
+    gsLoaded=[]
+  }
+
   this.lastUpdated=null
   this.timestampVarName="Timestamp"
   this.timestamp=function(){
