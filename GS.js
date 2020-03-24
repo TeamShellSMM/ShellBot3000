@@ -5,6 +5,8 @@ const querystring = require("querystring");
 
 
 var GS=function(config){
+  let gs=this
+  var gsLoaded=[]
   let jwtClient = new google.auth.JWT(
          config.client_email,
          null,
@@ -18,6 +20,11 @@ var GS=function(config){
       google_auth=await jwtClient.authorize()
     }
     return google_auth
+  }
+
+
+  this.clearCache=function(){
+    gsLoaded=[]
   }
 
   this.lastUpdated=null
@@ -34,11 +41,16 @@ var GS=function(config){
     return json_header
   }
 
+
+  function getSheetName(r1c1){
+    var range=r1c1.split('!')
+    return range[0].replace(/'/g,'')
+  }
+
   this.getArrayFormat=function(sheets){
   var SheetCache={}
   sheets.forEach((sheet)=>{
-    var range=sheet.split('!')
-      var sheet_name=range[0].replace(/'/g,'')
+    var sheet_name=getSheetName(sheet)
     SheetCache[sheet_name]=this.getArray(sheet)
   })
   return SheetCache
@@ -59,9 +71,16 @@ var GS=function(config){
 
   this.loadSheets=async function(ranges){ //input is sheets to be loaded. load to cache to be stored
     try {
+    var ranges=ranges.filter(function(o){
+      return gsLoaded.indexOf(o)===-1
+    })
+
+    if(ranges.length==0)
+      return true;
+
     let authClient=await get_token()
-    ranges=ranges?ranges.join("&ranges="):""
-    let url = "https://sheets.googleapis.com/v4/spreadsheets/"+config.spreadsheetId+"/values:batchGet?ranges="+ranges
+    let rangesStr=ranges?ranges.join("&ranges="):""
+    let url = "https://sheets.googleapis.com/v4/spreadsheets/"+config.spreadsheetId+"/values:batchGet?ranges="+rangesStr
     const response=await request( {
       url: url,
       method: 'GET',
@@ -94,6 +113,7 @@ var GS=function(config){
         SheetCache[range]=returnData[range]
       }
     }
+      gsLoaded=gsLoaded.concat(ranges)
     return returnData
     } catch (error){
       console.error(error)
@@ -141,7 +161,7 @@ var GS=function(config){
             if(obj[u]!=parameters.update[u]){
               data.push({ 
                 range: r1c1(sheet,querySheet[row]["GS_row_id"],header_to_id[u]),
-                values: [[parameters.update[u]]]
+                values: [[parameters.update[u]]],
               })
               updated[u]=true;
             } else {
@@ -210,6 +230,10 @@ var GS=function(config){
       body: JSON.stringify(data)
     });
     
+    gsLoaded=gsLoaded.filter(o=>{
+      return o!=sheet
+    })
+
     return response
     } catch(error){
       console.error(error)
@@ -220,12 +244,18 @@ var GS=function(config){
   //store batchUpdates in a cache then run batchUpdate to save changes?
   this.batchUpdate=async function(ranges){ //for ease of use format will be strictly r1c1
     try {
+    
     let url="https://sheets.googleapis.com/v4/spreadsheets/"+config.spreadsheetId+"/values:batchUpdate"
     var data={
       "valueInputOption": "USER_ENTERED",
       "data": ranges,
       "includeValuesInResponse": false
     }
+
+    var loaded=ranges.map(function(o){
+      return getSheetName(o.range)
+    })
+
 
     let authClient=await get_token()
     const response=await request( {
@@ -237,6 +267,11 @@ var GS=function(config){
       gzip: true,
       body: JSON.stringify(data)
     })
+
+    gsLoaded=gsLoaded.filter(o=>{
+      return loaded.indexOf(o)===-1
+    })
+
     return response
     } catch(error){
       console.error(error)

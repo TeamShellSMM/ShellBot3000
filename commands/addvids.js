@@ -10,9 +10,9 @@ class TSAddvids extends Command {
            channelRestriction: 'guild'
         });
     }
-    
-    async exec(message,args) {     
-         //if(!( 
+
+    async exec(message,args) {
+         //if(!(
         //    message.channel.id === ts.channels.shellderShellbot  //only in bot-test channel
         //)) return false;
       try {
@@ -27,7 +27,7 @@ class TSAddvids extends Command {
         if(!ts.valid_code(code))
           ts.userError("You did not provide a valid level code")
 
-        let new_vids=command.arguments.join(" ")   
+        let new_vids=command.arguments.join(" ")
         if(!new_vids)
           ts.userError("You didn't give any links")
         new_vids=new_vids.split(/[, \n]/)
@@ -46,11 +46,11 @@ class TSAddvids extends Command {
           ts.userError("The links below didn't look like urls: ```\n"+not_urls.join("\n")+"```")
         }
 
-        await gs.loadSheets(["Raw Members","Raw Levels","Raw Played"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
-  
-        const player=ts.get_user(message);
+        await gs.loadSheets(["Raw Members","Raw Levels"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
+
+        const player=await ts.get_user(message);
         var level=ts.getExistingLevel(code)
-        
+
         let old_vids=level["Clear Video"]?level["Clear Video"].split(","):[]
 
 
@@ -93,7 +93,7 @@ class TSAddvids extends Command {
         await gs.batchUpdate(level.update_ranges)
 
 
-        
+
         message.channel.send(player.user_reply+reply)
       } catch (error) {
         message.reply(ts.getUserErrorMsg(error))

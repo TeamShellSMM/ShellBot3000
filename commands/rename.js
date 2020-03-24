@@ -6,9 +6,9 @@ class TSRename extends Command {
            channelRestriction: 'guild'
         });
     }
-    
-    async exec(message,args) {     
-         //if(!( 
+
+    async exec(message,args) {
+         //if(!(
         //    message.channel.id === ts.channels.shellderShellbot  //only in bot-test channel
         //)) return false;
       try {
@@ -26,12 +26,12 @@ class TSRename extends Command {
         if(!level_name)
           ts.userError("You didn't give a new level name")
 
-        
-        await gs.loadSheets(["Raw Members","Raw Levels","Raw Played"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
-  
-        const player=ts.get_user(message);
+
+        await gs.loadSheets(["Raw Members","Raw Levels"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
+
+        const player=await ts.get_user(message);
         var level=ts.getExistingLevel(code)
-        
+
         if(!(level.Creator==player.Name || player.shelder=="1"))
           ts.userError("You can't rename \""+level["Level Name"]+"\" by "+level.Creator);
 

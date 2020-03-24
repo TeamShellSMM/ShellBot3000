@@ -4,8 +4,12 @@ const stringSimilarity = require('string-similarity')
 const crypto=require('crypto')
 const moment=require('moment')
 
+const Plays = require('./models/Plays');
+
 var TS=function(gs,client){ //loaded after gs
 var ts=this
+
+
 this.valid_format=function(code){
   return /^[0-9A-Z]{3}-[0-9A-Z]{3}-[0-9A-Z]{3}$/.test(code.toUpperCase())
 }
@@ -37,7 +41,6 @@ this.checkBearerToken=async function(discord_id,token){
   return true
 }
 
-
 this.login=async function(discord_id,row_id){
   let bearer=crypto.randomBytes(16).toString('hex').toUpperCase()
   await Tokens.query()
@@ -65,7 +68,7 @@ this.emotes={}
 
 //hard coded for now. 10.5 and 11 just in case
 var validDifficulty=[0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8,1.9,2,2.1,2.2,2.3,2.4,2.5,2.6,2.7,2.8,2.9,3,3.1,3.2,3.3,3.4,3.5,3.6,3.7,3.8,3.9,4,4.1,4.2,4.3,4.4,4.5,4.6,4.7,4.8,4.9,5,5.1,5.2,5.3,5.4,5.5,5.6,5.7,5.8,5.9,6,6.1,6.2,6.3,6.4,6.5,6.6,6.7,6.8,6.9,7,7.1,7.2,7.3,7.4,7.5,7.6,7.7,7.8,7.9,8,8.1,8.2,8.3,8.4,8.5,8.6,8.7,8.8,8.9,9,9.1,9.2,9.3,9.4,9.5,9.6,9.7,9.8,9.9,10,10.5,11,12];
-this.valid_difficulty=function(str){ //whack code. 
+this.valid_difficulty=function(str){ //whack code.
   for(var i=0;i<validDifficulty.length;i++){
     if(validDifficulty[i]==str) return true
   }
@@ -74,7 +77,7 @@ this.valid_difficulty=function(str){ //whack code.
 
 const static_vars=[
 "TeamShell Variable","Points","TeamShell Ranks","Seasons","Emotes","Channels","tags","Competition Winners", //static vars
-'Raw Members','Raw Levels','Raw Played',"Shellder Votes" //play info
+'Raw Members','Raw Levels', "Shellder Votes" //play info
 ]; //initial vars to be loaded on bot load
 
 this.pointMap=null
@@ -84,6 +87,7 @@ this.levelRemoved=function(level){
 }
 
 this.load=async function(){
+  gs.clearCache()
   this.pointMap={}
  this.channels={}
  this.emotes={}
@@ -132,6 +136,76 @@ this.embedAddLongField=function(embed,header,body){
   }
 }
 
+this.clear=async function(args,strOnly){
+    args.code=args.code.toUpperCase();
+    if(!ts.valid_code(args.code))
+      ts.userError("You did not provide a valid code for the level");
+
+    if(args.like=="1" || args.like.toLowerCase()=="like"){
+      args.like=1
+    }
+
+    if(args.difficulty.toLowerCase()=="like"){
+      args.difficulty=''
+      args.like=1
+    }
+
+    if(args.difficulty && !ts.valid_difficulty(args.difficulty)){
+      ts.userError("You did not provide a valid difficulty vote");
+    }
+
+    await gs.loadSheets(["Raw Members","Raw Levels"]);
+    const player=await ts.get_user(args.discord_id);
+    var level=ts.getExistingLevel(args.code)
+    var existing_play = await Plays.query()
+      .where('code','=',args.code)
+      .where('player','=',player.Name)
+      .first();
+
+    if(existing_play && existing_play.completed=="1")
+      ts.userError("You have already submitted a clear for \""+level["Level Name"]+" by "+level.Creator)
+
+    if(level.Creator==player.Name)
+      ts.userError("You can't submit a clear for your own level")
+
+    var creator=gs.select("Raw Members",{"Name":level.Creator});
+    if(creator && creator.atme=="1" && creator.discord_id && !strOnly){
+     var creator_str="<@"+creator.discord_id+">"
+    } else {
+     var creator_str=level.Creator
+    }
+    var row={
+      "code":args.code,
+      "player":player.Name,
+      "completed":"1",
+      "is_shellder":player.shelder,
+      "liked":args.like,
+      "difficulty_vote":args.difficulty
+    }
+    if(existing_play){
+      await Plays.query()
+        .findById(existing_play.id)
+        .patch(row);
+    } else {
+      await Plays.query().insert(row);
+    }
+
+    var msg=["You have cleared \""+level["Level Name"]+"\"  by "+creator_str+" "+ts.emotes.GG]
+    if(args.difficulty)
+      msg.push(" ‣You voted "+args.difficulty+" as the difficulty.");
+
+    if(level.Approved=="1"){
+      msg.push(" ‣You have earned "+ts.pointMap[parseFloat(level.Difficulty)]+" points.");
+    } else if(level.Approved=="0"){
+      msg.push(" ‣This level is still pending.")
+    }
+
+    if(args.like){
+     msg.push(" ‣You have also liked the level "+ts.emotes.love)
+    }
+    return (strOnly?"":player.user_reply)+msg.join("\n");
+}
+
 this.getExistingLevel=function(code){
   var level=gs.select("Raw Levels",{"Code":code})
    if(!level){ //level doesn't exist
@@ -147,7 +221,7 @@ this.getExistingLevel=function(code){
     } else {
       var matchStr=""
     }
-    
+
     ts.userError("The code `"+code+"` was not found in Team Shell's list."+matchStr);
    }
    if(!(level.Approved==0 || level.Approved==1)){ //level is removed. not pending/accepted
@@ -166,12 +240,12 @@ this.get_variable=function(var_name){
 this.levelsAvailable=function(points,levelsUploaded){
   var min=parseFloat(this.get_variable("Minimum Point"));
   var next=parseFloat(this.get_variable("New Level"));
-  
+
   var nextLevel=levelsUploaded+1;
   var nextPoints= nextLevel==1? min : min+ (nextLevel-1)*next
-  
+
   points=parseFloat(points);
-  
+
   var pointsDifference=points-nextPoints;
   return pointsDifference
 }
@@ -200,7 +274,7 @@ this.getWebUserErrorMsg=function(obj){
   }
 }
 
-this.get_user=function(message){
+this.get_user= async function(message){
   var discord_id=typeof message=="string"?message:message.author.id
   var player=gs.select("Raw Members",{
     "discord_id":discord_id
@@ -212,7 +286,7 @@ this.get_user=function(message){
   if(player.banned)
     ts.userError("You have been barred from using this service")
 
-  player.earned_points=this.calculatePoints(player.Name);
+  player.earned_points= await this.calculatePoints(player.Name);
   player.rank=this.get_rank(player.earned_points.clearPoints);
   player.user_reply="<@"+discord_id+">"+player.rank.Pips+" ";
   return player
@@ -230,7 +304,7 @@ this.judge=async function(levelCode){
   }
 
   //Get all current votes for this level
-  var approvalVotes = gs.select("Shellder Votes",{"Code":levelCode, "Type": "approve"});   
+  var approvalVotes = gs.select("Shellder Votes",{"Code":levelCode, "Type": "approve"});
   var rejectVotes = gs.select("Shellder Votes",{"Code":levelCode, "Type": "reject"});
 
   if(approvalVotes !== undefined && !Array.isArray(approvalVotes)){
@@ -307,8 +381,8 @@ this.judge=async function(levelCode){
             var curr_user=await guild.members.get(author.discord_id)
             if(curr_user){ //assign role
               await curr_user.addRole(ts.channels.shellcult_id)
-              await client.channels.get(ts.channels.initiateChannel).send("<a:ts_2:632758958284734506><a:ts_2:632758958284734506><a:ts_1:632758942992302090> <:SpigLove:628057762449850378> We welcome <@"+author.discord_id+"> into the shell cult <:PigChamp:628055057690132481> <a:ts_2:632758958284734506><a:ts_2:632758958284734506><a:ts_1:632758942992302090> <:bam:628731347724271647>")                        
-            } else { 
+              await client.channels.get(ts.channels.initiateChannel).send("<a:ts_2:632758958284734506><a:ts_2:632758958284734506><a:ts_1:632758942992302090> <:SpigLove:628057762449850378> We welcome <@"+author.discord_id+"> into the shell cult <:PigChamp:628055057690132481> <a:ts_2:632758958284734506><a:ts_2:632758958284734506><a:ts_1:632758942992302090> <:bam:628731347724271647>")
+            } else {
               console.error(author.Name+" was not found in the discord") //not a breaking error.
             }
           }
@@ -323,7 +397,7 @@ this.judge=async function(levelCode){
     } else {
       ts.userError("There must be at least "+ts.get_variable("VotesNeeded")+" Shellders in agreement before this level can be judged!");
     }
-    
+
     var mention = "**<@" + author.discord_id + ">, we got some news for you: **";
     var exampleEmbed = ts.levelEmbed(level)
       .setColor(color)
@@ -339,7 +413,7 @@ this.judge=async function(levelCode){
     await client.channels.get(ts.channels.shellderLevelChanges).send(exampleEmbed);
 
     //if(client.util.resolveChannel())
-  
+
     //Remove Discussion Channel
     var levelChannel=guild.channels.find(channel => channel.name === level.Code.toLowerCase())
     if(levelChannel){
@@ -393,12 +467,13 @@ this.parse_command=function(message){ //assumes there's prefix
   }
 }
 
-this.get_levels=function(isMap){ //get the aggregates
+this.get_levels=async function(isMap){ //get the aggregates
     var clears={}
-    gs.select("Raw Played").forEach((played)=>{
+    var plays = await Plays.query();
+    plays.forEach((played)=>{
       if(!clears[played.Code]) clears[played.Code]={}
       clears[played.Code][played.Player]=played
-    })
+    });
     var levels=isMap?{}:[]
     gs.select("Raw Levels").forEach((level)=>{
         var tsclears=0;
@@ -409,14 +484,14 @@ this.get_levels=function(isMap){ //get the aggregates
         if(clears[level.Code]){
           for(var player in clears[level.Code]){
             if(player!=level.Creator){
-              if(clears[level.Code][player].Completed=="1"){
+              if(clears[level.Code][player].completed=="1"){
                 tsclears++;
               }
-              if(clears[level.Code][player]["Difficulty Vote"]){
+              if(clears[level.Code][player].difficulty_vote){
                 votetotal++;
-                votesum+=Number(clears[level.Code][player]["Difficulty Vote"])
+                votesum+=Number(clears[level.Code][player].difficulty_vote)
               }
-              if(clears[level.Code][player].Liked=="1"){
+              if(clears[level.Code][player].liked=="1"){
                 likes++;
               }
             }
@@ -429,7 +504,7 @@ this.get_levels=function(isMap){ //get the aggregates
         if(isMap){
           levels[level.Code]=level
         } else {
-          levels.push(level)  
+          levels.push(level)
         }
     })
     return levels
@@ -445,7 +520,7 @@ this.get_rank=function(points){
   return false
 }
 
-this.calculatePoints=function(user,if_remove_check){ //delta check is to see if we can add a level if we remove it
+this.calculatePoints= async function(user,if_remove_check){ //delta check is to see if we can add a level if we remove it
    var currentLevels = gs.select("Raw Levels");
    var levelMap={};
    var ownLevels=[];
@@ -455,7 +530,7 @@ this.calculatePoints=function(user,if_remove_check){ //delta check is to see if 
        if(currentLevels[row].Creator==user){
          ownLevels.push(currentLevels[row].Code)
        } else {
-         levelMap[currentLevels[row].Code]=this.pointMap[parseFloat(currentLevels[row].Difficulty)]  
+         levelMap[currentLevels[row].Code]=this.pointMap[parseFloat(currentLevels[row].Difficulty)]
        }
      } else if(currentLevels[row].Approved=="2") { //reupload
        if(currentLevels[row].Creator==user){
@@ -469,26 +544,25 @@ this.calculatePoints=function(user,if_remove_check){ //delta check is to see if 
      } else if((currentLevels[row].Approved==null || currentLevels[row].Approved=="" || currentLevels[row].Approved=="0") && currentLevels[row].Creator==user){
        ownLevels.push(currentLevels[row].Code)
      }
-      
+
    }
-  
-   var playedLevels = gs.select("Raw Played",{
-      "Player":user,
-      "Completed":"1"
-   })
-  
+
+   var playedLevels = await Plays.query()
+    .where('player', '=', user)
+    .where('completed', '=', "1");
+
    var userCleared={};
    for (var row = 0; playedLevels && row < playedLevels.length; row++){
-       var id= reuploads[playedLevels[row].Code] ? reuploads[playedLevels[row].Code] : playedLevels[row].Code
-       userCleared[id]= Math.max( userCleared[id]?userCleared[id]:0, levelMap[playedLevels[row].Code] )
+       var id= reuploads[playedLevels[row].code] ? reuploads[playedLevels[row].code] : playedLevels[row].code
+       userCleared[id]= Math.max( userCleared[id]?userCleared[id]:0, levelMap[playedLevels[row].code] )
    }
-  
+
   var clearPoints=0;
   for(var id in userCleared){
     if(userCleared[id]) clearPoints+=userCleared[id]
   }
 
-   
+
   var ownLevelNumbers=ownLevels.length + (if_remove_check?-1:0) //check if can upload a level if we removed one. for reuploads
   return {
     clearPoints:clearPoints.toFixed(1),

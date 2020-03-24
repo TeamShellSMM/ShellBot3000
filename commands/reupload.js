@@ -15,9 +15,9 @@ class tsreupload extends Command {
            channelRestriction: 'guild'
         });
     }
-    
-    async exec(message,args) {     
-         //if(!( 
+
+    async exec(message,args) {
+         //if(!(
         //    message.channel.id === ts.channels.shellderShellbot  //only in bot-test channel
         //)) return false;
       try {
@@ -32,30 +32,30 @@ class tsreupload extends Command {
         if(oldCode==newCode)
           ts.userError("The codes given were the same")
 
-        await gs.loadSheets(["Raw Members","Raw Levels","Raw Played"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
-  
+        await gs.loadSheets(["Raw Members","Raw Levels"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
+
         var player=gs.select("Raw Members",{
           "discord_id":message.author.id
         })
 
         if(!player)
           ts.userError("You are not yet registered");
-        var earned_points=ts.calculatePoints(player.Name);
+        var earned_points=await ts.calculatePoints(player.Name);
         var rank=ts.get_rank(earned_points.clearPoints);
         var user_reply="<@"+message.author.id+">"+rank.Pips+" ";
 
         var level=ts.getExistingLevel(oldCode)
         var new_level=gs.select("Raw Levels",{"Code":newCode}) //new level just incase they've already tsadded
 
-        var older_level=gs.query("Raw Levels",{ //this is just in case this is not the first reupload. assign 
+        var older_level=gs.query("Raw Levels",{ //this is just in case this is not the first reupload. assign
           filter:{"NewCode":oldCode},
           update:{"NewCode":newCode}
         })
 
         if(!level) ts.userError("Level not found");
 
-        var creator_points=ts.calculatePoints(level.Creator,level.Approved=="1" || level.Approved=="0")
-        
+        var creator_points=await ts.calculatePoints(level.Creator,level.Approved=="1" || level.Approved=="0")
+
         if(new_level && level.Creator!=new_level.Creator)
           ts.userError("The new level uploaded doesn't have the same creator as the old level");
         if(new_level && new_level.Approved!=0 && new_level!=1)
@@ -66,7 +66,7 @@ class tsreupload extends Command {
         //only creator and shellder can reupload a level
         if(!(level.Creator==player.Name || player.shelder=="1"))
           ts.userError("You can't reupload \""+level["Level Name"]+"\" by "+level.Creator);
-  
+
         level=gs.query("Raw Levels",{
           filter:{"Code":oldCode},
           update:{"Approved":level.Approved=="1"?2:-1,"NewCode":newCode},

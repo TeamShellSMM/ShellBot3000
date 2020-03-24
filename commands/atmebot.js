@@ -11,14 +11,14 @@ class atmebot extends Command {
            channelRestriction: 'guild'
         });
     }
-    
+
     async exec(message,args) {
         try{
           const atmeCommands=["atmebot",'atme']
           var command=ts.parse_command(message);
 
-          await gs.loadSheets(["Raw Members","Raw Levels","Raw Played"]);
-          const player=ts.get_user(message);
+          await gs.loadSheets(["Raw Members","Raw Levels"]);
+          const player=await ts.get_user(message);
 
           if(atmeCommands.indexOf(command.command)!=-1){
             var atmeVal="1"
@@ -39,10 +39,10 @@ class atmebot extends Command {
           if(member && !member.updated["atme"]){
             ts.userError(alreadyError)
           }
-          
+
           await gs.batchUpdate(member.update_ranges)
 
-          
+
           message.channel.send(player.user_reply+msg)
         } catch(error){
             message.reply(ts.getUserErrorMsg(error))

@@ -2,7 +2,7 @@ const { Command } = require('discord-akairo');
 class TSLevelStatus extends Command {
     constructor() {
         super('tslevelstatus', {
-           aliases: ['tslevelstatus'],
+           aliases: ['tslevelstatus','levelstatus'],
             args: [{
                     id: 'code',
                     type: 'string',
@@ -17,6 +17,8 @@ class TSLevelStatus extends Command {
 
         if(!ts.valid_format(args.code)) throw "Level code given was not in xxx-xxx-xxx format "+ts.emotes.think
         if(!ts.valid_code(args.code))   throw "There were some invalid characters in your level code "+ts.emotes.think
+
+        args.code=args.code.toUpperCase()
 
         const level=gs.select("Raw Levels",{"Code":args.code});
 
