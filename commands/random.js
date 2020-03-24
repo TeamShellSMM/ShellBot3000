@@ -51,26 +51,45 @@ class tsrandom extends Command {
           args.minDifficulty=temp
         }
 
+
+        //console.time("loadSheets")
         await gs.loadSheets(["Raw Members","Raw Levels"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
         const player=gs.select("Raw Members",{
           "discord_id":message.author.id
         })
+        //console.timeEnd("loadSheets")
 
+
+        //console.time("get user")
         if(!player)
           ts.userError("You are not yet registered");
         const earned_points=await ts.calculatePoints(player.Name);
         const rank=ts.get_rank(earned_points.clearPoints);
         const user_reply="<@"+message.author.id+">"+rank.Pips+" ";
+        //console.timeEnd("get user")
 
 
-        const levels=await ts.get_levels(true) //get levels with aggregates and stats
+        //console.time("get levels")
+        var allLevels=await ts.get_levels()
+        let levels={}
+        allLevels.forEach(o=>{
+          levels[o.Code]=o
+        })
+        //const levels=await ts.get_levels(true) //get levels with aggregates and stats
         var difficulties=[]
         var played=[];
 
+        //console.timeEnd("get levels")
+
+
+        //console.time("get plays")
         var plays = await Plays.query()
           .where('player', '=', player.Name)
           .where('completed', 1);
+        //console.timeEnd("get plays")
 
+
+        //console.time("process plays")
         plays.forEach((clear)=>{
           const level=levels[clear.code]
           if(level && level.Approved=="1" && level.Creator!=player.Name){
@@ -81,7 +100,10 @@ class tsrandom extends Command {
             played.push(level.Code)
           }
         })
+        //console.timeEnd("process plays")
 
+
+        //console.time("process difficulties")
         if(args.minDifficulty){
           var min=args.minDifficulty
           var max=args.maxDifficulty
@@ -98,34 +120,39 @@ class tsrandom extends Command {
             var max=1
           }
         }
+        //console.timeEnd("process difficulties")
 
         min=parseFloat(min)
         max=parseFloat(max)
 
-        var filtered_levels=[]
-        var allLevels=await ts.get_levels()
+        //console.time("getting the range of levels")
+
+        //var filtered_levels=[]
         if(allLevels){
-          allLevels.forEach((level)=>{
+         var filtered_levels=allLevels.filter((level)=>{
             var currDifficulty=parseFloat(level.Difficulty)
-            if(
-              level.Approved=="1" &&
+            return level.Approved=="1" &&
               currDifficulty>=min &&
-              currDifficulty<=max &&
-              played.indexOf(level.Code)==-1
-            ){
-              filtered_levels.push(level)
-            }
+              currDifficulty<=max 
+              && played.indexOf(level.Code)==-1
+            
           })
         } else {
           throw "No levels found buzzyS"
         }
+        //console.timeEnd("getting the range of levels")
+
+
+        //console.time("sorting levels")
         filtered_levels.sort(function(a,b){
           return parseFloat(a.likes)-parseFloat(b.likes)
         })
+        //console.timeEnd("sorting levels")
         if(filtered_levels.length==0){
           ts.userError("You have ran out of levels in this range")
         }
 
+        //console.time("rolling dice")
         var borderLine=Math.floor(filtered_levels.length*0.6)
         if(Math.random()<0.2){
           var randNum=getRandomInt(0,borderLine)
@@ -133,10 +160,13 @@ class tsrandom extends Command {
           var randNum=getRandomInt(borderLine,filtered_levels.length)
         }
         var level=filtered_levels[randNum]
-        var randomEmbed=ts.levelEmbed(level).setAuthor("ShellBot rolled a d97 and found this level for you")
+        //console.timeEnd("rolling dice")
 
+        //console.time("Making embed and send")
+        var randomEmbed=ts.levelEmbed(level).setAuthor("ShellBot rolled a d97 and found this level for you")
         await message.channel.send(user_reply)
         await message.channel.send(randomEmbed)
+        //console.timeEnd("Making embed and send")
       } catch (error) {
         message.reply(ts.getUserErrorMsg(error))
       }
