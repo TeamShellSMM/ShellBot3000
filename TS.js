@@ -471,8 +471,8 @@ this.get_levels=async function(isMap){ //get the aggregates
     var clears={}
     var plays = await Plays.query();
     plays.forEach((played)=>{
-      if(!clears[played.Code]) clears[played.Code]={}
-      clears[played.Code][played.Player]=played
+      if(!clears[played.code]) clears[played.code]={}
+      clears[played.code][played.player]=played
     });
     var levels=isMap?{}:[]
     gs.select("Raw Levels").forEach((level)=>{
