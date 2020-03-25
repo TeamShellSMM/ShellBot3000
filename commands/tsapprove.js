@@ -213,12 +213,15 @@ class TSApprove extends Command {
         //Add a clear to the level if it's not already there
         var played = await Plays.query()
           .where('code', '=', args.code)
-          .where('player', '=', shellder.Name);
+          .where('player', '=', shellder.Name)
+          .first();
 
         if(played){
           //Update
 
-            await played.patch({
+            await Plays.query()
+              .findById(played.id)
+              .patch({
               liked: likeCommands.indexOf(command.command) !== -1 ? 1 : 0,
               difficulty_vote: args.difficulty
             });
