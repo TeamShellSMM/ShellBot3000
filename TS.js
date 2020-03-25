@@ -5,6 +5,7 @@ const crypto=require('crypto')
 const moment=require('moment')
 
 const Plays = require('./models/Plays');
+const PendingVotes = require('./models/PendingVotes');
 
 var TS=function(gs,client){ //loaded after gs
 var ts=this
@@ -77,7 +78,7 @@ this.valid_difficulty=function(str){ //whack code.
 
 const static_vars=[
 "TeamShell Variable","Points","TeamShell Ranks","Seasons","Emotes","Channels","tags","Competition Winners", //static vars
-'Raw Members','Raw Levels', "Shellder Votes" //play info
+'Raw Members','Raw Levels' //play info
 ]; //initial vars to be loaded on bot load
 
 this.pointMap=null
@@ -295,7 +296,7 @@ this.get_user= async function(message){
 
 this.judge=async function(levelCode){
   var guild=client.guilds.get(this.channels.guild_id)
-  await gs.loadSheets(["Raw Levels", "Raw Members", "Shellder Votes"]);
+  await gs.loadSheets(["Raw Levels", "Raw Members"]);
   var level = ts.getExistingLevel(levelCode);
   const author = gs.select("Raw Members",{"Name":level.Creator});
 
@@ -304,19 +305,8 @@ this.judge=async function(levelCode){
   }
 
   //Get all current votes for this level
-  var approvalVotes = gs.select("Shellder Votes",{"Code":levelCode, "Type": "approve"});
-  var rejectVotes = gs.select("Shellder Votes",{"Code":levelCode, "Type": "reject"});
-
-  if(approvalVotes !== undefined && !Array.isArray(approvalVotes)){
-    approvalVotes = [approvalVotes];
-  } else if(!approvalVotes){
-    approvalVotes = [];
-  }
-  if(rejectVotes !== undefined && !Array.isArray(rejectVotes)){
-    rejectVotes = [rejectVotes];
-  } else if(!rejectVotes) {
-    rejectVotes = [];
-  }
+  var approvalVotes = await PendingVotes.query().where("code",levelCode).where("is_shellder",1).where("type","approve");
+  var rejectVotes = await PendingVotes.query().where("code",levelCode).where("is_shellder",1).where("type","reject");
 
   //Count Approval and Rejection Votes
   var approvalVoteCount = approvalVotes.length;
@@ -345,7 +335,7 @@ this.judge=async function(levelCode){
       var diffCounter = 0;
       var diffSum = 0;
       for(var i = 0; i < approvalVotes.length; i++){
-        var diff = parseFloat(approvalVotes[i].Difficulty);
+        var diff = parseFloat(approvalVotes[i].difficulty_vote);
         if(!Number.isNaN(diff)){
           diffCounter++;
           diffSum += diff;
@@ -394,6 +384,8 @@ this.judge=async function(levelCode){
       var title="This level was approved for difficulty: " + finalDiff + "!";
       var image=this.getEmoteUrl(this.emotes.bam);
       var voteComments=approvalVotes;
+    } else if(approvalVoteCount==rejectVoteCount ) {
+      ts.userError("The votes are the same! "+ts.emotes.buzzyS+" We need a tiebreaker");
     } else {
       ts.userError("There must be at least "+ts.get_variable("VotesNeeded")+" Shellders in agreement before this level can be judged!");
     }
@@ -405,8 +397,8 @@ this.judge=async function(levelCode){
       .setThumbnail(image);
 
     for(var i = 0; i < voteComments.length; i++){
-      var embedHeader=voteComments[i].Shellder + (voteComments[i].Difficulty?" voted " + voteComments[i].Difficulty:":")
-      ts.embedAddLongField(exampleEmbed,embedHeader,voteComments[i].Reason)
+      var embedHeader=voteComments[i].player + (voteComments[i].difficulty_vote?" voted " + voteComments[i].difficulty_vote:":")
+      ts.embedAddLongField(exampleEmbed,embedHeader,voteComments[i].reason)
     }
 
     await client.channels.get(ts.channels.shellderLevelChanges).send(mention);

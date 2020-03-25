@@ -33,7 +33,7 @@ class tslike extends Command {
 
           var existing_play = await Plays.query()
             .where("code", "=", args.code)
-            .where("player", "=", args.player)
+            .where("player", "=", player.Name)
             .first();
 
           if(!existing_play || existing_play && existing_play.completed!="1")
@@ -57,7 +57,7 @@ class tslike extends Command {
           await Plays.query()
             .findById(existing_play.id)
             .patch({
-              liked, likeVal
+              liked: likeVal
             });
 
           message.channel.send(player.user_reply+msg)

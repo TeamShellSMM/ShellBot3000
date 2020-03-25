@@ -1,5 +1,6 @@
 const { Command } = require('discord-akairo');
 const Plays = require('../models/Plays');
+const PendingVotes = require('../models/PendingVotes');
 
 
 class TSApprove extends Command {
@@ -84,11 +85,11 @@ class TSApprove extends Command {
       }
 
       //Check if vote already exists
-      await gs.loadSheets(["Raw Levels", "Raw Members", "Shellder Votes"]);
+      await gs.loadSheets(["Raw Levels", "Raw Members"]);
 
       const shellder=await ts.get_user(message);
 
-      var vote=gs.select("Shellder Votes",{"Code":args.code, "Shellder": shellder.Name});
+      var vote=await PendingVotes.query().where("code",args.code).where("player",shellder.Name).first();
 
       if(!vote){
         //We only check reason if we have no vote yet
@@ -98,7 +99,6 @@ class TSApprove extends Command {
       }
 
       const level=ts.getExistingLevel(args.code);
-
       const author = gs.select("Raw Members",{"Name":level.Creator});
 
       if(!author){
@@ -114,7 +114,6 @@ class TSApprove extends Command {
         //I don't care that this is empty, I can't be arsed anymore to think how to structure this if
       } else {
         ts.userError("Level is not pending!");
-        return false;
       }
 
 
@@ -140,50 +139,35 @@ class TSApprove extends Command {
       //Add/Update Approval/Rejection to new sheet 'shellder votes?' + difficulty + reason
       var updating = false;
       if(!vote){
-        await gs.insert("Shellder Votes", {
-          Code: level.Code,
-          Shellder: shellder.Name,
-          Type: command.command == "tsreject" ? "reject" : "approve",
-          Difficulty: command.command == "tsapprove" || clearCommands.indexOf(command.command) !== -1 ? args.difficulty : "",
-          Reason: args.reason
+        await PendingVotes.query().insert({
+          code: level.Code,
+          is_shellder: 1, //to be changed to member value?
+          player: shellder.Name,
+          type: command.command == "tsreject" ? "reject" : "approve",
+          difficulty_vote: command.command == "tsapprove" || clearCommands.indexOf(command.command) !== -1 ? args.difficulty : "",
+          reason: args.reason
         });
       } else {
         updating = true;
         var updateJson = {
-          "Type": command.command == "tsreject" ? "reject" : "approve"
+          "type": command.command == "tsreject" ? "reject" : "approve"
         }
-
         if(args.reason){
-          updateJson.Reason = args.reason;
+          updateJson.reason = args.reason;
         }
         if(args.difficulty){
-          updateJson.Difficulty = args.difficulty;
+          updateJson.difficulty_vote = args.difficulty;
         }
-
-        var updateVote = gs.query("Shellder Votes", {
-          filter: {"Code":level.Code, "Shellder": shellder.Name},
-          update: updateJson
-        });
-        if(updateVote.Code == level.Code && updateVote.Shellder == shellder.Name){
-          await gs.batchUpdate(updateVote.update_ranges);
-        }
+        var updateVote = await PendingVotes.query().findById(vote.id).patch(updateJson);
       }
 
       //Reload sheets
-      await gs.loadSheets(["Raw Levels", "Raw Members", "Shellder Votes"]);
+      await gs.loadSheets(["Raw Levels", "Raw Members"]);
       //Get all current votes for this level
-      var approveVotes = gs.select("Shellder Votes",{"Code":args.code, "Type": "approve"});
-      var rejectVotes = gs.select("Shellder Votes",{"Code":args.code, "Type": "reject"});
-
-      if(approveVotes !== undefined && !Array.isArray(approveVotes)){
-        approveVotes = [approveVotes];
-      }
-      if(rejectVotes !== undefined && !Array.isArray(rejectVotes)){
-        rejectVotes = [rejectVotes];
-      }
+      var approveVotes = await PendingVotes.query().where("code",args.code).where("is_shellder",1).where("type","approve");
+      var rejectVotes = await PendingVotes.query().where("code",args.code).where("is_shellder",1).where("type","reject");
 
       //Update Overview post in discussion channel
-
 
       var voteEmbed=ts.levelEmbed(level)
         .setAuthor("The Judgement  has now begun for this level:")
@@ -194,8 +178,8 @@ class TSApprove extends Command {
         postString += "> None\n";
       } else {
         for(var i = 0; i < approveVotes.length; i++){
-          const curShellder = gs.select("Raw Members",{"Name":approveVotes[i].Shellder});
-          postString += "<@" + curShellder.discord_id + "> - Difficulty: " + approveVotes[i].Difficulty + ", Reason: " + approveVotes[i].Reason + "\n";
+          const curShellder = gs.select("Raw Members",{"Name":approveVotes[i].player});
+          postString += "<@" + curShellder.discord_id + "> - Difficulty: " + approveVotes[i].difficulty_vote + ", Reason: " + approveVotes[i].reason + "\n";
         }
       }
 
@@ -205,8 +189,8 @@ class TSApprove extends Command {
         postString += "None\n";
       } else {
         for(var i = 0; i < rejectVotes.length; i++){
-          const curShellder = gs.select("Raw Members",{"Name":rejectVotes[i].Shellder});
-          postString += "<@" + curShellder.discord_id + "> - Reason: " + rejectVotes[i].Reason + "\n";
+          const curShellder = gs.select("Raw Members",{"Name":rejectVotes[i].player});
+          postString += "<@" + curShellder.discord_id + "> - Reason: " + rejectVotes[i].reason + "\n";
         }
       }
 
@@ -234,14 +218,10 @@ class TSApprove extends Command {
         if(played){
           //Update
 
-          if(played.code == level.Code && played.player == shellder.Name){
-            await Plays.query()
-            .findById(played.id)
-            .patch({
+            await played.patch({
               liked: likeCommands.indexOf(command.command) !== -1 ? 1 : 0,
               difficulty_vote: args.difficulty
             });
-          }
 
           replyMessage += " You also updated your clear and community vote on this level!";
 

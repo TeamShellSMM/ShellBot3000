@@ -26,8 +26,6 @@ class TSRegister extends Command {
           if(!args.nickname)
             args.nickname=message.author.username
           args.nickname=args.nickname.replace(/\\/g,'');
-          console.log(args.nickname)
-          //console.log(message.author)
           gs.select("Raw Members").forEach((member)=>{
             if(member && args.nickname.toLowerCase()==member.Name.toLowerCase()){
               ts.userError("\""+member.Name+"\" has already been registered by someone else. Please use another nickname")

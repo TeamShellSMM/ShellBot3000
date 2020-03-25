@@ -6,10 +6,11 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const moment = require('moment');
 var compression = require('compression')
-const db={}
+
+global.db={}
 db.Tokens=require('./models/Tokens.js');
 db.Plays = require('./models/Plays.js');
-
+db.PendingVotes = require('./models/PendingVotes.js');
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -124,11 +125,11 @@ async function generateSiteJson(isShellder){
     };
     if(isShellder){
       //console.log(pending)
-      var _comments=gs.select("Shellder Votes")
+      var _comments=db.PendingVotes.query().where("is_shelder",1)
       //console.log(_comments)
       var comments={}
       for(var i=0;i<_comments.length;i++){
-        var currCode=_comments[i].Code
+        var currCode=_comments[i].code
         if(pending.indexOf(currCode)!="-1"){
           if(!comments[currCode]){
             comments[currCode]=[]

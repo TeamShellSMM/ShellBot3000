@@ -1,4 +1,6 @@
 const { Command } = require('discord-akairo');
+const PendingVotes = require('../models/PendingVotes');
+
 class TSLevelStatus extends Command {
     constructor() {
         super('tslevelstatus', {
@@ -13,7 +15,7 @@ class TSLevelStatus extends Command {
     }
     
     async exec(message,args) {     
-        await gs.loadSheets(["Raw Levels","Shellder Votes"]);
+        await gs.loadSheets(["Raw Levels"]);
 
         if(!ts.valid_format(args.code)) throw "Level code given was not in xxx-xxx-xxx format "+ts.emotes.think
         if(!ts.valid_code(args.code))   throw "There were some invalid characters in your level code "+ts.emotes.think
@@ -32,19 +34,8 @@ class TSLevelStatus extends Command {
         } else if(level.Approved.startsWith("del")){
             message.reply("This level has already been removed/rejected!");
         } else if(level.Approved == "0"){
-            var approvalVotes = gs.select("Shellder Votes",{"Code":level.Code, "Type": "approve"});   
-            var rejectVotes = gs.select("Shellder Votes",{"Code":level.Code, "Type": "reject"});
-    
-            if(approvalVotes !== undefined && !Array.isArray(approvalVotes)){
-                approvalVotes = [approvalVotes];
-            } else if(!approvalVotes){
-                approvalVotes = [];
-            }
-            if(rejectVotes !== undefined && !Array.isArray(rejectVotes)){
-                rejectVotes = [rejectVotes];
-            } else if(!rejectVotes) {
-                rejectVotes = [];
-            }
+            var approvalVotes = await PendingVotes.query().where("code",args.code).where("is_shellder",1).where("type","approve");
+            var rejectVotes = await PendingVotes.query().where("code",args.code).where("is_shellder",1).where("type","reject");
     
             //Count Approval and Rejection Votes
             var approvalVoteCount = approvalVotes.length;
