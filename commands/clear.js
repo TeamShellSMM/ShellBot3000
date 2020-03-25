@@ -25,6 +25,7 @@ class TSClear extends Command {
     async exec(message,args) {
         try{
           args.discord_id=message.author.id
+          args.completed=1
           let msg=await ts.clear(args)
           message.channel.send(msg)
         } catch(error){

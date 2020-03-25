@@ -139,35 +139,43 @@ this.embedAddLongField=function(embed,header,body){
 
 this.clear=async function(args,strOnly){
     args.code=args.code.toUpperCase();
-    if(!ts.valid_code(args.code))
-      ts.userError("You did not provide a valid code for the level");
+    
 
-    if(args.like=="1" || args.like.toLowerCase()=="like"){
+    if([1,"1"].includes(args.like) || (""+args.like).toLowerCase()=="like"){
       args.like=1
+    } else if([0,"0"].includes(args.like)){
+      args.like=0
+    }
+    if((""+args.like).toLowerCase()=="unlike"){
+      args.like=0
     }
 
-    if(args.difficulty.toLowerCase()=="like"){
+    if((""+args.difficulty).toLowerCase()=="like"){
       args.difficulty=''
       args.like=1
     }
 
-    if(args.difficulty && !ts.valid_difficulty(args.difficulty)){
+    if((""+args.difficulty).toLowerCase()=="unlike"){
+      args.difficulty=''
+      args.like=0
+    }
+
+    if(["0",0].includes(args.difficulty)){
+       args.difficulty="remove"
+    } else if(args.difficulty && !ts.valid_difficulty(args.difficulty)){
       ts.userError("You did not provide a valid difficulty vote");
     }
 
     await gs.loadSheets(["Raw Members","Raw Levels"]);
     const player=await ts.get_user(args.discord_id);
-    var level=ts.getExistingLevel(args.code)
+    var level=ts.getExistingLevel(args.code);
+    if(level.Creator==player.Name)
+      ts.userError("You can't submit a clear for your own level");
+
     var existing_play = await Plays.query()
       .where('code','=',args.code)
       .where('player','=',player.Name)
       .first();
-
-    if(existing_play && existing_play.completed=="1")
-      ts.userError("You have already submitted a clear for \""+level["Level Name"]+" by "+level.Creator)
-
-    if(level.Creator==player.Name)
-      ts.userError("You can't submit a clear for your own level")
 
     var creator=gs.select("Raw Members",{"Name":level.Creator});
     if(creator && creator.atme=="1" && creator.discord_id && !strOnly){
@@ -175,36 +183,90 @@ this.clear=async function(args,strOnly){
     } else {
      var creator_str=level.Creator
     }
-    var row={
-      "code":args.code,
-      "player":player.Name,
-      "completed":"1",
-      "is_shellder":player.shelder,
-      "liked":args.like,
-      "difficulty_vote":args.difficulty
-    }
+
+    var msg=[],updated={}
     if(existing_play){
-      await Plays.query()
-        .findById(existing_play.id)
-        .patch(row);
+      var updated_row={}
+      if(["1",1,"0",0].includes(args.completed) && existing_play.completed!=args.completed){ //update completed
+        updated_row.completed=args.completed;
+        updated.completed=1
+      }
+      if(["1",1,"0",0].includes(args.like) && existing_play.liked!=args.like){ //like updated
+        updated_row.liked=args.like;
+        updated.liked=1
+      }
+      if( (args.difficulty || ["0",0].includes(args.difficulty)) && ( existing_play.difficulty_vote!=args.difficulty ) ){ //difficulty update
+        updated_row.difficulty_vote=args.difficulty=="remove"?null:args.difficulty; //0 difficulty will remove your vote
+        updated.difficulty=1
+      }
+      await Plays.query().findById(existing_play.id).patch(updated_row);
+
     } else {
-      await Plays.query().insert(row);
+      await Plays.query().insert({
+        "code":args.code,
+        "player":player.Name,
+        "completed": args.completed?1:0,
+        "is_shellder":player.shelder,
+        "liked":args.like?1:0,
+        "difficulty_vote":args.difficulty=="remove" ? null:""
+      });
+      updated.new_row=1
     }
 
-    var msg=["You have cleared \""+level["Level Name"]+"\"  by "+creator_str+" "+ts.emotes.GG]
-    if(args.difficulty)
-      msg.push(" ‣You voted "+args.difficulty+" as the difficulty.");
+    var level_placeholder="@@level_placeholder@@"
+    
+    if( updated.completed&&args.completed || updated.new_row ){
 
-    if(level.Approved=="1"){
-      msg.push(" ‣You have earned "+ts.pointMap[parseFloat(level.Difficulty)]+" points.");
-    } else if(level.Approved=="0"){
-      msg.push(" ‣This level is still pending.")
+      if(args.completed)
+        msg.push(" ‣You have cleared "+level_placeholder+" "+ts.emotes.GG)
+      if(args.difficulty)
+        msg.push(" ‣You have voted "+args.difficulty+" as the difficulty for "+level_placeholder);
+      if(args.completed && level.Approved=="1"){
+        msg.push(" ‣You have earned "+ts.pointMap[parseFloat(level.Difficulty)]+" points.");
+      } else if(level.Approved=="0"){
+        msg.push(" ‣This level is still pending.")
+      }
+      if(args.like){
+       msg.push(" ‣You have liked "+level_placeholder+" "+ts.emotes.love)
+      }  
+    } else {
+      if(updated.completed){
+        msg.push(" ‣You have removed your clear for "+level_placeholder+" "+ts.emotes.bam)
+      } else if(args.completed){
+        msg.push(" ‣You have already submitted a clear for "+level_placeholder+" ")
+      }
+      if(updated.difficulty){
+        msg.push(args.difficulty=="remove"?
+          " ‣You have removed your difficulty vote for "+level_placeholder+" "+ts.emotes.bam:
+          " ‣You have voted "+args.difficulty+" as the difficulty for "+level_placeholder+" "+ts.emotes.bam
+        )
+      } else if(args.difficulty || ["0",0].includes(args.difficulty)){
+        msg.push(args.difficulty=="remove"?
+          " ‣You haven't submitted a difficulty vote for "+level_placeholder+" "+ts.emotes.think:
+          " ‣You have already voted "+args.difficulty+" for "+level_placeholder+" "+ts.emotes.think
+        )
+      }
+      if(updated.liked){
+        msg.push(args.like?
+          " ‣You have liked "+level_placeholder+" "+ts.emotes.love:
+          " ‣You have unliked "+level_placeholder+" "+ts.emotes.bam
+        )
+      } else if(args.like){
+        msg.push(args.like?
+          " ‣You have already liked "+level_placeholder+" "+ts.emotes.love:
+          " ‣You have already unliked "+level_placeholder+" "+ts.emotes.think
+        )
+      }
     }
 
-    if(args.like){
-     msg.push(" ‣You have also liked the level "+ts.emotes.love)
+    var level_str="\""+level["Level Name"]+"\"  by "+creator_str
+    for(var i=0;i<msg.length;i++){
+      msg[i]=msg[i].replace(level_placeholder,level_str)
+      if(i>0) msg[i]=msg[i].replace("‣You have","‣You also have");
+      level_str="this level"
     }
-    return (strOnly?"":player.user_reply)+msg.join("\n");
+    
+    return (strOnly?"":player.user_reply+",\n")+msg.join("\n");
 }
 
 this.getExistingLevel=function(code){
