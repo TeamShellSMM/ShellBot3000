@@ -307,6 +307,7 @@ this.judge=async function(levelCode){
   //Get all current votes for this level
   var approvalVotes = await PendingVotes.query().where("code",levelCode).where("is_shellder",1).where("type","approve");
   var rejectVotes = await PendingVotes.query().where("code",levelCode).where("is_shellder",1).where("type","reject");
+  var allComments = [...approvalVotes, ...rejectVotes];
 
   //Count Approval and Rejection Votes
   var approvalVoteCount = approvalVotes.length;
@@ -326,7 +327,6 @@ this.judge=async function(levelCode){
     var color="#dc3545";
     var title="Level was " + (level.Approved === "0" ? "rejected" : "removed") + "!";
     var image=this.getEmoteUrl(this.emotes.axemuncher);
-    var voteComments=rejectVotes;
 
   } else if (approvalVoteCount >= ts.get_variable("VotesNeeded")  && approvalVoteCount>rejectVoteCount ){
     if(level.Approved !== "0")
@@ -383,7 +383,6 @@ this.judge=async function(levelCode){
       var color="#01A19F";
       var title="This level was approved for difficulty: " + finalDiff + "!";
       var image=this.getEmoteUrl(this.emotes.bam);
-      var voteComments=approvalVotes;
     } else if(approvalVoteCount==rejectVoteCount ) {
       ts.userError("The votes are the same! "+ts.emotes.buzzyS+" We need a tiebreaker");
     } else {
@@ -396,9 +395,9 @@ this.judge=async function(levelCode){
       .setAuthor(title)
       .setThumbnail(image);
 
-    for(var i = 0; i < voteComments.length; i++){
-      var embedHeader=voteComments[i].player + (voteComments[i].difficulty_vote?" voted " + voteComments[i].difficulty_vote:":")
-      ts.embedAddLongField(exampleEmbed,embedHeader,voteComments[i].reason)
+    for(var i = 0; i < allComments.length; i++){
+      var embedHeader=allComments[i].player + (allComments[i].difficulty_vote?" voted " + allComments[i].difficulty_vote:":")
+      ts.embedAddLongField(exampleEmbed,embedHeader,allComments[i].reason)
     }
 
     await client.channels.get(ts.channels.shellderLevelChanges).send(mention);
