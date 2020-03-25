@@ -17,17 +17,39 @@ this.valid_format=function(code){
 
 this.generateOtp=async function(discord_id){
   let newOtp=crypto.randomBytes(8).toString('hex').toUpperCase()
+  let existing=await Tokens.query().where({token:newOtp}) //need to add check for only within expiry time (30 minutes)
+  while(!existing){
+    newOtp=crypto.randomBytes(8).toString('hex').toUpperCase()
+    existing=await Tokens.query().where({token:newOtp})
+  }
   await Tokens.query().insert({
     discord_id:discord_id,
     token:newOtp,
   })
-  //await client.get_user(discord_id).send("You have requested a login token. Use this in the website to login:"+newOtp)
   return newOtp
 }
 
+this.login=async function(discord_id,row_id){
+  let bearer=crypto.randomBytes(16).toString('hex').toUpperCase()
+  let existing=await Tokens.query().where({token:bearer}) //need to add check for only within expiry time (30 minutes)
+  while(!existing){
+    bearer=crypto.randomBytes(16).toString('hex').toUpperCase()
+    existing=await Tokens.query().where({token:bearer})
+  }
+  await Tokens.query()
+  .findById(row_id)
+  .patch({
+    token: bearer,
+    authenticated:1
+  });
+  await client.guilds.get(this.channels.guild_id).members.get(discord_id).send("Your account was logged in on the website.")
+  return bearer
+}
+
+
 this.checkBearerToken=async function(discord_id,token){
   var token=await Tokens.query()
-      .where('discord_id','=',discord_id)
+      //.where('discord_id','=',discord_id)
       .where('token','=',token)
 
   if(token.length){
@@ -39,20 +61,9 @@ this.checkBearerToken=async function(discord_id,token){
   } else {
       ts.userError("Authentication error")
   }
-  return true
+  return token.discord_id
 }
 
-this.login=async function(discord_id,row_id){
-  let bearer=crypto.randomBytes(16).toString('hex').toUpperCase()
-  await Tokens.query()
-  .findById(row_id)
-  .patch({
-    token: bearer,
-    authenticated:1
-  });
-  await client.guilds.get(this.channels.guild_id).members.get(discord_id).send("Your account was logged in on the website.")
-  return bearer
-}
 
 this.valid_code=function(code){
   return /^[1234567890QWERTYUPASDFGHJKLXCVBNM]{3}-[1234567890QWERTYUPASDFGHJKLXCVBNM]{3}-[1234567890QWERTYUPASDFGHJKLXCVBNM]{3}$/.test(code.toUpperCase())
@@ -183,7 +194,7 @@ this.clear=async function(args,strOnly){
     } else {
      var creator_str=level.Creator
     }
-
+    console.log(args)
     var msg=[],updated={}
     if(existing_play){
       var updated_row={}
@@ -215,7 +226,7 @@ this.clear=async function(args,strOnly){
 
     var level_placeholder="@@level_placeholder@@"
     
-    if( updated.completed&&args.completed || updated.new_row ){
+    if( updated.completed && args.completed || updated.new_row ){
 
       if(args.completed)
         msg.push(" ‣You have cleared "+level_placeholder+" "+ts.emotes.GG)
@@ -232,8 +243,12 @@ this.clear=async function(args,strOnly){
     } else {
       if(updated.completed){
         msg.push(" ‣You have removed your clear for "+level_placeholder+" "+ts.emotes.bam)
-      } else if(args.completed){
-        msg.push(" ‣You have already submitted a clear for "+level_placeholder+" ")
+      } else {
+        if(["1",1].includes(args.completed)){
+          msg.push(" ‣You have already submitted a clear for "+level_placeholder+" ")
+        } else {
+          msg.push(" ‣You have not submited a clear for "+level_placeholder+" ")
+        }
       }
       if(updated.difficulty){
         msg.push(args.difficulty=="remove"?
@@ -262,11 +277,11 @@ this.clear=async function(args,strOnly){
     var level_str="\""+level["Level Name"]+"\"  by "+creator_str
     for(var i=0;i<msg.length;i++){
       msg[i]=msg[i].replace(level_placeholder,level_str)
-      if(i>0) msg[i]=msg[i].replace("‣You have","‣You also have");
+      if(i>1) msg[i]=msg[i].replace("‣You have","‣You also have");
       level_str="this level"
     }
     
-    return (strOnly?"":player.user_reply+",\n")+msg.join("\n");
+    return (strOnly?"":player.user_reply+"\n")+msg.join("\n");
 }
 
 this.getExistingLevel=function(code){

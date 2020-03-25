@@ -8,46 +8,28 @@
 <h1>ShellBot API tester</h1>
 <div class="container">
 
-<div class="row">
-<div class="col-md-12">
-<h3>Login</h3>
-<form id="login" method="post">
-  <label>Username<input class="form-control" type="text" name="username"/></label>
-  <label>OTP<input class="form-control" type="password" name="otp"/></label>
-  <input class="form-control btn btn-primary" type="submit" name="action" value="Login"/>
-</form>
 <code id="loginOut"></code>
-</div>
-</div>
-
-
 <div class="row">
-<form>
-  
-</form>
-</div>
-
-
+<code id="loginOut"></code>
 <form id="postsJson" method="post">
   <h3>Authentication Info (To be stored in localStorage)</h3>
   <label>discord_id<input id="discord_id" name="discord_id" class="form-control"/></label>
   <label>bearer token<input id="bearer_token" name="bearer_token" class="form-control"/></label>
-  <h3>Get Authenticated JSON</h3>
-  <input class="form-control btn btn-primary" type="submit" name="action" value="Login"/>
+  <h3>Get Authenticated JSON (Check console for result)</h3> 
+  <input class="form-control btn btn-primary" type="submit" name="action" value="Get Authenticated JSON"/>
 </form>
-<code id="loginOut"></code>
 </div>
 
-<div class="row">
-<div class="col-md-12">
 <h3>Clear Checker</h3>
+<code id="clearOut"></code>
+<div class="row">
 <form id="clear" method="post">
   <label>Code <input class="form-control" type="text" name="code"/></label>
+  <label>Completed<input type="text" class="form-control" name="completed" value="1"/></label>
   <label>Difficulty vote<input type="text" class="form-control" name="difficulty"/></label>
-  <div class="form-check"><input type="checkbox" class="form-check-input" name="liked" value="1"/><label class="form-check-label">Liked</label></div>
+  <label>Liked<input type="text" class="form-control" name="like" value="1"/></label>
   <input class="form-control btn btn-primary" type="submit" name="action" value="Clear"/>
 </form>
-<code id="clearOut"></code>
 </div>
 </div>
 
@@ -55,17 +37,17 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
 <script>
+$("#otp").val(location.search.substring(7))
 var discord_id=null;
 var token=null;
 var lastUpdated=null;
-$("#login").submit(function(event){
-  event.preventDefault(); //prevent default action 
-  var form_data = $(this).serialize(); //Encode form elements for submission
-  
-  $.ajax({
+
+$.ajax({
     url : "./json/login",
     type: "post",
-    data : form_data
+    data : {
+      otp:location.search.substring(7)
+    }
   }).done(function(response){ //
     console.log(response)
     if(response.status=="logged_in"){
@@ -79,7 +61,6 @@ $("#login").submit(function(event){
     }
     
   });
-})
 
 $("#postsJson").submit(function(event){
   event.preventDefault(); //prevent default action 
@@ -105,17 +86,19 @@ $("#clear").submit(function(event){
   var request_method = $(this).attr("method"); //get form GET/POST method
   var form_data = $(this).serialize(); //Encode form elements for submission
   
-  $("#clearOut").html(form_data+"&token="+token)
-  /*
   $.ajax({
-    url : post_url,
-    type: request_method,
-    data : form_data
+    url : './clear',
+    type: "post",
+    data : form_data+"&token="+token
   }).done(function(response){ //
-    $("#server-results").html(response);
-  });*/
+    console.log(response)
+    $("#clearOut").html(JSON.stringify(response))
+  });
 })
 
 </script>
+<style>
+h3 {margin-top:2em;}
+</style>
 </body>
 </html>

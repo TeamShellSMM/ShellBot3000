@@ -186,20 +186,35 @@ app.post('/json',async (req,res)=>{
     }
 })
 
+app.post('/clear',async (req,res)=>{
+    try {
+    if(req.body.token){
+      var discord_id=await ts.checkBearerToken(req.body.discord_id,req.body.token)
+      var user=await ts.get_user(discord_id)
+    }
+    req.body.discord_id=discord_id
+    var msg=await ts.clear(req.body)
+
+      await client.channels.get(ts.channels.clearSubmit).send(msg)
+      json = {status:"sucessful",msg:msg}
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.send(JSON.stringify(json));
+    } catch (error){
+      res.send(ts.getWebUserErrorMsg(error))
+    }
+})
+
 
 app.post('/json/login', async (req, res) => {
   try{
 
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
     var returnObj={}
-    var user=gs.select("Raw Members",{"Name":req.body.username});
-    if(!user)
-      ts.userError(encodeURI(req.body.username)+" is not a registered member")
+
+    if(!req.body.otp) ts.userError("No OTP provided")
 
     var token=await db.Tokens.query()
-      .where('discord_id','=',user.discord_id)
       .where('token','=',req.body.otp)
-
 
     if(token.length){
       token=token[0]
@@ -207,8 +222,9 @@ app.post('/json/login', async (req, res) => {
       var now=moment().valueOf()
       if(tokenExpireAt<now)
         ts.userError("The OTP password given is already expired")
-      var bearer=await ts.login(user.discord_id,token.id)
-      returnObj={status:"logged_in",type:"bearer","discord_id":user.discord_id,"token":bearer}
+      var user=await ts.get_user(token.discord_id);
+      var bearer=await ts.login(token.discord_id,token.id)
+      returnObj={status:"logged_in",type:"bearer","discord_id":user.discord_id,"token":bearer,"user_info":user}
     } else {
       ts.userError("Your one time password was incorrect. You can DM ShellBot with !login to get another code")
     }
