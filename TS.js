@@ -458,7 +458,7 @@ this.judge=async function(levelCode){
       .setThumbnail(image);
 
     for(var i = 0; i < allComments.length; i++){
-      var embedHeader=allComments[i].player + (allComments[i].difficulty_vote?" voted " + allComments[i].difficulty_vote:":")
+      var embedHeader=allComments[i].player +" voted to "+ (allComments[i].type=="approve"?"approve with difficulty " + allComments[i].difficulty_vote:"reject")+":"
       ts.embedAddLongField(exampleEmbed,embedHeader,allComments[i].reason)
     }
 
