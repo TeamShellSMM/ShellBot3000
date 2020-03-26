@@ -148,32 +148,38 @@ this.embedAddLongField=function(embed,header,body){
   }
 }
 
+function argToStr(str){
+  return (str==null?'':str+'').toLowerCase()
+
+}
+
 this.clear=async function(args,strOnly){
     args.code=args.code.toUpperCase();
+
+    args.like=argToStr(args.like)
+    args.difficulty=argToStr(args.difficulty)
+    args.completed=argToStr(args.completed)
     
 
-    if([1,"1"].includes(args.like) || (""+args.like).toLowerCase()=="like"){
-      args.like=1
-    } else if([0,"0"].includes(args.like)){
-      args.like=0
-    }
-    if((""+args.like).toLowerCase()=="unlike"){
-      args.like=0
+    if(args.like==="like"){
+      args.like="1"
     }
 
-    if((""+args.difficulty).toLowerCase()=="like"){
+    if(args.like=="unlike"){
+      args.like="0"
+    }
+
+    if(args.difficulty=="like"){
       args.difficulty=''
-      args.like=1
+      args.like="1"
     }
 
-    if((""+args.difficulty).toLowerCase()=="unlike"){
+    if(args.difficulty=="unlike"){
       args.difficulty=''
-      args.like=0
+      args.like="0"
     }
 
-    if(["0",0].includes(args.difficulty)){
-       args.difficulty="remove"
-    } else if(args.difficulty && !ts.valid_difficulty(args.difficulty)){
+    if(args.difficulty!=="0" && args.difficulty && !ts.valid_difficulty(args.difficulty)){
       ts.userError("You did not provide a valid difficulty vote");
     }
 
@@ -188,26 +194,35 @@ this.clear=async function(args,strOnly){
       .where('player','=',player.Name)
       .first();
 
-    var creator=gs.select("Raw Members",{"Name":level.Creator});
+    var creator=gs.select("Raw Members",{"Name":level.Creator}); //oddface/taika is only non registered member with a level
     if(creator && creator.atme=="1" && creator.discord_id && !strOnly){
      var creator_str="<@"+creator.discord_id+">"
     } else {
      var creator_str=level.Creator
     }
-    console.log(args)
+
     var msg=[],updated={}
     if(existing_play){
       var updated_row={}
-      if(["1",1,"0",0].includes(args.completed) && existing_play.completed!=args.completed){ //update completed
+      if(
+          ["1","0"].includes(args.completed) &&
+          (""+existing_play.completed)!==args.completed
+        ){ //update completed
         updated_row.completed=args.completed;
         updated.completed=1
       }
-      if(["1",1,"0",0].includes(args.like) && existing_play.liked!=args.like){ //like updated
+      if(
+        ["1","0"].includes(args.like) && 
+        (""+existing_play.liked)!==args.like
+      ){ //like updated
         updated_row.liked=args.like;
         updated.liked=1
       }
-      if( (args.difficulty || ["0",0].includes(args.difficulty)) && ( existing_play.difficulty_vote!=args.difficulty ) ){ //difficulty update
-        updated_row.difficulty_vote=args.difficulty=="remove"?null:args.difficulty; //0 difficulty will remove your vote
+      if( 
+        (args.difficulty || args.difficulty==="0" ) && 
+        ( (""+existing_play.difficulty_vote)!==args.difficulty ) 
+      ){ //difficulty update
+        updated_row.difficulty_vote=args.difficulty==="0"?null:args.difficulty; //0 difficulty will remove your vote
         updated.difficulty=1
       }
       await Plays.query().findById(existing_play.id).patch(updated_row);
@@ -219,60 +234,52 @@ this.clear=async function(args,strOnly){
         "completed": args.completed?1:0,
         "is_shellder":player.shelder,
         "liked":args.like?1:0,
-        "difficulty_vote":args.difficulty=="remove" ? null:""
+        "difficulty_vote":args.difficulty==="0" ? null:""
       });
-      updated.new_row=1
+      if(args.completed!=='') updated.completed=1;
+      if(args.like!=='') updated.liked=1;
+      if(args.difficulty!=='') updated.difficulty=1;
     }
 
-    var level_placeholder="@@level_placeholder@@"
+    var level_placeholder="@@LEVEL_PLACEHOLDER@@"
     
-    if( updated.completed && args.completed || updated.new_row ){
-
-      if(args.completed)
-        msg.push(" ‣You have cleared "+level_placeholder+" "+ts.emotes.GG)
-      if(args.difficulty)
-        msg.push(" ‣You have voted "+args.difficulty+" as the difficulty for "+level_placeholder);
-      if(args.completed && level.Approved=="1"){
-        msg.push(" ‣You have earned "+ts.pointMap[parseFloat(level.Difficulty)]+" points.");
-      } else if(level.Approved=="0"){
-        msg.push(" ‣This level is still pending.")
-      }
-      if(args.like){
-       msg.push(" ‣You have liked "+level_placeholder+" "+ts.emotes.love)
-      }  
-    } else {
       if(updated.completed){
-        msg.push(" ‣You have removed your clear for "+level_placeholder+" "+ts.emotes.bam)
-      } else {
-        if(["1",1].includes(args.completed)){
-          msg.push(" ‣You have already submitted a clear for "+level_placeholder+" ")
-        } else {
-          msg.push(" ‣You have not submited a clear for "+level_placeholder+" ")
-        }
+        msg.push(args.completed==="0"?
+          " ‣You have removed your clear for "+level_placeholder:
+          " ‣You have cleared "+level_placeholder+" "+ts.emotes.GG
+        )
+      } else if(args.completed || args.completed==="0"){
+        msg.push(args.completed==="0"?
+          " ‣You have not submited a clear for "+level_placeholder:
+          " ‣You have already submitted a clear for "+level_placeholder
+        )
       }
+
       if(updated.difficulty){
-        msg.push(args.difficulty=="remove"?
+        msg.push(args.difficulty==="0"?
           " ‣You have removed your difficulty vote for "+level_placeholder+" "+ts.emotes.bam:
           " ‣You have voted "+args.difficulty+" as the difficulty for "+level_placeholder+" "+ts.emotes.bam
         )
-      } else if(args.difficulty || ["0",0].includes(args.difficulty)){
-        msg.push(args.difficulty=="remove"?
+      } else if(args.difficulty || args.difficulty==="0" ){
+        msg.push(args.difficulty==="0"?
           " ‣You haven't submitted a difficulty vote for "+level_placeholder+" "+ts.emotes.think:
           " ‣You have already voted "+args.difficulty+" for "+level_placeholder+" "+ts.emotes.think
         )
       }
+
       if(updated.liked){
-        msg.push(args.like?
-          " ‣You have liked "+level_placeholder+" "+ts.emotes.love:
-          " ‣You have unliked "+level_placeholder+" "+ts.emotes.bam
+        msg.push(args.like==="0"?
+          " ‣You have unliked "+level_placeholder+" "+ts.emotes.bam:
+          " ‣You have liked "+level_placeholder+" "+ts.emotes.love
+          
         )
-      } else if(args.like){
-        msg.push(args.like?
-          " ‣You have already liked "+level_placeholder+" "+ts.emotes.love:
-          " ‣You have already unliked "+level_placeholder+" "+ts.emotes.think
+      } else if(args.like || args.like==="0" ){
+        msg.push(args.like==="0"?
+          " ‣You have not added a like to "+level_placeholder+" "+ts.emotes.think:
+          " ‣You have already liked "+level_placeholder+" "+ts.emotes.love
         )
       }
-    }
+    
 
     var level_str="\""+level["Level Name"]+"\"  by "+creator_str
     for(var i=0;i<msg.length;i++){
