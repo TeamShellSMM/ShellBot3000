@@ -8,7 +8,6 @@
 <h1>ShellBot API tester</h1>
 <div class="container">
 
-<code id="loginOut"></code>
 <div class="row">
 <code id="loginOut"></code>
 <form id="postsJson" method="post">
@@ -20,9 +19,10 @@
 </form>
 </div>
 
+
+<div class="row">
 <h3>Clear Checker</h3>
 <code id="clearOut"></code>
-<div class="row">
 <form id="clear" method="post">
   <label>Code <input class="form-control" type="text" name="code"/></label>
   <label>Completed<input type="text" class="form-control" name="completed" value="1"/></label>
@@ -31,24 +31,24 @@
   <input class="form-control btn btn-primary" type="submit" name="action" value="Clear"/>
 </form>
 </div>
-</div>
 
 
+
+<div class="row">
 <h3>Approval</h3>
 <code id="approvalOut"></code>
-<div class="row">
 <form id="approve" method="post">
   <label>Code <input class="form-control" type="text" name="code"/></label>
-  <label>Approval<input class="form-control" type="text" name="type"/></label>
+  <label>Type<input class="form-control" type="text" name="type" placeholder="accept/reject" /></label>
   <label>Completed<input type="text" class="form-control" name="completed" value="1"/></label>
-  <label>Comment<textarea class="form-control" name="comment"></textarea>
+  <label>Comment<textarea class="form-control" name="comment"></textarea></label>
   <label>Difficulty vote<input type="text" class="form-control" name="difficulty"/></label>
   <label>Liked<input type="text" class="form-control" name="like" value="1"/></label>
   <input class="form-control btn btn-primary" type="submit" name="action" value="Clear"/>
 </form>
 </div>
-</div>
 
+</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">

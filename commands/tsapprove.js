@@ -42,8 +42,6 @@ class TSApprove extends Command {
         !tsreject reason
       */
 
-
-
       const clearCommands = ['tsapprove+c', 'tsapprove+cl', 'tsapprove+lc'];
       const likeCommands =  ['tsapprove+cl', 'tsapprove+lc'];
 
@@ -66,7 +64,7 @@ class TSApprove extends Command {
       if(!(
         message.channel.id === ts.channels.shellderShellbot  //only in shellder-bot channel
         || inCodeDiscussionChannel //should also work in the discussion channel for that level
-      )) return false;
+      )) return false; //silently fail
 
       if(command.command == "tsreject"){
         //Difficulty doesn't exist in reject, so it get replaced by reason
@@ -89,49 +87,17 @@ class TSApprove extends Command {
       args.type=command.command==="tsreject"?"reject":"approve"
       args.discord_id=message.author.id
       var replyMessage=await ts.approve(args)
-      const shellder=await ts.get_user(args.discord_id);
-      
+      message.reply(replyMessage);
+
+      //clear
       if(clearCommands.indexOf(command.command) !== -1){
-        //Add a clear to the level if it's not already there
-        var played = await Plays.query()
-          .where('code', '=', args.code)
-          .where('player', '=', shellder.Name)
-          .first();
-
-        if(played){
-          //Update
-
-            await Plays.query()
-              .findById(played.id)
-              .patch({
-              liked: likeCommands.indexOf(command.command) !== -1 ? 1 : 0,
-              difficulty_vote: args.difficulty
-            });
-
-          replyMessage += " You also updated your clear and community vote on this level!";
-
-          if(likeCommands.indexOf(command.command) !== -1){
-            replyMessage += " You also liked the level " + ts.emotes.love + "!";
-          }
-        } else {
-          //Insert
-          await Plays.query().insert({
-            "code": level.Code,
-            "player": shellder.Name,
-            "completed": "1",
-            "is_shellder": "1",
-            "liked": likeCommands.indexOf(command.command) !== -1 ? 1 : 0,
-            "difficulty_vote": args.difficulty
-          });
-
-          replyMessage += " You also added a clear and community vote on this level!";
-
-          if(likeCommands.indexOf(command.command) !== -1){
-            replyMessage += " You also liked the level " + ts.emotes.love + "!";
-          }
-        }
+          args.completed=1;
+        if(likeCommands.indexOf(command.command) !==-1) 
+          args.like=1;
+        var clearMessage=await ts.clear(args)
+        this.client.channels.get(ts.channels.clearSubmit).send(clearMessage)
       }
-        message.reply(replyMessage);
+
 
       } catch(error){
         message.reply(ts.getUserErrorMsg(error))

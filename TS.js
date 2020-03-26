@@ -248,7 +248,11 @@ this.clear=async function(args,strOnly){
           msg.push(" ‣You have removed your clear for "+level_placeholder)
         } else {
           msg.push(" ‣You have cleared "+level_placeholder+" "+ts.emotes.GG)
-          msg.push(" ‣You have earned "+this.pointMap[parseFloat(level.Difficulty)]+" points")
+          if(level.Approved=="1"){
+            msg.push(" ‣You have earned "+this.pointMap[parseFloat(level.Difficulty)]+" points")
+          } else {
+            msg.push(" ‣This level is still pending")
+          }
         }
       } else if(args.completed || args.completed==="0"){
         msg.push(args.completed==="0"?
