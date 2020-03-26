@@ -89,7 +89,8 @@ class TSApprove extends Command {
       args.type=command.command==="tsreject"?"reject":"approve"
       args.discord_id=message.author.id
       var replyMessage=await ts.approve(args)
-
+      const shellder=await ts.get_user(args.discord_id);
+      
       if(clearCommands.indexOf(command.command) !== -1){
         //Add a clear to the level if it's not already there
         var played = await Plays.query()
