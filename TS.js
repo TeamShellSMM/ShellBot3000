@@ -365,6 +365,118 @@ this.getWebUserErrorMsg=function(obj){
   }
 }
 
+function getRandomInt(min, max) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min)) + min; //The maximum is exclusive and the minimum is inclusive
+}
+
+this.randomLevel=async function(args){
+await gs.loadSheets(["Raw Members","Raw Levels"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
+  const player=args.discord_id!=null? await ts.get_user(args.discord_id) : null
+
+  //console.time("get levels")
+  var allLevels=await ts.get_levels()
+  let levels={}
+  if(player){
+    allLevels=allLevels.filter((l)=>{
+      return l.Creator!==player.Name
+    })
+  }
+  allLevels.forEach(o=>{
+    levels[o.Code]=o
+  })
+  //const levels=await ts.get_levels(true) //get levels with aggregates and stats
+  var difficulties=[]
+  var played=[];
+
+
+  //console.time("get plays")
+  if(player){
+    var plays = await Plays.query()
+      .where('player', '=', player.Name)
+      .where('completed', 1);
+    //console.timeEnd("get plays")
+
+
+    //console.time("process plays")
+    plays.forEach((clear)=>{
+      const level=levels[clear.code]
+      if(level && level.Approved=="1" && level.Creator!=player.Name){
+        played.push(level.Code)
+        difficulties.push(level.Difficulty)
+      }
+      if(level && level.Creator==player.Name){
+        played.push(level.Code)
+      }
+    })
+  }
+  //console.timeEnd("process plays")
+
+
+  //console.time("process difficulties")
+  if(args.minDifficulty){
+    var min=args.minDifficulty
+    var max=args.maxDifficulty
+  } else {
+    if(difficulties.length>0){
+      var middle=(difficulties.length-1)/2
+      difficulties.sort(function(a,b){
+        return parseFloat(a)-parseFloat(b)
+      })
+      var min=difficulties[Math.floor(middle)]
+      var max=difficulties[difficulties.length-1]
+    } else {
+      var min=0.5
+      var max=1
+    }
+  }
+  //console.timeEnd("process difficulties")
+
+  min=parseFloat(min)
+  max=parseFloat(max)
+
+  //console.time("getting the range of levels")
+
+  //var filtered_levels=[]
+  if(allLevels){
+   var filtered_levels=allLevels.filter((level)=>{
+      var currDifficulty=parseFloat(level.Difficulty)
+      return level.Approved=="1" &&
+        currDifficulty>=min &&
+        currDifficulty<=max 
+        && played.indexOf(level.Code)==-1
+      
+    })
+  } else {
+    throw "No levels found buzzyS"
+  }
+  //console.timeEnd("getting the range of levels")
+
+  //console.time("sorting levels")
+  filtered_levels.sort(function(a,b){
+    return parseFloat(a.likes)-parseFloat(b.likes)
+  })
+  //console.timeEnd("sorting levels")
+  if(filtered_levels.length==0){
+    ts.userError("You have ran out of levels in this range ("+(min==max?min:min+"-"+max)+")")
+  }
+
+  //console.time("rolling dice")
+  var borderLine=Math.floor(filtered_levels.length*0.6)
+  if(Math.random()<0.2){
+    var randNum=getRandomInt(0,borderLine)
+  } else {
+    var randNum=getRandomInt(borderLine,filtered_levels.length)
+  }
+  var level=filtered_levels[randNum]
+  return {
+    player:player,
+    level:level
+  }
+}
+
+
 this.get_user= async function(message){
   var discord_id=typeof message=="string"?message:message.author.id
   var player=gs.select("Raw Members",{
