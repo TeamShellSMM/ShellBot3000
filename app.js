@@ -170,14 +170,6 @@ app.post('/json',async (req,res)=>{
       //console.log(user)
     }
 
-    /*
-      var lastUpdated = gs.lastUpdated
-      if(req.body.lastLoaded==lastUpdated){
-        json = {status:"No Updated Needed"}
-      } else {
-        json = {status:"Authenticated",data:generateSiteJson()}
-      }
-*/
       json = {status:"Authenticated",data:await generateSiteJson(user.shelder)}
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
       res.send(JSON.stringify(json));
@@ -188,14 +180,42 @@ app.post('/json',async (req,res)=>{
 
 app.post('/clear',async (req,res)=>{
     try {
-    if(req.body.token){
-      var discord_id=await ts.checkBearerToken(req.body.discord_id,req.body.token)
-      var user=await ts.get_user(discord_id)
-    }
-    req.body.discord_id=discord_id
-    var msg=await ts.clear(req.body)
+      if(req.body.token){
+        var discord_id=await ts.checkBearerToken(req.body.discord_id,req.body.token)
+        var user=await ts.get_user(discord_id)
+      }
+      req.body.discord_id=discord_id
+      var msg=await ts.clear(req.body)
 
       await client.channels.get(ts.channels.clearSubmit).send(msg)
+      json = {status:"sucessful",msg:msg}
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.send(JSON.stringify(json));
+    } catch (error){
+      res.send(ts.getWebUserErrorMsg(error))
+    }
+})
+
+app.post('/approve',async (req,res)=>{
+    try {
+      if(req.body.token){
+        var discord_id=await ts.checkBearerToken(req.body.discord_id,req.body.token)
+        var user=await ts.get_user(discord_id)
+      }
+
+      if(user.shelder!="1"){
+        ts.userError("Forbidden")
+      }
+
+      req.body.discord_id=discord_id
+
+      req.body.reason=req.body.comment
+      
+      var msg=await ts.approve(req.body)
+      var clearmsg=await ts.clear(req.body)
+
+      await client.channels.get(ts.channels.clearSubmit).send(clearmsg)
+
       json = {status:"sucessful",msg:msg}
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
       res.send(JSON.stringify(json));
@@ -207,7 +227,6 @@ app.post('/clear',async (req,res)=>{
 
 app.post('/json/login', async (req, res) => {
   try{
-
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
     var returnObj={}
 
