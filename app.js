@@ -57,6 +57,12 @@ async function generateSiteJson(isShellder){
 
     var _playedLevels = await db.Plays.query();
 
+    for(var i=0;i<_playedLevels.length;i++){
+      _playedLevels[i].created_at=typeof _playedLevels[i].created_at ==="string" ? 
+      (new Date(_playedLevels[i].created_at.replace(/-/g,"/"))).getTime()/1000:
+      _playedLevels[i].created_at;
+    }
+
     var rawLevels=[_rawLevels[0]];
     var reuploaded=[]
     var pending=[]
