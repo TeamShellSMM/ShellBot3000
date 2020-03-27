@@ -234,7 +234,7 @@ this.clear=async function(args,strOnly){
         "completed": args.completed?1:0,
         "is_shellder":player.shelder,
         "liked":args.like?1:0,
-        "difficulty_vote":args.difficulty==="0" ? null:""
+        "difficulty_vote":args.difficulty==="0" ? null:args.difficulty
       });
       if(args.completed!=='') updated.completed=1;
       if(args.like!=='') updated.liked=1;
