@@ -47,15 +47,11 @@ this.login=async function(discord_id,row_id){
 }
 
 
-this.checkBearerToken=async function(discord_id,token){
-  var token=await Tokens.query()
-      //.where('discord_id','=',discord_id)
-      .where('token','=',token)
-
-  if(token.length){
-    token=token[0]
-    var tokenExpireAt=moment(token.created_at).add(30,'days').valueOf()
-    var now=moment().valueOf()
+this.checkBearerToken=async function(token){
+  token=await Tokens.query().where('token','=',token).first()
+  if(token){
+    const tokenExpireAt=moment(token.created_at).add(30,'days').valueOf()
+    const now=moment().valueOf()
     if(tokenExpireAt<now)
       ts.userError("Token expired. Need to relogin")
   } else {

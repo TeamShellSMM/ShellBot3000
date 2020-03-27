@@ -171,7 +171,7 @@ app.post('/json',async (req,res)=>{
     try {
 
     if(req.body.token && req.body.discord_id){
-      req.body.discord_id=await ts.checkBearerToken(req.body.discord_id,req.body.token)
+      req.body.discord_id=await ts.checkBearerToken(req.body.token)
       var user=await ts.get_user(req.body.discord_id)
       //console.log(user)
     }
@@ -187,7 +187,7 @@ app.post('/json',async (req,res)=>{
 app.post('/clear',async (req,res)=>{
     try {
       if(req.body.token){
-        req.body.discord_id=await ts.checkBearerToken(req.body.discord_id,req.body.token)
+        req.body.discord_id=await ts.checkBearerToken(req.body.token)
         var user=await ts.get_user(req.body.discord_id)
       } else {
         ts.userError("Token was not sent")
@@ -209,8 +209,8 @@ app.post('/approve',async (req,res)=>{
     try {
 
       if(req.body.token){
-        req.body.discord_id=await ts.checkBearerToken(req.body.discord_id,req.body.token)
-        var user=await ts.get_user(discord_id)
+        req.body.discord_id=await ts.checkBearerToken(req.body.token)
+        var user=await ts.get_user(req.body.discord_id)
       }
 
       if(user.shelder!="1"){
@@ -233,6 +233,22 @@ app.post('/approve',async (req,res)=>{
     }
 })
 
+app.post('/random',async (req,res)=>{
+    try {
+
+      if(req.body.token){
+        req.body.discord_id=await ts.checkBearerToken(req.body.token)
+        var user=await ts.get_user(req.body.discord_id)
+      }
+      
+      let rand=await ts.randomLevel(req.body)
+      rand.status="sucessful"
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.send(JSON.stringify(rand));
+    } catch (error){
+      res.send(ts.getWebUserErrorMsg(error))
+    }
+})
 
 
 

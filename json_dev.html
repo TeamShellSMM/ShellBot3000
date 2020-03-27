@@ -9,6 +9,7 @@
 <div class="container">
 
 <div class="row">
+<div class="col-sm-12">
 <code id="loginOut"></code>
 <form id="postsJson" method="post">
   <h3>Authentication Info (To be stored in localStorage)</h3>
@@ -18,9 +19,11 @@
   <input class="form-control btn btn-primary" type="submit" name="action" value="Get Authenticated JSON"/>
 </form>
 </div>
+</div>
 
 
 <div class="row">
+<div class="col-sm-12">
 <h3>Clear Checker</h3>
 <code id="clearOut"></code>
 <form id="clear" method="post">
@@ -31,10 +34,23 @@
   <input class="form-control btn btn-primary" type="submit" name="action" value="Clear"/>
 </form>
 </div>
-
+</div>
 
 
 <div class="row">
+<div class="col-sm-12">
+<h3>Random</h3>
+<code id="randomOut"></code>
+<form class="form" id="random" method="post">
+  <label>Min Difficulty<input class="form-control" type="text" name="minDifficulty"/></label>
+  <label>Max Difficulty<input class="form-control" type="text" name="maxDifficulty"/></label>
+  <input class="form-control btn btn-primary" type="submit" name="action" value="Random"/>
+</form>
+</div>
+</div>
+
+<div class="row">
+<div class="col-sm-12">
 <h3>Approval</h3>
 <code id="approvalOut"></code>
 <form id="approve" method="post">
@@ -44,9 +60,11 @@
   <label>Comment<textarea class="form-control" name="comment"></textarea></label>
   <label>Difficulty vote<input type="text" class="form-control" name="difficulty"/></label>
   <label>Liked<input type="text" class="form-control" name="like" value="1"/></label>
-  <input class="form-control btn btn-primary" type="submit" name="action" value="Clear"/>
+  <input class="form-control btn btn-primary" type="submit" name="action" value="Approve"/>
 </form>
 </div>
+</div>
+
 
 </div>
 
@@ -85,9 +103,7 @@ $("#postsJson").submit(function(event){
     url : "./json",
     type: "post",
     data : {
-      discord_id:discord_id,
-      token:token,
-      lastLoaded:lastUpdated
+      token:token
     }
   }).done(function(response){ //
     console.log(response)
@@ -107,6 +123,19 @@ $("#clear").submit(function(event){
   }).done(function(response){ //
     console.log(response)
     $("#clearOut").html(JSON.stringify(response))
+  });
+})
+
+$("#random").submit(function(event){
+  event.preventDefault(); //prevent default action 
+  var form_data = $(this).serialize(); //Encode form elements for submission
+  $.ajax({
+    url : './random',
+    type: "post",
+    data : form_data+"&token="+token
+  }).done(function(response){ //
+    console.log(response)
+    $("#randomOut").html(JSON.stringify(response))
   });
 })
 
