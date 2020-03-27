@@ -7,8 +7,8 @@ const moment=require('moment')
 const Plays = require('./models/Plays');
 const PendingVotes = require('./models/PendingVotes');
 
-var TS=function(gs,client){ //loaded after gs
-var ts=this
+const TS=function(gs,client){ //loaded after gs
+const ts=this
 
 
 this.valid_format=function(code){
@@ -182,6 +182,9 @@ this.clear=async function(args,strOnly){
     if(args.difficulty!=="0" && args.difficulty && !ts.valid_difficulty(args.difficulty)){
       ts.userError("You did not provide a valid difficulty vote");
     }
+
+    if(!args.discord_id)
+      ts.userError("We couldn't find your discord id")
 
     await gs.loadSheets(["Raw Members","Raw Levels"]);
     const player=await ts.get_user(args.discord_id);
