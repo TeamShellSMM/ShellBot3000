@@ -189,8 +189,10 @@ app.post('/clear',async (req,res)=>{
       if(req.body.token){
         let discord_id=await ts.checkBearerToken(req.body.discord_id,req.body.token)
         let user=await ts.get_user(discord_id)
+      } else {
+        ts.userError("Token was not sent")
       }
-      req.body.discord_id=discord_id
+      
       let msg=await ts.clear(req.body)
 
       await client.channels.get(ts.channels.clearSubmit).send(msg)
