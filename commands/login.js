@@ -3,7 +3,7 @@ const config = require('../config.json');
 class login extends Command {
     constructor() {
         super('login', {
-           aliases: ['login'],
+           aliases: ['login','tslogin'],
            cooldown: 5000
         });
     }
