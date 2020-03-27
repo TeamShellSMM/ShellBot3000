@@ -43,10 +43,10 @@ class TSLevelStatus extends Command {
 
             var text = "";
             
-            if(approvalVoteCount > 3 || rejectVoteCount > 3){
-                text = "This level is in judgement right now: ";
-            } else {
+            if( (approvalVoteCount > 3 || rejectVoteCount > 3) && approvalVoteCount!=rejectVoteCount ){
                 text = "This level is ready to be judged: ";
+            } else {
+                text = "This level is in judgement right now: ";
             }
 
             if(approvalVoteCount > 0 && rejectVoteCount > 0){
