@@ -375,7 +375,26 @@ function getRandomInt(min, max) {
 }
 
 this.randomLevel=async function(args){
-await gs.loadSheets(["Raw Members","Raw Levels"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
+  if(args.minDifficulty && !ts.valid_difficulty(args.minDifficulty)){
+    ts.userError(args.maxDifficulty? "You didn't specify a valid minimum difficulty" : "You didn't specify a valid difficulty")
+  }
+
+  if(args.maxDifficulty){
+    if(!ts.valid_difficulty(args.maxDifficulty))
+      ts.userError("You didn't specify a valid maxDifficulty")
+  } else {
+    if(args.minDifficulty){
+      args.maxDifficulty=args.minDifficulty
+    }
+  }
+
+  if(args.minDifficulty>args.maxDifficulty){
+    let temp=args.maxDifficulty
+    args.maxDifficulty=args.minDifficulty
+    args.minDifficulty=temp
+  }
+
+  await gs.loadSheets(["Raw Members","Raw Levels"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
   const player=args.discord_id!=null? await ts.get_user(args.discord_id) : null
 
   //console.time("get levels")

@@ -171,8 +171,8 @@ app.post('/json',async (req,res)=>{
     try {
 
     if(req.body.token && req.body.discord_id){
-      await ts.checkBearerToken(req.body.discord_id,req.body.token)
-      let user=await ts.get_user(req.body.discord_id)
+      req.body.discord_id=await ts.checkBearerToken(req.body.discord_id,req.body.token)
+      var user=await ts.get_user(req.body.discord_id)
       //console.log(user)
     }
 
@@ -187,8 +187,8 @@ app.post('/json',async (req,res)=>{
 app.post('/clear',async (req,res)=>{
     try {
       if(req.body.token){
-        let discord_id=await ts.checkBearerToken(req.body.discord_id,req.body.token)
-        let user=await ts.get_user(discord_id)
+        req.body.discord_id=await ts.checkBearerToken(req.body.discord_id,req.body.token)
+        var user=await ts.get_user(req.body.discord_id)
       } else {
         ts.userError("Token was not sent")
       }
@@ -207,17 +207,17 @@ app.post('/clear',async (req,res)=>{
 
 app.post('/approve',async (req,res)=>{
     try {
+
       if(req.body.token){
-        let discord_id=await ts.checkBearerToken(req.body.discord_id,req.body.token)
-        let user=await ts.get_user(discord_id)
+        req.body.discord_id=await ts.checkBearerToken(req.body.discord_id,req.body.token)
+        var user=await ts.get_user(discord_id)
       }
 
       if(user.shelder!="1"){
         ts.userError("Forbidden")
       }
 
-      req.body.discord_id=discord_id
-
+      //req.body.discord_id=discord_id
       req.body.reason=req.body.comment
       
       let msg=await ts.approve(req.body)

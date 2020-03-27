@@ -20,28 +20,8 @@ class tsrandom extends Command {
 
     async exec(message,args) {
       try {
-         if(args.minDifficulty && !ts.valid_difficulty(args.minDifficulty)){
-          ts.userError(args.maxDifficulty? "You didn't specify a valid minimum difficulty" : "You didn't specify a valid difficulty")
-        }
-
-
-        if(args.maxDifficulty){
-          if(!ts.valid_difficulty(args.maxDifficulty))
-            ts.userError("You didn't specify a valid maxDifficulty")
-        } else {
-          if(args.minDifficulty){
-            args.maxDifficulty=args.minDifficulty
-          }
-        }
-
-        if(args.minDifficulty>args.maxDifficulty){
-          let temp=args.maxDifficulty
-          args.maxDifficulty=args.minDifficulty
-          args.minDifficulty=temp
-        }
-
+        
         args.discord_id=message.author.id
-
         var rand=await ts.randomLevel(args)
 
         //console.time("Making embed and send")
