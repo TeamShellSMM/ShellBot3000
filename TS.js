@@ -327,11 +327,11 @@ this.get_variable=function(var_name){
   return ret?ret.Value:false
 }
 
-this.levelsAvailable=function(points,levelsUploaded){
+this.levelsAvailable=function(points,levelsUploaded,freeLevels){
   var min=parseFloat(this.get_variable("Minimum Point"));
   var next=parseFloat(this.get_variable("New Level"));
 
-  var nextLevel=levelsUploaded+1;
+  var nextLevel=levelsUploaded+1-(freeLevels?freeLevels:0);
   var nextPoints= nextLevel==1? min : min+ (nextLevel-1)*next
 
   points=parseFloat(points);
@@ -858,11 +858,15 @@ this.calculatePoints= async function(user,if_remove_check){ //delta check is to 
    var currentLevels = gs.select("Raw Levels");
    var levelMap={};
    var ownLevels=[];
+   var freeSubmissions=0;
    var reuploads={};
    for (var row = currentLevels.length-1; row >=0 ; row--) {
      if(currentLevels[row].Approved=="1"){
        if(currentLevels[row].Creator==user){
          ownLevels.push(currentLevels[row].Code)
+         if(currentLevels[row].free_submission=="1"){
+          freeSubmissions++;
+         }
        } else {
          levelMap[currentLevels[row].Code]=this.pointMap[parseFloat(currentLevels[row].Difficulty)]
        }
@@ -901,7 +905,8 @@ this.calculatePoints= async function(user,if_remove_check){ //delta check is to 
   return {
     clearPoints:clearPoints.toFixed(1),
     levelsMade:ownLevels.length,
-    available:this.levelsAvailable(clearPoints,ownLevelNumbers),
+    freeSubmissions:freeSubmissions,
+    available:this.levelsAvailable(clearPoints,ownLevelNumbers,freeSubmissions),
   }
 }
 

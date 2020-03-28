@@ -1,4 +1,9 @@
 const { Command } = require('discord-akairo');
+
+ts.plural=function(num){
+    return num>1||num==0?"s":""
+}
+
 class points extends Command {
     constructor() {
         super('points', {
@@ -26,7 +31,7 @@ class points extends Command {
           await message.member.addRole(player.rank.discord_roles)
         }
 
-        var msg="You have "+player.earned_points.clearPoints+" clear points. You have submitted "+player.earned_points.levelsMade+" level(s). "
+        var msg="You have "+player.earned_points.clearPoints+" clear points. You have submitted "+player.earned_points.levelsMade+" level"+ts.plural(player.earned_points.levelsMade)+" "+(player.earned_points.freeSubmissions?"("+player.earned_points.freeSubmissions+" free submission"+ts.plural(player.earned_points.freeSubmissions)+")":"")+". "
 
         if(player.earned_points.available>=0){
            msg+="You have enough points to upload a level "+ts.emotes.PigChamp;
