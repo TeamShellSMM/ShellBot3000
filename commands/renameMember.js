@@ -64,12 +64,12 @@ class RenameMember extends Command {
             }
 
 
-            if(!updates)
-                ts.userError("No updates was made somehow");
-
-            let oldPlays=await Plays.query().patch({"player":args.new_name}).where("player",oldName)
-            let pendingVotes=await PendingVotes.query().patch({"player":args.new_name}).where("player",oldName)
-            await ts.load()
+            if(updates){
+                await gs.batchUpdate(updates);
+                let oldPlays=await Plays.query().patch({"player":args.new_name}).where("player",oldName)
+                let pendingVotes=await PendingVotes.query().patch({"player":args.new_name}).where("player",oldName)
+                await ts.load()
+            } 
 
             return message.reply('"'+oldName+'" has been renamed to "'+args.new_name+'"');
         } catch(error){
