@@ -63,6 +63,8 @@ class tsremove extends Command {
           await this.client.channels.get(ts.channels.shellderLevelChanges).send(mention);
         }
 
+        await ts.deleteDiscussionChannel(level.Code,"Level has been removed via !tsremove")
+
         var reply="You have removed \""+level["Level Name"]+"\" by "+level.Creator+" "+ts.emotes.buzzyS
         await this.client.channels.get(ts.channels.shellderLevelChanges).send(removeEmbed);
         await message.channel.send(player.user_reply+reply)

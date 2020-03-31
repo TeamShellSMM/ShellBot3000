@@ -11,6 +11,35 @@ const TS=function(gs,client){ //loaded after gs
 const ts=this
 
 
+this.load=async function(){
+  gs.clearCache()
+  this.pointMap={}
+ this.channels={}
+ this.emotes={}
+ const response=await gs.loadSheets(static_vars) //loading initial sheets
+  var _points=gs.select("Points");
+  for(var i=0;i<_points.length;i++){
+    this.pointMap[parseFloat(_points[i].Difficulty)]=parseFloat(_points[i].Points)
+  }
+  var _channels=gs.select("Channels");
+  for(var i=0;i<_channels.length;i++){
+    this.channels[_channels[i].Name]=_channels[i].value
+  }
+    var _emotes=gs.select("Emotes");
+  for(var i=0;i<_emotes.length;i++){
+    this.emotes[_emotes[i].Name]=_emotes[i].value
+  }
+
+  
+  console.log("TS Vars loaded")
+}
+
+this.getGuild=function(){
+  return client.guilds.get(this.channels.guild_id)
+}
+
+
+
 this.valid_format=function(code){
   return /^[0-9A-Z]{3}-[0-9A-Z]{3}-[0-9A-Z]{3}$/.test(code.toUpperCase())
 }
@@ -92,28 +121,6 @@ this.pointMap=null
 
 this.levelRemoved=function(level){
   return !level || level && level.Approved!="0" && level.Approved!="1"
-}
-
-this.load=async function(){
-  gs.clearCache()
-  this.pointMap={}
- this.channels={}
- this.emotes={}
- const response=await gs.loadSheets(static_vars) //loading initial sheets
-  var _points=gs.select("Points");
-  for(var i=0;i<_points.length;i++){
-    this.pointMap[parseFloat(_points[i].Difficulty)]=parseFloat(_points[i].Points)
-  }
-  var _channels=gs.select("Channels");
-  for(var i=0;i<_channels.length;i++){
-    this.channels[_channels[i].Name]=_channels[i].value
-  }
-    var _emotes=gs.select("Emotes");
-  for(var i=0;i<_emotes.length;i++){
-    this.emotes[_emotes[i].Name]=_emotes[i].value
-  }
-
-  console.log("TS Vars loaded")
 }
 
 this.creator_str=function(level){
@@ -513,8 +520,39 @@ this.get_user= async function(message){
   return player
 }
 
+this.makeVoteEmbed=async function(level){
+  var approveVotes = await PendingVotes.query().where("code",level.Code).where("is_shellder",1).where("type","approve");
+  var rejectVotes = await PendingVotes.query().where("code",level.Code).where("is_shellder",1).where("type","reject");
+  var voteEmbed=ts.levelEmbed(level)
+      .setAuthor("The Judgement  has now begun for this level:")
+      .setThumbnail(ts.getEmoteUrl(ts.emotes.judgement));
+
+    var postString = "__Current Votes for approving the level:__\n";
+    if(approveVotes == undefined || approveVotes.length == 0){
+      postString += "> None\n";
+    } else {
+      for(var i = 0; i < approveVotes.length; i++){
+        const curShellder = gs.select("Raw Members",{"Name":approveVotes[i].player});
+        postString += "<@" + curShellder.discord_id + "> - Difficulty: " + approveVotes[i].difficulty_vote + ", Reason: " + approveVotes[i].reason + "\n";
+      }
+    }
+
+    postString += "\n__Current votes for rejecting the level:__\n";
+
+    if(rejectVotes == undefined || rejectVotes.length == 0){
+      postString += "None\n";
+    } else {
+      for(var i = 0; i < rejectVotes.length; i++){
+        const curShellder = gs.select("Raw Members",{"Name":rejectVotes[i].player});
+        postString += "<@" + curShellder.discord_id + "> - Reason: " + rejectVotes[i].reason + "\n";
+      }
+    }
+
+    ts.embedAddLongField(voteEmbed,"",postString)
+    return voteEmbed
+}
+
 this.approve=async function(args){
-    var guild=client.guilds.get(this.channels.guild_id)
     //Check if vote already exists
     await gs.loadSheets(["Raw Levels", "Raw Members"]);
     const shellder=await ts.get_user(args.discord_id);
@@ -576,7 +614,11 @@ this.approve=async function(args){
     var overviewMessage;
     var discussionChannel;
 
+    let guild=this.getGuild()
+
     discussionChannel = guild.channels.find(channel => channel.name === level.Code.toLowerCase()); //not sure should specify guild/server
+    var voteEmbed=ts.makeVoteEmbed(level)
+
     if(!discussionChannel){
       //Create new channel and set parent to category
       discussionChannel = await guild.createChannel(args.code, {
@@ -588,38 +630,7 @@ this.approve=async function(args){
       overviewMessage = await overviewMessage.pin();
     }
 
-    //Get all current votes for this level
-    var approveVotes = await PendingVotes.query().where("code",args.code).where("is_shellder",1).where("type","approve");
-    var rejectVotes = await PendingVotes.query().where("code",args.code).where("is_shellder",1).where("type","reject");
-
-    //Update Overview post in discussion channel
-
-    var voteEmbed=ts.levelEmbed(level)
-      .setAuthor("The Judgement  has now begun for this level:")
-      .setThumbnail(ts.getEmoteUrl(ts.emotes.judgement));
-
-    var postString = "__Current Votes for approving the level:__\n";
-    if(approveVotes == undefined || approveVotes.length == 0){
-      postString += "> None\n";
-    } else {
-      for(var i = 0; i < approveVotes.length; i++){
-        const curShellder = gs.select("Raw Members",{"Name":approveVotes[i].player});
-        postString += "<@" + curShellder.discord_id + "> - Difficulty: " + approveVotes[i].difficulty_vote + ", Reason: " + approveVotes[i].reason + "\n";
-      }
-    }
-
-    postString += "\n__Current votes for rejecting the level:__\n";
-
-    if(rejectVotes == undefined || rejectVotes.length == 0){
-      postString += "None\n";
-    } else {
-      for(var i = 0; i < rejectVotes.length; i++){
-        const curShellder = gs.select("Raw Members",{"Name":rejectVotes[i].player});
-        postString += "<@" + curShellder.discord_id + "> - Reason: " + rejectVotes[i].reason + "\n";
-      }
-    }
-
-    ts.embedAddLongField(voteEmbed,"",postString)
+    var voteEmbed=await ts.makeVoteEmbed(level)
 
     if(!overviewMessage){
       overviewMessage = (await discussionChannel.fetchPinnedMessages()).last();
@@ -749,9 +760,17 @@ this.judge=async function(levelCode){
     //if(client.util.resolveChannel())
 
     //Remove Discussion Channel
-    var levelChannel=guild.channels.find(channel => channel.name === level.Code.toLowerCase())
+    await ts.deleteDiscussionChannel(level.Code,"Justice has been met!")
+    
+}
+
+
+this.deleteDiscussionChannel=async function(levelCode,reason){
+  var levelChannel=this.getGuild().channels.find(channel => channel.name === levelCode.toLowerCase())
     if(levelChannel){
-      levelChannel.delete("Justice has been met!")
+      await levelChannel.delete(reason)
+    } else {
+      ts.userError("No channel found found")
     }
 }
 

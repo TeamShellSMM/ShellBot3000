@@ -38,6 +38,8 @@ class tsreupload extends Command {
           "discord_id":message.author.id
         })
 
+
+
         if(!player)
           ts.userError("You are not yet registered");
         var earned_points=await ts.calculatePoints(player.Name);
@@ -90,6 +92,16 @@ class tsreupload extends Command {
           })
         }
         await gs.batchUpdate(batch_updates)
+
+
+        let guild=ts.getGuild();
+        let existingChannel=guild.channels.find(channel => channel.name === oldCode.toLowerCase())
+        if(existingChannel){
+          await existingChannel.setName(newCode.toLowerCase())
+          await existingChannel.send("This level has been reuploaded from "+oldCode+" to "+newCode+". Below are the comments of the old level")
+          let oldEmbed=await ts.makeVoteEmbed(level)
+          await existingChannel.send(oldEmbed)
+        } 
 
         var reply="You have reuploaded \""+level["Level Name"]+"\" by "+level.Creator+" with code ("+newCode+")."+ts.emotes.bam
         if(!new_level){
