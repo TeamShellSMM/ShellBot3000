@@ -769,8 +769,6 @@ this.deleteDiscussionChannel=async function(levelCode,reason){
   var levelChannel=this.getGuild().channels.find(channel => channel.name === levelCode.toLowerCase())
     if(levelChannel){
       await levelChannel.delete(reason)
-    } else {
-      ts.userError("No channel found found")
     }
 }
 
