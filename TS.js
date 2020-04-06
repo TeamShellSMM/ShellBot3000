@@ -391,7 +391,7 @@ this.randomLevel=async function(args){
     }
   }
 
-  if(args.minDifficulty>args.maxDifficulty){
+  if(parseFloat(args.minDifficulty)>parseFloat(args.maxDifficulty)){
     let temp=args.maxDifficulty
     args.maxDifficulty=args.minDifficulty
     args.minDifficulty=temp
