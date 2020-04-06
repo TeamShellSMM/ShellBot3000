@@ -30,7 +30,7 @@ this.load=async function(){
     this.emotes[_emotes[i].Name]=_emotes[i].value
   }
 
-  
+
   console.log("TS Vars loaded")
 }
 
@@ -162,7 +162,7 @@ this.clear=async function(args,strOnly){
     args.like=argToStr(args.like)
     args.difficulty=argToStr(args.difficulty)
     args.completed=argToStr(args.completed)
-    
+
 
     if(args.like==="like"){
       args.like="1"
@@ -218,15 +218,15 @@ this.clear=async function(args,strOnly){
         updated.completed=1
       }
       if(
-        ["1","0"].includes(args.like) && 
+        ["1","0"].includes(args.like) &&
         (""+existing_play.liked)!==args.like
       ){ //like updated
         updated_row.liked=args.like;
         updated.liked=1
       }
-      if( 
-        (args.difficulty || args.difficulty==="0" ) && 
-        ( (""+existing_play.difficulty_vote)!==args.difficulty ) 
+      if(
+        (args.difficulty || args.difficulty==="0" ) &&
+        ( (""+existing_play.difficulty_vote)!==args.difficulty )
       ){ //difficulty update
         updated_row.difficulty_vote=args.difficulty==="0"?null:args.difficulty; //0 difficulty will remove your vote
         updated.difficulty=1
@@ -248,7 +248,7 @@ this.clear=async function(args,strOnly){
     }
 
     var level_placeholder="@@LEVEL_PLACEHOLDER@@"
-    
+
       if(updated.completed){
         if(args.completed==="0"){
           msg.push(" ‣You have removed your clear for "+level_placeholder)
@@ -283,7 +283,7 @@ this.clear=async function(args,strOnly){
         msg.push(args.like==="0"?
           " ‣You have unliked "+level_placeholder+" "+ts.emotes.bam:
           " ‣You have liked "+level_placeholder+" "+ts.emotes.love
-          
+
         )
       } else if(args.like || args.like==="0" ){
         msg.push(args.like==="0"?
@@ -291,7 +291,7 @@ this.clear=async function(args,strOnly){
           " ‣You have already liked "+level_placeholder+" "+ts.emotes.love
         )
       }
-    
+
 
     var level_str="\""+level["Level Name"]+"\"  by "+creator_str
     for(var i=0;i<msg.length;i++){
@@ -299,7 +299,7 @@ this.clear=async function(args,strOnly){
       if(i>1) msg[i]=msg[i].replace("‣You have","‣You also have");
       level_str="this level"
     }
-    
+
     return (strOnly?"":player.user_reply+"\n")+msg.join("\n");
 }
 
@@ -469,9 +469,10 @@ this.randomLevel=async function(args){
       var currDifficulty=parseFloat(level.Difficulty)
       return level.Approved=="1" &&
         currDifficulty>=min &&
-        currDifficulty<=max 
+        currDifficulty<=max
         && played.indexOf(level.Code)==-1
-      
+        && level.Tags.indexOf("Consistency") === -1
+        && level.Tags.indexOf("Practice") === -1
     })
   } else {
     throw "No levels found buzzyS"
@@ -761,7 +762,7 @@ this.judge=async function(levelCode){
 
     //Remove Discussion Channel
     await ts.deleteDiscussionChannel(level.Code,"Justice has been met!")
-    
+
 }
 
 
