@@ -303,25 +303,28 @@ this.clear=async function(args,strOnly){
     return (strOnly?"":player.user_reply+"\n")+msg.join("\n");
 }
 
-this.getExistingLevel=function(code){
+this.getExistingLevel=function(code,includeRemoved=false){
   var level=gs.select("Raw Levels",{"Code":code})
    if(!level){ //level doesn't exist
     let notDeletedLevels={}
+    let allLevels={}
     gs.select("Raw Levels").forEach((level)=>{
       if(level && (level.Approved=="0" || level.Approved=="1")){
         notDeletedLevels[level.Code]=level.Code+" - \""+level["Level Name"]+"\" by "+level.Creator
       }
+      allLevels[level.Code]=level.Code+" - \""+level["Level Name"]+"\" by "+level.Creator
     })
-    const match=stringSimilarity.findBestMatch(code,Object.keys(notDeletedLevels))
+    let listUsed=includeRemoved?allLevels:notDeletedLevels
+    const match=stringSimilarity.findBestMatch(code,Object.keys(listUsed))
     if(match.bestMatch && match.bestMatch.rating>=0.6){
-      var matchStr=" Did you mean:```\n"+notDeletedLevels[match.bestMatch.target]+"```"
+      var matchStr=" Did you mean:```\n"+listUsed[match.bestMatch.target]+"```"
     } else {
       var matchStr=""
     }
 
     ts.userError("The code `"+code+"` was not found in Team Shell's list."+matchStr);
    }
-   if(!(level.Approved==0 || level.Approved==1)){ //level is removed. not pending/accepted
+   if(!includeRemoved && !(level.Approved==0 || level.Approved==1)){ //level is removed. not pending/accepted
     ts.userError("The level \""+level["Level Name"]+"\" has been removed from Team Shell's list ");
   }
   return level

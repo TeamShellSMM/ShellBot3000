@@ -46,13 +46,13 @@ class tsreupload extends Command {
         var rank=ts.get_rank(earned_points.clearPoints);
         var user_reply="<@"+message.author.id+">"+rank.Pips+" ";
 
-        var level=ts.getExistingLevel(oldCode)
+        var level=ts.getExistingLevel(oldCode,true)
         var new_level=gs.select("Raw Levels",{"Code":newCode}) //new level just incase they've already tsadded
 
         var older_level=gs.query("Raw Levels",{ //this is just in case this is not the first reupload. assign
           filter:{"NewCode":oldCode},
           update:{"NewCode":newCode}
-        })
+        },true)
 
         if(!level) ts.userError("Level not found");
 
@@ -60,10 +60,12 @@ class tsreupload extends Command {
 
         if(new_level && level.Creator!=new_level.Creator)
           ts.userError("The new level uploaded doesn't have the same creator as the old level");
-        if(new_level && new_level.Approved!=0 && new_level!=1)
+        if(new_level && new_level.Approved!=0 && new_level.Approved!=1)
           ts.userError("The new level is not approved or pending");
         if(!new_level && creator_points.available<0)
           ts.userError("Creator doesn't have enough to upload a new level");
+        if(level.NewCode && ts.valid_code(level.NewCode))
+          ts.userError("Level has already been reuploaded with Code "+level.NewCode)
 
         //only creator and shellder can reupload a level
         if(!(level.Creator==player.Name || player.shelder=="1"))
@@ -73,14 +75,15 @@ class tsreupload extends Command {
           filter:{"Code":oldCode},
           update:{"Approved":level.Approved=="1"?2:-1,"NewCode":newCode},
         })
-
-
-        //combine all the updates into one array to be passed to gs.batchUpdate
         var batch_updates=level.update_ranges
+        //combine all the updates into one array to be passed to gs.batchUpdate
+        
         if(older_level){
-          batch_updates=batch_updates.concat(older_level.update_ranges)
+          older_level.forEach((o)=>{
+            batch_updates=batch_updates.concat(o.update_ranges)
+          })
+          
         }
-
         if(!new_level){ //if no new level was found create a new level copying over the old data
           await gs.insert("Raw Levels",{
             Code:newCode,
@@ -91,8 +94,10 @@ class tsreupload extends Command {
             Tags:level.Tags
           })
         }
-        await gs.batchUpdate(batch_updates)
-
+        
+        if(batch_updates!=null){
+          await gs.batchUpdate(batch_updates)
+        }
 
         let guild=ts.getGuild();
         let existingChannel=guild.channels.find(channel => channel.name === oldCode.toLowerCase())
