@@ -622,6 +622,9 @@ this.approve=async function(args){
 
     if(!discussionChannel){
       //Create new channel and set parent to category
+      if(guild.channels.get(ts.channels.levelDiscussionCategory).children.size===50){
+        ts.userError("Your vote is saved but there are 50 discussion channels active right now so we can't make a new one for this level")
+      }
       discussionChannel = await guild.createChannel(args.code, {
         type: 'text',
         parent: guild.channels.get(ts.channels.levelDiscussionCategory)
