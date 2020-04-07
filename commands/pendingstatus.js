@@ -36,7 +36,6 @@ class PendingStatus extends Command {
                 return level.Code+' - "'+level["Level Name"]+'":\n -'+statusStr+'\n';
             })
             let levelStr=await Promise.all(levelStrPromises)
-            console.log(levelStr)
             message.channel.send(player.user_reply+"\nYour Pending Levels:```"+levelStr.join("\n")+"\n```");
         } catch (error){
             message.reply(ts.getUserErrorMsg(error));
