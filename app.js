@@ -129,28 +129,35 @@ async function generateSiteJson(isShellder){
       "seperate":_seperate,
       "points":_points,
     };
-    if(isShellder){
-      //console.log(pending)
-      let _comments=db.PendingVotes.query().where("is_shelder",1)
-      //console.log(_comments)
+    
+      let _comments=await db.PendingVotes.query().where("is_shellder",1)
       let comments={}
+      let voteCounts={}
       for(let i=0;i<_comments.length;i++){
         let currCode=_comments[i].code
         if(pending.indexOf(currCode)!="-1"){
           if(!comments[currCode]){
             comments[currCode]=[]
           }
+          if(!voteCounts[currCode]){
+            voteCounts[currCode]={}
+          }
+          if(!voteCounts[currCode][_comments[i].type]){
+            voteCounts[currCode][_comments[i].type]=1
+          } else {
+            voteCounts[currCode][_comments[i].type]++
+          }
           let temp=Object.assign({},_comments[i])
           delete temp.Code
           comments[currCode].push(temp)
         }
       }
+    json["vote_counts"]=voteCounts;
+    if(isShellder){
       json["shellder"]=true;
       json["shellder_comments"]=comments;
     }
     return json;
-
-
 }
 
 app.get('/json', async (req, res) => {
@@ -169,14 +176,11 @@ app.get('/json', async (req, res) => {
 
 app.post('/json',async (req,res)=>{
     try {
-
-    if(req.body.token && req.body.discord_id){
+    if(req.body.token){
       req.body.discord_id=await ts.checkBearerToken(req.body.token)
       var user=await ts.get_user(req.body.discord_id)
-      //console.log(user)
     }
-
-      json = {status:"Authenticated",data:await generateSiteJson(user.shelder)}
+      json = await generateSiteJson(user?user.shelder:false)
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
       res.send(JSON.stringify(json));
     } catch (error){
