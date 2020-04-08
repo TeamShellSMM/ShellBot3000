@@ -578,10 +578,10 @@ this.makePendingReuploadEmbed=async function(level, author, refuse){
 
   if(refuse){
       voteEmbed.setAuthor("This level has NOT been reuploaded!")
-      .setDescription("Please check the fixvotes and decide if this is still acceptable to approve or not (use !tsapprove or !tsreject).")
+      .setDescription("Please check the fixvotes and decide if this is still acceptable to approve or not (use !tsapprove or !tsreject with a message).")
   } else {
     voteEmbed.setAuthor("This level has been reuploaded and is now awaiting approval!")
-    .setDescription("Please check if the mandatory fixes where made and make your decision (use !tsapprove or !tsreject).")
+    .setDescription("Please check if the mandatory fixes where made and make your decision (use !tsapprove or !tsreject with a message).")
   }
   voteEmbed.setThumbnail(ts.getEmoteUrl(ts.emotes.judgement));
 
@@ -736,8 +736,7 @@ this.judge=async function(levelCode){
     var title="Level was " + (level.Approved === "0" ? "rejected" : "removed") + "!";
     var image=this.getEmoteUrl(this.emotes.axemuncher);
 
-  } else if (approvalVoteCount >= ts.get_variable("VotesNeeded")  && approvalVoteCount>rejectVoteCount && fixVoteCount > 0) {
-    console.log("level approved is ", level.Approved);
+  } else if (approvalVoteCount >= ts.get_variable("VotesNeeded")  && approvalVoteCount>rejectVoteCount && fixVoteCount > 0 && level.Approved !== "-10") {
     if(level.Approved !== "0")
       ts.userError("Level is not pending")
 
