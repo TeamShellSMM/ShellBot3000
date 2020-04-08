@@ -879,6 +879,11 @@ this.judge=async function(levelCode, fromFix = false){
 }
 
 this.rejectLevelWithReason=async function(levelCode, shellder, message){
+  var approvalVotes = await PendingVotes.query().where("code",levelCode).where("is_shellder",1).where("type","approve");
+  var fixVotes = await PendingVotes.query().where("code",levelCode).where("is_shellder",1).where("type","fix");
+  var rejectVotes = await PendingVotes.query().where("code",levelCode).where("is_shellder",1).where("type","reject");
+  var allComments = [...approvalVotes, ...fixVotes, ...rejectVotes];
+
   var updateLevel = gs.query("Raw Levels", {
     filter: {"Code":levelCode},
     update: {"Approved": -2}
