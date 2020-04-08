@@ -794,7 +794,7 @@ this.judge=async function(levelCode){
       .setThumbnail(image);
 
     if(fixMode){
-      ts.setDescription("If you want to fix these issues use !tsreupload or if you don't want to just use !tsrefusefix and the shellders will decide if it's still acceptable.");
+      exampleEmbed.setDescription("If you want to fix these issues use !tsreupload or if you don't want to just use !tsrefusefix and the shellders will decide if it's still acceptable.");
     }
 
     if(fixMode){
