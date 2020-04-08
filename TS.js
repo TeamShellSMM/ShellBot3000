@@ -707,6 +707,7 @@ this.judge=async function(levelCode){
     var image=this.getEmoteUrl(this.emotes.axemuncher);
 
   } else if (approvalVoteCount >= ts.get_variable("VotesNeeded")  && approvalVoteCount>rejectVoteCount && fixVoteCount > 0) {
+    console.log("level approved is ", level.Approved);
     if(level.Approved !== "0")
       ts.userError("Level is not pending")
 
