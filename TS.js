@@ -325,6 +325,9 @@ this.getExistingLevel=function(code,includeRemoved=false){
     ts.userError("The code `"+code+"` was not found in Team Shell's list."+matchStr);
    }
    if(!includeRemoved && !(level.Approved==0 || level.Approved==1)){ //level is removed. not pending/accepted
+    if(level.Approved==-10){
+      ts.userError("The level \""+level["Level Name"]+"\" is under 'Request to fix' status");
+    }
     ts.userError("The level \""+level["Level Name"]+"\" has been removed from Team Shell's list ");
   }
   return level
