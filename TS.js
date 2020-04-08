@@ -578,7 +578,7 @@ this.makePendingReuploadEmbed=async function(level, author, refuse){
 
   if(refuse){
       voteEmbed.setAuthor("This level has NOT been reuploaded!")
-      .setDescription("Please check the fixvotes and decide if this is still acceptable to approve or not (use !tsapprove or !tsreject with a message).")
+      .setDescription("Refused by: Please check the fixvotes and decide if this is still acceptable to approve or not (use !tsapprove or !tsreject with a message).")
   } else {
     voteEmbed.setAuthor("This level has been reuploaded and is now awaiting approval!")
     .setDescription("Please check if the mandatory fixes where made and make your decision (use !tsapprove or !tsreject with a message).")

@@ -59,6 +59,7 @@ class TSRefuseFix extends Command {
             parent: guild.channels.get(ts.channels.pendingReuploadCategory)
           });
           //Post empty overview post
+          await discussionChannel.send("Reupload Request for <@" + author.discord_id + ">:");
           let voteEmbed = await ts.makePendingReuploadEmbed(level, author, true);
           overviewMessage = await discussionChannel.send(voteEmbed);
           overviewMessage = await overviewMessage.pin();
