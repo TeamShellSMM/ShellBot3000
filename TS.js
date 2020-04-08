@@ -595,7 +595,7 @@ this.makePendingReuploadEmbed=async function(level, author, refuse){
     }
   }
 
-  this.embedAddLongField(voteEmbed,"",postString)
+  ts.embedAddLongField(voteEmbed,"",postString)
   return voteEmbed
 }
 
