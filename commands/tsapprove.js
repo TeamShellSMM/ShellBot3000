@@ -8,7 +8,7 @@ const PendingVotes = require('../models/PendingVotes');
 class TSApprove extends Command {
     constructor() {
         super('tsapprove', {
-           aliases: ['tsapprove', 'tsreject', 'tsapprove+c', 'tsapprove+cl', 'tsapprove+lc'],
+           aliases: ['tsapprove', 'tsreject', 'tsapprove+c', 'tsapprove+cl', 'tsapprove+lc', 'tsfix', 'tsfix+c', 'tsfix+cl', 'tsfix+lc'],
            split: 'quoted',
             args: [{
                 id: 'code',
@@ -42,8 +42,8 @@ class TSApprove extends Command {
         !tsreject reason
       */
 
-      const clearCommands = ['tsapprove+c', 'tsapprove+cl', 'tsapprove+lc'];
-      const likeCommands =  ['tsapprove+cl', 'tsapprove+lc'];
+      const clearCommands = ['tsapprove+c', 'tsapprove+cl', 'tsapprove+lc', 'tsfix+c', 'tsfix+cl', 'tsfix+lc'];
+      const likeCommands =  ['tsapprove+cl', 'tsapprove+lc', 'tsfix+cl', 'tsfix+lc'];
 
       var command=ts.parse_command(message);
       var inCodeDiscussionChannel = false;
@@ -84,7 +84,14 @@ class TSApprove extends Command {
         }
       }
 
-      args.type=command.command==="tsreject"?"reject":"approve"
+      if(command.command==="tsreject"){
+        args.type = "reject";
+      } else if (command.command.indexOf("tsfix") !== -1){
+        args.type = "fix";
+      } else {
+        args.type = "approve";
+      }
+
       args.discord_id=message.author.id
       var replyMessage=await ts.approve(args)
       message.reply(replyMessage);
@@ -92,7 +99,7 @@ class TSApprove extends Command {
       //clear
       if(clearCommands.indexOf(command.command) !== -1){
           args.completed=1;
-        if(likeCommands.indexOf(command.command) !==-1) 
+        if(likeCommands.indexOf(command.command) !==-1)
           args.like=1;
         var clearMessage=await ts.clear(args)
         this.client.channels.get(ts.channels.clearSubmit).send(clearMessage)

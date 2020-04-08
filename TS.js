@@ -526,7 +526,9 @@ this.get_user= async function(message){
 
 this.makeVoteEmbed=async function(level){
   var approveVotes = await PendingVotes.query().where("code",level.Code).where("is_shellder",1).where("type","approve");
+  var fixVotes = await PendingVotes.query().where("code",level.Code).where("is_shellder",1).where("type","fix");
   var rejectVotes = await PendingVotes.query().where("code",level.Code).where("is_shellder",1).where("type","reject");
+
   var voteEmbed=ts.levelEmbed(level)
       .setAuthor("The Judgement  has now begun for this level:")
       .setThumbnail(ts.getEmoteUrl(ts.emotes.judgement));
@@ -538,6 +540,16 @@ this.makeVoteEmbed=async function(level){
       for(var i = 0; i < approveVotes.length; i++){
         const curShellder = gs.select("Raw Members",{"Name":approveVotes[i].player});
         postString += "<@" + curShellder.discord_id + "> - Difficulty: " + approveVotes[i].difficulty_vote + ", Reason: " + approveVotes[i].reason + "\n";
+      }
+    }
+
+    postString = "__Current Votes for fixing the level:__\n";
+    if(fixVotes == undefined || fixVotes.length == 0){
+      postString += "> None\n";
+    } else {
+      for(var i = 0; i < fixVotes.length; i++){
+        const curShellder = gs.select("Raw Members",{"Name":fixVotes[i].player});
+        postString += "<@" + curShellder.discord_id + "> - Difficulty: " + fixVotes[i].difficulty_vote + ", Requested fixes: " + fixVotes[i].reason + "\n";
       }
     }
 
@@ -596,7 +608,7 @@ this.approve=async function(args){
         is_shellder: 1, //to be changed to member value?
         player: shellder.Name,
         type: args.type,
-        difficulty_vote: args.type==="approve" ? args.difficulty : "",
+        difficulty_vote: args.type=== ("approve" || args.type == "fix") ? args.difficulty : "",
         reason: args.reason
       });
     } else {
