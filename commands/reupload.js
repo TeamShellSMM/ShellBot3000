@@ -77,12 +77,12 @@ class tsreupload extends Command {
         })
         var batch_updates=level.update_ranges
         //combine all the updates into one array to be passed to gs.batchUpdate
-        
+
         if(older_level){
           older_level.forEach((o)=>{
             batch_updates=batch_updates.concat(o.update_ranges)
           })
-          
+
         }
         if(!new_level){ //if no new level was found create a new level copying over the old data
           await gs.insert("Raw Levels",{
@@ -94,19 +94,19 @@ class tsreupload extends Command {
             Tags:level.Tags
           })
         }
-        
+
         if(batch_updates!=null){
           await gs.batchUpdate(batch_updates)
         }
 
         let guild=ts.getGuild();
-        let existingChannel=guild.channels.find(channel => channel.name === oldCode.toLowerCase())
+        let existingChannel=guild.channels.find(channel => channel.name === oldCode.toLowerCase() && channel.parent.name === "level-discussion")
         if(existingChannel){
           await existingChannel.setName(newCode.toLowerCase())
           await existingChannel.send("This level has been reuploaded from "+oldCode+" to "+newCode+". Below are the comments of the old level")
           let oldEmbed=await ts.makeVoteEmbed(level)
           await existingChannel.send(oldEmbed)
-        } 
+        }
 
         var reply="You have reuploaded \""+level["Level Name"]+"\" by "+level.Creator+" with code ("+newCode+")."+ts.emotes.bam
         if(!new_level){

@@ -632,8 +632,7 @@ this.approve=async function(args){
 
     let guild=this.getGuild()
 
-    discussionChannel = guild.channels.find(channel => channel.name === level.Code.toLowerCase()); //not sure should specify guild/server
-    var voteEmbed=ts.makeVoteEmbed(level)
+    discussionChannel = guild.channels.find(channel => channel.name === level.Code.toLowerCase() && channel.parent.name === "level-discussion"); //not sure should specify guild/server
 
     if(!discussionChannel){
       //Create new channel and set parent to category
@@ -828,7 +827,14 @@ this.judge=async function(levelCode){
 
 
 this.deleteDiscussionChannel=async function(levelCode,reason){
-  var levelChannel=this.getGuild().channels.find(channel => channel.name === levelCode.toLowerCase())
+  var levelChannel=this.getGuild().channels.find(channel => channel.name === levelCode.toLowerCase() && channel.parent.name === "level-discussion")
+    if(levelChannel){
+      await levelChannel.delete(reason)
+    }
+}
+
+this.deleteReuploadChannel=async function(levelCode,reason){
+  var levelChannel=this.getGuild().channels.find(channel => channel.name === levelCode.toLowerCase() && channel.parent.name === "pending-reuploads")
     if(levelChannel){
       await levelChannel.delete(reason)
     }
