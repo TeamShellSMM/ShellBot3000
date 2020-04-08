@@ -577,10 +577,10 @@ this.makePendingReuploadEmbed=async function(level, author, refuse){
   var voteEmbed=ts.levelEmbed(level);
 
   if(refuse){
-      voteEmbed.setAuthor("The level '" + level["Level Name"] + " (" + level.Code + ") by <@" + author.discord_id + ">' has NOT been reuploaded!")
+      voteEmbed.setAuthor("This level has NOT been reuploaded!")
       .setDescription("Please check the fixvotes and decide if this is still acceptable to approve or not (use !tsapprove or !tsreject).")
   } else {
-    voteEmbed.setAuthor("The level '" + level["Level Name"] + " (" + level.Code + ") by <@" + author.discord_id + ">' has been reuploaded!")
+    voteEmbed.setAuthor("This level has been reuploaded and is now awaiting approval!")
     .setDescription("Please check if the mandatory fixes where made and make your decision (use !tsapprove or !tsreject).")
   }
   voteEmbed.setThumbnail(ts.getEmoteUrl(ts.emotes.judgement));
