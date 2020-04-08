@@ -585,7 +585,7 @@ this.makePendingReuploadEmbed=async function(level, author, refuse){
   }
   voteEmbed.setThumbnail(ts.getEmoteUrl(ts.emotes.judgement));
 
-  postString = "__Current Votes for fixing the level:__\n";
+  let postString = "__Current Votes for fixing the level:__\n";
   if(fixVotes == undefined || fixVotes.length == 0){
     postString += "> None\n";
   } else {
