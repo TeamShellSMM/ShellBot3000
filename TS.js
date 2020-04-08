@@ -571,7 +571,7 @@ this.makeVoteEmbed=async function(level){
     return voteEmbed
 }
 
-this.makePendingReuploadEmbed=async function(level, refuse){
+this.makePendingReuploadEmbed=async function(level, author, refuse){
   var fixVotes = await PendingVotes.query().where("code",level.Code).where("is_shellder",1).where("type","fix");
 
   var voteEmbed=ts.levelEmbed(level);
