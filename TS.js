@@ -715,7 +715,7 @@ this.judge=async function(levelCode){
     var updateLevel = gs.query("Raw Levels", {
       filter: {"Code":levelCode},
       update: {
-        "Approved": "1"
+        "Approved": "-10"
       }
     });
     if(updateLevel.Code == levelCode){
@@ -795,12 +795,18 @@ this.judge=async function(levelCode){
       .setThumbnail(image);
 
     if(fixMode){
-      exampleEmbed.setDescription("If you want to fix these issues use !tsreupload or if you don't want to just use !tsrefusefix and the shellders will decide if it's still acceptable.");
+      exampleEmbed.setDescription("If you want to fix these issues use !tsreupload (to get it approved really quickly) or if you don't want to just use !tsrefusefix and the shellders will decide if it's still acceptable.");
     }
 
     if(fixMode){
       for(var i = 0; i < fixComments.length; i++){
-        var embedHeader=fixComments[i].player +" voted to "+ (fixComments[i].type=="approve"?"approve with difficulty " + fixComments[i].difficulty_vote:"reject")+":"
+        let action = "";
+        if(fixComments[i].type=="fix"){
+          action = " voted for fix with difficulty " + fixComments[i].difficulty_vote;
+        } else {
+          action = " voted for rejection";
+        }
+        var embedHeader=fixComments[i].player + action +":"
         ts.embedAddLongField(exampleEmbed,embedHeader,fixComments[i].reason)
       }
     } else {
