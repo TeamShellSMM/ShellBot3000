@@ -71,4 +71,4 @@ class TSRefuseFix extends Command {
       }
     }
 }
-module.exports = TSJudge;
+module.exports = TSRefuseFix;
