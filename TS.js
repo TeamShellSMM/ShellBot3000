@@ -774,6 +774,13 @@ this.judge=async function(levelCode, fromFix = false){
           diffSum += diff;
         }
       }
+      for(var i = 0; i < fixVotes.length; i++){
+        var diff = parseFloat(fixVotes[i].difficulty_vote);
+        if(!Number.isNaN(diff)){
+          diffCounter++;
+          diffSum += diff;
+        }
+      }
 
       var finalDiff = Math.round((diffSum/diffCounter)*2)/2;
 
@@ -845,7 +852,15 @@ this.judge=async function(levelCode, fromFix = false){
       }
     } else {
       for(var i = 0; i < allComments.length; i++){
-        var embedHeader=allComments[i].player +" voted to "+ (allComments[i].type=="approve"?"approve with difficulty " + allComments[i].difficulty_vote:"reject")+":"
+        let action = "";
+        if(fixComments[i].type=="fix"){
+          action = " voted for fix with difficulty " + fixComments[i].difficulty_vote;
+        } else if(fixComments[i].type=="approve"){
+          action = " voted to approve with difficulty " + fixComments[i].difficulty_vote;
+        } else {
+          action = " voted for rejection";
+        }
+        var embedHeader=fixComments[i].player + action +":"
         ts.embedAddLongField(exampleEmbed,embedHeader,allComments[i].reason)
       }
     }
