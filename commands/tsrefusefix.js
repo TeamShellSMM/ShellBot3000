@@ -40,7 +40,7 @@ class TSRefuseFix extends Command {
         var overviewMessage;
         var discussionChannel;
 
-        let guild=this.getGuild()
+        let guild=ts.getGuild()
 
         discussionChannel = guild.channels.find(channel => channel.name === level.Code.toLowerCase() && channel.parent.name === "pending-reuploads"); //not sure should specify guild/server
 
