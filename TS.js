@@ -724,7 +724,7 @@ this.judge=async function(levelCode){
 
     var color="#D68100";
     var title="This level is one step from being approved, we'd just like to see some fixes!";
-    var image=this.getEmoteUrl(this.emotes.spig);
+    var image=this.getEmoteUrl(this.emotes.think);
 
     fixMode = true;
   } else if (approvalVoteCount >= ts.get_variable("VotesNeeded")  && approvalVoteCount>rejectVoteCount ){
