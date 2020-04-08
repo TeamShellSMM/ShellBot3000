@@ -61,7 +61,11 @@ class TSFixApprove extends Command {
       if(approving){
         replyMessage = await ts.judge(code, true);
       } else {
-        replyMessage = "a";
+        if(args.message){
+          replyMessage = await ts.rejectLevelWithReason(code, message.author, args.message);
+        } else {
+          ts.userError("You have to provide a message to the creator explaining why this was rejected!");
+        }
       }
 
       message.reply(replyMessage);

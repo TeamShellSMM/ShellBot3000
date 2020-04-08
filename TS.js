@@ -878,6 +878,46 @@ this.judge=async function(levelCode, fromFix = false){
     }
 }
 
+this.rejectLevelWithReason=async function(levelCode, shellder, message){
+  var updateLevel = gs.query("Raw Levels", {
+    filter: {"Code":levelCode},
+    update: {"Approved": -2}
+  });
+  if(updateLevel.Code == levelCode){
+    await gs.batchUpdate(updateLevel.update_ranges);
+  }
+  const author = gs.select("Raw Members",{"Name":updateLevel.Creator});
+
+  var color="#dc3545";
+  var image=this.getEmoteUrl(this.emotes.axemuncher);
+
+  var mention = "**<@" + author.discord_id + ">, we got some news for you: **";
+  var exampleEmbed = ts.levelEmbed(level)
+    .setColor(color)
+    .setAuthor("We're really sorry, but this level was rejected after you refused to reupload.")
+    .setThumbnail(image);
+
+  exampleEmbed.setDescription("Rejected by <@" + shellder.id + ">: " + message);
+
+  for(var i = 0; i < allComments.length; i++){
+    let action = "";
+    if(fixComments[i].type=="fix"){
+      action = " voted for fix with difficulty " + fixComments[i].difficulty_vote;
+    } else if(fixComments[i].type=="approve"){
+      action = " voted to approve with difficulty " + fixComments[i].difficulty_vote;
+    } else {
+      action = " voted for rejection";
+    }
+    var embedHeader=fixComments[i].player + action +":"
+    ts.embedAddLongField(exampleEmbed,embedHeader,allComments[i].reason)
+  }
+
+  await client.channels.get(ts.channels.shellderLevelChanges).send(mention);
+  await client.channels.get(ts.channels.shellderLevelChanges).send(exampleEmbed);
+
+  //Remove Discussion Channel
+  await ts.deleteReuploadChannel(levelCode,"Justice has been met!")
+}
 
 this.deleteDiscussionChannel=async function(levelCode,reason){
   var levelChannel=this.getGuild().channels.find(channel => channel.name === levelCode.toLowerCase() && channel.parent.name === "level-discussion")
