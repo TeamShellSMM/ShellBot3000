@@ -702,7 +702,7 @@ this.judge=async function(levelCode, fromFix = false){
   await gs.loadSheets(["Raw Levels", "Raw Members"]);
   var level;
   if(fromFix){
-    level = gs.select("Raw Levels",{"Code":args.code});
+    level = gs.select("Raw Levels",{"Code":levelCode});
   } else {
     level = ts.getExistingLevel(levelCode);
   }
