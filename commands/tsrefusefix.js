@@ -72,7 +72,7 @@ class TSRefuseFix extends Command {
           ts.userError("You already sent this reupload request back!");
         }
 
-        var replyMessage = "Your level was put in the pending reupload queue, we'll get back to you in a bit!";
+        var replyMessage = "Your level was put in the reupload queue, we'll get back to you in a bit!";
 
         message.reply(replyMessage);
 

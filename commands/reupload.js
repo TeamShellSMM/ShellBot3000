@@ -168,6 +168,9 @@ class tsreupload extends Command {
         if(!new_level){
           reply+=" If you want to rename the new level, you can use !tsrename new-code level name."
         }
+        if(oldApproved == -10 || oldApproved == 1){
+          reply += " Your level has also been put in the reupload queue, we'll get back to you shortly."
+        }
         message.channel.send(user_reply+reply)
       } catch (error) {
         message.reply(ts.getUserErrorMsg(error))
