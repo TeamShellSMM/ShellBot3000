@@ -2,17 +2,22 @@ const { Command } = require('discord-akairo');
 class tsreupload extends Command {
     constructor() {
         super('tsreupload', {
-           aliases: ['tsreupload','reupload'],
-            args: [{
-                    id: 'oldCode',
-                    type: 'string',
-                    default: ''
-                },{
-                    id: 'newCode',
-                    type: 'string',
-                    default: ''
-                }],
-           channelRestriction: 'guild'
+          aliases: ['tsreupload','reupload'],
+          split: 'quoted',
+          args: [{
+              id: 'oldCode',
+              type: 'string',
+              default: ''
+          },{
+              id: 'newCode',
+              type: 'string',
+              default: ''
+          },{
+            id: 'message',
+            type: 'string',
+            default: ''
+          }],
+          channelRestriction: 'guild'
         });
     }
 
@@ -31,6 +36,9 @@ class tsreupload extends Command {
           ts.userError("You did not provide a valid code for the new level")
         if(oldCode==newCode)
           ts.userError("The codes given were the same")
+        if(!args.message){
+          ts.userError("You must provide a little message of why you reuploaded (in quotes) at the end of the command")
+        }
 
         await gs.loadSheets(["Raw Members","Raw Levels"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
 
@@ -49,6 +57,8 @@ class tsreupload extends Command {
         var level=ts.getExistingLevel(oldCode,true)
         var new_level=gs.select("Raw Levels",{"Code":newCode}) //new level just incase they've already tsadded
 
+        var oldApproved = level.Approved;
+
         var older_level=gs.query("Raw Levels",{ //this is just in case this is not the first reupload. assign
           filter:{"NewCode":oldCode},
           update:{"NewCode":newCode}
@@ -60,8 +70,8 @@ class tsreupload extends Command {
 
         if(new_level && level.Creator!=new_level.Creator)
           ts.userError("The new level uploaded doesn't have the same creator as the old level");
-        if(new_level && new_level.Approved!=0 && new_level.Approved!=1)
-          ts.userError("The new level is not approved or pending");
+        if(new_level && new_level.Approved!=0 && new_level.Approved!=1 && new_level.Approved!=-10)
+          ts.userError("The new level is not approved, pending or in a fix request");
         if(!new_level && creator_points.available<0)
           ts.userError("Creator doesn't have enough to upload a new level");
         if(level.NewCode && ts.valid_code(level.NewCode))
@@ -92,11 +102,48 @@ class tsreupload extends Command {
             Difficulty:0,
             Approved:0,
             Tags:level.Tags
-          })
+          });
         }
 
         if(batch_updates!=null){
           await gs.batchUpdate(batch_updates)
+        }
+
+        await ts.deleteReuploadChannel(oldCode,"Justice has been met!")
+
+        if(oldApproved == -10 || oldApproved == 1){
+          //set the new one to fix request status and add channel
+          new_level=gs.query("Raw Levels",{
+            filter:{"Code":newCode},
+            update:{"Approved":-10},
+          })
+          await gs.batchUpdate(new_level.update_ranges);
+          const author = gs.select("Raw Members",{"Name":new_level.Creator});
+
+          var overviewMessage;
+          var discussionChannel;
+
+          let guild=ts.getGuild()
+
+          discussionChannel = guild.channels.find(channel => channel.name === new_level.Code.toLowerCase() && channel.parent.name === "pending-reuploads"); //not sure should specify guild/server
+
+          if(discussionChannel){
+            await ts.deleteReuploadChannel(newCode,"Justice has been met!")
+          }
+
+          //Create new channel and set parent to category
+          if(guild.channels.get(ts.channels.pendingReuploadCategory).children.size===50){
+            ts.userError("Can't handle the request right now because there are already 50 open reupload requests (this should really never happen)!")
+          }
+          discussionChannel = await guild.createChannel(newCode, {
+            type: 'text',
+            parent: guild.channels.get(ts.channels.pendingReuploadCategory)
+          });
+          //Post empty overview post
+          await discussionChannel.send("Reupload Request for <@" + author.discord_id + ">'s level with message: " + args.message);
+          let voteEmbed = await ts.makePendingReuploadEmbed(new_level, author, false);
+          overviewMessage = await discussionChannel.send(voteEmbed);
+          overviewMessage = await overviewMessage.pin();
         }
 
         let guild=ts.getGuild();
