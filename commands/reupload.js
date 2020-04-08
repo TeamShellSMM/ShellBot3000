@@ -1,4 +1,6 @@
 const { Command } = require('discord-akairo');
+const PendingVotes = require('./models/PendingVotes');
+
 class tsreupload extends Command {
     constructor() {
         super('tsreupload', {
