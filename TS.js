@@ -681,8 +681,8 @@ this.judge=async function(levelCode){
   var approvalVotes = await PendingVotes.query().where("code",levelCode).where("is_shellder",1).where("type","approve");
   var fixVotes = await PendingVotes.query().where("code",levelCode).where("is_shellder",1).where("type","fix");
   var rejectVotes = await PendingVotes.query().where("code",levelCode).where("is_shellder",1).where("type","reject");
-  var allComments = [...approvalVotes, ...fixVoteCount, ...rejectVotes];
-  var fixComments = [...fixVoteCount, ...rejectVotes];
+  var allComments = [...approvalVotes, ...fixVotes, ...rejectVotes];
+  var fixComments = [...fixVotes, ...rejectVotes];
 
   //Count Approval and Rejection Votes
   var approvalVoteCount = approvalVotes.length + fixVotes.length;
