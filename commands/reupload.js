@@ -113,6 +113,11 @@ class tsreupload extends Command {
 
         if(oldApproved == -10 || oldApproved == 1){
           //set the new one to fix request status and add channel
+          //Move pending votes to the new level
+          await PendingVotes.query().where("code",oldCode).where("is_shellder",1)
+            .update({
+              code: newCode
+            });
 
           await gs.loadSheets(["Raw Members","Raw Levels"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
           new_level=gs.query("Raw Levels",{
