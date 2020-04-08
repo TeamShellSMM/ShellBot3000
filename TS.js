@@ -608,7 +608,7 @@ this.approve=async function(args){
         is_shellder: 1, //to be changed to member value?
         player: shellder.Name,
         type: args.type,
-        difficulty_vote: args.type=== ("approve" || args.type == "fix") ? args.difficulty : "",
+        difficulty_vote: (args.type=== "approve" || args.type == "fix") ? args.difficulty : "",
         reason: args.reason
       });
     } else {

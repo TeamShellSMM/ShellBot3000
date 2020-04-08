@@ -77,7 +77,7 @@ class TSApprove extends Command {
       }
 
       //Then Check the other args
-      if(command.command == "tsapprove" || clearCommands.indexOf(command.command) !== -1){
+      if(command.command == "tsapprove" || command.command == "tsfix" || clearCommands.indexOf(command.command) !== -1){
         //We only check difficulty in tsapprove mode
         if(!ts.valid_difficulty(args.difficulty)){
           ts.userError("Invalid difficulty format!");
