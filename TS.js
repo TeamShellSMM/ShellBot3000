@@ -762,7 +762,7 @@ this.judge=async function(levelCode, fromFix = false){
 
     fixMode = true;
   } else if (approvalVoteCount >= ts.get_variable("VotesNeeded")  && approvalVoteCount>rejectVoteCount ){
-    if(level.Approved !== "0")
+    if(level.Approved !== "0" && level.Approved !== "-10")
       ts.userError("Level is not pending")
       //Get the average difficulty and round to nearest .5, build the message at the same time
       var diffCounter = 0;
