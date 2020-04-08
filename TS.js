@@ -679,12 +679,17 @@ this.judge=async function(levelCode){
 
   //Get all current votes for this level
   var approvalVotes = await PendingVotes.query().where("code",levelCode).where("is_shellder",1).where("type","approve");
+  var fixVotes = await PendingVotes.query().where("code",levelCode).where("is_shellder",1).where("type","fix");
   var rejectVotes = await PendingVotes.query().where("code",levelCode).where("is_shellder",1).where("type","reject");
-  var allComments = [...approvalVotes, ...rejectVotes];
+  var allComments = [...approvalVotes, ...fixVoteCount, ...rejectVotes];
+  var fixComments = [...fixVoteCount, ...rejectVotes];
 
   //Count Approval and Rejection Votes
-  var approvalVoteCount = approvalVotes.length;
+  var approvalVoteCount = approvalVotes.length + fixVotes.length;
+  var fixVoteCount = fixVotes.length;
   var rejectVoteCount = rejectVotes.length;
+
+  let fixMode = false;
 
   if(rejectVoteCount >= ts.get_variable("VotesNeeded") && rejectVoteCount>approvalVoteCount){
     //Reject level
@@ -701,6 +706,26 @@ this.judge=async function(levelCode){
     var title="Level was " + (level.Approved === "0" ? "rejected" : "removed") + "!";
     var image=this.getEmoteUrl(this.emotes.axemuncher);
 
+  } else if (approvalVoteCount >= ts.get_variable("VotesNeeded")  && approvalVoteCount>rejectVoteCount && fixVoteCount > 0) {
+    if(level.Approved !== "0")
+      ts.userError("Level is not pending")
+
+    //We set the level approval status to -10 aka requested fix
+    var updateLevel = gs.query("Raw Levels", {
+      filter: {"Code":levelCode},
+      update: {
+        "Approved": "1"
+      }
+    });
+    if(updateLevel.Code == levelCode){
+      await gs.batchUpdate(updateLevel.update_ranges);
+    }
+
+    var color="#D68100";
+    var title="This level is one step from being approved, we'd just like to see some fixes!";
+    var image=this.getEmoteUrl(this.emotes.spig);
+
+    fixMode = true;
   } else if (approvalVoteCount >= ts.get_variable("VotesNeeded")  && approvalVoteCount>rejectVoteCount ){
     if(level.Approved !== "0")
       ts.userError("Level is not pending")
@@ -768,9 +793,20 @@ this.judge=async function(levelCode){
       .setAuthor(title)
       .setThumbnail(image);
 
-    for(var i = 0; i < allComments.length; i++){
-      var embedHeader=allComments[i].player +" voted to "+ (allComments[i].type=="approve"?"approve with difficulty " + allComments[i].difficulty_vote:"reject")+":"
-      ts.embedAddLongField(exampleEmbed,embedHeader,allComments[i].reason)
+    if(fixMode){
+      ts.setDescription("If you want to fix these issues use !tsreupload or if you don't want to just use !tsrefusefix and the shellders will decide if it's still acceptable.");
+    }
+
+    if(fixMode){
+      for(var i = 0; i < fixComments.length; i++){
+        var embedHeader=fixComments[i].player +" voted to "+ (fixComments[i].type=="approve"?"approve with difficulty " + fixComments[i].difficulty_vote:"reject")+":"
+        ts.embedAddLongField(exampleEmbed,embedHeader,fixComments[i].reason)
+      }
+    } else {
+      for(var i = 0; i < allComments.length; i++){
+        var embedHeader=allComments[i].player +" voted to "+ (allComments[i].type=="approve"?"approve with difficulty " + allComments[i].difficulty_vote:"reject")+":"
+        ts.embedAddLongField(exampleEmbed,embedHeader,allComments[i].reason)
+      }
     }
 
     await client.channels.get(ts.channels.shellderLevelChanges).send(mention);
