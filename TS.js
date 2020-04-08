@@ -892,7 +892,7 @@ this.rejectLevelWithReason=async function(levelCode, shellder, message){
   var image=this.getEmoteUrl(this.emotes.axemuncher);
 
   var mention = "**<@" + author.discord_id + ">, we got some news for you: **";
-  var exampleEmbed = ts.levelEmbed(level)
+  var exampleEmbed = ts.levelEmbed(updateLevel)
     .setColor(color)
     .setAuthor("We're really sorry, but this level was rejected after you refused to reupload.")
     .setThumbnail(image);
