@@ -39,7 +39,7 @@ class tsreupload extends Command {
         if(oldCode==newCode)
           ts.userError("The codes given were the same")
         if(!args.message){
-          ts.userError("You must provide a little message of why you reuploaded (in quotes) at the end of the command")
+          ts.userError("Please provide a little message on why you reuploaded at the end of the command (in quotes)")
         }
 
         await gs.loadSheets(["Raw Members","Raw Levels"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff

@@ -29,6 +29,10 @@ class TSRefuseFix extends Command {
         if(!ts.valid_code(args.code))
           ts.userError("You did not provide a valid code for the level")
 
+        if(!args.message){
+          ts.userError("Please provide a little message to the shellders for context at the end of the command (in quotes)")
+        }
+
         await gs.loadSheets(["Raw Members","Raw Levels"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
         const player=await ts.get_user(message);
         var level=gs.select("Raw Levels",{"Code":args.code});
@@ -59,7 +63,7 @@ class TSRefuseFix extends Command {
             parent: guild.channels.get(ts.channels.pendingReuploadCategory)
           });
           //Post empty overview post
-          await discussionChannel.send("Reupload Request for <@" + author.discord_id + ">'s level:");
+          await discussionChannel.send("Reupload Request for <@" + author.discord_id + ">'s level with message: " + args.message);
           let voteEmbed = await ts.makePendingReuploadEmbed(level, author, true);
           overviewMessage = await discussionChannel.send(voteEmbed);
           overviewMessage = await overviewMessage.pin();
@@ -68,7 +72,7 @@ class TSRefuseFix extends Command {
           ts.userError("You already sent this reupload request back!");
         }
 
-        var replyMessage = "Your vote was added to <#" + discussionChannel.id + ">!";
+        var replyMessage = "Your level was put in the pending reupload queue, we'll get back to you in a bit!";
 
         message.reply(replyMessage);
 
