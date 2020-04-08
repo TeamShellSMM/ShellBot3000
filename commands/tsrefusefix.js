@@ -55,13 +55,13 @@ class TSRefuseFix extends Command {
             parent: guild.channels.get(ts.channels.pendingReuploadCategory)
           });
           //Post empty overview post
-          overviewMessage = await discussionChannel.send("**The level '" + level["Level Name"] + " (" + level.Code + ") by <@" + author.discord_id + ">' has NOT been reuploaded, please check the fixvotes and decide if this is still acceptable to approve or not (use !tsapprove or !tsreject)");
+          let voteEmbed = ts.makePendingReuploadEmbed(level, true);
+          overviewMessage = await discussionChannel.send(voteEmbed);
           overviewMessage = await overviewMessage.pin();
+
         } else {
           ts.userError("You already sent this reupload request back!");
         }
-
-        await overviewMessage.edit(voteEmbed);
 
         var replyMessage = "Your vote was added to <#" + discussionChannel.id + ">!";
 

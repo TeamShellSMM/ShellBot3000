@@ -571,6 +571,34 @@ this.makeVoteEmbed=async function(level){
     return voteEmbed
 }
 
+this.makePendingReuploadEmbed=async function(level, refuse){
+  var fixVotes = await PendingVotes.query().where("code",level.Code).where("is_shellder",1).where("type","fix");
+
+  var voteEmbed=ts.levelEmbed(level);
+
+  if(refuse){
+      voteEmbed.setAuthor("The level '" + level["Level Name"] + " (" + level.Code + ") by <@" + author.discord_id + ">' has NOT been reuploaded!")
+      .setDescription("Please check the fixvotes and decide if this is still acceptable to approve or not (use !tsapprove or !tsreject).")
+  } else {
+    voteEmbed.setAuthor("The level '" + level["Level Name"] + " (" + level.Code + ") by <@" + author.discord_id + ">' has been reuploaded!")
+    .setDescription("Please check if the mandatory fixes where made and make your decision (use !tsapprove or !tsreject).")
+  }
+  voteEmbed.setThumbnail(ts.getEmoteUrl(ts.emotes.judgement));
+
+  postString = "__Current Votes for fixing the level:__\n";
+  if(fixVotes == undefined || fixVotes.length == 0){
+    postString += "> None\n";
+  } else {
+    for(var i = 0; i < fixVotes.length; i++){
+      const curShellder = gs.select("Raw Members",{"Name":fixVotes[i].player});
+      postString += "<@" + curShellder.discord_id + "> - Difficulty: " + fixVotes[i].difficulty_vote + ", Requested fixes: " + fixVotes[i].reason + "\n";
+    }
+  }
+
+  ts.embedAddLongField(voteEmbed,"",postString)
+  return voteEmbed
+}
+
 this.approve=async function(args){
     //Check if vote already exists
     await gs.loadSheets(["Raw Levels", "Raw Members"]);
