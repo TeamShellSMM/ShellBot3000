@@ -697,7 +697,7 @@ this.approve=async function(args){
 }
 
 
-this.judge=async function(levelCode){
+this.judge=async function(levelCode, fromFix = false){
   var guild=client.guilds.get(this.channels.guild_id)
   await gs.loadSheets(["Raw Levels", "Raw Members"]);
   var level = ts.getExistingLevel(levelCode);
@@ -851,8 +851,11 @@ this.judge=async function(levelCode){
     //if(client.util.resolveChannel())
 
     //Remove Discussion Channel
-    await ts.deleteDiscussionChannel(level.Code,"Justice has been met!")
-
+    if(!fromFix){
+      await ts.deleteDiscussionChannel(level.Code,"Justice has been met!")
+    } else {
+      await ts.deleteReuploadChannel(level.Code,"Justice has been met!")
+    }
 }
 
 

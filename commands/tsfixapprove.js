@@ -59,7 +59,7 @@ class TSFixApprove extends Command {
 
       let replyMessage = "";
       if(approving){
-        replyMessage = await ts.judge(code);
+        replyMessage = await ts.judge(code, true);
       } else {
         replyMessage = "a";
       }
@@ -70,4 +70,4 @@ class TSFixApprove extends Command {
       }
     }
 }
-module.exports = TSApprove;
+module.exports = TSFixApprove;
