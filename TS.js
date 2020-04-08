@@ -853,14 +853,14 @@ this.judge=async function(levelCode, fromFix = false){
     } else {
       for(var i = 0; i < allComments.length; i++){
         let action = "";
-        if(fixComments[i].type=="fix"){
-          action = " voted for fix with difficulty " + fixComments[i].difficulty_vote;
-        } else if(fixComments[i].type=="approve"){
-          action = " voted to approve with difficulty " + fixComments[i].difficulty_vote;
+        if(allComments[i].type=="fix"){
+          action = " voted for fix with difficulty " + allComments[i].difficulty_vote;
+        } else if(allComments[i].type=="approve"){
+          action = " voted to approve with difficulty " + allComments[i].difficulty_vote;
         } else {
           action = " voted for rejection";
         }
-        var embedHeader=fixComments[i].player + action +":"
+        var embedHeader=allComments[i].player + action +":"
         ts.embedAddLongField(exampleEmbed,embedHeader,allComments[i].reason)
       }
     }
@@ -906,14 +906,14 @@ this.rejectLevelWithReason=async function(levelCode, shellder, message){
 
   for(var i = 0; i < allComments.length; i++){
     let action = "";
-    if(fixComments[i].type=="fix"){
-      action = " voted for fix with difficulty " + fixComments[i].difficulty_vote;
-    } else if(fixComments[i].type=="approve"){
-      action = " voted to approve with difficulty " + fixComments[i].difficulty_vote;
+    if(allComments[i].type=="fix"){
+      action = " voted for fix with difficulty " + allComments[i].difficulty_vote;
+    } else if(allComments[i].type=="approve"){
+      action = " voted to approve with difficulty " + allComments[i].difficulty_vote;
     } else {
       action = " voted for rejection";
     }
-    var embedHeader=fixComments[i].player + action +":"
+    var embedHeader=allComments[i].player + action +":"
     ts.embedAddLongField(exampleEmbed,embedHeader,allComments[i].reason)
   }
 
