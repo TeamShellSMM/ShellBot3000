@@ -22,6 +22,10 @@ class TSRefuseFix extends Command {
 
     async exec(message,args) {
       try{
+        if(args.code){
+          args.code == args.code.toUpperCase();
+        }
+
         if(!ts.valid_code(args.code))
           ts.userError("You did not provide a valid code for the level")
 

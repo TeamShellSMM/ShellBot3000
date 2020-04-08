@@ -700,7 +700,12 @@ this.approve=async function(args){
 this.judge=async function(levelCode, fromFix = false){
   var guild=client.guilds.get(this.channels.guild_id)
   await gs.loadSheets(["Raw Levels", "Raw Members"]);
-  var level = ts.getExistingLevel(levelCode);
+  var level;
+  if(fromFix){
+    level = gs.select("Raw Levels",{"Code":args.code});
+  } else {
+    level = ts.getExistingLevel(levelCode);
+  }
   const author = gs.select("Raw Members",{"Name":level.Creator});
 
   if(!author){
