@@ -123,6 +123,31 @@ this.levelRemoved=function(level){
   return !level || level && level.Approved!="0" && level.Approved!="1"
 }
 
+this.isReupload=async function(code){
+  let reuploads=gs.select("Raw Levels",{
+    "NewCode":code
+  },true)
+  if(reuploads.length===0) return false
+
+  let isFixStatus=false;
+  let hasBeenApproved=false;
+  reuploads=reuploads.map( o =>{
+    if(o.Approved==="-10"){
+      isFixStatus=true;
+    }
+    if(o.Approved==="1"){
+      hasBeenApproved=true
+    }
+    return o.Code;
+  })
+  return {
+    "reupload":true,
+    "isFixStatus":isFixStatus,
+    "hasBeenApproved":hasBeenApproved,
+    "codes":reuploads
+  }
+}
+
 this.creator_str=function(level){
   var creator=gs.select("Raw Members",{"Name":level.Creator});
    if(creator && creator.atme=="1" && creator.discord_id){
@@ -325,6 +350,9 @@ this.getExistingLevel=function(code,includeRemoved=false){
     ts.userError("The code `"+code+"` was not found in Team Shell's list."+matchStr);
    }
    if(!includeRemoved && !(level.Approved==0 || level.Approved==1)){ //level is removed. not pending/accepted
+    if(level.Approved==-10){
+      ts.userError("The level \""+level["Level Name"]+"\" is under 'Request to fix' status");
+    }
     ts.userError("The level \""+level["Level Name"]+"\" has been removed from Team Shell's list ");
   }
   return level
@@ -526,7 +554,9 @@ this.get_user= async function(message){
 
 this.makeVoteEmbed=async function(level){
   var approveVotes = await PendingVotes.query().where("code",level.Code).where("is_shellder",1).where("type","approve");
+  var fixVotes = await PendingVotes.query().where("code",level.Code).where("is_shellder",1).where("type","fix");
   var rejectVotes = await PendingVotes.query().where("code",level.Code).where("is_shellder",1).where("type","reject");
+
   var voteEmbed=ts.levelEmbed(level)
       .setAuthor("The Judgement  has now begun for this level:")
       .setThumbnail(ts.getEmoteUrl(ts.emotes.judgement));
@@ -538,6 +568,16 @@ this.makeVoteEmbed=async function(level){
       for(var i = 0; i < approveVotes.length; i++){
         const curShellder = gs.select("Raw Members",{"Name":approveVotes[i].player});
         postString += "<@" + curShellder.discord_id + "> - Difficulty: " + approveVotes[i].difficulty_vote + ", Reason: " + approveVotes[i].reason + "\n";
+      }
+    }
+
+    postString = "__Current Votes for fixing the level:__\n";
+    if(fixVotes == undefined || fixVotes.length == 0){
+      postString += "> None\n";
+    } else {
+      for(var i = 0; i < fixVotes.length; i++){
+        const curShellder = gs.select("Raw Members",{"Name":fixVotes[i].player});
+        postString += "<@" + curShellder.discord_id + "> - Difficulty: " + fixVotes[i].difficulty_vote + ", Requested fixes: " + fixVotes[i].reason + "\n";
       }
     }
 
@@ -554,6 +594,42 @@ this.makeVoteEmbed=async function(level){
 
     ts.embedAddLongField(voteEmbed,"",postString)
     return voteEmbed
+}
+
+this.makePendingReuploadEmbed=async function(level, author, refuse, alreadyApprovedMessage){
+  var fixVotes = await PendingVotes.query().where("code",level.Code).where("is_shellder",1).where("type","fix");
+
+  var voteEmbed=ts.levelEmbed(level);
+
+  if(alreadyApprovedMessage){
+    //If we got a level we already approved before we just build a mini embed with the message
+    voteEmbed.setAuthor("This level has been reuploaded and is now awaiting approval!")
+    .setDescription("This level was already approved before so if everything's alright you can approve it (use **!tsfixapprove**)")
+    .addField("<@" + author.discord_id + ">:", alreadyApprovedMessage);
+    return voteEmbed;
+  }
+
+  if(refuse){
+      voteEmbed.setAuthor("This level has NOT been reuploaded!")
+      .setDescription("Refused by: Please check the fixvotes and decide if this is still acceptable to approve or not (use **!tsfixapprove** or **!tsfixreject** with a message).")
+  } else {
+    voteEmbed.setAuthor("This level has been reuploaded and is now awaiting approval!")
+    .setDescription("Please check if the mandatory fixes where made and make your decision (use **!tsfixapprove** or **!tsfixreject** with a message).")
+  }
+  voteEmbed.setThumbnail(ts.getEmoteUrl(ts.emotes.judgement));
+
+  let postString = "__Current Votes for fixing the level:__\n";
+  if(fixVotes == undefined || fixVotes.length == 0){
+    postString += "> None\n";
+  } else {
+    for(var i = 0; i < fixVotes.length; i++){
+      const curShellder = gs.select("Raw Members",{"Name":fixVotes[i].player});
+      postString += "<@" + curShellder.discord_id + "> - Difficulty: " + fixVotes[i].difficulty_vote + ", Requested fixes: " + fixVotes[i].reason + "\n";
+    }
+  }
+
+  ts.embedAddLongField(voteEmbed,"",postString)
+  return voteEmbed
 }
 
 this.approve=async function(args){
@@ -596,7 +672,7 @@ this.approve=async function(args){
         is_shellder: 1, //to be changed to member value?
         player: shellder.Name,
         type: args.type,
-        difficulty_vote: args.type==="approve" ? args.difficulty : "",
+        difficulty_vote: (args.type=== "approve" || args.type == "fix") ? args.difficulty : "",
         reason: args.reason
       });
     } else {
@@ -620,8 +696,7 @@ this.approve=async function(args){
 
     let guild=this.getGuild()
 
-    discussionChannel = guild.channels.find(channel => channel.name === level.Code.toLowerCase()); //not sure should specify guild/server
-    var voteEmbed=ts.makeVoteEmbed(level)
+    discussionChannel = guild.channels.find(channel => channel.name === level.Code.toLowerCase() && channel.parent.name === "level-discussion"); //not sure should specify guild/server
 
     if(!discussionChannel){
       //Create new channel and set parent to category
@@ -655,10 +730,15 @@ this.approve=async function(args){
 }
 
 
-this.judge=async function(levelCode){
+this.judge=async function(levelCode, fromFix = false){
   var guild=client.guilds.get(this.channels.guild_id)
   await gs.loadSheets(["Raw Levels", "Raw Members"]);
-  var level = ts.getExistingLevel(levelCode);
+  var level;
+  if(fromFix){
+    level = gs.select("Raw Levels",{"Code":levelCode});
+  } else {
+    level = ts.getExistingLevel(levelCode);
+  }
   const author = gs.select("Raw Members",{"Name":level.Creator});
 
   if(!author){
@@ -667,12 +747,17 @@ this.judge=async function(levelCode){
 
   //Get all current votes for this level
   var approvalVotes = await PendingVotes.query().where("code",levelCode).where("is_shellder",1).where("type","approve");
+  var fixVotes = await PendingVotes.query().where("code",levelCode).where("is_shellder",1).where("type","fix");
   var rejectVotes = await PendingVotes.query().where("code",levelCode).where("is_shellder",1).where("type","reject");
-  var allComments = [...approvalVotes, ...rejectVotes];
+  var allComments = [...approvalVotes, ...fixVotes, ...rejectVotes];
+  var fixComments = [...fixVotes, ...rejectVotes];
 
   //Count Approval and Rejection Votes
-  var approvalVoteCount = approvalVotes.length;
+  var approvalVoteCount = approvalVotes.length + fixVotes.length;
+  var fixVoteCount = fixVotes.length;
   var rejectVoteCount = rejectVotes.length;
+
+  let fixMode = false;
 
   if(rejectVoteCount >= ts.get_variable("VotesNeeded") && rejectVoteCount>approvalVoteCount){
     //Reject level
@@ -689,14 +774,41 @@ this.judge=async function(levelCode){
     var title="Level was " + (level.Approved === "0" ? "rejected" : "removed") + "!";
     var image=this.getEmoteUrl(this.emotes.axemuncher);
 
-  } else if (approvalVoteCount >= ts.get_variable("VotesNeeded")  && approvalVoteCount>rejectVoteCount ){
+  } else if (approvalVoteCount >= ts.get_variable("VotesNeeded")  && approvalVoteCount>rejectVoteCount && fixVoteCount > 0 && level.Approved !== "-10") {
     if(level.Approved !== "0")
+      ts.userError("Level is not pending")
+
+    //We set the level approval status to -10 aka requested fix
+    var updateLevel = gs.query("Raw Levels", {
+      filter: {"Code":levelCode},
+      update: {
+        "Approved": "-10"
+      }
+    });
+    if(updateLevel.Code == levelCode){
+      await gs.batchUpdate(updateLevel.update_ranges);
+    }
+
+    var color="#D68100";
+    var title="This level is one step from being approved, we'd just like to see some fixes!";
+    var image=this.getEmoteUrl(this.emotes.think);
+
+    fixMode = true;
+  } else if (approvalVoteCount >= ts.get_variable("VotesNeeded")  && approvalVoteCount>rejectVoteCount ){
+    if(level.Approved !== "0" && level.Approved !== "-10")
       ts.userError("Level is not pending")
       //Get the average difficulty and round to nearest .5, build the message at the same time
       var diffCounter = 0;
       var diffSum = 0;
       for(var i = 0; i < approvalVotes.length; i++){
         var diff = parseFloat(approvalVotes[i].difficulty_vote);
+        if(!Number.isNaN(diff)){
+          diffCounter++;
+          diffSum += diff;
+        }
+      }
+      for(var i = 0; i < fixVotes.length; i++){
+        var diff = parseFloat(fixVotes[i].difficulty_vote);
         if(!Number.isNaN(diff)){
           diffCounter++;
           diffSum += diff;
@@ -756,9 +868,34 @@ this.judge=async function(levelCode){
       .setAuthor(title)
       .setThumbnail(image);
 
-    for(var i = 0; i < allComments.length; i++){
-      var embedHeader=allComments[i].player +" voted to "+ (allComments[i].type=="approve"?"approve with difficulty " + allComments[i].difficulty_vote:"reject")+":"
-      ts.embedAddLongField(exampleEmbed,embedHeader,allComments[i].reason)
+    if(fixMode){
+      exampleEmbed.setDescription("If you want to fix these issues use **!tsreupload** (to get it approved really quickly) or if you don't want to just use **!tsrefusefix** and the shellders will decide if it's still acceptable.");
+    }
+
+    if(fixMode){
+      for(var i = 0; i < fixComments.length; i++){
+        let action = "";
+        if(fixComments[i].type=="fix"){
+          action = " voted for fix with difficulty " + fixComments[i].difficulty_vote;
+        } else {
+          action = " voted for rejection";
+        }
+        var embedHeader=fixComments[i].player + action +":"
+        ts.embedAddLongField(exampleEmbed,embedHeader,fixComments[i].reason)
+      }
+    } else {
+      for(var i = 0; i < allComments.length; i++){
+        let action = "";
+        if(allComments[i].type=="fix"){
+          action = " voted for fix with difficulty " + allComments[i].difficulty_vote;
+        } else if(allComments[i].type=="approve"){
+          action = " voted to approve with difficulty " + allComments[i].difficulty_vote;
+        } else {
+          action = " voted for rejection";
+        }
+        var embedHeader=allComments[i].player + action +":"
+        ts.embedAddLongField(exampleEmbed,embedHeader,allComments[i].reason)
+      }
     }
 
     await client.channels.get(ts.channels.shellderLevelChanges).send(mention);
@@ -767,13 +904,68 @@ this.judge=async function(levelCode){
     //if(client.util.resolveChannel())
 
     //Remove Discussion Channel
-    await ts.deleteDiscussionChannel(level.Code,"Justice has been met!")
-
+    if(!fromFix){
+      await ts.deleteDiscussionChannel(level.Code,"Justice has been met!")
+    } else {
+      await ts.deleteReuploadChannel(level.Code,"Justice has been met!")
+    }
 }
 
+this.rejectLevelWithReason=async function(levelCode, shellder, message){
+  var approvalVotes = await PendingVotes.query().where("code",levelCode).where("is_shellder",1).where("type","approve");
+  var fixVotes = await PendingVotes.query().where("code",levelCode).where("is_shellder",1).where("type","fix");
+  var rejectVotes = await PendingVotes.query().where("code",levelCode).where("is_shellder",1).where("type","reject");
+  var allComments = [...approvalVotes, ...fixVotes, ...rejectVotes];
+
+  var updateLevel = gs.query("Raw Levels", {
+    filter: {"Code":levelCode},
+    update: {"Approved": -2}
+  });
+  if(updateLevel.Code == levelCode){
+    await gs.batchUpdate(updateLevel.update_ranges);
+  }
+  const author = gs.select("Raw Members",{"Name":updateLevel.Creator});
+
+  var color="#dc3545";
+  var image=this.getEmoteUrl(this.emotes.axemuncher);
+
+  var mention = "**<@" + author.discord_id + ">, we got some news for you: **";
+  var exampleEmbed = ts.levelEmbed(updateLevel)
+    .setColor(color)
+    .setAuthor("We're really sorry, but this level was rejected after you refused to reupload.")
+    .setThumbnail(image);
+
+  exampleEmbed.setDescription("Rejected by <@" + shellder.id + ">: " + message);
+
+  for(var i = 0; i < allComments.length; i++){
+    let action = "";
+    if(allComments[i].type=="fix"){
+      action = " voted for fix with difficulty " + allComments[i].difficulty_vote;
+    } else if(allComments[i].type=="approve"){
+      action = " voted to approve with difficulty " + allComments[i].difficulty_vote;
+    } else {
+      action = " voted for rejection";
+    }
+    var embedHeader=allComments[i].player + action +":"
+    ts.embedAddLongField(exampleEmbed,embedHeader,allComments[i].reason)
+  }
+
+  await client.channels.get(ts.channels.shellderLevelChanges).send(mention);
+  await client.channels.get(ts.channels.shellderLevelChanges).send(exampleEmbed);
+
+  //Remove Discussion Channel
+  await ts.deleteReuploadChannel(levelCode,"Justice has been met!")
+}
 
 this.deleteDiscussionChannel=async function(levelCode,reason){
-  var levelChannel=this.getGuild().channels.find(channel => channel.name === levelCode.toLowerCase())
+  var levelChannel=this.getGuild().channels.find(channel => channel.name === levelCode.toLowerCase() && channel.parent.name === "level-discussion")
+    if(levelChannel){
+      await levelChannel.delete(reason)
+    }
+}
+
+this.deleteReuploadChannel=async function(levelCode,reason){
+  var levelChannel=this.getGuild().channels.find(channel => channel.name === levelCode.toLowerCase() && channel.parent.name === "pending-reuploads")
     if(levelChannel){
       await levelChannel.delete(reason)
     }

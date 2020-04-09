@@ -33,7 +33,7 @@ class RenameMember extends Command {
             let member_update=gs.query("Raw Members", {
               filter: {"discord_id":args.discord_id},
               update: {"Name":args.new_name}
-            });       
+            });
             if(!member_update)
                 ts.userError("No member found with that discord_id");
 
@@ -69,7 +69,7 @@ class RenameMember extends Command {
                 let oldPlays=await Plays.query().patch({"player":args.new_name}).where("player",oldName)
                 let pendingVotes=await PendingVotes.query().patch({"player":args.new_name}).where("player",oldName)
                 await ts.load()
-            } 
+            }
 
             return message.reply('"'+oldName+'" has been renamed to "'+args.new_name+'"');
         } catch(error){
