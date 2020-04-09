@@ -149,10 +149,16 @@ class tsreupload extends Command {
             parent: guild.channels.get(ts.channels.pendingReuploadCategory)
           });
           //Post empty overview post
-          await discussionChannel.send("Reupload Request for <@" + author.discord_id + ">'s level with message: " + args.message);
-          let voteEmbed = await ts.makePendingReuploadEmbed(new_level, author, false);
-          overviewMessage = await discussionChannel.send(voteEmbed);
-          overviewMessage = await overviewMessage.pin();
+          if(oldApproved == -10){
+            await discussionChannel.send("Reupload Request for <@" + author.discord_id + ">'s level with message: " + args.message);
+            let voteEmbed = await ts.makePendingReuploadEmbed(new_level, author, false);
+            overviewMessage = await discussionChannel.send(voteEmbed);
+            overviewMessage = await overviewMessage.pin();
+          } else {
+            let voteEmbed = await ts.makePendingReuploadEmbed(new_level, author, false, args.message);
+            overviewMessage = await discussionChannel.send(voteEmbed);
+            overviewMessage = await overviewMessage.pin();
+          }
         }
 
         let guild=ts.getGuild();

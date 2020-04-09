@@ -128,7 +128,6 @@ this.isReupload=async function(code){
     "NewCode":code
   },true)
   if(reuploads.length===0) return false
-  console.log(reuploads)
 
   let isFixStatus=false;
   let hasBeenApproved=false;
@@ -597,10 +596,18 @@ this.makeVoteEmbed=async function(level){
     return voteEmbed
 }
 
-this.makePendingReuploadEmbed=async function(level, author, refuse){
+this.makePendingReuploadEmbed=async function(level, author, refuse, alreadyApprovedMessage){
   var fixVotes = await PendingVotes.query().where("code",level.Code).where("is_shellder",1).where("type","fix");
 
   var voteEmbed=ts.levelEmbed(level);
+
+  if(alreadyApprovedMessage){
+    //If we got a level we already approved before we just build a mini embed with the message
+    voteEmbed.setAuthor("This level has been reuploaded and is now awaiting approval!")
+    .setDescription("This level was already approved before so if everything's alright you can approve it (use **!tsfixapprove**)")
+    .addField("<@" + author.discord_id + ">:", alreadyApprovedMessage);
+    return voteEmbed;
+  }
 
   if(refuse){
       voteEmbed.setAuthor("This level has NOT been reuploaded!")
