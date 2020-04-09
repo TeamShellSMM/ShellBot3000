@@ -571,7 +571,7 @@ this.makeVoteEmbed=async function(level){
       }
     }
 
-    postString += "__Current Votes for fixing the level:__\n";
+    postString += "\n__Current Votes for fixing the level:__\n";
     if(fixVotes == undefined || fixVotes.length == 0){
       postString += "> None\n";
     } else {
