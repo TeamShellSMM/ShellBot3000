@@ -123,6 +123,32 @@ this.levelRemoved=function(level){
   return !level || level && level.Approved!="0" && level.Approved!="1"
 }
 
+this.isReupload=async function(code){
+  let reuploads=gs.select("Raw Levels",{
+    "NewCode":code
+  },true)
+  if(reuploads.length===0) return false
+  console.log(reuploads)
+
+  let isFixStatus=false;
+  let hasBeenApproved=false;
+  reuploads=reuploads.map( o =>{
+    if(o.Approved==="-10"){
+      isFixStatus=true;
+    }
+    if(o.Approved==="1"){
+      hasBeenApproved=true
+    }
+    return o.Code;
+  })
+  return {
+    "reupload":true,
+    "isFixStatus":isFixStatus,
+    "hasBeenApproved":hasBeenApproved,
+    "codes":reuploads
+  }
+}
+
 this.creator_str=function(level){
   var creator=gs.select("Raw Members",{"Name":level.Creator});
    if(creator && creator.atme=="1" && creator.discord_id){
