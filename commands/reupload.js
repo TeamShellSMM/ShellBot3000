@@ -155,6 +155,7 @@ class tsreupload extends Command {
             overviewMessage = await discussionChannel.send(voteEmbed);
             overviewMessage = await overviewMessage.pin();
           } else {
+            await discussionChannel.send("Reupload Request for <@" + author.discord_id + ">'s level: ");
             let voteEmbed = await ts.makePendingReuploadEmbed(new_level, author, false, args.message);
             overviewMessage = await discussionChannel.send(voteEmbed);
             overviewMessage = await overviewMessage.pin();

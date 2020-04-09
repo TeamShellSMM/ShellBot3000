@@ -571,7 +571,7 @@ this.makeVoteEmbed=async function(level){
       }
     }
 
-    postString = "__Current Votes for fixing the level:__\n";
+    postString += "__Current Votes for fixing the level:__\n";
     if(fixVotes == undefined || fixVotes.length == 0){
       postString += "> None\n";
     } else {
@@ -605,7 +605,7 @@ this.makePendingReuploadEmbed=async function(level, author, refuse, alreadyAppro
     //If we got a level we already approved before we just build a mini embed with the message
     voteEmbed.setAuthor("This level has been reuploaded and is now awaiting approval!")
     .setDescription("This level was already approved before so if everything's alright you can approve it (use **!tsfixapprove**)")
-    .addField("<@" + author.discord_id + ">:", alreadyApprovedMessage);
+    .addField(author.Name + ":", alreadyApprovedMessage);
     return voteEmbed;
   }
 
