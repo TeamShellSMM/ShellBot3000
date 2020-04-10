@@ -428,15 +428,28 @@ this.randomLevel=async function(args){
     args.minDifficulty=temp
   }
 
-  await gs.loadSheets(["Raw Members","Raw Levels"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
+  await gs.loadSheets(["Raw Members","Raw Levels"]);
   const player=args.discord_id!=null? await ts.get_user(args.discord_id) : null
+  let players=null;
+  if(args.players){
+    let rawPlayers=gs.select("Raw Members",true).map( p => {
+      return p.Name
+    });
+    players=args.players.split(",")
+    players.forEach( p => {
+      if(rawPlayers.indexOf(p) === -1)
+        ts.userError(p+" is not found in the memory banks")
+    })
+  } else {
+    players=[player.Name]
+  }
 
   //console.time("get levels")
   var allLevels=await ts.get_levels()
   let levels={}
   if(player){
     allLevels=allLevels.filter((l)=>{
-      return l.Creator!==player.Name
+      return players.indexOf(l.Creator)===-1
     })
   }
   allLevels.forEach(o=>{
@@ -450,7 +463,7 @@ this.randomLevel=async function(args){
   //console.time("get plays")
   if(player){
     var plays = await Plays.query()
-      .where('player', '=', player.Name)
+      .whereIn('player', players)
       .where('completed', 1);
     //console.timeEnd("get plays")
 
@@ -462,7 +475,7 @@ this.randomLevel=async function(args){
         played.push(level.Code)
         difficulties.push(level.Difficulty)
       }
-      if(level && level.Creator==player.Name){
+      if(level && players.indexOf(level.Creator)!==-1){
         played.push(level.Code)
       }
     })
