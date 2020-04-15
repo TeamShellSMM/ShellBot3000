@@ -1,6 +1,8 @@
-{
+{ //You need to remove the comments when you make the config.json
+
+  "botName":"PLACEHOLDER", 
+
   //copy your google service account here. add it to the sheet to edit
-  "botName":"PLACEHOLDER",
   "type":"PLACEHOLDER",
   "project_id":"PLACEHOLDER",
   "private_key_id":"PLACEHOLDER",
@@ -11,17 +13,29 @@
   "token_uri":"PLACEHOLDER",
   "auth_provider_x509_cert_url":"PLACEHOLDER",
   "client_x509_cert_url":"PLACEHOLDER",
-  "prefix":"PLACEHOLDER",
+
+  //Discord bot settings
+  "prefix":"!",
   "ownerID":["DISCORD_ID","DISCORD_ID"],
   "defaultCooldown": 1000,
-  "commandDirectory":"PLACEHOLDER",
+  //Point the command directory to where
+  "commandDirectory":"commands/",
+
   //discord access token
   "token":"PLACEHOLDER",
+  
   //spreadsheet id
   "spreadsheetId":"PLACEHOLDER",
+  
   //Web port
   "webPort":3000,
-  "json_dev":true,
+
+  //If you run the vue.js site change this to point to your domain
+  "login_url":"http://YOURDOMAIN/login/",
+  //Set to true if you want to develop and test the json endpointws
+  "json_dev":false,
+  
+  //You can leave the configuration below alone
   "development":{
     "client": "sqlite3",
     "connection": {
