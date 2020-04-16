@@ -240,7 +240,6 @@ app.post('/approve',async (req,res)=>{
 
 app.post('/random',async (req,res)=>{
     try {
-      console.log(req.body);
 
       if(req.body.token){
         req.body.discord_id=await ts.checkBearerToken(req.body.token)

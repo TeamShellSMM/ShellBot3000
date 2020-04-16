@@ -989,7 +989,7 @@ this.putFeedback = async function(ip, discordId, salt, message){
   hash.update(ip + " - " + discordId);
   let value = hash.digest('hex');
 
-  await client.channels.get(ts.channels.feedbackChannel).send("[" + value + "]: " + message);
+  await client.channels.get(ts.channels.feedbackChannel).send("[" + value.slice(0, 8) + "]: " + message);
 }
 
 
