@@ -29,7 +29,7 @@ global.ts=new TS(gs,client);
 (async () => { //main thread
   try {
     await ts.load()
-    await client.login(config.token);
+    await client.login(config.discord_access_token);
     await app.listen(config.webPort, () => console.log(config.botName+':Web server now listening on '+config.webPort));
    console.log(config.botName+":logged in")
 
