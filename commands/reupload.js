@@ -5,20 +5,6 @@ class tsreupload extends Command {
     constructor() {
         super('tsreupload', {
           aliases: ['tsreupload','reupload'],
-          split: 'quoted',
-          args: [{
-              id: 'oldCode',
-              type: 'string',
-              default: ''
-          },{
-              id: 'newCode',
-              type: 'string',
-              default: ''
-          },{
-            id: 'message',
-            type: 'string',
-            default: ''
-          }],
           channelRestriction: 'guild'
         });
     }
@@ -29,16 +15,27 @@ class tsreupload extends Command {
         //)) return false;
       try {
 
-        var oldCode=args.oldCode.toUpperCase();
-        var newCode=args.newCode.toUpperCase();
+        let command=ts.parse_command(message);
+        let oldCode=command.arguments.shift()
+        if(oldCode)
+          oldCode=oldCode.toUpperCase()
 
         if(!ts.valid_code(oldCode))
           ts.userError("You did not provide a valid code for the old level")
+
+
+        let newCode=command.arguments.shift()
+        if(newCode)
+          newCode=newCode.toUpperCase()
+
         if(!ts.valid_code(newCode))
           ts.userError("You did not provide a valid code for the new level")
+
+        const reason=command.arguments.join(" ")
+
         if(oldCode==newCode)
           ts.userError("The codes given were the same")
-        if(!args.message){
+        if(!reason){
           ts.userError("Please provide a little message on why you reuploaded at the end of the command (in quotes)")
         }
 
@@ -150,13 +147,13 @@ class tsreupload extends Command {
           });
           //Post empty overview post
           if(oldApproved == -10){
-            await discussionChannel.send("Reupload Request for <@" + author.discord_id + ">'s level with message: " + args.message);
+            await discussionChannel.send("Reupload Request for <@" + author.discord_id + ">'s level with message: " + reason);
             let voteEmbed = await ts.makePendingReuploadEmbed(new_level, author, false);
             overviewMessage = await discussionChannel.send(voteEmbed);
             overviewMessage = await overviewMessage.pin();
           } else {
             await discussionChannel.send("Reupload Request for <@" + author.discord_id + ">'s level: ");
-            let voteEmbed = await ts.makePendingReuploadEmbed(new_level, author, false, args.message);
+            let voteEmbed = await ts.makePendingReuploadEmbed(new_level, author, false, reason);
             overviewMessage = await discussionChannel.send(voteEmbed);
             overviewMessage = await overviewMessage.pin();
           }
