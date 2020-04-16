@@ -258,6 +258,11 @@ app.post('/random',async (req,res)=>{
 app.post('/feedback',async (req,res)=>{
   try {
     if(req.body.token && req.body.message){
+      if(req.body.message.length > 1000){
+        res.send(ts.getWebUserErrorMsg("The supplied message is too long, please keep it lower than 1000 characters!"));
+        return;
+      }
+
       req.body.discord_id=await ts.checkBearerToken(req.body.token)
 
       let ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
