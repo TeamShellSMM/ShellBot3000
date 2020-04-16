@@ -259,7 +259,11 @@ app.post('/feedback',async (req,res)=>{
   try {
     if(req.body.token && req.body.message){
       if(req.body.message.length > 1000){
-        res.send(ts.getWebUserErrorMsg("The supplied message is too long, please keep it lower than 1000 characters!"));
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.send(JSON.stringify({
+          status: "error",
+          message: "The supplied message is too long, please keep it lower than 1000 characters!"
+        }));
         return;
       }
 
@@ -272,7 +276,7 @@ app.post('/feedback',async (req,res)=>{
 
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
       res.send(JSON.stringify({
-        status: "sucessful"
+        status: "successful"
       }));
     }
 
