@@ -1,6 +1,6 @@
-{ 
+{
 
-  "botName":"PLACEHOLDER", 
+  "botName":"PLACEHOLDER",
 
   "//":"copy your google service account here. add it to the sheet to edit",
   "type":"PLACEHOLDER",
@@ -16,13 +16,14 @@
 
   "//":"Discord bot settings",
   "discord_acces_token":"PLACEHOLDER",
+  "feedback_salt":"PLACEHOLDER",
   "prefix":"!",
   "ownerID":["DISCORD_ID","DISCORD_ID"],
   "defaultCooldown": 1000,
   "//":"Point the command directory to where it is",
   "commandDirectory":"commands/",
-  
-  
+
+
   "spreadsheetId":"PLACEHOLDER",
   "webPort":3000,
 
@@ -30,7 +31,7 @@
   "login_url":"http://YOURDOMAIN/login/",
   "//":"Set to true if you want to develop and test the json endpoints",
   "json_dev":false,
-  
+
   "//":"You can leave the configuration below alone",
   "development":{
     "client": "sqlite3",

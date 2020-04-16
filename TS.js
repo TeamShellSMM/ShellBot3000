@@ -984,6 +984,14 @@ this.deleteReuploadChannel=async function(levelCode,reason){
     }
 }
 
+this.putFeedback = async function(ip, discordId, salt, message){
+  let hash = crypto.createHmac('sha512', salt);
+  hash.update(ip + " - " + discordId);
+  let value = hash.digest('hex');
+
+  await client.channels.get(ts.channels.feedbackChannel).send("[" + value + "]: " + message);
+}
+
 
 this.levelEmbed=function(level,noLink){
   var videoStr=[]

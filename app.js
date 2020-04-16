@@ -6,6 +6,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const moment = require('moment');
 const compression = require('compression')
+const crypto = require('crypto');
 
 global.db={}
 db.Tokens=require('./models/Tokens.js');
@@ -58,7 +59,7 @@ async function generateSiteJson(isShellder){
     let _playedLevels = await db.Plays.query();
 
     for(let i=0;i<_playedLevels.length;i++){
-      _playedLevels[i].created_at=typeof _playedLevels[i].created_at ==="string" ? 
+      _playedLevels[i].created_at=typeof _playedLevels[i].created_at ==="string" ?
       (new Date(_playedLevels[i].created_at.replace(/-/g,"/"))).getTime()/1000:
       _playedLevels[i].created_at;
     }
@@ -129,7 +130,7 @@ async function generateSiteJson(isShellder){
       "seperate":_seperate,
       "points":_points,
     };
-    
+
       let _comments=await db.PendingVotes.query().where("is_shellder",1)
       let comments={}
       let voteCounts={}
@@ -196,7 +197,7 @@ app.post('/clear',async (req,res)=>{
       } else {
         ts.userError("Token was not sent")
       }
-      
+
       let msg=await ts.clear(req.body)
 
       await client.channels.get(ts.channels.clearSubmit).send(msg)
@@ -223,7 +224,7 @@ app.post('/approve',async (req,res)=>{
 
       //req.body.discord_id=discord_id
       req.body.reason=req.body.comment
-      
+
       let msg=await ts.approve(req.body)
       let clearmsg=await ts.clear(req.body)
 
@@ -244,7 +245,7 @@ app.post('/random',async (req,res)=>{
         req.body.discord_id=await ts.checkBearerToken(req.body.token)
         var user=await ts.get_user(req.body.discord_id)
       }
-      
+
       let rand=await ts.randomLevel(req.body)
       rand.status="sucessful"
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -254,7 +255,27 @@ app.post('/random',async (req,res)=>{
     }
 })
 
+app.post('/feedback',async (req,res)=>{
+  try {
+    if(req.body.token && req.body.message){
+      req.body.discord_id=await ts.checkBearerToken(req.body.token)
 
+      let ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+      let discordId = req.body.discord_id;
+
+      await ts.putFeedback(ip, discordId, config.feedback_salt, req.body.message);
+
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.send(JSON.stringify({
+        status: "sucessful"
+      }));
+    }
+
+    res.send(ts.getWebUserErrorMsg("No valid user was supplied!"));
+  } catch (error){
+    res.send(ts.getWebUserErrorMsg(error))
+  }
+})
 
 app.post('/json/login', async (req, res) => {
   try{
