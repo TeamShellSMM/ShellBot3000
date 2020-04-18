@@ -28,7 +28,7 @@ class TSFixApprove extends Command {
         !tsapprove difficulty reason
         !tsreject reason
       */
-
+      var ts=TS_LIST[message.guild.id]
       var command=ts.parse_command(message);
       var inReuploadChannel = false;
       let code = "";

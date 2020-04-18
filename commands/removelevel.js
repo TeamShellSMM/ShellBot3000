@@ -13,7 +13,7 @@ class tsremove extends Command {
         //    message.channel.id === ts.channels.shellderShellbot  //only in bot-test channel
         //)) return false;
       try {
-
+        var ts=TS_LIST[message.guild.id]
         var command=ts.parse_command(message)
 
         var level_code=command.arguments.shift().toUpperCase();

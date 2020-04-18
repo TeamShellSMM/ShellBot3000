@@ -41,7 +41,7 @@ class TSApprove extends Command {
         !tsapprove difficulty reason
         !tsreject reason
       */
-
+      var ts=TS_LIST[message.guild.id]
       const clearCommands = ['tsapprove+c', 'tsapprove+cl', 'tsapprove+lc', 'tsfix+c', 'tsfix+cl', 'tsfix+lc'];
       const likeCommands =  ['tsapprove+cl', 'tsapprove+lc', 'tsfix+cl', 'tsfix+lc'];
 

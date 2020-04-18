@@ -14,7 +14,7 @@ class tsreupload extends Command {
         //    message.channel.id === ts.channels.shellderShellbot  //only in bot-test channel
         //)) return false;
       try {
-
+        var ts=TS_LIST[message.guild.id]
         let command=ts.parse_command(message);
         let oldCode=command.arguments.shift()
         if(oldCode)

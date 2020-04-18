@@ -15,6 +15,7 @@ class TSLevelStatus extends Command {
     }
     
     async exec(message,args) {     
+        var ts=TS_LIST[message.guild.id]
         await ts.gs.loadSheets(["Raw Levels"]);
 
         if(!ts.valid_format(args.code)) throw "Level code given was not in xxx-xxx-xxx format "+ts.emotes.think

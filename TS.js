@@ -1,15 +1,15 @@
 'use strict'
-const stringSimilarity = require('string-similarity')
+const stringSimilarity = require('string-similarity') 
 const crypto=require('crypto')
 const moment=require('moment')
 const GS=require("./GS.js");
-const TS=function(config,client){ //loaded after gs
+const TS=function(guild_id,config,client){ //loaded after gs
   const ts=this
   this.gs=new GS(config)
   this.db={}
-  this.db.Tokens=require('./models/Tokens.js');
-  this.db.Plays = require('./models/Plays.js');
-  this.db.PendingVotes = require('./models/PendingVotes.js');
+  this.db.Tokens=require('./models/Tokens.js')(guild_id);
+  this.db.Plays = require('./models/Plays.js')(guild_id);
+  this.db.PendingVotes = require('./models/PendingVotes.js')(guild_id);
 
   this.load=async function(){
     ts.gs.clearCache()
@@ -36,7 +36,9 @@ const TS=function(config,client){ //loaded after gs
     return client.guilds.get(this.channels.guild_id)
   }
 
-
+  this.plural=function(num){
+    return num>1||num==0?"s":""
+  }
 
   this.valid_format=function(code){
     return /^[0-9A-Z]{3}-[0-9A-Z]{3}-[0-9A-Z]{3}$/.test(code.toUpperCase())

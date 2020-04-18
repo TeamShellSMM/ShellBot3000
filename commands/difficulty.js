@@ -19,6 +19,7 @@ class tsdifficulty extends Command {
 
     async exec(message,args) {
         try{
+          var ts=TS_LIST[message.guild.id]
           args.discord_id=message.author.id
           let msg=await ts.clear(args)
           message.channel.send(msg)

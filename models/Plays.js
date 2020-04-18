@@ -1,11 +1,10 @@
-const { Model } = require('objection');
-const knex = require('../db/knex')
-Model.knex(knex)
+const TSModel = require('../TSModel.js')
 
-class Plays extends Model {
-  static get tableName() {
-    return 'plays';
+module.exports = (guild_id) => { 
+  class Plays extends TSModel(guild_id) {
+    static get tableName() {
+      return 'plays';
+    }
   }
+  return Plays; 
 }
-
-module.exports = Plays;

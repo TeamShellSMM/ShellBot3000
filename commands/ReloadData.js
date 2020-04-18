@@ -10,7 +10,7 @@ class ReloadData extends Command {
     }
 
     async exec(message, args) {
-        // `this` refers to the command object.
+        var ts=TS_LIST[message.guild.id]
         await ts.load()
         return message.reply(`Reloaded data!`);
     }

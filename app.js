@@ -24,17 +24,18 @@ client.on("guildCreate", async guild => {
   console.log("Joined a new guild: " + guild.name);
 });
 
-global.ts=new TS(config,client);
+global.TS_LIST={}
+
 client.on("ready", async () => {
   console.log(`Bot has started, with ${client.users.size} users, in ${client.channels.size} channels of ${client.guilds.size} guilds.`); 
-  client.guilds.forEach(guild =>{
-    console.log({id:guild.id,name:guild.name});
+  client.guilds.forEach(async guild =>{
+    global.TS_LIST[guild.id]=await new TS(guild.id,config,client)
+    global.TS_LIST[guild.id].load()
+    global.TS_LIST.guild_name=guild.name
+    global.TS_LIST.icon=guild.icon_url
   })
   await ts.load()
 });
-
-
-
 
 
 (async () => { //main thread

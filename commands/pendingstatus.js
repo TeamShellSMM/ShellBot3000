@@ -11,6 +11,7 @@ class PendingStatus extends Command {
     
     async exec(message,args) {     
         try{
+            var ts=TS_LIST[message.guild.id]
             await ts.gs.loadSheets(["Raw Levels","Raw Members"]);
             const player=await ts.get_user(message);
 

@@ -1,9 +1,5 @@
 const { Command } = require('discord-akairo');
 
-ts.plural=function(num){
-    return num>1||num==0?"s":""
-}
-
 class points extends Command {
     constructor() {
         super('points', {
@@ -19,6 +15,8 @@ class points extends Command {
 
     async exec(message,args) {
         try{
+        var ts=TS_LIST[message.guild.id]
+
         await ts.gs.loadSheets(["Raw Members","Raw Levels"]);
         const player=await ts.get_user(message);
 

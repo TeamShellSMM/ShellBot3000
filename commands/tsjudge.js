@@ -11,6 +11,7 @@ class TSJudge extends Command {
     
     async exec(message,args) {     
       try{
+      var ts=TS_LIST[message.guild.id]
       var inCodeDiscussionChannel = false;
       var levelCode;
       //Check if in level discussion channel

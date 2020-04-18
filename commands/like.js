@@ -16,6 +16,7 @@ class tslike extends Command {
 
     async exec(message,args) {
         try{
+          var ts=TS_LIST[message.guild.id]
           const likeCommands=["tslike","like"];
           const command=ts.parse_command(message)
           args.discord_id=message.author.id

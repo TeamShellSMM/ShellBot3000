@@ -16,6 +16,7 @@ class mockUser extends Command {
 
     async exec(message,args) {
       try {
+        var ts=TS_LIST[message.guild.id]
         if(ts.channels.isTesting!=="yes"){
             return false
         }
