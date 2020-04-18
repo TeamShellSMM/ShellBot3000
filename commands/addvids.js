@@ -46,7 +46,7 @@ class TSAddvids extends Command {
           ts.userError("The links below didn't look like urls: ```\n"+not_urls.join("\n")+"```")
         }
 
-        await gs.loadSheets(["Raw Members","Raw Levels"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
+        await ts.gs.loadSheets(["Raw Members","Raw Levels"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
 
         const player=await ts.get_user(message);
         var level=ts.getExistingLevel(code)
@@ -85,12 +85,12 @@ class TSAddvids extends Command {
         }
 
 
-        level=gs.query("Raw Levels",{
+        level=ts.gs.query("Raw Levels",{
           filter:{"Code":code},
           update:{"Clear Video":old_vids.join(",")},
         })
 
-        await gs.batchUpdate(level.update_ranges)
+        await ts.gs.batchUpdate(level.update_ranges)
 
 
 

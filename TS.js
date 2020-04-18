@@ -1,15 +1,21 @@
 'use strict'
-const Tokens = require('./models/Tokens.js');
 const stringSimilarity = require('string-similarity')
 const crypto=require('crypto')
 const moment=require('moment')
 
+const Tokens = require('./models/Tokens.js');
 const Plays = require('./models/Plays');
 const PendingVotes = require('./models/PendingVotes');
-
-const TS=function(gs,client){ //loaded after gs
+const GS=require("./GS.js");
+const TS=function(config,client){ //loaded after gs
 const ts=this
+const gs=new GS(config)
+this.gs=gs
 
+this.db={}
+this.db.Tokens=require('./models/Tokens.js');
+this.db.Plays = require('./models/Plays.js');
+this.db.PendingVotes = require('./models/PendingVotes.js');
 
 this.load=async function(){
   gs.clearCache()

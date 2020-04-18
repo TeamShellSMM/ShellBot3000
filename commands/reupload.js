@@ -39,9 +39,9 @@ class tsreupload extends Command {
           ts.userError("Please provide a little message on why you reuploaded at the end of the command (in quotes)")
         }
 
-        await gs.loadSheets(["Raw Members","Raw Levels"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
+        await ts.gs.loadSheets(["Raw Members","Raw Levels"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
 
-        var player=gs.select("Raw Members",{
+        var player=ts.gs.select("Raw Members",{
           "discord_id":message.author.id
         })
 
@@ -54,11 +54,11 @@ class tsreupload extends Command {
         var user_reply="<@"+message.author.id+">"+rank.Pips+" ";
 
         var level=ts.getExistingLevel(oldCode,true)
-        var new_level=gs.select("Raw Levels",{"Code":newCode}) //new level just incase they've already tsadded
+        var new_level=ts.gs.select("Raw Levels",{"Code":newCode}) //new level just incase they've already tsadded
 
         var oldApproved = level.Approved;
 
-        var older_level=gs.query("Raw Levels",{ //this is just in case this is not the first reupload. assign
+        var older_level=ts.gs.query("Raw Levels",{ //this is just in case this is not the first reupload. assign
           filter:{"NewCode":oldCode},
           update:{"NewCode":newCode}
         },true)
@@ -80,7 +80,7 @@ class tsreupload extends Command {
         if(!(level.Creator==player.Name || player.shelder=="1"))
           ts.userError("You can't reupload \""+level["Level Name"]+"\" by "+level.Creator);
 
-        level=gs.query("Raw Levels",{
+        level=ts.gs.query("Raw Levels",{
           filter:{"Code":oldCode},
           update:{"Approved":level.Approved=="1"?2:-1,"NewCode":newCode},
         })
@@ -94,7 +94,7 @@ class tsreupload extends Command {
 
         }
         if(!new_level){ //if no new level was found create a new level copying over the old data
-          await gs.insert("Raw Levels",{
+          await ts.gs.insert("Raw Levels",{
             Code:newCode,
             "Level Name":level["Level Name"],
             Creator:level.Creator,
@@ -105,7 +105,7 @@ class tsreupload extends Command {
         }
 
         if(batch_updates!=null){
-          await gs.batchUpdate(batch_updates)
+          await ts.gs.batchUpdate(batch_updates)
         }
 
         await ts.deleteReuploadChannel(oldCode,"Justice has been met!")
@@ -118,13 +118,13 @@ class tsreupload extends Command {
               code: newCode
             });
 
-          await gs.loadSheets(["Raw Members","Raw Levels"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
-          new_level=gs.query("Raw Levels",{
+          await ts.gs.loadSheets(["Raw Members","Raw Levels"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
+          new_level=ts.gs.query("Raw Levels",{
             filter:{"Code":newCode},
             update:{"Approved":-10},
           })
-          await gs.batchUpdate(new_level.update_ranges);
-          const author = gs.select("Raw Members",{"Name":new_level.Creator});
+          await ts.gs.batchUpdate(new_level.update_ranges);
+          const author = ts.gs.select("Raw Members",{"Name":new_level.Creator});
 
           var overviewMessage;
           var discussionChannel;

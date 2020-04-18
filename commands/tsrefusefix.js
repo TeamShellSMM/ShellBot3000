@@ -25,10 +25,10 @@ class TSRefuseFix extends Command {
           ts.userError("Please provide a little message to the shellders for context at the end of the command!")
         }
 
-        await gs.loadSheets(["Raw Members","Raw Levels"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
+        await ts.gs.loadSheets(["Raw Members","Raw Levels"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
         const player=await ts.get_user(message);
-        var level=gs.select("Raw Levels",{"Code":code});
-        const author = gs.select("Raw Members",{"Name":level.Creator});
+        var level=ts.gs.select("Raw Levels",{"Code":code});
+        const author = ts.gs.select("Raw Members",{"Name":level.Creator});
 
         if(level.Approved!="-10")
           ts.userError("This level is not currently in a fix request!");

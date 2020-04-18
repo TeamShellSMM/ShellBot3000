@@ -11,10 +11,10 @@ class PendingStatus extends Command {
     
     async exec(message,args) {     
         try{
-            await gs.loadSheets(["Raw Levels","Raw Members"]);
+            await ts.gs.loadSheets(["Raw Levels","Raw Members"]);
             const player=await ts.get_user(message);
 
-            const levels=gs.select("Raw Levels",{"Creator":player.Name,"Approved":"0"},true);
+            const levels=ts.gs.select("Raw Levels",{"Creator":player.Name,"Approved":"0"},true);
 
             if(!levels){
                 message.reply(player.user_reply+"\nYou have no levels pending");

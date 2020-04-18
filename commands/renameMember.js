@@ -24,13 +24,13 @@ class RenameMember extends Command {
     async exec(message, args) {
         try{
             await ts.load()
-            let new_name_check=gs.select("Raw Members",{"Name":args.new_name});
+            let new_name_check=ts.gs.select("Raw Members",{"Name":args.new_name});
             if(gs.select("Raw Members",{"Name":args.new_name})){
                 ts.userError("There is already another member with name \""+args.new_name+"\"")
             }
 
 
-            let member_update=gs.query("Raw Members", {
+            let member_update=ts.gs.query("Raw Members", {
               filter: {"discord_id":args.discord_id},
               update: {"Name":args.new_name}
             });
@@ -41,7 +41,7 @@ class RenameMember extends Command {
 
             let oldName=member_update.Name
 
-            let level_update=gs.query("Raw Levels", {
+            let level_update=ts.gs.query("Raw Levels", {
               filter: {"Creator":oldName},
               update: {"Creator":args.new_name}
             },true);
@@ -52,7 +52,7 @@ class RenameMember extends Command {
                 updates=updates.concat(level_update)
             }
 
-            let winners=gs.query("Competition Winners", {
+            let winners=ts.gs.query("Competition Winners", {
               filter: {"Creator":oldName},
               update: {"Creator":args.new_name}
             },true);
@@ -65,7 +65,7 @@ class RenameMember extends Command {
 
 
             if(updates){
-                await gs.batchUpdate(updates);
+                await ts.gs.batchUpdate(updates);
                 let oldPlays=await Plays.query().patch({"player":args.new_name}).where("player",oldName)
                 let pendingVotes=await PendingVotes.query().patch({"player":args.new_name}).where("player",oldName)
                 await ts.load()

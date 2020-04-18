@@ -30,14 +30,14 @@ class TSAddtags extends Command {
           ts.userError("You didn't give any tags")
         new_tags=new_tags.split(/[,\n]/)
 
-        await gs.loadSheets(["Raw Members","Raw Levels"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
+        await ts.gs.loadSheets(["Raw Members","Raw Levels"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
 
 
         const player=await ts.get_user(message);
         var level=ts.getExistingLevel(code)
         //First we get all available tags
         var all_tags = [];
-        gs.select("Raw Levels").forEach((level)=>{
+        ts.gs.select("Raw Levels").forEach((level)=>{
           if(level.Tags){
             level.Tags.split(",").forEach((tag)=>{
               if(all_tags.indexOf(tag)===-1)
@@ -61,7 +61,7 @@ class TSAddtags extends Command {
 
         if(addCommands.indexOf(command.command)!=-1){ //adding
           let locked_tags=[]
-          gs.select("tags").forEach((tag)=>{
+          ts.gs.select("tags").forEach((tag)=>{
             if(tag && tag.add_lock){
               locked_tags.push(tag.Tag)
             }
@@ -84,7 +84,7 @@ class TSAddtags extends Command {
             ts.userError("You can't remove tags from  \""+level["Level Name"]+"\" by "+level.Creator);
 
           let locked_tags=[]
-          gs.select("tags").forEach((tag)=>{
+          ts.gs.select("tags").forEach((tag)=>{
             if(tag && tag.remove_lock){
               locked_tags.push(tag.Tag)
             }
@@ -109,12 +109,12 @@ class TSAddtags extends Command {
         }
 
 
-        level=gs.query("Raw Levels",{
+        level=ts.gs.query("Raw Levels",{
           filter:{"Code":code},
           update:{"Tags":old_tags.join(",")},
         })
 
-        await gs.batchUpdate(level.update_ranges)
+        await ts.gs.batchUpdate(level.update_ranges)
 
         message.channel.send(player.user_reply+reply)
       } catch (error) {

@@ -19,10 +19,10 @@ class points extends Command {
 
     async exec(message,args) {
         try{
-        await gs.loadSheets(["Raw Members","Raw Levels"]);
+        await ts.gs.loadSheets(["Raw Members","Raw Levels"]);
         const player=await ts.get_user(message);
 
-        var all_ranks=gs.select("TeamShell Ranks");
+        var all_ranks=ts.gs.select("TeamShell Ranks");
         var all_ranks_id=all_ranks.map(r=>r.discord_roles)
         if(args.role=="role" || args.role=="norole"){
           await message.member.removeRoles(all_ranks_id)

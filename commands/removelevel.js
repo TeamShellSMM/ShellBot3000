@@ -26,7 +26,7 @@ class tsremove extends Command {
           ts.userError("You did not provide a reason to remove this level. If you want to reupload, we recommend using the `!tsreupload` command. If you want to remove it now and reupload it later make sure __you don't lose the old code__")
 
 
-        await gs.loadSheets(["Raw Members","Raw Levels"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
+        await ts.gs.loadSheets(["Raw Members","Raw Levels"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
         const player=await ts.get_user(message);
         var level=ts.getExistingLevel(level_code)
 
@@ -38,7 +38,7 @@ class tsremove extends Command {
           ts.userError("You can't remove \""+level["Level Name"]+"\" by "+level.Creator);
 
         const approvedStr=level.Approved=="1"?2: (level.Creator!=player.Name && player.shelder=="1"?-2:-1); //tsremove run by shellders and not their own levels get -2
-        level=gs.query("Raw Levels",{
+        level=ts.gs.query("Raw Levels",{
           filter:{"Code":level_code},
           update:{"Approved":approvedStr},
         })
@@ -46,7 +46,7 @@ class tsremove extends Command {
 
         //combine all the updates into one array to be passed to gs.batchUpdate
         var batch_updates=level.update_ranges
-        await gs.batchUpdate(batch_updates)
+        await ts.gs.batchUpdate(batch_updates)
 
         var removeEmbed=ts.levelEmbed(level,1)
             .setColor("#dc3545")
@@ -58,7 +58,7 @@ class tsremove extends Command {
           //Send updates to to #shellbot-level-update
 
         if(level.Creator!=player.Name){ //moderation
-          const creator=gs.select("Raw Members",{"Name":level.Creator})
+          const creator=ts.gs.select("Raw Members",{"Name":level.Creator})
           var mention = "**<@" + creator.discord_id + ">, we got some news for you: **";
           await this.client.channels.get(ts.channels.shellderLevelChanges).send(mention);
         }

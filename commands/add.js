@@ -26,9 +26,9 @@ class tsadd extends Command {
         if(!level_name)
           ts.userError("You didn't give a level name")
 
-        await gs.loadSheets(["Raw Members","Raw Levels"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
+        await ts.gs.loadSheets(["Raw Members","Raw Levels"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
         const player=await ts.get_user(message);
-        var existing_level=gs.select("Raw Levels",{"Code":code})
+        var existing_level=ts.gs.select("Raw Levels",{"Code":code})
 
         if(existing_level)
           ts.userError("Level code has already been submitted as \""+existing_level["Level Name"]+"\" by "+existing_level.Creator);
@@ -36,7 +36,7 @@ class tsadd extends Command {
         if(player.earned_points.available.toFixed(1)<0)
           ts.userError("You need "+Math.abs(player.earned_points.available).toFixed(1)+" points to upload a new level");
 
-        await gs.insert("Raw Levels",{
+        await ts.gs.insert("Raw Levels",{
           Code:code,
           "Level Name":level_name,
           Creator:player.Name,

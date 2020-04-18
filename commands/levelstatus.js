@@ -15,14 +15,14 @@ class TSLevelStatus extends Command {
     }
     
     async exec(message,args) {     
-        await gs.loadSheets(["Raw Levels"]);
+        await ts.gs.loadSheets(["Raw Levels"]);
 
         if(!ts.valid_format(args.code)) throw "Level code given was not in xxx-xxx-xxx format "+ts.emotes.think
         if(!ts.valid_code(args.code))   throw "There were some invalid characters in your level code "+ts.emotes.think
 
         args.code=args.code.toUpperCase()
 
-        const level=gs.select("Raw Levels",{"Code":args.code});
+        const level=ts.gs.select("Raw Levels",{"Code":args.code});
 
         if(!level){
             message.reply("Level Code was not found! " + ts.emotes.think);

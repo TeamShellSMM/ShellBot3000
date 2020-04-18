@@ -17,7 +17,7 @@ class atmebot extends Command {
           const atmeCommands=["atmebot",'atme']
           var command=ts.parse_command(message);
 
-          await gs.loadSheets(["Raw Members","Raw Levels"]);
+          await ts.gs.loadSheets(["Raw Members","Raw Levels"]);
           const player=await ts.get_user(message);
 
           if(atmeCommands.indexOf(command.command)!=-1){
@@ -31,7 +31,7 @@ class atmebot extends Command {
 
           }
 
-          var member=gs.query("Raw Members",{
+          var member=ts.gs.query("Raw Members",{
             filter:{"discord_id":message.author.id},
             update:{"atme":atmeVal}
           })
@@ -40,7 +40,7 @@ class atmebot extends Command {
             ts.userError(alreadyError)
           }
 
-          await gs.batchUpdate(member.update_ranges)
+          await ts.gs.batchUpdate(member.update_ranges)
 
 
           message.channel.send(player.user_reply+msg)

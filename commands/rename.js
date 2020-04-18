@@ -27,7 +27,7 @@ class TSRename extends Command {
           ts.userError("You didn't give a new level name")
 
 
-        await gs.loadSheets(["Raw Members","Raw Levels"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
+        await ts.gs.loadSheets(["Raw Members","Raw Levels"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
 
         const player=await ts.get_user(message);
         var level=ts.getExistingLevel(code)
@@ -35,7 +35,7 @@ class TSRename extends Command {
         if(!(level.Creator==player.Name || player.shelder=="1"))
           ts.userError("You can't rename \""+level["Level Name"]+"\" by "+level.Creator);
 
-        level=gs.query("Raw Levels",{
+        level=ts.gs.query("Raw Levels",{
           filter:{"Code":code},
           update:{"Level Name":level_name},
         })
@@ -43,7 +43,7 @@ class TSRename extends Command {
         if(!level.updated["Level Name"])
           ts.userError("Level name is already \""+level_name+"\"")
 
-        await gs.batchUpdate(level.update_ranges)
+        await ts.gs.batchUpdate(level.update_ranges)
 
 
         var reply="The level \""+level["Level Name"]+"\" ("+code+") has been renamed to \""+level_name+"\" "+ts.emotes.bam

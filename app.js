@@ -1,17 +1,10 @@
 const config = require('./config.json');
 const { AkairoClient } = require('discord-akairo');
 const TS=require('./TS.js')
-const GS=require('./GS.js')
 const express = require('express');
 const bodyParser = require('body-parser');
 const moment = require('moment');
 const compression = require('compression')
-const crypto = require('crypto');
-
-global.db={}
-db.Tokens=require('./models/Tokens.js');
-db.Plays = require('./models/Plays.js');
-db.PendingVotes = require('./models/PendingVotes.js');
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -24,8 +17,8 @@ if(config.json_dev){
 const client = new AkairoClient(config, { //not sure this is a good idea or not
     disableEveryone: true
 });
-global.gs=new GS(config); //not sure if this is a good idea or not
-global.ts=new TS(gs,client);
+
+global.ts=new TS(config,client);
 
 (async () => { //main thread
   try {
@@ -40,7 +33,7 @@ global.ts=new TS(gs,client);
 })();
 
 async function generateSiteJson(isShellder){
-  const SheetCache = gs.getArrayFormat([
+  const SheetCache = ts.gs.getArrayFormat([
         "Raw Levels!J",
         "Seasons!B",
         "tags",
@@ -56,7 +49,7 @@ async function generateSiteJson(isShellder){
     let _members = SheetCache["Raw Members"]
     let _points = SheetCache["Points"]
 
-    let _playedLevels = await db.Plays.query();
+    let _playedLevels = await ts.db.Plays.query();
 
     for(let i=0;i<_playedLevels.length;i++){
       _playedLevels[i].created_at=typeof _playedLevels[i].created_at ==="string" ?
@@ -116,7 +109,7 @@ async function generateSiteJson(isShellder){
     let WEEK_START=(new Date(d.getFullYear(), d.getMonth(), d.getDate() + (day == 0?-6:1)-day )).getTime()/1000;
     let MONTH_START=(new Date(d.getFullYear(), d.getMonth(), 1)).getTime()/1000;
     let json={
-      "lastUpdated":gs.lastUpdated,
+      "lastUpdated":ts.gs.lastUpdated,
       "DAY_START":DAY_START,
       "WEEK_START":WEEK_START,
       "MONTH_START":MONTH_START,
@@ -131,7 +124,7 @@ async function generateSiteJson(isShellder){
       "points":_points,
     };
 
-      let _comments=await db.PendingVotes.query().where("is_shellder",1)
+      let _comments=await ts.db.PendingVotes.query().where("is_shellder",1)
       let comments={}
       let voteCounts={}
       for(let i=0;i<_comments.length;i++){
@@ -163,7 +156,7 @@ async function generateSiteJson(isShellder){
 
 app.get('/json', async (req, res) => {
 
-  let lastUpdated = gs.lastUpdated
+  let lastUpdated = ts.gs.lastUpdated
   let json = null;
   if(req.query.lastLoaded==lastUpdated){
     json = "No Updated Needed"
@@ -293,7 +286,7 @@ app.post('/json/login', async (req, res) => {
 
     if(!req.body.otp) ts.userError("No OTP provided")
 
-    let token=await db.Tokens.query()
+    let token=await ts.db.Tokens.query()
       .where('token','=',req.body.otp)
 
     if(token.length){

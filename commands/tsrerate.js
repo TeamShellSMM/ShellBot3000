@@ -40,9 +40,9 @@ class TSRerate extends Command {
       if(!ts.valid_difficulty(args.difficulty))
           ts.userError("Invalid difficulty format!");
 
-      await gs.loadSheets(["Raw Levels", "Raw Members"]);
+      await ts.gs.loadSheets(["Raw Levels", "Raw Members"]);
       const level=ts.getExistingLevel(args.code);
-      const author = gs.select("Raw Members",{"Name":level.Creator});
+      const author = ts.gs.select("Raw Members",{"Name":level.Creator});
 
       if(level.Approved!=="1")
         ts.userError("Level is not an approved level")
@@ -53,7 +53,7 @@ class TSRerate extends Command {
 
       var oldDiff = level.Difficulty;
 
-      var updateLevel = gs.query("Raw Levels", {
+      var updateLevel = ts.gs.query("Raw Levels", {
         filter: {"Code":args.code},
         update: {"Difficulty": args.difficulty}
       });
@@ -62,7 +62,7 @@ class TSRerate extends Command {
         ts.userError("\""+level["Level Name"]+"\" is already rated "+args.difficulty)
 
       if(updateLevel.Code == args.code){
-        await gs.batchUpdate(updateLevel.update_ranges);
+        await ts.gs.batchUpdate(updateLevel.update_ranges);
       }
       
       var rerateEmbed = ts.levelEmbed(level)
