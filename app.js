@@ -1,3 +1,4 @@
+'use strict'
 const config = require('./config.json');
 const { AkairoClient } = require('discord-akairo');
 const TS=require('./TS.js')
@@ -5,6 +6,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const moment = require('moment');
 const compression = require('compression')
+
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -18,11 +20,25 @@ const client = new AkairoClient(config, { //not sure this is a good idea or not
     disableEveryone: true
 });
 
+client.on("guildCreate", async guild => {
+  console.log("Joined a new guild: " + guild.name);
+});
+
 global.ts=new TS(config,client);
+client.on("ready", async () => {
+  console.log(`Bot has started, with ${client.users.size} users, in ${client.channels.size} channels of ${client.guilds.size} guilds.`); 
+  client.guilds.forEach(guild =>{
+    console.log({id:guild.id,name:guild.name});
+  })
+  await ts.load()
+});
+
+
+
+
 
 (async () => { //main thread
   try {
-    await ts.load()
     await client.login(config.discord_access_token);
     await app.listen(config.webPort, () => console.log(config.botName+':Web server now listening on '+config.webPort));
    console.log(config.botName+":logged in")
@@ -174,7 +190,7 @@ app.post('/json',async (req,res)=>{
       req.body.discord_id=await ts.checkBearerToken(req.body.token)
       var user=await ts.get_user(req.body.discord_id)
     }
-      json = await generateSiteJson(user?user.shelder:false)
+      let json = await generateSiteJson(user?user.shelder:false)
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
       res.send(JSON.stringify(json));
     } catch (error){
