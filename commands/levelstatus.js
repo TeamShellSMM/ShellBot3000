@@ -41,9 +41,9 @@ class TSLevelStatus extends Command {
         } else if(level.Approved.startsWith("del")){
             message.reply("This level has already been removed/rejected!");
         } else if(level.Approved == "0"){
-            var approvalVotes = await PendingVotes.query().where("code",args.code).where("is_shellder",1).where("type","approve");
-            var fixVotes = await PendingVotes.query().where("code",args.code).where("is_shellder",1).where("type","fix");
-            var rejectVotes = await PendingVotes.query().where("code",args.code).where("is_shellder",1).where("type","reject");
+            var approvalVotes = await ts.db.PendingVotes.query().where("code",args.code).where("is_shellder",1).where("type","approve");
+            var fixVotes = await ts.db.PendingVotes.query().where("code",args.code).where("is_shellder",1).where("type","fix");
+            var rejectVotes = await ts.db.PendingVotes.query().where("code",args.code).where("is_shellder",1).where("type","reject");
 
             //Count Approval and Rejection Votes
             var approvalVoteCount = approvalVotes.length + fixVotes.length;

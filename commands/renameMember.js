@@ -1,6 +1,4 @@
 const { Command } = require('discord-akairo');
-const Plays = require('../models/Plays');
-const PendingVotes = require('../models/PendingVotes');
 
 class RenameMember extends Command {
     constructor() {
@@ -73,8 +71,8 @@ class RenameMember extends Command {
 
             if(updates){
                 await ts.gs.batchUpdate(updates);
-                let oldPlays=await Plays.query().patch({"player":args.new_name}).where("player",oldName)
-                let pendingVotes=await PendingVotes.query().patch({"player":args.new_name}).where("player",oldName)
+                let oldPlays=await ts.db.Plays.query().patch({"player":args.new_name}).where("player",oldName)
+                let pendingVotes=await ts.db.PendingVotes.query().patch({"player":args.new_name}).where("player",oldName)
                 await ts.load()
             }
 
