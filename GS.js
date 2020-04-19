@@ -90,6 +90,7 @@ var GS=function(config){
     })
     var returnData={}
     let data=JSON.parse(response)
+    console.log(">>> data", data);
     this.lastUpdated=this.timestamp()
 
     if(data.valueRanges){
