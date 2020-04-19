@@ -225,7 +225,7 @@ var GS=function(config){
       return o!=sheet
     })
 
-    await loadSheets([sheet]);
+    await this.loadSheets([sheet]);
 
     return response
   }
@@ -259,7 +259,7 @@ var GS=function(config){
       return loaded.indexOf(o)===-1
     })
 
-    await loadSheets(loaded);
+    await this.loadSheets(loaded);
 
     return response
   }

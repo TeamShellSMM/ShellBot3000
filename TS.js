@@ -279,7 +279,7 @@ const TS=function(guild_id,config,client,team_config){ //loaded after gs
           if(args.completed==="0"){
             msg.push(" ‣You have removed your clear for "+level_placeholder)
           } else {
-            msg.push(" ‣You have cleared "+level_placeholder+" "+ts.emotes.GG)
+            msg.push(" ‣You have cleared "+level_placeholder+" "+(ts.emotes.GG ? ts.emotes.GG : ""))
             if(level.Approved=="1"){
               msg.push(" ‣You have earned "+this.pointMap[parseFloat(level.Difficulty)]+" points")
             } else {
@@ -295,26 +295,26 @@ const TS=function(guild_id,config,client,team_config){ //loaded after gs
 
         if(updated.difficulty){
           msg.push(args.difficulty==="0"?
-            " ‣You have removed your difficulty vote for "+level_placeholder+" "+ts.emotes.bam:
-            " ‣You have voted "+args.difficulty+" as the difficulty for "+level_placeholder+" "+ts.emotes.bam
+            " ‣You have removed your difficulty vote for "+level_placeholder+" "+(ts.emotes.bam ? ts.emotes.bam : ""):
+            " ‣You have voted "+args.difficulty+" as the difficulty for "+level_placeholder+" "+(ts.emotes.bam ? ts.emotes.bam : "")
           )
         } else if(args.difficulty || args.difficulty==="0" ){
           msg.push(args.difficulty==="0"?
-            " ‣You haven't submitted a difficulty vote for "+level_placeholder+" "+ts.emotes.think:
-            " ‣You have already voted "+args.difficulty+" for "+level_placeholder+" "+ts.emotes.think
+            " ‣You haven't submitted a difficulty vote for "+level_placeholder+" "+(ts.emotes.think ? ts.emotes.think : ""):
+            " ‣You have already voted "+args.difficulty+" for "+level_placeholder+" "+(ts.emotes.think ? ts.emotes.think : "")
           )
         }
 
         if(updated.liked){
           msg.push(args.like==="0"?
-            " ‣You have unliked "+level_placeholder+" "+ts.emotes.bam:
-            " ‣You have liked "+level_placeholder+" "+ts.emotes.love
+            " ‣You have unliked "+level_placeholder+" "+(ts.emotes.bam ? ts.emotes.bam : ""):
+            " ‣You have liked "+level_placeholder+" "+(ts.emotes.love ? ts.emotes.love : "")
 
           )
         } else if(args.like || args.like==="0" ){
           msg.push(args.like==="0"?
-            " ‣You have not added a like to "+level_placeholder+" "+ts.emotes.think:
-            " ‣You have already liked "+level_placeholder+" "+ts.emotes.love
+            " ‣You have not added a like to "+level_placeholder+" "+(ts.emotes.think ? ts.emotes.think : ""):
+            " ‣You have already liked "+level_placeholder+" "+(ts.emotes.love ? ts.emotes.love : "")
           )
         }
 
@@ -387,10 +387,10 @@ const TS=function(guild_id,config,client,team_config){ //loaded after gs
   }
   this.getUserErrorMsg=function(obj){
     if(typeof obj=="object" && obj.errorType=="user"){
-      return obj.msg+" "+this.emotes.think
+      return obj.msg+" "+(this.emotes.think ? this.emotes.think : "")
     } else {
       console.error(obj)
-      return "Something went wrong "+this.emotes.buzzyS
+      return "Something went wrong "+(this.emotes.buzzyS ? this.emotes.buzzyS : "")
     }
   }
 
@@ -572,8 +572,11 @@ const TS=function(guild_id,config,client,team_config){ //loaded after gs
     var rejectVotes = await ts.db.PendingVotes.query().where("code",level.Code).where("is_shellder",1).where("type","reject");
 
     var voteEmbed=ts.levelEmbed(level)
-        .setAuthor("The Judgement  has now begun for this level:")
-        .setThumbnail(ts.getEmoteUrl(ts.emotes.judgement));
+        .setAuthor("The Judgement  has now begun for this level:");
+
+    if(ts.emotes.judgement){
+      voteEmbed.setThumbnail(ts.getEmoteUrl(ts.emotes.judgement));
+    }
 
       var postString = "__Current Votes for approving the level:__\n";
       if(approveVotes == undefined || approveVotes.length == 0){
@@ -630,7 +633,9 @@ const TS=function(guild_id,config,client,team_config){ //loaded after gs
       voteEmbed.setAuthor("This level has been reuploaded and is now awaiting approval!")
       .setDescription("Please check if the mandatory fixes where made and make your decision (use **!tsfixapprove** or **!tsfixreject** with a message).")
     }
-    voteEmbed.setThumbnail(ts.getEmoteUrl(ts.emotes.judgement));
+    if(ts.emotes.judgement){
+      voteEmbed.setThumbnail(ts.getEmoteUrl(ts.emotes.judgement));
+    }
 
     let postString = "__Current Votes for fixing the level:__\n";
     if(fixVotes == undefined || fixVotes.length == 0){
@@ -786,7 +791,9 @@ const TS=function(guild_id,config,client,team_config){ //loaded after gs
       //Build embed
       var color="#dc3545";
       var title="Level was " + (level.Approved === "0" ? "rejected" : "removed") + "!";
-      var image=this.getEmoteUrl(this.emotes.axemuncher);
+      if(this.emotes.axemuncher){
+        var image=this.getEmoteUrl(this.emotes.axemuncher);
+      }
 
     } else if (approvalVoteCount >= ts.get_variable("VotesNeeded")  && approvalVoteCount>rejectVoteCount && fixVoteCount > 0 && level.Approved !== "-10") {
       if(level.Approved !== "0")
@@ -805,7 +812,9 @@ const TS=function(guild_id,config,client,team_config){ //loaded after gs
 
       var color="#D68100";
       var title="This level is one step from being approved, we'd just like to see some fixes!";
-      var image=this.getEmoteUrl(this.emotes.think);
+      if(this.emotes.think){
+        var image=this.getEmoteUrl(this.emotes.think);
+      }
 
       fixMode = true;
     } else if (approvalVoteCount >= ts.get_variable("VotesNeeded")  && approvalVoteCount>rejectVoteCount ){
@@ -869,9 +878,11 @@ const TS=function(guild_id,config,client,team_config){ //loaded after gs
         //Build Status Message
         var color="#01A19F";
         var title="This level was approved for difficulty: " + finalDiff + "!";
-        var image=this.getEmoteUrl(this.emotes.bam);
+        if(this.emotes.bam){
+          var image=this.getEmoteUrl(this.emotes.bam);
+        }
       } else if(approvalVoteCount==rejectVoteCount ) {
-        ts.userError("The votes are the same! "+ts.emotes.buzzyS+" We need a tiebreaker");
+        ts.userError("The votes are the same! "+(ts.emotes.buzzyS ? ts.emotes.buzzyS + " ": "")+"We need a tiebreaker");
       } else {
         ts.userError("There must be at least "+ts.get_variable("VotesNeeded")+" Shellders in agreement before this level can be judged!");
       }
@@ -879,8 +890,11 @@ const TS=function(guild_id,config,client,team_config){ //loaded after gs
       var mention = "**<@" + author.discord_id + ">, we got some news for you: **";
       var exampleEmbed = ts.levelEmbed(level)
         .setColor(color)
-        .setAuthor(title)
-        .setThumbnail(image);
+        .setAuthor(title);
+
+      if(image){
+        exampleEmbed.setThumbnail(image);
+      }
 
       if(fixMode){
         exampleEmbed.setDescription("If you want to fix these issues use **!tsreupload** (to get it approved really quickly) or if you don't want to just use **!tsrefusefix** and the shellders will decide if it's still acceptable.");
@@ -941,13 +955,16 @@ const TS=function(guild_id,config,client,team_config){ //loaded after gs
     const author = ts.gs.select("Raw Members",{"Name":updateLevel.Creator});
 
     var color="#dc3545";
-    var image=this.getEmoteUrl(this.emotes.axemuncher);
 
     var mention = "**<@" + author.discord_id + ">, we got some news for you: **";
     var exampleEmbed = ts.levelEmbed(updateLevel)
       .setColor(color)
       .setAuthor("We're really sorry, but this level was rejected after you refused to reupload.")
-      .setThumbnail(image);
+
+    if(this.emotes.axemuncher){
+      var image=this.getEmoteUrl(this.emotes.axemuncher);
+      exampleEmbed.setThumbnail(image);
+    }
 
     exampleEmbed.setDescription("Rejected by <@" + shellder.id + ">: " + message);
 
