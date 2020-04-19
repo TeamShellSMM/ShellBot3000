@@ -97,7 +97,9 @@ var GS=function(config){
         var range=data.valueRanges[i].range.split("!")
         range=range[0].replace(/'/g,'')
         ArrayCache[range]=JSON.stringify(data.valueRanges[i].values)
-        console.log(">>> data", data.valueRanges[i].values);
+        if(config.spreadsheetId == "14qvs2g3kKxKL2YhmIq47-yhoeExfZNq9kygWM1hBH7M"){
+          console.log(">>> data", data.valueRanges[i].values);
+        }
         var header=data.valueRanges[i].values.shift()
         json_header[range]=header;
         returnData[range]=[]
