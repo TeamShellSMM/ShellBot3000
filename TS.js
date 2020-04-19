@@ -1022,7 +1022,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
     videoStr=videoStr.join(",")
     var tagStr=[]
     level.Tags.split(",").forEach((tag)=>{
-      if(tag) tagStr.push("["+tag+"](https://teamshell.net/levels/"+encodeURIComponent(tag)+")")
+      if(tag) tagStr.push("["+tag+"](" + ts.config.page_url + ts.config.url_slug + "/levels/"+encodeURIComponent(tag)+")")
     })
     tagStr=tagStr.join(",")
     var embed = client.util.embed()
@@ -1030,13 +1030,13 @@ const TS=function(guild_id,config,client){ //loaded after gs
         .setTitle(level["Level Name"] + " (" + level.Code + ")")
         .setDescription(
           "made by "+
-          (noLink?level.Creator:"[" + level.Creator + "](https://teamshell.net/maker/" + encodeURIComponent(level.Creator) + ")")+"\n"+
+          (noLink?level.Creator:"[" + level.Creator + "](" + ts.config.page_url + ts.config.url_slug + "/maker/" + encodeURIComponent(level.Creator) + ")")+"\n"+
           (level.clears!=undefined ? "Difficulty: "+level.Difficulty+", Clears: "+level.clears+", Likes: "+level.likes+"\n":"")+
             (tagStr?"Tags: "+tagStr+"\n":"")+
             (videoStr?"Clear Video: "+videoStr:"")
         )
       if(!noLink){
-        embed.setURL("https://teamshell.net/level/" + level.Code)
+        embed.setURL(ts.config.page_url + ts.config.url_slug + "/level/" + level.Code)
       }
 
           //randomEmbed.addField(,);
