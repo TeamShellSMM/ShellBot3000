@@ -714,7 +714,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
 
       let guild=this.getGuild()
 
-      discussionChannel = guild.channels.find(channel => channel.name === level.Code.toLowerCase() && channel.parent.name === "level-discussion"); //not sure should specify guild/server
+      discussionChannel = guild.channels.find(channel => channel.name === level.Code.toLowerCase() && channel.parent.id == ts.channels.levelDiscussionCategory); //not sure should specify guild/server
 
       if(!discussionChannel){
         //Create new channel and set parent to category
@@ -866,7 +866,11 @@ const TS=function(guild_id,config,client){ //loaded after gs
               var curr_user=await guild.members.get(author.discord_id)
               if(curr_user){ //assign role
                 await curr_user.addRole(ts.channels.shellcult_id)
-                await client.channels.get(ts.channels.initiateChannel).send("<a:ts_2:632758958284734506><a:ts_2:632758958284734506><a:ts_1:632758942992302090> <:SpigLove:628057762449850378> We welcome <@"+author.discord_id+"> into the shell cult <:PigChamp:628055057690132481> <a:ts_2:632758958284734506><a:ts_2:632758958284734506><a:ts_1:632758942992302090> <:bam:628731347724271647>")
+                if(ts.config.url_slug == 'teamshell'){
+                  await client.channels.get(ts.channels.initiateChannel).send("<a:ts_2:632758958284734506><a:ts_2:632758958284734506><a:ts_1:632758942992302090> <:SpigLove:628057762449850378> We welcome <@"+author.discord_id+"> into the shell cult <:PigChamp:628055057690132481> <a:ts_2:632758958284734506><a:ts_2:632758958284734506><a:ts_1:632758942992302090> <:bam:628731347724271647>")
+                } else {
+                  await client.channels.get(ts.channels.initiateChannel).send("We welcome <@"+author.discord_id+"> into the team!")
+                }
               } else {
                 console.error(author.Name+" was not found in the discord") //not a breaking error.
               }
@@ -988,14 +992,14 @@ const TS=function(guild_id,config,client){ //loaded after gs
   }
 
   this.deleteDiscussionChannel=async function(levelCode,reason){
-    var levelChannel=this.getGuild().channels.find(channel => channel.name === levelCode.toLowerCase() && channel.parent.name === "level-discussion")
+    var levelChannel=this.getGuild().channels.find(channel => channel.name === levelCode.toLowerCase() && channel.parent.id == ts.channels.levelDiscussionCategory)
       if(levelChannel){
         await levelChannel.delete(reason)
       }
   }
 
   this.deleteReuploadChannel=async function(levelCode,reason){
-    var levelChannel=this.getGuild().channels.find(channel => channel.name === levelCode.toLowerCase() && channel.parent.name === "pending-reuploads")
+    var levelChannel=this.getGuild().channels.find(channel => channel.name === levelCode.toLowerCase() && channel.parent.id == ts.channels.pendingReuploadCategory)
       if(levelChannel){
         await levelChannel.delete(reason)
       }

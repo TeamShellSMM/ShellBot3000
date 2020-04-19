@@ -19,7 +19,7 @@ class tsreupload extends Command {
           message.reply(error)
           throw error;
         }
-        
+
       try {
         let command=ts.parse_command(message);
         let oldCode=command.arguments.shift()
@@ -137,7 +137,7 @@ class tsreupload extends Command {
 
           let guild=ts.getGuild()
 
-          discussionChannel = guild.channels.find(channel => channel.name === new_level.Code.toLowerCase() && channel.parent.name === "pending-reuploads"); //not sure should specify guild/server
+          discussionChannel = guild.channels.find(channel => channel.name === new_level.Code.toLowerCase() && channel.parent.id == ts.channels.pendingReuploadCategory); //not sure should specify guild/server
 
           if(discussionChannel){
             await ts.deleteReuploadChannel(newCode,"Justice has been met!")
@@ -166,7 +166,7 @@ class tsreupload extends Command {
         }
 
         let guild=ts.getGuild();
-        let existingChannel=guild.channels.find(channel => channel.name === oldCode.toLowerCase() && channel.parent.name === "level-discussion")
+        let existingChannel=guild.channels.find(channel => channel.name === oldCode.toLowerCase() && channel.parent.id == ts.channels.levelDiscussionCategory)
         if(existingChannel){
           await existingChannel.setName(newCode.toLowerCase())
           await existingChannel.send("This level has been reuploaded from "+oldCode+" to "+newCode+". Below are the comments of the old level")

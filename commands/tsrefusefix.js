@@ -16,7 +16,7 @@ class TSRefuseFix extends Command {
         message.reply(error)
         throw error;
       }
-      
+
       try{
         let command=ts.parse_command(message);
         let code=command.arguments.shift()
@@ -50,7 +50,7 @@ class TSRefuseFix extends Command {
 
         let guild=ts.getGuild()
 
-        discussionChannel = guild.channels.find(channel => channel.name === level.Code.toLowerCase() && channel.parent.name === "pending-reuploads"); //not sure should specify guild/server
+        discussionChannel = guild.channels.find(channel => channel.name === level.Code.toLowerCase() && channel.parent.id == ts.channels.pendingReuploadCategory); //not sure should specify guild/server
 
         if(!discussionChannel){
           //Create new channel and set parent to category
