@@ -39,7 +39,7 @@ class points extends Command {
         if(player.earned_points.available>=0){
            msg+="You have enough points to upload a level "+ (ts.emotes.PigChamp ? ts.emotes.PigChamp : "");
         } else {
-           msg+="You need "+Math.abs(player.earned_points.available).toFixed(1)+" points to upload a new level"+ (ts.emotes.buzzyS ? " " + ts.emotes.buzzyS : "")+". Check how the points are mapped on https://makerteams.net/" + ts.team_config.url_slug;
+           msg+="You need "+Math.abs(player.earned_points.available).toFixed(1)+" points to upload a new level"+ (ts.emotes.buzzyS ? " " + ts.emotes.buzzyS : "")+". Check how the points are mapped on https://makerteams.net/" + ts.config.config.url_slug;
         }
         msg+=" You have earned the rank **"+player.rank.Rank+"** "+ (player.rank.Pips ? player.rank.Pips : "")
 

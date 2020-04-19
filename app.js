@@ -51,7 +51,7 @@ client.on("ready", async () => {
     } else {
       team_config.config=team_config.config?JSON.parse(team_config.config):{}
       team_config.web_config=team_config.web_config?JSON.parse(team_config.web_config):{}
-      global.TS_LIST[guild.id]=new TS(guild.id,team_config.config,client,team_config)
+      global.TS_LIST[guild.id]=new TS(guild.id,team_config.config,client)
       await global.TS_LIST[guild.id].load()
       global.TS_LIST[guild.id].db.Teams=Teams
       global.TS_LIST[guild.id].config=team_config
@@ -384,7 +384,7 @@ app.post('/feedback',async (req,res)=>{
       let ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
       let discordId = req.body.discord_id;
 
-      await ts.putFeedback(ip, discordId, config.feedback_salt, req.body.message);
+      await ts.putFeedback(ip, discordId, ts.config.config.feedback_salt, req.body.message);
 
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
       res.send(JSON.stringify({
