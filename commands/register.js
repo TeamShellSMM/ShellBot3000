@@ -33,11 +33,11 @@ class TSRegister extends Command {
           if(!args.nickname)
             args.nickname=message.author.username
           args.nickname=args.nickname.replace(/\\/g,'');
-          ts.gs.select("Raw Members").forEach((member)=>{
-            if(member && args.nickname.toLowerCase()==member.Name.toLowerCase()){
-              ts.userError("\""+member.Name+"\" has already been registered by someone else. Please use another nickname")
-            }
-          })
+          ts.gs.select("Raw Members",{},true).forEach((member)=>{
+              if(member && args.nickname.toLowerCase()==member.Name.toLowerCase()){
+                ts.userError("\""+member.Name+"\" has already been registered by someone else. Please use another nickname")
+              }
+            })
 
           var row={
             "Name":args.nickname,

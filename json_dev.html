@@ -8,10 +8,13 @@
 <h1>ShellBot API tester</h1>
 <div class="container">
 
+<label> Team <input id="urlSlugInput" class="form-control" type="text" value="teamshell"/></label>
+
 <div class="row">
 <div class="col-sm-12">
 <code id="loginOut"></code>
 <form id="postsJson" method="post">
+  <input type="hidden" name="url_slug" value="teamshell"/>
   <h3>Authentication Info (To be stored in localStorage)</h3>
   <label>discord_id<input id="discord_id" name="discord_id" class="form-control"/></label>
   <label>bearer token<input id="bearer_token" name="bearer_token" class="form-control"/></label>
@@ -27,6 +30,7 @@
 <h3>Clear Checker</h3>
 <code id="clearOut"></code>
 <form id="clear" method="post">
+  <input type="hidden" name="url_slug" value="teamshell"/>
   <label>Code <input class="form-control" type="text" name="code"/></label>
   <label>Completed<input type="text" class="form-control" name="completed" value="1"/></label>
   <label>Difficulty vote<input type="text" class="form-control" name="difficulty"/></label>
@@ -42,6 +46,7 @@
 <h3>Random</h3>
 <code id="randomOut"></code>
 <form class="form" id="random" method="post">
+  <input type="hidden" name="url_slug" value="teamshell"/>
   <label>Min Difficulty<input class="form-control" type="text" name="minDifficulty"/></label>
   <label>Max Difficulty<input class="form-control" type="text" name="maxDifficulty"/></label>
   <input class="form-control btn btn-primary" type="submit" name="action" value="Random"/>
@@ -54,6 +59,7 @@
 <h3>Approval</h3>
 <code id="approvalOut"></code>
 <form id="approve" method="post">
+  <input type="hidden" name="url_slug" value="teamshell"/>
   <label>Code <input class="form-control" type="text" name="code"/></label>
   <label>Type<input class="form-control" type="text" name="type" placeholder="accept/reject" /></label>
   <label>Completed<input type="text" class="form-control" name="completed" value="1"/></label>
@@ -76,11 +82,18 @@ var discord_id=null;
 var token=null;
 var lastUpdated=null;
 
+$("input[name=url_slug").val($("#urlSlugInput").val())
+
+$("#urlSlugInput").change(function(){
+  $("input[name=url_slug").val($("#urlSlugInput").val())
+})
+
 $.ajax({
     url : "./json/login",
     type: "post",
     data : {
-      otp:location.search.substring(7)
+      otp:location.search.substring(7),
+      url_slug:$("#urlSlugInput").val(),
     }
   }).done(function(response){ //
     console.log(response)
@@ -103,7 +116,8 @@ $("#postsJson").submit(function(event){
     url : "./json",
     type: "post",
     data : {
-      token:token
+      token:token,
+      url_slug:$("#urlSlugInput").val()
     }
   }).done(function(response){ //
     console.log(response)

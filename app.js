@@ -33,15 +33,17 @@ global.get_ts=function(guild_id){
 
 function get_web_ts(url_slug){
   for(var id in global.TS_LIST){
-    if(global.TS_LIST[id].config.url_slug == url_slug)
+    if(global.TS_LIST[id] && global.TS_LIST[id].config && global.TS_LIST[id].config.url_slug == url_slug){
       return global.TS_LIST[id];
+    }
   }
   return false
 }
 
+
 client.on("ready", async () => {
   console.log(config.botName+` has started, with ${client.users.size} users, in ${client.channels.size} channels of ${client.guilds.size} guilds.`); 
-  client.guilds.forEach(async guild =>{
+  await client.guilds.forEach(async guild =>{
     let Teams = require('./models/Teams.js')(guild.id);
     let team_config=await Teams.query().select().first();
     if(team_config==null){
@@ -194,6 +196,7 @@ async function generateSiteJson(ts,isShellder){
 
 function get_slug(){
   console.log(req.headers)
+  console.log(req.body)
   let refer=req.headers.referer.split(req.host)[1].split('/')
   //console.log(refer)
 }
@@ -202,9 +205,10 @@ app.get('/json', async (req, res) => {
   
   try {
     console.log(req.headers)
+    console.log(req.body)
     var ts=get_web_ts(req.body.url_slug)
   } catch(error){
-    //console.log(error)
+    console.error(error)
     throw error;
   }
 
@@ -221,13 +225,15 @@ app.get('/json', async (req, res) => {
 });
 
 app.post('/json',async (req,res)=>{
-  
+    var ts=null
+    console.log(req.body)
     try {
-      //console.log(req.headers.referer)
-      var ts=get_web_ts(req.body.url_slug)
-    } catch(error){
-      res.send(error)
-      //console.log(error)
+      ts=get_web_ts(req.body.url_slug)
+      if(!ts)
+        throw "No data found";
+    } catch(error){`
+      res.send(error)`
+      console.error(error)
       return false
     }
 
@@ -236,10 +242,14 @@ app.post('/json',async (req,res)=>{
       req.body.discord_id=await ts.checkBearerToken(req.body.token)
       var user=await ts.get_user(req.body.discord_id)
     }
+
+      console.log(req.body)
+      console.log(ts)
       let json = await generateSiteJson(ts,user?user.shelder:false)
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
       res.send(JSON.stringify(json));
     } catch (error){
+      console.error(error)
       res.send(ts.getWebUserErrorMsg(error))
     }
 })
@@ -249,10 +259,11 @@ app.post('/clear',async (req,res)=>{
     
     try {
       console.log(req.headers)
+      console.log(req.body)
       var ts=get_web_ts(req.body.url_slug)
     } catch(error){
       res.send(error)
-      //console.log(error)
+      console.error(error)
       return false
     }
 
@@ -280,10 +291,11 @@ app.post('/approve',async (req,res)=>{
   
   try {
     console.log(req.headers)
+    console.log(req.body)
     var ts=get_web_ts(req.body.url_slug)
   } catch(error){
     res.send(error)
-      //console.log(error)
+      console.error(error)
       return false
   }
     try {
@@ -317,19 +329,23 @@ app.post('/random',async (req,res)=>{
   
   try {
     console.log(req.headers)
+    console.log(req.body)
     var ts=get_web_ts(req.body.url_slug)
   } catch(error){
-    res.send(error)
-      //console.log(error)
+      res.send(error)
+      console.log(error)
       return false
   }
-
+  
     try {
 
       if(req.body.token){
         req.body.discord_id=await ts.checkBearerToken(req.body.token)
         var user=await ts.get_user(req.body.discord_id)
       }
+
+
+      
 
       let rand=await ts.randomLevel(req.body)
       rand.status="sucessful"
@@ -344,10 +360,11 @@ app.post('/feedback',async (req,res)=>{
   
   try {
     console.log(req.headers)
+    console.log(req.body)
     var ts=get_web_ts(req.body.url_slug)
   } catch(error){
     res.send(error)
-    //console.log(error)
+    console.error(error)
     return false
   }
 
@@ -385,10 +402,11 @@ app.post('/json/login', async (req, res) => {
   
   try {
     console.log(req.headers)
+    console.log(req.body)
     var ts=get_web_ts(req.body.url_slug)
   } catch(error){
     res.send(error)
-    //console.log(error)
+    console.error(error)
     return false
   }
 

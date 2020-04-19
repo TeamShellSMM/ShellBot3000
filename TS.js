@@ -1092,7 +1092,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
   }
 
   this.calculatePoints= async function(user,if_remove_check){ //delta check is to see if we can add a level if we remove it
-    var currentLevels = ts.gs.select("Raw Levels");
+    var currentLevels = ts.gs.select("Raw Levels",{},true);
     var levelMap={};
     var ownLevels=[];
     var freeSubmissions=0;
