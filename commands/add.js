@@ -47,7 +47,7 @@ class tsadd extends Command {
           Approved:0
         })
 
-        var reply="The level \""+level_name+"\" ("+code+") has been added"+ts.emotes.love
+        var reply="The level \""+level_name+"\" ("+code+") has been added"+(ts.emotes.love ? ts.emotes.love : "")
         message.channel.send(player.user_reply+reply)
       } catch (error) {
         message.reply(ts.getUserErrorMsg(error))

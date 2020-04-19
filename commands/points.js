@@ -37,7 +37,7 @@ class points extends Command {
         var msg="You have "+player.earned_points.clearPoints+" clear points. You have submitted "+player.earned_points.levelsMade+" level"+ts.plural(player.earned_points.levelsMade)+" "+(player.earned_points.freeSubmissions?"("+player.earned_points.freeSubmissions+" free submission"+ts.plural(player.earned_points.freeSubmissions)+")":"")+". "
 
         if(player.earned_points.available>=0){
-           msg+="You have enough points to upload a level "+ts.emotes.PigChamp;
+           msg+="You have enough points to upload a level "+ (ts.emotes.PigChamp ? ts.emotes.PigChamp : "");
         } else {
            msg+="You need "+Math.abs(player.earned_points.available).toFixed(1)+" points to upload a new level"+ (ts.emotes.buzzyS ? " " + ts.emotes.buzzyS : "")+". Check how the points are mapped on https://makerteams.net/" + ts.team_config.url_slug;
         }
