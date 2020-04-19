@@ -174,7 +174,7 @@ class tsreupload extends Command {
           await existingChannel.send(oldEmbed)
         }
 
-        var reply="You have reuploaded \""+level["Level Name"]+"\" by "+level.Creator+" with code ("+newCode+")."+ts.emotes.bam
+        var reply="You have reuploaded \""+level["Level Name"]+"\" by "+level.Creator+" with code ("+newCode+")."+(ts.emotes.bam ? ts.emotes.bam : "")
         if(!new_level){
           reply+=" If you want to rename the new level, you can use !tsrename new-code level name."
         }

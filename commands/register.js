@@ -11,7 +11,7 @@ class TSRegister extends Command {
            channelRestriction: 'guild'
         });
     }
-    
+
     async exec(message,args) {
         try {
           var ts=get_ts(message.guild.id)
@@ -19,7 +19,7 @@ class TSRegister extends Command {
           message.reply(error)
           throw error;
         }
-  
+
         try{
           await ts.gs.loadSheets(["Raw Members"]);
           const player=ts.gs.select("Raw Members",{"discord_id":message.author.id});
@@ -45,8 +45,8 @@ class TSRegister extends Command {
             "discord_name":message.author.username,
           }
 
-            await ts.gs.insert("Raw Members",row);          
-            message.reply("You are now registered as \""+args.nickname+"\". You can now start submitting your clears in #level-clears "+ts.emotes.bam)
+            await ts.gs.insert("Raw Members",row);
+            message.reply("You are now registered as \""+args.nickname+"\". You can now start submitting your clears in #level-clears "+(ts.emotes.bam ? ts.emotes.bam : ""))
         } catch(error){
             message.reply(ts.getUserErrorMsg(error))
         }

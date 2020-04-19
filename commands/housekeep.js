@@ -42,7 +42,7 @@ class housekeep extends Command {
                     }
                 }
             });
-            message.reply("Housekeeping done "+ts.emotes.robo)
+            message.reply("Housekeeping done "+(ts.emotes.robo ? ts.emotes.robo : ""))
 
         } catch(error){
             message.reply(ts.getUserErrorMsg(error))

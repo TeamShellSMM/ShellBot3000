@@ -17,7 +17,7 @@ class TSAddtags extends Command {
         message.reply(error)
         throw error;
       }
-      
+
       try {
         const addCommands=['tsaddtags','addtags','tsaddtag','addtag']
 
@@ -82,7 +82,7 @@ class TSAddtags extends Command {
           if(new_tags.length==0)
             ts.userError("No new tags added for \""+level["Level Name"]+"\" by "+level.Creator+"\nCurrent tags:```\n"+old_tags.join("\n")+"```")
           old_tags=old_tags.concat(new_tags)
-          var reply="Tags added for  \""+level["Level Name"]+"\" ("+code+")"+ts.emotes.bam+"\nCurrent tags:```\n"+old_tags.join("\n")+"```"
+          var reply="Tags added for  \""+level["Level Name"]+"\" ("+code+")"+(ts.emotes.bam ? ts.emotes.bam : "")+"\nCurrent tags:```\n"+old_tags.join("\n")+"```"
         } else { // removing
           if(!(level.Creator==player.Name || player.shelder=="1"))
             ts.userError("You can't remove tags from  \""+level["Level Name"]+"\" by "+level.Creator);
@@ -109,7 +109,7 @@ class TSAddtags extends Command {
           if(notRemoved)
             ts.userError("No tags have been removed for \""+level["Level Name"]+"\" ("+code+")\nCurrent Tags:```\n"+old_tags.join("\n")+"```")
           old_tags=new_tags
-          var reply="Tags removed for  \""+level["Level Name"]+"\" ("+code+")"+ts.emotes.bam+"\nCurrent tags:```\n"+old_tags.join("\n")+"```"
+          var reply="Tags removed for  \""+level["Level Name"]+"\" ("+code+")"+(ts.emotes.bam ? ts.emotes.bam : "")+"\nCurrent tags:```\n"+old_tags.join("\n")+"```"
         }
 
 

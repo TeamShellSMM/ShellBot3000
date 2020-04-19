@@ -53,8 +53,11 @@ class tsremove extends Command {
 
         var removeEmbed=ts.levelEmbed(level,1)
             .setColor("#dc3545")
-            .setAuthor("This level has been removed by "+player.Name)
-            .setThumbnail(ts.getEmoteUrl(ts.emotes.buzzyS));
+            .setAuthor("This level has been removed by "+player.Name);
+
+        if(ts.emotes.buzzyS){
+          removeEmbed.setThumbnail(ts.getEmoteUrl(ts.emotes.buzzyS));
+        }
 
           removeEmbed.addField("\u200b","**Reason for removal** :```"+reason+"```-<@" +player.discord_id + ">");
           removeEmbed = removeEmbed.setTimestamp();
@@ -68,7 +71,7 @@ class tsremove extends Command {
 
         await ts.deleteDiscussionChannel(level.Code,"Level has been removed via !tsremove")
 
-        var reply="You have removed \""+level["Level Name"]+"\" by "+level.Creator+" "+ts.emotes.buzzyS
+        var reply="You have removed \""+level["Level Name"]+"\" by "+level.Creator+" "+(ts.emotes.buzzyS ? ts.emotes.buzzyS : "")
         await this.client.channels.get(ts.channels.shellderLevelChanges).send(removeEmbed);
         await message.channel.send(player.user_reply+reply)
       } catch (error) {

@@ -19,7 +19,7 @@ class atmebot extends Command {
           message.reply(error)
           throw error;
         }
-        
+
         try{
           const atmeCommands=["atmebot",'atme']
           var command=ts.parse_command(message);
@@ -30,11 +30,11 @@ class atmebot extends Command {
           if(atmeCommands.indexOf(command.command)!=-1){
             var atmeVal="1"
             var alreadyError="You already have chosen to be atted"
-            var msg="You will be atted by ShellBot "+ts.emotes.bam
+            var msg="You will be atted by ShellBot "+(ts.emotes.bam ? ts.emotes.bam : "")
           } else {
             var atmeVal=""
             var alreadyError="You already have chosen to be not atted"
-            var msg="You will be not be atted by ShellBot "+ts.emotes.bam
+            var msg="You will be not be atted by ShellBot "+(ts.emotes.bam ? ts.emotes.bam : "")
 
           }
 

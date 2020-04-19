@@ -14,7 +14,7 @@ class TSRename extends Command {
         message.reply(error)
         throw error;
       }
-      
+
       try {
         let command=ts.parse_command(message);
         let code=command.arguments.shift()
@@ -49,7 +49,7 @@ class TSRename extends Command {
         await ts.gs.batchUpdate(level.update_ranges)
 
 
-        var reply="The level \""+level["Level Name"]+"\" ("+code+") has been renamed to \""+level_name+"\" "+ts.emotes.bam
+        var reply="The level \""+level["Level Name"]+"\" ("+code+") has been renamed to \""+level_name+"\" "+(ts.emotes.bam ? ts.emotes.bam : "")
         message.channel.send(player.user_reply+reply)
       } catch (error) {
         message.reply(ts.getUserErrorMsg(error))

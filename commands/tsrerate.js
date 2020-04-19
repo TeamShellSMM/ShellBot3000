@@ -22,7 +22,7 @@ class TSRerate extends Command {
            channelRestriction: 'guild'
         });
     }
-    
+
     async exec(message,args) {
       try {
         var ts=get_ts(message.guild.id)
@@ -30,13 +30,13 @@ class TSRerate extends Command {
         message.reply(error)
         throw error;
       }
-      
+
       try{
-      if(!( 
+      if(!(
         message.channel.id === ts.channels.shellderShellbot  //only in bot-test channel
       )) return false;
 
-      if(args.code){        
+      if(args.code){
         args.code = args.code.toUpperCase();
       }
 
@@ -53,7 +53,7 @@ class TSRerate extends Command {
 
       if(level.Approved!=="1")
         ts.userError("Level is not an approved level")
-      
+
 
       if(!args.reason)
         ts.userError("You need to give a reason for the change (in quotation marks)!");
@@ -71,7 +71,7 @@ class TSRerate extends Command {
       if(updateLevel.Code == args.code){
         await ts.gs.batchUpdate(updateLevel.update_ranges);
       }
-      
+
       var rerateEmbed = ts.levelEmbed(level)
             .setColor("#17a2b8")
             .setAuthor("Difficulty rating updated from "+oldDiff + " to " + args.difficulty)
