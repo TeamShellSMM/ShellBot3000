@@ -1059,6 +1059,170 @@ const TS=function(guild_id,config,client){ //loaded after gs
     }
   }
 
+  this.reuploadLevel=async function(message){
+    let command=ts.parse_command(message);
+
+    let oldCode=command.arguments.shift()
+    if(oldCode)
+      oldCode=oldCode.toUpperCase()
+
+    if(!ts.valid_code(oldCode))
+      ts.userError("You did not provide a valid code for the old level")
+
+
+    let newCode=command.arguments.shift()
+    if(newCode)
+      newCode=newCode.toUpperCase()
+
+    if(!ts.valid_code(newCode))
+      ts.userError("You did not provide a valid code for the new level")
+
+    const reason=command.arguments.join(" ")
+
+    if(oldCode==newCode)
+      ts.userError("The codes given were the same")
+    if(!reason){
+      ts.userError("Please provide a little message on why you reuploaded at the end of the command (in quotes)")
+    }
+
+    await ts.gs.loadSheets(["Raw Members","Raw Levels"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
+
+    var player=ts.gs.select("Raw Members",{
+      "discord_id":message.author.id
+    })
+
+    if(!player)
+      ts.userError("You are not yet registered");
+    var earned_points=await ts.calculatePoints(player.Name);
+    var rank=ts.get_rank(earned_points.clearPoints);
+    var user_reply="<@"+message.author.id+">"+(rank.Pips ? rank.Pips : "")+" ";
+
+    var level=ts.getExistingLevel(oldCode,true)
+    var new_level=ts.gs.select("Raw Levels",{"Code":newCode}) //new level just incase they've already tsadded
+
+    var oldApproved = level.Approved;
+
+    var older_level=ts.gs.query("Raw Levels",{ //this is just in case this is not the first reupload. assign
+      filter:{"NewCode":oldCode},
+      update:{"NewCode":newCode}
+    },true)
+
+    if(!level) ts.userError("Level not found");
+
+    var creator_points=await ts.calculatePoints(level.Creator,level.Approved=="1" || level.Approved=="0")
+
+    if(new_level && level.Creator!=new_level.Creator)
+      ts.userError("The new level uploaded doesn't have the same creator as the old level");
+    if(new_level && new_level.Approved!=0 && new_level.Approved!=1 && new_level.Approved!=-10)
+      ts.userError("The new level is not approved, pending or in a fix request");
+    if(!new_level && creator_points.available<0)
+      ts.userError("Creator doesn't have enough to upload a new level");
+    if(level.NewCode && ts.valid_code(level.NewCode))
+      ts.userError("Level has already been reuploaded with Code "+level.NewCode)
+
+    //only creator and shellder can reupload a level
+    if(!(level.Creator==player.Name || player.shelder=="1"))
+      ts.userError("You can't reupload \""+level["Level Name"]+"\" by "+level.Creator);
+
+    level=ts.gs.query("Raw Levels",{
+      filter:{"Code":oldCode},
+      update:{"Approved":level.Approved=="1"?2:-1,"NewCode":newCode},
+    })
+    var batch_updates=level.update_ranges
+    //combine all the updates into one array to be passed to gs.batchUpdate
+
+    if(older_level){
+      older_level.forEach((o)=>{
+        batch_updates=batch_updates.concat(o.update_ranges)
+      })
+
+    }
+    if(!new_level){ //if no new level was found create a new level copying over the old data
+      await ts.gs.insert("Raw Levels",{
+        Code:newCode,
+        "Level Name":level["Level Name"],
+        Creator:level.Creator,
+        Difficulty:0,
+        Approved:0,
+        Tags:level.Tags
+      });
+    }
+
+    if(batch_updates!=null){
+      await ts.gs.batchUpdate(batch_updates)
+    }
+
+    await ts.deleteReuploadChannel(oldCode,"Justice has been met!")
+
+    if(oldApproved == -10 || oldApproved == 1){
+      //set the new one to fix request status and add channel
+      //Move pending votes to the new level
+      await ts.db.PendingVotes.query().where("code",oldCode).where("is_shellder",1)
+        .update({
+          code: newCode
+        });
+
+      await ts.gs.loadSheets(["Raw Members","Raw Levels"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
+      new_level=ts.gs.query("Raw Levels",{
+        filter:{"Code":newCode},
+        update:{"Approved":-10},
+      })
+      await ts.gs.batchUpdate(new_level.update_ranges);
+      const author = ts.gs.select("Raw Members",{"Name":new_level.Creator});
+
+      var overviewMessage;
+      var discussionChannel;
+
+      let guild=ts.getGuild()
+
+      discussionChannel = guild.channels.find(channel => channel.name === new_level.Code.toLowerCase() && channel.parent.id == ts.channels.pendingReuploadCategory); //not sure should specify guild/server
+
+      if(discussionChannel){
+        await ts.deleteReuploadChannel(newCode,"Justice has been met!")
+      }
+
+      //Create new channel and set parent to category
+      if(guild.channels.get(ts.channels.pendingReuploadCategory).children.size===50){
+        ts.userError("Can't handle the request right now because there are already 50 open reupload requests (this should really never happen)!")
+      }
+      discussionChannel = await guild.createChannel(newCode, {
+        type: 'text',
+        parent: guild.channels.get(ts.channels.pendingReuploadCategory)
+      });
+      //Post empty overview post
+      if(oldApproved == -10){
+        await discussionChannel.send("Reupload Request for <@" + author.discord_id + ">'s level with message: " + reason);
+        let voteEmbed = await ts.makePendingReuploadEmbed(new_level, author, false);
+        overviewMessage = await discussionChannel.send(voteEmbed);
+        overviewMessage = await overviewMessage.pin();
+      } else {
+        await discussionChannel.send("Reupload Request for <@" + author.discord_id + ">'s level: ");
+        let voteEmbed = await ts.makePendingReuploadEmbed(new_level, author, false, reason);
+        overviewMessage = await discussionChannel.send(voteEmbed);
+        overviewMessage = await overviewMessage.pin();
+      }
+    }
+
+    let guild=ts.getGuild();
+    let existingChannel=guild.channels.find(channel => channel.name === oldCode.toLowerCase() && channel.parent.id == ts.channels.levelDiscussionCategory)
+    if(existingChannel){
+      await existingChannel.setName(newCode.toLowerCase())
+      await existingChannel.send("This level has been reuploaded from "+oldCode+" to "+newCode+". Below are the comments of the old level")
+      let oldEmbed=await ts.makeVoteEmbed(level)
+      await existingChannel.send(oldEmbed)
+    }
+
+    var reply="You have reuploaded \""+level["Level Name"]+"\" by "+level.Creator+" with code ("+newCode+")."+(ts.emotes.bam ? ts.emotes.bam : "")
+    if(!new_level){
+      reply+=" If you want to rename the new level, you can use !tsrename new-code level name."
+    }
+    if(oldApproved == -10 || oldApproved == 1){
+      reply += " Your level has also been put in the reupload queue, we'll get back to you shortly."
+    }
+
+    return user_reply+reply;
+  }
+
   this.get_levels=async function(isMap){ //get the aggregates
       var clears={}
       var plays = await ts.db.Plays.query();
