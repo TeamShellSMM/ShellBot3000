@@ -14,7 +14,7 @@ if(config.json_dev){
   app.use("/dev", express.static(__dirname + '/json_dev.html'));
 }
 
-const client = new AkairoClient(config, { 
+const client = new AkairoClient(config, {
     disableEveryone: true
 });
 
@@ -28,7 +28,7 @@ global.get_ts=function(guild_id){
     return TS_LIST[guild_id];
   } else {
     throw "This team has not yet setup it's config, buzzyS";
-  } 
+  }
 }
 
 function get_web_ts(url_slug){
@@ -42,16 +42,16 @@ function get_web_ts(url_slug){
 
 
 client.on("ready", async () => {
-  console.log(config.botName+` has started, with ${client.users.size} users, in ${client.channels.size} channels of ${client.guilds.size} guilds.`); 
+  console.log(config.botName+` has started, with ${client.users.size} users, in ${client.channels.size} channels of ${client.guilds.size} guilds.`);
   await client.guilds.forEach(async guild =>{
     let Teams = require('./models/Teams.js')(guild.id);
     let team_config=await Teams.query().select().first();
     if(team_config==null){
-      
+
     } else {
       team_config.config=team_config.config?JSON.parse(team_config.config):{}
       team_config.web_config=team_config.web_config?JSON.parse(team_config.web_config):{}
-      global.TS_LIST[guild.id]=new TS(guild.id,team_config.config,client)
+      global.TS_LIST[guild.id]=new TS(guild.id,team_config.config,client,team_config)
       await global.TS_LIST[guild.id].load()
       global.TS_LIST[guild.id].db.Teams=Teams
       global.TS_LIST[guild.id].config=team_config
@@ -202,7 +202,7 @@ function get_slug(){
 }
 
 app.get('/json', async (req, res) => {
-  
+
   try {
     console.log(req.headers)
     console.log(req.body)
@@ -255,8 +255,8 @@ app.post('/json',async (req,res)=>{
 })
 
 app.post('/clear',async (req,res)=>{
-    
-    
+
+
     try {
       console.log(req.headers)
       console.log(req.body)
@@ -288,7 +288,7 @@ app.post('/clear',async (req,res)=>{
 
 
 app.post('/approve',async (req,res)=>{
-  
+
   try {
     console.log(req.headers)
     console.log(req.body)
@@ -326,7 +326,7 @@ app.post('/approve',async (req,res)=>{
 })
 
 app.post('/random',async (req,res)=>{
-  
+
   try {
     console.log(req.headers)
     console.log(req.body)
@@ -336,7 +336,7 @@ app.post('/random',async (req,res)=>{
       console.log(error)
       return false
   }
-  
+
     try {
 
       if(req.body.token){
@@ -345,7 +345,7 @@ app.post('/random',async (req,res)=>{
       }
 
 
-      
+
 
       let rand=await ts.randomLevel(req.body)
       rand.status="sucessful"
@@ -357,7 +357,7 @@ app.post('/random',async (req,res)=>{
 })
 
 app.post('/feedback',async (req,res)=>{
-  
+
   try {
     console.log(req.headers)
     console.log(req.body)
@@ -399,7 +399,7 @@ app.post('/feedback',async (req,res)=>{
 })
 
 app.post('/json/login', async (req, res) => {
-  
+
   try {
     console.log(req.headers)
     console.log(req.body)
