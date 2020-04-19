@@ -90,7 +90,6 @@ var GS=function(config){
     })
     var returnData={}
     let data=JSON.parse(response)
-    console.log(">>> data", data);
     this.lastUpdated=this.timestamp()
 
     if(data.valueRanges){
@@ -98,6 +97,7 @@ var GS=function(config){
         var range=data.valueRanges[i].range.split("!")
         range=range[0].replace(/'/g,'')
         ArrayCache[range]=JSON.stringify(data.valueRanges[i].values)
+        console.log(">>> data", data.valueRanges[i].values);
         var header=data.valueRanges[i].values.shift()
         json_header[range]=header;
         returnData[range]=[]
