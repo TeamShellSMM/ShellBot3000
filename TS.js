@@ -2,6 +2,7 @@
 const stringSimilarity = require('string-similarity')
 const crypto=require('crypto')
 const moment=require('moment')
+const server_config = require('./config.json');
 const GS=require("./GS.js");
 const TS=function(guild_id,config,client){ //loaded after gs
   const ts=this
@@ -1022,7 +1023,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
     videoStr=videoStr.join(",")
     var tagStr=[]
     level.Tags.split(",").forEach((tag)=>{
-      if(tag) tagStr.push("["+tag+"](" + ts.config.page_url + ts.config.url_slug + "/levels/"+encodeURIComponent(tag)+")")
+      if(tag) tagStr.push("["+tag+"](" + server_config.page_url + ts.config.url_slug + "/levels/"+encodeURIComponent(tag)+")")
     })
     tagStr=tagStr.join(",")
     var embed = client.util.embed()
@@ -1030,13 +1031,13 @@ const TS=function(guild_id,config,client){ //loaded after gs
         .setTitle(level["Level Name"] + " (" + level.Code + ")")
         .setDescription(
           "made by "+
-          (noLink?level.Creator:"[" + level.Creator + "](" + ts.config.page_url + ts.config.url_slug + "/maker/" + encodeURIComponent(level.Creator) + ")")+"\n"+
+          (noLink?level.Creator:"[" + level.Creator + "](" + server_config.page_url + ts.config.url_slug + "/maker/" + encodeURIComponent(level.Creator) + ")")+"\n"+
           (level.clears!=undefined ? "Difficulty: "+level.Difficulty+", Clears: "+level.clears+", Likes: "+level.likes+"\n":"")+
             (tagStr?"Tags: "+tagStr+"\n":"")+
             (videoStr?"Clear Video: "+videoStr:"")
         )
       if(!noLink){
-        embed.setURL(ts.config.page_url + ts.config.url_slug + "/level/" + level.Code)
+        embed.setURL(server_config.page_url + ts.config.url_slug + "/level/" + level.Code)
       }
 
           //randomEmbed.addField(,);
