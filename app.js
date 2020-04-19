@@ -6,8 +6,6 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const moment = require('moment');
 const compression = require('compression')
-
-
 const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(compression())
@@ -16,7 +14,7 @@ if(config.json_dev){
   app.use("/dev", express.static(__dirname + '/json_dev.html'));
 }
 
-const client = new AkairoClient(config, { //not sure this is a good idea or not
+const client = new AkairoClient(config, { 
     disableEveryone: true
 });
 
@@ -25,16 +23,40 @@ client.on("guildCreate", async guild => {
 });
 
 global.TS_LIST={}
+global.get_ts=function(guild_id){
+  if(TS_LIST[guild_id]){
+    return TS_LIST[guild_id];
+  } else {
+    throw "This team has not yet setup it's config, buzzyS";
+  } 
+}
+
+function get_web_ts(url_slug){
+  for(var id in global.TS_LIST){
+    if(global.TS_LIST[id].config.url_slug == url_slug)
+      return global.TS_LIST[id];
+  }
+  return false
+}
 
 client.on("ready", async () => {
-  console.log(`Bot has started, with ${client.users.size} users, in ${client.channels.size} channels of ${client.guilds.size} guilds.`); 
+  console.log(config.botName+` has started, with ${client.users.size} users, in ${client.channels.size} channels of ${client.guilds.size} guilds.`); 
   client.guilds.forEach(async guild =>{
-    global.TS_LIST[guild.id]=await new TS(guild.id,config,client)
-    global.TS_LIST[guild.id].load()
-    global.TS_LIST.guild_name=guild.name
-    global.TS_LIST.icon=guild.icon_url
+    let Teams = require('./models/Teams.js')(guild.id);
+    let team_config=await Teams.query().select().first();
+    if(team_config==null){
+      
+    } else {
+      team_config.config=team_config.config?JSON.parse(team_config.config):{}
+      team_config.web_config=team_config.web_config?JSON.parse(team_config.web_config):{}
+      global.TS_LIST[guild.id]=new TS(guild.id,team_config.config,client)
+      await global.TS_LIST[guild.id].load()
+      global.TS_LIST[guild.id].db.Teams=Teams
+      global.TS_LIST[guild.id].config=team_config
+      global.TS_LIST.guild_name=guild.name
+      global.TS_LIST.icon=guild.icon_url
+    }
   })
-  await ts.load()
 });
 
 
@@ -42,14 +64,13 @@ client.on("ready", async () => {
   try {
     await client.login(config.discord_access_token);
     await app.listen(config.webPort, () => console.log(config.botName+':Web server now listening on '+config.webPort));
-   console.log(config.botName+":logged in")
 
  } catch(error){
   console.error(error)
  }
 })();
 
-async function generateSiteJson(isShellder){
+async function generateSiteJson(ts,isShellder){
   const SheetCache = ts.gs.getArrayFormat([
         "Raw Levels!J",
         "Seasons!B",
@@ -171,14 +192,28 @@ async function generateSiteJson(isShellder){
     return json;
 }
 
+function get_slug(){
+  console.log(req.headers)
+  let refer=req.headers.referer.split(req.host)[1].split('/')
+  //console.log(refer)
+}
+
 app.get('/json', async (req, res) => {
+  
+  try {
+    console.log(req.headers)
+    var ts=get_web_ts(req.body.url_slug)
+  } catch(error){
+    //console.log(error)
+    throw error;
+  }
 
   let lastUpdated = ts.gs.lastUpdated
   let json = null;
   if(req.query.lastLoaded==lastUpdated){
     json = "No Updated Needed"
   } else {
-    json = await generateSiteJson()
+    json = await generateSiteJson(ts)
   }
 
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -186,12 +221,22 @@ app.get('/json', async (req, res) => {
 });
 
 app.post('/json',async (req,res)=>{
+  
+    try {
+      //console.log(req.headers.referer)
+      var ts=get_web_ts(req.body.url_slug)
+    } catch(error){
+      res.send(error)
+      //console.log(error)
+      return false
+    }
+
     try {
     if(req.body.token){
       req.body.discord_id=await ts.checkBearerToken(req.body.token)
       var user=await ts.get_user(req.body.discord_id)
     }
-      let json = await generateSiteJson(user?user.shelder:false)
+      let json = await generateSiteJson(ts,user?user.shelder:false)
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
       res.send(JSON.stringify(json));
     } catch (error){
@@ -200,6 +245,17 @@ app.post('/json',async (req,res)=>{
 })
 
 app.post('/clear',async (req,res)=>{
+    
+    
+    try {
+      console.log(req.headers)
+      var ts=get_web_ts(req.body.url_slug)
+    } catch(error){
+      res.send(error)
+      //console.log(error)
+      return false
+    }
+
     try {
       if(req.body.token){
         req.body.discord_id=await ts.checkBearerToken(req.body.token)
@@ -221,6 +277,15 @@ app.post('/clear',async (req,res)=>{
 
 
 app.post('/approve',async (req,res)=>{
+  
+  try {
+    console.log(req.headers)
+    var ts=get_web_ts(req.body.url_slug)
+  } catch(error){
+    res.send(error)
+      //console.log(error)
+      return false
+  }
     try {
 
       if(req.body.token){
@@ -249,6 +314,16 @@ app.post('/approve',async (req,res)=>{
 })
 
 app.post('/random',async (req,res)=>{
+  
+  try {
+    console.log(req.headers)
+    var ts=get_web_ts(req.body.url_slug)
+  } catch(error){
+    res.send(error)
+      //console.log(error)
+      return false
+  }
+
     try {
 
       if(req.body.token){
@@ -266,6 +341,16 @@ app.post('/random',async (req,res)=>{
 })
 
 app.post('/feedback',async (req,res)=>{
+  
+  try {
+    console.log(req.headers)
+    var ts=get_web_ts(req.body.url_slug)
+  } catch(error){
+    res.send(error)
+    //console.log(error)
+    return false
+  }
+
   try {
     if(req.body.token && req.body.message){
       if(req.body.message.length > 1000){
@@ -297,6 +382,16 @@ app.post('/feedback',async (req,res)=>{
 })
 
 app.post('/json/login', async (req, res) => {
+  
+  try {
+    console.log(req.headers)
+    var ts=get_web_ts(req.body.url_slug)
+  } catch(error){
+    res.send(error)
+    //console.log(error)
+    return false
+  }
+
   try{
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
     let returnObj={}

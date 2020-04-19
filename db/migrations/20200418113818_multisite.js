@@ -1,8 +1,5 @@
 
 exports.up = async function(knex) {
-    await knex.schema.table('tokens', t => {
-        t.string('guild_id',30);
-    });
     await knex.schema.table('plays', t => {
         t.string('guild_id',30);
     });
@@ -13,9 +10,6 @@ exports.up = async function(knex) {
 };
 
 exports.down = async function(knex) {
-    await knex.schema.table('tokens', t => {
-        t.dropColumn('guild_id');
-    });
     await knex.schema.table('plays', t => {
         t.dropColumn('guild_id');
     });

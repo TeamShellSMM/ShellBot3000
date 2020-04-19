@@ -18,12 +18,18 @@ class tsinfo extends Command {
          //if(!(
         //    message.channel.id === ts.channels.shellderShellbot  //only in bot-test channel
         //)) return false;
+        try {
+          var ts=get_ts(message.guild.id)
+        } catch(error){
+          message.reply(error)
+          throw error;
+        }
+        
       try {
 
         args.code=args.code.toUpperCase();
         if(!ts.valid_format(args.code))
           ts.userError("You did not provide a valid format for the level");
-        var ts=TS_LIST[message.guild.id]
         await ts.gs.loadSheets(["Raw Members","Raw Levels"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
         const player=await ts.get_user(message);
         var level=ts.getExistingLevel(args.code)

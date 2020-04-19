@@ -1,10 +1,11 @@
-const TSModel = require('../TSModel.js')
+const { Model,QueryBuilder } = require('objection');
+const knex = require('../db/knex')
+Model.knex(knex)
 
-module.exports = (guild_id) => { 
-  class Tokens extends TSModel(guild_id) {
-    static get tableName() {
-      return 'tokens';
-    }
+class Tokens extends Model {
+  static get tableName() {
+    return 'tokens';
   }
-  return Tokens; 
 }
+
+module.exports = Tokens;

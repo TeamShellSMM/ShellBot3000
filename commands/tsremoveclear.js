@@ -15,8 +15,14 @@ class TSRemoveclear extends Command {
     }
 
     async exec(message,args) {
+        try {
+            var ts=get_ts(message.guild.id)
+          } catch(error){
+            message.reply(error)
+            throw error;
+          }
+          
         try{
-          var ts=TS_LIST[message.guild.id]
           args.completed=0
           args.discord_id=message.author.id
           let msg=await ts.clear(args)

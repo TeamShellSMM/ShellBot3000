@@ -13,8 +13,14 @@ class atmebot extends Command {
     }
 
     async exec(message,args) {
+        try {
+          var ts=get_ts(message.guild.id)
+        } catch(error){
+          message.reply(error)
+          throw error;
+        }
+        
         try{
-          var ts=TS_LIST[message.guild.id]
           const atmeCommands=["atmebot",'atme']
           var command=ts.parse_command(message);
 

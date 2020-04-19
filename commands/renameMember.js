@@ -22,8 +22,14 @@ class RenameMember extends Command {
     }
 
     async exec(message, args) {
+        try {
+            var ts=get_ts(message.guild.id)
+          } catch(error){
+            message.reply(error)
+            throw error;
+          }
+
         try{
-            var ts=TS_LIST[message.guild.id]
             await ts.load()
             let new_name_check=ts.gs.select("Raw Members",{"Name":args.new_name});
             if(gs.select("Raw Members",{"Name":args.new_name})){

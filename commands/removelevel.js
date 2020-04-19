@@ -9,11 +9,14 @@ class tsremove extends Command {
     }
 
     async exec(message,args) {
-         //if(!(
-        //    message.channel.id === ts.channels.shellderShellbot  //only in bot-test channel
-        //)) return false;
       try {
-        var ts=TS_LIST[message.guild.id]
+        var ts=get_ts(message.guild.id)
+      } catch(error){
+        message.reply(error)
+        throw error;
+      }
+
+      try {
         var command=ts.parse_command(message)
 
         var level_code=command.arguments.shift().toUpperCase();

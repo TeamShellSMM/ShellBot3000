@@ -4,13 +4,20 @@ class login extends Command {
     constructor() {
         super('login', {
            aliases: ['login','tslogin'],
-           cooldown: 5000
+           cooldown: 5000,
+           channelRestriction: 'guild'
         });
     }
 
     async exec(message,args) {
+        try {
+            var ts=get_ts(message.guild.id)
+          } catch(error){
+            message.reply(error)
+            throw error;
+          }
+
         try{
-          var ts=TS_LIST[message.guild.id]
           let command=ts.parse_command(message);
           await ts.gs.loadSheets(["Raw Members","Raw Levels"]);
           const player=await ts.get_user(message);

@@ -9,7 +9,13 @@ class tsadd extends Command {
 
     async exec(message,args) {
       try {
-        var ts=TS_LIST[message.guild.id]
+        var ts=get_ts(message.guild.id)
+      } catch(error){
+        message.reply(error)
+        throw error;
+      }
+
+      try {
         let command=ts.parse_command(message);
         let code=command.arguments.shift()
         if(code)

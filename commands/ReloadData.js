@@ -10,7 +10,13 @@ class ReloadData extends Command {
     }
 
     async exec(message, args) {
-        var ts=TS_LIST[message.guild.id]
+        try {
+            var ts=get_ts(message.guild.id)
+        } catch(error){
+            message.reply(error)
+            throw error;
+        }
+        
         await ts.load()
         return message.reply(`Reloaded data!`);
     }

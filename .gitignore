@@ -6,6 +6,8 @@ config/
 package-lock.json
 *.sqlite3
 
+.vscode
+
 # Logs
 logs
 *.log

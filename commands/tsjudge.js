@@ -10,8 +10,14 @@ class TSJudge extends Command {
     }
     
     async exec(message,args) {     
+      try {
+        var ts=get_ts(message.guild.id)
+      } catch(error){
+        message.reply(error)
+        throw error;
+      }
+      
       try{
-      var ts=TS_LIST[message.guild.id]
       var inCodeDiscussionChannel = false;
       var levelCode;
       //Check if in level discussion channel

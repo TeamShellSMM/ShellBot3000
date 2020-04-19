@@ -7,7 +7,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
   const ts=this
   this.gs=new GS(config)
   this.db={}
-  this.db.Tokens=require('./models/Tokens.js')(guild_id);
+  this.db.Tokens=require('./models/Tokens.js')
   this.db.Plays = require('./models/Plays.js')(guild_id);
   this.db.PendingVotes = require('./models/PendingVotes.js')(guild_id);
 

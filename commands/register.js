@@ -13,8 +13,14 @@ class TSRegister extends Command {
     }
     
     async exec(message,args) {
+        try {
+          var ts=get_ts(message.guild.id)
+        } catch(error){
+          message.reply(error)
+          throw error;
+        }
+  
         try{
-          var ts=TS_LIST[message.guild.id]
           await ts.gs.loadSheets(["Raw Members"]);
           const player=ts.gs.select("Raw Members",{"discord_id":message.author.id});
           if(player && player.banned){
