@@ -1,5 +1,5 @@
 'use strict'
-const stringSimilarity = require('string-similarity') 
+const stringSimilarity = require('string-similarity')
 const crypto=require('crypto')
 const moment=require('moment')
 const GS=require("./GS.js");
@@ -561,7 +561,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
 
     player.earned_points= await this.calculatePoints(player.Name);
     player.rank=this.get_rank(player.earned_points.clearPoints);
-    player.user_reply="<@"+discord_id+">"+player.rank.Pips+" ";
+    player.user_reply="<@"+discord_id+">" + (player.rank.Pips ? player.rank.Pips : "") + " ";
     return player
   }
 

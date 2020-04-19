@@ -20,7 +20,7 @@ class points extends Command {
             message.reply(error)
             throw error;
           }
-          
+
         try{
         await ts.gs.loadSheets(["Raw Members","Raw Levels"]);
         const player=await ts.get_user(message);
@@ -41,7 +41,7 @@ class points extends Command {
         } else {
            msg+="You need "+Math.abs(player.earned_points.available).toFixed(1)+" points to upload a new level "+ts.emotes.buzzyS+". Check how the points are mapped on http://bit.ly/teamshell.";
         }
-        msg+=" You have earned the rank **"+player.rank.Rank+"** "+player.rank.Pips
+        msg+=" You have earned the rank **"+player.rank.Rank+"** "+ (player.rank.Pips ? player.rank.Pips : "")
 
             message.channel.send(player.user_reply+msg)
         } catch (error) {
