@@ -278,7 +278,7 @@ app.post('/clear',async (req,res)=>{
       let msg=await ts.clear(req.body)
 
       await client.channels.get(ts.channels.clearSubmit).send(msg)
-      json = {status:"sucessful",msg:msg}
+      let json = {status:"sucessful",msg:msg}
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
       res.send(JSON.stringify(json));
     } catch (error){
