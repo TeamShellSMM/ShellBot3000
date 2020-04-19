@@ -384,7 +384,7 @@ app.post('/feedback',async (req,res)=>{
       let ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
       let discordId = req.body.discord_id;
 
-      await ts.putFeedback(ip, discordId, ts.config.config.feedback_salt, req.body.message);
+      await ts.putFeedback(ip, discordId, ts.config.feedback_salt, req.body.message);
 
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
       res.send(JSON.stringify({
