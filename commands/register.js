@@ -22,23 +22,25 @@ class TSRegister extends TSCommand {
         ts.userError("You're already registered as **"+player.Name+"**")
       }
 
-      if(!args.nickname)
-        args.nickname=message.author.username
-      args.nickname=args.nickname.replace(/\\/g,'');
+      let nickname=command.arguments.join(" ")
+
+      if(!nickname)
+        nickname=message.author.username
+      nickname=args.nickname.replace(/\\/g,'');
       ts.gs.select("Raw Members",{},true).forEach((member)=>{
-          if(member && args.nickname.toLowerCase()==member.Name.toLowerCase()){
+          if(member && nickname.toLowerCase()==member.Name.toLowerCase()){
             ts.userError("\""+member.Name+"\" has already been registered by someone else. Please use another nickname")
           }
         })
 
       var row={
-        "Name":args.nickname,
+        "Name":nickname,
         "discord_id":message.author.id,
         "discord_name":message.author.username,
       }
 
         await ts.gs.insert("Raw Members",row);
-        message.reply("You are now registered as \""+args.nickname+"\". You can now start submitting your clears in #level-clears "+(ts.emotes.bam ? ts.emotes.bam : ""))
+        message.reply("You are now registered as \""+nickname+"\". You can now start submitting your clears in #level-clears "+(ts.emotes.bam ? ts.emotes.bam : ""))
     }
 }
 module.exports = TSRegister;
