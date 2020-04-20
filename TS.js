@@ -621,17 +621,17 @@ const TS=function(guild_id,config,client){ //loaded after gs
     if(alreadyApprovedMessage){
       //If we got a level we already approved before we just build a mini embed with the message
       voteEmbed.setAuthor("This level has been reuploaded and is now awaiting approval!")
-      .setDescription("This level was already approved before so if everything's alright you can approve it (use **!tsfixapprove**)")
+      .setDescription("This level was already approved before so if everything's alright you can approve it (use **!fixapprove**)")
       .addField(author.Name + ":", alreadyApprovedMessage);
       return voteEmbed;
     }
 
     if(refuse){
         voteEmbed.setAuthor("This level has NOT been reuploaded!")
-        .setDescription("Refused by: Please check the fixvotes and decide if this is still acceptable to approve or not (use **!tsfixapprove** or **!tsfixreject** with a message).")
+        .setDescription("Refused by: Please check the fixvotes and decide if this is still acceptable to approve or not (use **!fixapprove** or **!fixreject** with a message).")
     } else {
       voteEmbed.setAuthor("This level has been reuploaded and is now awaiting approval!")
-      .setDescription("Please check if the mandatory fixes where made and make your decision (use **!tsfixapprove** or **!tsfixreject** with a message).")
+      .setDescription("Please check if the mandatory fixes where made and make your decision (use **!fixapprove** or **!fixreject** with a message).")
     }
     if(ts.emotes.judgement){
       voteEmbed.setThumbnail(ts.getEmoteUrl(ts.emotes.judgement));
@@ -888,7 +888,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
       } else if(approvalVoteCount==rejectVoteCount ) {
         ts.userError("The votes are the same! "+(ts.emotes.buzzyS ? ts.emotes.buzzyS + " ": "")+"We need a tiebreaker");
       } else {
-        ts.userError("There must be at least "+ts.get_variable("VotesNeeded")+" Shellders in agreement before this level can be judged!");
+        ts.userError("There must be at least "+ts.get_variable("VotesNeeded")+" Mods in agreement before this level can be judged!");
       }
 
       var mention = "**<@" + author.discord_id + ">, we got some news for you: **";
@@ -901,7 +901,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
       }
 
       if(fixMode){
-        exampleEmbed.setDescription("If you want to fix these issues use **!tsreupload** (to get it approved really quickly) or if you don't want to just use **!tsrefusefix** and the shellders will decide if it's still acceptable.");
+        exampleEmbed.setDescription("If you want to fix these issues use **!reupload** (to get it approved really quickly) or if you don't want to just use **!refusefix** and the mods will decide if it's still acceptable.");
       }
 
       if(fixMode){

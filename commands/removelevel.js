@@ -18,7 +18,7 @@ class tsremove extends TSCommand {
           ts.userError("You did not provide a valid code for the level")
 
         if(!reason)
-          ts.userError("You did not provide a reason to remove this level. If you want to reupload, we recommend using the `!tsreupload` command. If you want to remove it now and reupload it later make sure __you don't lose the old code__")
+          ts.userError("You did not provide a reason to remove this level. If you want to reupload, we recommend using the `!reupload` command. If you want to remove it now and reupload it later make sure __you don't lose the old code__")
 
 
         await ts.gs.loadSheets(["Raw Members","Raw Levels"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff

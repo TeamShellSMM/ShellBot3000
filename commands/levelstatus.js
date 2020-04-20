@@ -56,7 +56,7 @@ class TSLevelStatus extends TSCommand {
             } else if(rejectVoteCount > 0){
                 text += rejectVoteCount + "/3 votes for rejection!";
             } else {
-                text = "This level is not in judgement, no Shellders seem to have gotten to it yet!";
+                text = "This level is not in judgement, no mods seem to have gotten to it yet!";
             }
 
             message.reply(text);

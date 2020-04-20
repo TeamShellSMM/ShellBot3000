@@ -19,7 +19,7 @@ class TSRefuseFix extends TSCommand {
         const reason=command.arguments.join(" ")
 
         if(!reason){
-          ts.userError("Please provide a little message to the shellders for context at the end of the command!")
+          ts.userError("Please provide a little message to the mods for context at the end of the command!")
         }
 
         await ts.gs.loadSheets(["Raw Members","Raw Levels"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
