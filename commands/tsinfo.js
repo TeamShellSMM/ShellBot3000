@@ -12,7 +12,7 @@ class tsinfo extends TSCommand {
         });
     }
 
-    async exec(message,args) {
+    async tsexec(ts,message,args) {
       args.code=args.code.toUpperCase();
       if(!ts.valid_format(args.code))
         ts.userError("You did not provide a valid format for the level");
