@@ -22,6 +22,7 @@ class TSRegister extends TSCommand {
         ts.userError("You're already registered as **"+player.Name+"**")
       }
 
+      let command=ts.parse_command(message);
       let nickname=command.arguments.join(" ")
 
       if(!nickname)
