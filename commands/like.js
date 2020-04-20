@@ -15,6 +15,13 @@ class tslike extends Command {
     }
 
     async exec(message,args) {
+        try {
+            var ts=get_ts(message.guild.id)
+          } catch(error){
+            message.reply(error)
+            throw error;
+          }
+          
         try{
           const likeCommands=["tslike","like"];
           const command=ts.parse_command(message)

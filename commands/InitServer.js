@@ -1,9 +1,10 @@
 const { Command } = require('discord-akairo');
+let Teams = require('../models/Teams.js');
 
-class ReloadData extends Command {
+class InitServer extends Command {
     constructor() {
-        super('refresh', {
-            aliases: ['refresh'],
+        super('initserver', {
+            aliases: ['initserver'],
             ownerOnly: true,
             category: 'owner'
         });
@@ -22,4 +23,4 @@ class ReloadData extends Command {
     }
 }
 
-module.exports = ReloadData;
+module.exports = InitServer;

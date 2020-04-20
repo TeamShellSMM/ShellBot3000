@@ -11,11 +11,18 @@ class TSRegister extends Command {
            channelRestriction: 'guild'
         });
     }
-    
+
     async exec(message,args) {
+        try {
+          var ts=get_ts(message.guild.id)
+        } catch(error){
+          message.reply(error)
+          throw error;
+        }
+
         try{
-          await gs.loadSheets(["Raw Members"]);
-          const player=gs.select("Raw Members",{"discord_id":message.author.id});
+          await ts.gs.loadSheets(["Raw Members"]);
+          const player=ts.gs.select("Raw Members",{"discord_id":message.author.id});
           if(player && player.banned){
             ts.userError("You're barred from using this service")
           }
@@ -26,11 +33,11 @@ class TSRegister extends Command {
           if(!args.nickname)
             args.nickname=message.author.username
           args.nickname=args.nickname.replace(/\\/g,'');
-          gs.select("Raw Members").forEach((member)=>{
-            if(member && args.nickname.toLowerCase()==member.Name.toLowerCase()){
-              ts.userError("\""+member.Name+"\" has already been registered by someone else. Please use another nickname")
-            }
-          })
+          ts.gs.select("Raw Members",{},true).forEach((member)=>{
+              if(member && args.nickname.toLowerCase()==member.Name.toLowerCase()){
+                ts.userError("\""+member.Name+"\" has already been registered by someone else. Please use another nickname")
+              }
+            })
 
           var row={
             "Name":args.nickname,
@@ -38,8 +45,8 @@ class TSRegister extends Command {
             "discord_name":message.author.username,
           }
 
-            await gs.insert("Raw Members",row);          
-            message.reply("You are now registered as \""+args.nickname+"\". You can now start submitting your clears in #level-clears "+ts.emotes.bam)
+            await ts.gs.insert("Raw Members",row);
+            message.reply("You are now registered as \""+args.nickname+"\". You can now start submitting your clears in #level-clears "+(ts.emotes.bam ? ts.emotes.bam : ""))
         } catch(error){
             message.reply(ts.getUserErrorMsg(error))
         }

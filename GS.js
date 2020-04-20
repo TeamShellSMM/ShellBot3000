@@ -116,23 +116,23 @@ var GS=function(config){
     return returnData
   }
 
-  //need to load 
+  //need to load
   this.select=function(sheet,filter,forceArray){
     return this.query(sheet,{
       filter:filter
     },forceArray)
   }
-  
+
   this.query=function (sheet,parameters,forceArray){ //may break if column named updated or row
     var querySheet = SheetCache[sheet]
     if(!querySheet) throw "No cached sheet found"
     var headers=json_header[sheet];
-    
+
     var header_to_id={}
     for(var i=0;i<headers.length;i++){
       header_to_id[headers[i]]=i;
-    } 
-    
+    }
+
     if(parameters && parameters.filter){
       var filter=function(row){
         var matched=true;
@@ -154,24 +154,24 @@ var GS=function(config){
           var data=[]
           for(var u in parameters.update){
             if(obj[u]!=parameters.update[u]){
-              data.push({ 
+              data.push({
                 range: r1c1(sheet,querySheet[row]["GS_row_id"],header_to_id[u]),
                 values: [[parameters.update[u]]],
               })
               updated[u]=true;
             } else {
-              updated[u]=false; 
+              updated[u]=false;
             }
           }
-          
+
           if(data){
             obj.update_ranges=data
           }
         }
         obj.updated=updated
-        ret.push(obj)  
+        ret.push(obj)
       }
-    } 
+    }
     if(forceArray)
       return ret;
 
@@ -183,7 +183,7 @@ var GS=function(config){
     return "'"+sheet+"'!r"+(r+1)+"c"+(c+1);
   }
 
-  
+
 
   this.insert =async function(sheet,pData){
     var header=json_header[sheet];
@@ -220,10 +220,12 @@ var GS=function(config){
       gzip: true,
       body: JSON.stringify(data)
     });
-    
+
     gsLoaded=gsLoaded.filter(o=>{
       return o!=sheet
     })
+
+    await this.loadSheets([sheet]);
 
     return response
   }
@@ -256,6 +258,8 @@ var GS=function(config){
     gsLoaded=gsLoaded.filter(o=>{
       return loaded.indexOf(o)===-1
     })
+
+    await this.loadSheets(loaded);
 
     return response
   }

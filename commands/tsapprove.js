@@ -31,6 +31,13 @@ class TSApprove extends Command {
     }
 
     async exec(message,args) {
+      try {
+        var ts=get_ts(message.guild.id)
+      } catch(error){
+        message.reply(error)
+        throw error;
+      }
+      
       try{
       /*
         Possible command syntax:
@@ -41,7 +48,6 @@ class TSApprove extends Command {
         !tsapprove difficulty reason
         !tsreject reason
       */
-
       const clearCommands = ['tsapprove+c', 'tsapprove+cl', 'tsapprove+lc', 'tsfix+c', 'tsfix+cl', 'tsfix+lc'];
       const likeCommands =  ['tsapprove+cl', 'tsapprove+lc', 'tsfix+cl', 'tsfix+lc'];
 

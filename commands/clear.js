@@ -23,6 +23,12 @@ class TSClear extends Command {
     }
 
     async exec(message,args) {
+        try {
+            var ts=get_ts(message.guild.id)
+        } catch(error){
+        message.reply(error)
+            throw error;
+        }
         try{
           args.discord_id=message.author.id
           args.completed=1

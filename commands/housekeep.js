@@ -12,6 +12,12 @@ class housekeep extends Command {
     }
 
     async exec(message, args) {
+        try {
+            var ts=get_ts(message.guild.id)
+          } catch(error){
+            message.reply(error)
+            throw error;
+          }
         try{
             await ts.load()
             let guild=ts.getGuild();
@@ -20,7 +26,7 @@ class housekeep extends Command {
                 if(channel.parentID==ts.channels.levelDiscussionCategory){
                     const levelCode=channel.name.toUpperCase()
                     let deleteLevel=false,reason="";
-                    let currentLevel=gs.select("Raw Levels",{Code:levelCode})
+                    let currentLevel=ts.gs.select("Raw Levels",{Code:levelCode})
                     if(currentLevel){
                         if(currentLevel.Approved!=="0"){
                             deleteLevel=true
@@ -36,7 +42,7 @@ class housekeep extends Command {
                     }
                 }
             });
-            message.reply("Housekeeping done "+ts.emotes.robo)
+            message.reply("Housekeeping done "+(ts.emotes.robo ? ts.emotes.robo : ""))
 
         } catch(error){
             message.reply(ts.getUserErrorMsg(error))

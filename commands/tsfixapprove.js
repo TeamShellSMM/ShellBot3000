@@ -18,6 +18,13 @@ class TSFixApprove extends Command {
     }
 
     async exec(message,args) {
+      try {
+        var ts=get_ts(message.guild.id)
+      } catch(error){
+        message.reply(error)
+        throw error;
+      }
+      
       try{
       /*
         Possible command syntax:
@@ -28,7 +35,6 @@ class TSFixApprove extends Command {
         !tsapprove difficulty reason
         !tsreject reason
       */
-
       var command=ts.parse_command(message);
       var inReuploadChannel = false;
       let code = "";
