@@ -23,10 +23,11 @@ class TSRegister extends TSCommand {
       }
 
       let command=ts.parse_command(message);
-      let nickname=command.arguments.join(" ")
+      let nickname=message.author.username;
+      if(command.arguments.length > 0){
+        nickname=command.arguments.join(" ");
+      }
 
-      if(!nickname)
-        nickname=message.author.username
       nickname=args.nickname.replace(/\\/g,'');
       ts.gs.select("Raw Members",{},true).forEach((member)=>{
           if(member && nickname.toLowerCase()==member.Name.toLowerCase()){
