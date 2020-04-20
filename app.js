@@ -204,7 +204,7 @@ function web_ts(callback){
       console.log({
         origin:req.headers.origin,
         referer:req.headers.referer,
-        test_slug:req.headers.referer.split(req.headers.origin)[1].split('/'),
+        //test_slug:req.headers.referer.split(req.headers.origin)[1].split('/'),
         body:req.body,
       })
       var ts=get_web_ts(req.body.url_slug)
