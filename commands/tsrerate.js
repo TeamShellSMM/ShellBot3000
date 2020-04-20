@@ -1,5 +1,5 @@
-const { Command } = require('discord-akairo');
-class TSRerate extends Command {
+const TSCommand = require('../TSCommand.js');
+class TSRerate extends TSCommand {
     constructor() {
         super('tsrerate', {
            aliases: ['tsrerate'],
@@ -24,14 +24,6 @@ class TSRerate extends Command {
     }
 
     async exec(message,args) {
-      try {
-        var ts=get_ts(message.guild.id)
-      } catch(error){
-        message.reply(error)
-        throw error;
-      }
-
-      try{
       if(!(
         message.channel.id === ts.channels.shellderShellbot  //only in bot-test channel
       )) return false;
@@ -85,9 +77,6 @@ class TSRerate extends Command {
       }
       await levelChangeChannel.send(rerateEmbed);
       message.reply("Difficulty was successfully changed!");
-    } catch(error){
-      message.reply(ts.getUserErrorMsg(error))
-    }
   }
 }
 module.exports = TSRerate;

@@ -1,6 +1,6 @@
-const { Command } = require('discord-akairo');
+const TSCommand = require('../TSCommand.js');
 
-class points extends Command {
+class points extends TSCommand {
     constructor() {
         super('points', {
            aliases: ['points','rank','point'],
@@ -13,15 +13,7 @@ class points extends Command {
         });
     }
 
-    async exec(message,args) {
-        try {
-            var ts=get_ts(message.guild.id)
-          } catch(error){
-            message.reply(error)
-            throw error;
-          }
-
-        try{
+    async tsexec(ts,message,args) {
         await ts.gs.loadSheets(["Raw Members","Raw Levels"]);
         const player=await ts.get_user(message);
 
@@ -43,10 +35,7 @@ class points extends Command {
         }
         msg+=" You have earned the rank **"+player.rank.Rank+"** "+ (player.rank.Pips ? player.rank.Pips : "")
 
-            message.channel.send(player.user_reply+msg)
-        } catch (error) {
-            message.reply(ts.getUserErrorMsg(error))
-        }
+        message.channel.send(player.user_reply+msg)
     }
 }
 module.exports = points;

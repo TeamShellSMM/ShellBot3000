@@ -1,8 +1,5 @@
-const { Command } = require('discord-akairo');
-const Plays = require('../models/Plays');
-const PendingVotes = require('../models/PendingVotes');
-
-class TSFixApprove extends Command {
+const TSCommand = require('../TSCommand.js');
+class TSFixApprove extends TSCommand {
     constructor() {
         super('tsfixapprove', {
            aliases: ['tsfixapprove', 'tsfixreject'],
@@ -17,15 +14,7 @@ class TSFixApprove extends Command {
         });
     }
 
-    async exec(message,args) {
-      try {
-        var ts=get_ts(message.guild.id)
-      } catch(error){
-        message.reply(error)
-        throw error;
-      }
-      
-      try{
+    async tsexec(ts,message,args) {
       /*
         Possible command syntax:
         !tsapprove code difficulty reason
@@ -75,9 +64,6 @@ class TSFixApprove extends Command {
       }
 
       message.reply(replyMessage);
-      } catch(error){
-        message.reply(ts.getUserErrorMsg(error))
-      }
     }
 }
 module.exports = TSFixApprove;

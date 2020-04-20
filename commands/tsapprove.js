@@ -1,11 +1,6 @@
-const { Command } = require('discord-akairo');
-const Plays = require('../models/Plays');
-const PendingVotes = require('../models/PendingVotes');
+const TSCommand = require('../TSCommand.js');
 
-
-
-
-class TSApprove extends Command {
+class TSApprove extends TSCommand {
     constructor() {
         super('tsapprove', {
            aliases: ['tsapprove', 'tsreject', 'tsapprove+c', 'tsapprove+cl', 'tsapprove+lc', 'tsfix', 'tsfix+c', 'tsfix+cl', 'tsfix+lc'],
@@ -30,15 +25,7 @@ class TSApprove extends Command {
         });
     }
 
-    async exec(message,args) {
-      try {
-        var ts=get_ts(message.guild.id)
-      } catch(error){
-        message.reply(error)
-        throw error;
-      }
-
-      try{
+    async tsexec(ts,message,args) {
       /*
         Possible command syntax:
         !tsapprove code difficulty reason
@@ -110,11 +97,6 @@ class TSApprove extends Command {
           args.like=1;
         var clearMessage=await ts.clear(args)
         this.client.channels.get(ts.channels.clearSubmit).send(clearMessage)
-      }
-
-
-      } catch(error){
-        message.reply(ts.getUserErrorMsg(error))
       }
     }
 }

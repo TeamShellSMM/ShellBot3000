@@ -1,6 +1,5 @@
-const { Command } = require('discord-akairo');
-const Discord = require('discord.js');
-class TSJudge extends Command {
+const TSCommand = require('../TSCommand.js');
+class TSJudge extends TSCommand {
     constructor() {
         super('tsjudge', {
            aliases: ['tsjudge'],
@@ -9,15 +8,7 @@ class TSJudge extends Command {
         });
     }
     
-    async exec(message,args) {     
-      try {
-        var ts=get_ts(message.guild.id)
-      } catch(error){
-        message.reply(error)
-        throw error;
-      }
-      
-      try{
+    async tsexec(ts,message,args) {     
       var inCodeDiscussionChannel = false;
       var levelCode;
       //Check if in level discussion channel
@@ -32,11 +23,6 @@ class TSJudge extends Command {
 
       //Reload sheets
       await ts.judge(levelCode)
-
-
-      } catch (error){
-        message.reply(ts.getUserErrorMsg(error))
-      }
     }
 }
 module.exports = TSJudge;

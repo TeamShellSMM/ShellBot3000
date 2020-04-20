@@ -1,7 +1,6 @@
-const { Command } = require('discord-akairo');
-const Plays = require('../models/Plays');
+const TSCommand = require('../TSCommand.js');
 
-class tslike extends Command {
+class tslike extends TSCommand {
     constructor() {
         super('tslike', {
            aliases: ['tslike','like','tsunlike','unlike'],
@@ -14,24 +13,13 @@ class tslike extends Command {
         });
     }
 
-    async exec(message,args) {
-        try {
-            var ts=get_ts(message.guild.id)
-          } catch(error){
-            message.reply(error)
-            throw error;
-          }
-          
-        try{
-          const likeCommands=["tslike","like"];
-          const command=ts.parse_command(message)
-          args.discord_id=message.author.id
-          args.like=likeCommands.indexOf(command.command)!=-1?1:0
-          let msg=await ts.clear(args)
-          message.channel.send(msg)
-        } catch(error){
-            message.reply(ts.getUserErrorMsg(error))
-        }
+    async tsexec(ts,message,args) {
+      const likeCommands=["tslike","like"];
+      const command=ts.parse_command(message)
+      args.discord_id=message.author.id
+      args.like=likeCommands.indexOf(command.command)!=-1?1:0
+      let msg=await ts.clear(args)
+      message.channel.send(msg)
     }
 }
 module.exports = tslike;

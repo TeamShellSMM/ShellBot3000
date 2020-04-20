@@ -1,6 +1,6 @@
-const { Command } = require('discord-akairo');
+const TSCommand = require('../TSCommand.js');
 const validUrl = require('valid-url');
-class TSAddvids extends Command {
+class TSAddvids extends TSCommand {
     constructor() {
         super('tsaddvids', {
            aliases: [
@@ -11,15 +11,7 @@ class TSAddvids extends Command {
         });
     }
 
-    async exec(message,args) {
-      try {
-        var ts=get_ts(message.guild.id)
-      } catch(error){
-        message.reply(error)
-        throw error;
-      }
-
-      try {
+    async tsexec(ts,message,args) {
         const addCommands=['tsaddvids','addvids','tsaddvid','addvid']
 
         let command=ts.parse_command(message);
@@ -95,12 +87,7 @@ class TSAddvids extends Command {
 
         await ts.gs.batchUpdate(level.update_ranges)
 
-
-
         message.channel.send(player.user_reply+reply)
-      } catch (error) {
-        message.reply(ts.getUserErrorMsg(error))
-      }
     }
 }
 module.exports = TSAddvids;

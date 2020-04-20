@@ -1,6 +1,6 @@
-const { Command } = require('discord-akairo');
+const TSCommand = require('../TSCommand.js');
 
-class ReloadData extends Command {
+class ReloadData extends TSCommand {
     constructor() {
         super('refresh', {
             aliases: ['refresh'],
@@ -9,14 +9,7 @@ class ReloadData extends Command {
         });
     }
 
-    async exec(message, args) {
-        try {
-            var ts=get_ts(message.guild.id)
-        } catch(error){
-            message.reply(error)
-            throw error;
-        }
-        
+    async tsexec(ts,message, args){
         await ts.load()
         return message.reply(`Reloaded data!`);
     }

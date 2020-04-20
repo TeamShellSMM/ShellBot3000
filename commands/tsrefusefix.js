@@ -1,7 +1,5 @@
-const { Command } = require('discord-akairo');
-const Discord = require('discord.js');
-
-class TSRefuseFix extends Command {
+const TSCommand = require('../TSCommand.js');
+class TSRefuseFix extends TSCommand {
     constructor() {
         super('tsrefusefix', {
            aliases: ['tsrefusefix'],
@@ -9,15 +7,7 @@ class TSRefuseFix extends Command {
         });
     }
 
-    async exec(message,args) {
-      try {
-        var ts=get_ts(message.guild.id)
-      } catch(error){
-        message.reply(error)
-        throw error;
-      }
-
-      try{
+    async tsexec(ts,message,args) {
         let command=ts.parse_command(message);
         let code=command.arguments.shift()
         if(code)
@@ -74,10 +64,6 @@ class TSRefuseFix extends Command {
         var replyMessage = "Your level was put in the reupload queue, we'll get back to you in a bit!";
 
         message.reply(replyMessage);
-
-      } catch (error){
-        message.reply(ts.getUserErrorMsg(error))
-      }
     }
 }
 module.exports = TSRefuseFix;

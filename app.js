@@ -243,8 +243,6 @@ app.post('/json',async (req,res)=>{
       var user=await ts.get_user(req.body.discord_id)
     }
 
-      console.log(req.body)
-      console.log(ts)
       let json = await generateSiteJson(ts,user?user.shelder:false)
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
       res.send(JSON.stringify(json));
@@ -256,10 +254,8 @@ app.post('/json',async (req,res)=>{
 
 app.post('/clear',async (req,res)=>{
 
-
     try {
       console.log(req.headers)
-      console.log(req.body)
       var ts=get_web_ts(req.body.url_slug)
     } catch(error){
       res.send(error)
