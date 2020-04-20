@@ -1,6 +1,6 @@
-const { Command } = require('discord-akairo');
+const TSCommand = require('../TSCommand.js');
 
-class mockUser extends Command {
+class mockUser extends TSCommand {
     constructor() {
         super('mockUser', {
           aliases: ['mockUser'],
@@ -14,15 +14,7 @@ class mockUser extends Command {
         });
     }
 
-    async exec(message,args) {
-      try {
-        var ts=get_ts(message.guild.id)
-      } catch(error){
-        message.reply(error)
-        throw error;
-      }
-      
-      try {
+    async tsexec(ts,message,args) {
         if(ts.channels.isTesting!=="yes"){
             return false
         }
@@ -61,9 +53,6 @@ class mockUser extends Command {
         await ts.gs.loadSheets(["Raw Members"])
         let p=await ts.get_user(message)
         message.channel.send("You're now "+p.Name+"("+p.rank.Rank+"). Identity theft is not a joke, Jim!")
-      } catch (error) {
-        message.reply(ts.getUserErrorMsg(error))
-      }
     }
 }
 module.exports = mockUser;

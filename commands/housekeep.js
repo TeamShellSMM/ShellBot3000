@@ -1,8 +1,5 @@
-const { Command } = require('discord-akairo');
-const Plays = require('../models/Plays');
-const PendingVotes = require('../models/PendingVotes');
-
-class housekeep extends Command {
+const TSCommand = require('../TSCommand.js');
+class housekeep extends TSCommand {
     constructor() {
         super('housekeep', {
             aliases: ['housekeep'],
@@ -11,42 +8,31 @@ class housekeep extends Command {
         });
     }
 
-    async exec(message, args) {
-        try {
-            var ts=get_ts(message.guild.id)
-          } catch(error){
-            message.reply(error)
-            throw error;
-          }
-        try{
-            await ts.load()
-            let guild=ts.getGuild();
-            let housekept=0;
-            await guild.channels.forEach(async (channel)=>{
-                if(channel.parentID==ts.channels.levelDiscussionCategory){
-                    const levelCode=channel.name.toUpperCase()
-                    let deleteLevel=false,reason="";
-                    let currentLevel=ts.gs.select("Raw Levels",{Code:levelCode})
-                    if(currentLevel){
-                        if(currentLevel.Approved!=="0"){
-                            deleteLevel=true
-                            reason="Level not pending anymore"
-                        }
-                    } else {
+    async tsexec(ts,message, args) {
+        await ts.load()
+        let guild=ts.getGuild();
+        let housekept=0;
+        await guild.channels.forEach(async (channel)=>{
+            if(channel.parentID==ts.channels.levelDiscussionCategory){
+                const levelCode=channel.name.toUpperCase()
+                let deleteLevel=false,reason="";
+                let currentLevel=ts.gs.select("Raw Levels",{Code:levelCode})
+                if(currentLevel){
+                    if(currentLevel.Approved!=="0"){
                         deleteLevel=true
-                        reason="No level found in list"
+                        reason="Level not pending anymore"
                     }
-                    if(deleteLevel){
-                        await ts.deleteDiscussionChannel(levelCode,reason)
-                        housekept++
-                    }
+                } else {
+                    deleteLevel=true
+                    reason="No level found in list"
                 }
-            });
-            message.reply("Housekeeping done "+(ts.emotes.robo ? ts.emotes.robo : ""))
-
-        } catch(error){
-            message.reply(ts.getUserErrorMsg(error))
-        }
+                if(deleteLevel){
+                    await ts.deleteDiscussionChannel(levelCode,reason)
+                    housekept++
+                }
+            }
+        });
+        message.reply("Housekeeping done "+(ts.emotes.robo ? ts.emotes.robo : ""))
     }
 }
 

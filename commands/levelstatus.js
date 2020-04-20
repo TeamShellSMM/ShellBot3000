@@ -1,7 +1,6 @@
-const { Command } = require('discord-akairo');
-const PendingVotes = require('../models/PendingVotes');
+const TSCommand = require('../TSCommand.js');
 
-class TSLevelStatus extends Command {
+class TSLevelStatus extends TSCommand {
     constructor() {
         super('tslevelstatus', {
            aliases: ['tslevelstatus','levelstatus'],
@@ -14,14 +13,7 @@ class TSLevelStatus extends Command {
         });
     }
 
-    async exec(message,args) {
-        try {
-            var ts=get_ts(message.guild.id)
-          } catch(error){
-            message.reply(error)
-            throw error;
-          }
-
+    async tsexec(ts,message,args) {
         await ts.gs.loadSheets(["Raw Levels"]);
 
         if(!ts.valid_format(args.code)) throw "Level code given was not in xxx-xxx-xxx format "+(ts.emotes.think ? ts.emotes.think : "")

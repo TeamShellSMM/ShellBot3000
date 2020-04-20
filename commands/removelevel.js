@@ -1,22 +1,14 @@
-const { Command } = require('discord-akairo');
+const TSCommand = require('../TSCommand.js');
 
-class tsremove extends Command {
+class tsremove extends TSCommand {
     constructor() {
         super('tsremove', {
-           aliases: ['tsremove','tsremovelevel','remove'],
+           aliases: ['tsremove','tsremovelevel','remove','removelevel'],
            channelRestriction: 'guild'
         });
     }
 
-    async exec(message,args) {
-      try {
-        var ts=get_ts(message.guild.id)
-      } catch(error){
-        message.reply(error)
-        throw error;
-      }
-
-      try {
+    async tsexec(ts,message,args) {
         var command=ts.parse_command(message)
 
         var level_code=command.arguments.shift().toUpperCase();
@@ -59,9 +51,9 @@ class tsremove extends Command {
           removeEmbed.setThumbnail(ts.getEmoteUrl(ts.emotes.buzzyS));
         }
 
-          removeEmbed.addField("\u200b","**Reason for removal** :```"+reason+"```-<@" +player.discord_id + ">");
-          removeEmbed = removeEmbed.setTimestamp();
-          //Send updates to to #shellbot-level-update
+        removeEmbed.addField("\u200b","**Reason for removal** :```"+reason+"```-<@" +player.discord_id + ">");
+        removeEmbed = removeEmbed.setTimestamp();
+        //Send updates to to #shellbot-level-update
 
         if(level.Creator!=player.Name){ //moderation
           const creator=ts.gs.select("Raw Members",{"Name":level.Creator})
@@ -74,9 +66,6 @@ class tsremove extends Command {
         var reply="You have removed \""+level["Level Name"]+"\" by "+level.Creator+" "+(ts.emotes.buzzyS ? ts.emotes.buzzyS : "")
         await this.client.channels.get(ts.channels.shellderLevelChanges).send(removeEmbed);
         await message.channel.send(player.user_reply+reply)
-      } catch (error) {
-        message.reply(ts.getUserErrorMsg(error))
-      }
     }
 }
 module.exports = tsremove;

@@ -1,7 +1,6 @@
-const { Command } = require('discord-akairo');
-const Plays = require('../models/Plays');
+const TSCommand = require('../TSCommand.js');
 
-class playersRandom extends Command {
+class playersRandom extends TSCommand {
     constructor() {
         super('playersRandom', {
            aliases: ['playersRandom'],
@@ -23,25 +22,13 @@ class playersRandom extends Command {
         });
     }
 
-    async exec(message,args) {
-      try {
-        var ts=get_ts(message.guild.id)
-      } catch(error){
-        message.reply(error)
-        throw error;
-      }
-      
-      try {
-        args.discord_id=message.author.id
-        let rand=await ts.randomLevel(args)
+    async tsexec(ts,message,args) {
+      args.discord_id=message.author.id
+      let rand=await ts.randomLevel(args)
 
-        let randomEmbed=ts.levelEmbed(rand.level).setAuthor("ShellBot rolled a d97 and found this level for "+args.players)
-        await message.channel.send(rand.player.user_reply)
-        await message.channel.send(randomEmbed)
-
-      } catch (error) {
-        message.reply(ts.getUserErrorMsg(error))
-      }
+      let randomEmbed=ts.levelEmbed(rand.level).setAuthor("ShellBot rolled a d97 and found this level for "+args.players)
+      await message.channel.send(rand.player.user_reply)
+      await message.channel.send(randomEmbed)
     }
 }
 module.exports = playersRandom;

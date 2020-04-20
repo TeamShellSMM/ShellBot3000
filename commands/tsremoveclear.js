@@ -1,7 +1,5 @@
-const { Command } = require('discord-akairo');
-const Plays = require('../models/Plays');
-
-class TSRemoveclear extends Command {
+const TSCommand = require('../TSCommand.js');
+class TSRemoveclear extends TSCommand {
     constructor() {
         super('tsremoveclear', {
            aliases: ['tsremoveclear',"removeclear"],
@@ -14,22 +12,11 @@ class TSRemoveclear extends Command {
         });
     }
 
-    async exec(message,args) {
-        try {
-            var ts=get_ts(message.guild.id)
-          } catch(error){
-            message.reply(error)
-            throw error;
-          }
-          
-        try{
-          args.completed=0
-          args.discord_id=message.author.id
-          let msg=await ts.clear(args)
-          message.channel.send(msg)
-        } catch(error){
-            message.reply(ts.getUserErrorMsg(error))
-        }
+    async tsexec(ts,message,args) {
+      args.completed=0
+      args.discord_id=message.author.id
+      let msg=await ts.clear(args)
+      message.channel.send(msg)
     }
 }
 module.exports = TSRemoveclear;

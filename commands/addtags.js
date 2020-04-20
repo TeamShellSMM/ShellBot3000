@@ -1,5 +1,5 @@
-const { Command } = require('discord-akairo');
-class TSAddtags extends Command {
+const TSCommand = require('../TSCommand.js');
+class TSAddtags extends TSCommand {
     constructor() {
         super('tsaddtags', {
            aliases: [
@@ -10,15 +10,7 @@ class TSAddtags extends Command {
         });
     }
 
-    async exec(message,args) {
-      try {
-        var ts=get_ts(message.guild.id)
-      } catch(error){
-        message.reply(error)
-        throw error;
-      }
-
-      try {
+    async tsexec(ts,message,args) {
         const addCommands=['tsaddtags','addtags','tsaddtag','addtag']
 
         let command=ts.parse_command(message);
@@ -119,11 +111,7 @@ class TSAddtags extends Command {
         })
 
         await ts.gs.batchUpdate(level.update_ranges)
-
         message.channel.send(player.user_reply+reply)
-      } catch (error) {
-        message.reply(ts.getUserErrorMsg(error))
-      }
     }
 }
 module.exports = TSAddtags;
