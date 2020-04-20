@@ -28,7 +28,7 @@ class TSRegister extends TSCommand {
         nickname=command.arguments.join(" ");
       }
 
-      nickname=args.nickname.replace(/\\/g,'');
+      nickname=nickname.replace(/\\/g,'');
       ts.gs.select("Raw Members",{},true).forEach((member)=>{
           if(member && nickname.toLowerCase()==member.Name.toLowerCase()){
             ts.userError("\""+member.Name+"\" has already been registered by someone else. Please use another nickname")
