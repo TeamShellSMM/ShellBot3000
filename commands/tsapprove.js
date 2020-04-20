@@ -37,7 +37,7 @@ class TSApprove extends Command {
         message.reply(error)
         throw error;
       }
-      
+
       try{
       /*
         Possible command syntax:
@@ -69,6 +69,7 @@ class TSApprove extends Command {
 
       if(!(
         message.channel.id === ts.channels.shellderShellbot  //only in shellder-bot channel
+        || message.channel.id === ts.channels.pendingShellbot  //or in pending-shellbot channel
         || inCodeDiscussionChannel //should also work in the discussion channel for that level
       )) return false; //silently fail
 
