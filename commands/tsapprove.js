@@ -56,6 +56,7 @@ class TSApprove extends TSCommand {
 
       if(!(
         message.channel.id === ts.channels.shellderShellbot  //only in shellder-bot channel
+        || message.channel.id === ts.channels.pendingShellbot  //or in pending-shellbot channel
         || inCodeDiscussionChannel //should also work in the discussion channel for that level
       )) return false; //silently fail
 
