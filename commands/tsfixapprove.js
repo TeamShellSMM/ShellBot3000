@@ -2,7 +2,7 @@ const TSCommand = require('../TSCommand.js');
 class TSFixApprove extends TSCommand {
     constructor() {
         super('tsfixapprove', {
-           aliases: ['tsfixapprove', 'tsfixreject'],
+           aliases: ['tsfixapprove', 'tsfixreject', 'fixapprove', 'fixreject'],
            split: 'quoted',
             args: [{
                 id: 'message',
@@ -46,7 +46,7 @@ class TSFixApprove extends TSCommand {
 
       let approving = false;
 
-      if(command.command==="tsfixapprove"){
+      if(command.command==="tsfixapprove" || command.command==="fixapprove"){
         approving = true;
       }
 

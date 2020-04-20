@@ -2,7 +2,7 @@ const TSCommand = require('../TSCommand.js');
 class TSRerate extends TSCommand {
     constructor() {
         super('tsrerate', {
-           aliases: ['tsrerate'],
+           aliases: ['tsrerate', 'rerate'],
            split: 'quoted',
             args: [{
               id: 'code',

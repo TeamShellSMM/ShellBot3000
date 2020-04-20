@@ -2,13 +2,13 @@ const TSCommand = require('../TSCommand.js');
 class TSJudge extends TSCommand {
     constructor() {
         super('tsjudge', {
-           aliases: ['tsjudge'],
+           aliases: ['tsjudge', 'judge'],
             args: [],
            channelRestriction: 'guild'
         });
     }
-    
-    async tsexec(ts,message,args) {     
+
+    async tsexec(ts,message,args) {
       var inCodeDiscussionChannel = false;
       var levelCode;
       //Check if in level discussion channel
@@ -17,7 +17,7 @@ class TSJudge extends TSCommand {
         levelCode = message.channel.name.toUpperCase();
       }
 
-      if(!( 
+      if(!(
         inCodeDiscussionChannel //should also work in the discussion channel for that level
       )) return false;
 

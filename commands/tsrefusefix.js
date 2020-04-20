@@ -2,7 +2,7 @@ const TSCommand = require('../TSCommand.js');
 class TSRefuseFix extends TSCommand {
     constructor() {
         super('tsrefusefix', {
-           aliases: ['tsrefusefix'],
+           aliases: ['tsrefusefix', 'refusefix'],
            channelRestriction: 'guild'
         });
     }

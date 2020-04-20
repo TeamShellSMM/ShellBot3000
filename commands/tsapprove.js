@@ -3,7 +3,8 @@ const TSCommand = require('../TSCommand.js');
 class TSApprove extends TSCommand {
     constructor() {
         super('tsapprove', {
-           aliases: ['tsapprove', 'tsreject', 'tsapprove+c', 'tsapprove+cl', 'tsapprove+lc', 'tsfix', 'tsfix+c', 'tsfix+cl', 'tsfix+lc'],
+           aliases: ['tsapprove', 'tsreject', 'tsapprove+c', 'tsapprove+cl', 'tsapprove+lc', 'tsfix', 'tsfix+c', 'tsfix+cl', 'tsfix+lc',
+           'approve', 'reject', 'approve+c', 'approve+cl', 'approve+lc', 'fix', 'fix+c', 'fix+cl', 'fix+lc'],
            split: 'quoted',
             args: [{
                 id: 'code',
@@ -35,8 +36,10 @@ class TSApprove extends TSCommand {
         !tsapprove difficulty reason
         !tsreject reason
       */
-      const clearCommands = ['tsapprove+c', 'tsapprove+cl', 'tsapprove+lc', 'tsfix+c', 'tsfix+cl', 'tsfix+lc'];
-      const likeCommands =  ['tsapprove+cl', 'tsapprove+lc', 'tsfix+cl', 'tsfix+lc'];
+      const clearCommands = ['tsapprove+c', 'tsapprove+cl', 'tsapprove+lc', 'tsfix+c', 'tsfix+cl', 'tsfix+lc',
+      'approve+c', 'approve+cl', 'approve+lc', 'fix+c', 'fix+cl', 'fix+lc'];
+      const likeCommands =  ['tsapprove+cl', 'tsapprove+lc', 'tsfix+cl', 'tsfix+lc',
+      'approve+cl', 'approve+lc', 'fix+cl', 'fix+lc'];
 
       var command=ts.parse_command(message);
       var inCodeDiscussionChannel = false;
@@ -60,7 +63,7 @@ class TSApprove extends TSCommand {
         || inCodeDiscussionChannel //should also work in the discussion channel for that level
       )) return false; //silently fail
 
-      if(command.command == "tsreject"){
+      if(command.command.indexOf("reject") !== -1){
         //Difficulty doesn't exist in reject, so it get replaced by reason
         args.reason = args.difficulty;
         args.difficulty = "";
@@ -71,16 +74,16 @@ class TSApprove extends TSCommand {
       }
 
       //Then Check the other args
-      if(command.command == "tsapprove" || command.command == "tsfix" || clearCommands.indexOf(command.command) !== -1){
+      if(command.command.indexOf("approve") !== -1 || command.command.indexOf("fix") !== -1 || clearCommands.indexOf(command.command) !== -1){
         //We only check difficulty in tsapprove mode
         if(!ts.valid_difficulty(args.difficulty)){
           ts.userError("Invalid difficulty format!");
         }
       }
 
-      if(command.command==="tsreject"){
+      if(command.command.indexOf("reject") !== -1){
         args.type = "reject";
-      } else if (command.command.indexOf("tsfix") !== -1){
+      } else if (command.command.indexOf("fix") !== -1){
         args.type = "fix";
       } else {
         args.type = "approve";
