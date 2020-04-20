@@ -389,7 +389,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
     if(typeof obj=="object" && obj.errorType=="user"){
       return obj.msg+" "+(this.emotes.think ? this.emotes.think : "")
     } else {
-      console.error(obj)
+      console.error({error:obj,url_slug:this.config.url_slug})
       return "Something went wrong "+(this.emotes.buzzyS ? this.emotes.buzzyS : "")
     }
   }
@@ -398,7 +398,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
     if(typeof obj=="object" && obj.errorType=="user"){
       return { status:"error", message:obj.msg }
     } else {
-      console.error(obj)
+      console.error({error:obj,url_slug:this.config.url_slug})
       return { status:"error", message:"Something went wrong buzzyS"}
     }
   }

@@ -31,15 +31,6 @@ global.get_ts=function(guild_id){
   }
 }
 
-function get_web_ts(url_slug){
-  for(var id in global.TS_LIST){
-    if(global.TS_LIST[id] && global.TS_LIST[id].config && global.TS_LIST[id].config.url_slug == url_slug){
-      return global.TS_LIST[id];
-    }
-  }
-  return false
-}
-
 
 client.on("ready", async () => {
   console.log(config.botName+` has started, with ${client.users.size} users, in ${client.channels.size} channels of ${client.guilds.size} guilds.`);
@@ -55,8 +46,6 @@ client.on("ready", async () => {
       await global.TS_LIST[guild.id].load()
       global.TS_LIST[guild.id].db.Teams=Teams
       global.TS_LIST[guild.id].config=team_config
-      global.TS_LIST.guild_name=guild.name
-      global.TS_LIST.icon=guild.icon_url
     }
   })
 });
@@ -195,222 +184,129 @@ async function generateSiteJson(ts,isShellder){
 }
 
 function get_slug(){
-  console.log(req.headers)
-  console.log(req.body)
   let refer=req.headers.referer.split(req.host)[1].split('/')
-  //console.log(refer)
 }
 
-app.get('/json', async (req, res) => {
 
-  try {
-    console.log(req.headers)
-    console.log(req.body)
-    var ts=get_web_ts(req.body.url_slug)
-  } catch(error){
-    console.error(error)
-    throw error;
-  }
-
-  let lastUpdated = ts.gs.lastUpdated
-  let json = null;
-  if(req.query.lastLoaded==lastUpdated){
-    json = "No Updated Needed"
-  } else {
-    json = await generateSiteJson(ts)
-  }
-
-    res.setHeader('Content-Type', 'application/json; charset=utf-8');
-    res.send(encodeURIComponent(req.query.callback)+"("+JSON.stringify(json)+")");
-});
-
-app.post('/json',async (req,res)=>{
-    var ts=null
-    console.log(req.body)
-    try {
-      ts=get_web_ts(req.body.url_slug)
-      if(!ts)
-        throw "No data found";
-    } catch(error){`
-      res.send(error)`
-      console.error(error)
-      return false
+function get_web_ts(url_slug){
+  for(var id in global.TS_LIST){
+    if(global.TS_LIST[id].config && global.TS_LIST[id].config.url_slug == url_slug){
+      return global.TS_LIST[id];
     }
+  }
+  return false
+}
 
+function web_ts(callback){
+  return async (req, res) => {
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
     try {
+      console.log({
+        origin:req.headers.origin,
+        referer:req.headers.referer,
+        test_slug:req.headers.referer.split(req.headers.origin)[1].split('/'),
+        body:req.body,
+      })
+      var ts=get_web_ts(req.body.url_slug)
+      if(!ts)
+        throw '"'+req.body.url_slug+"\"  not found";
+    } catch(error){
+      let ret={"error":error,"url_slug":req.body.url_slug}
+      console.error(ret)
+      res.send(JSON.stringify(ret));
+      throw error;
+    }
+  
+    try{
+      let data=await callback(ts,req,res)
+      res.send(JSON.stringify(data));
+    } catch(error) {
+      res.send(ts.getWebUserErrorMsg(error))
+    }   
+  }
+}
+
+app.post('/json',web_ts(async (ts,req)=>{
     if(req.body.token){
       req.body.discord_id=await ts.checkBearerToken(req.body.token)
       var user=await ts.get_user(req.body.discord_id)
     }
+    
+    let json = await generateSiteJson(ts,user?user.shelder:false)
+    return json;
+}))
 
-      let json = await generateSiteJson(ts,user?user.shelder:false)
-      res.setHeader('Content-Type', 'application/json; charset=utf-8');
-      res.send(JSON.stringify(json));
-    } catch (error){
-      console.error(error)
-      res.send(ts.getWebUserErrorMsg(error))
-    }
-})
+app.post('/clear',web_ts(async (ts,req)=>{
+  if(!req.body.token)
+    ts.userError("Token was not sent");
 
-app.post('/clear',async (req,res)=>{
-
-    try {
-      console.log(req.headers)
-      var ts=get_web_ts(req.body.url_slug)
-    } catch(error){
-      res.send(error)
-      console.error(error)
-      return false
-    }
-
-    try {
-      if(req.body.token){
-        req.body.discord_id=await ts.checkBearerToken(req.body.token)
-        var user=await ts.get_user(req.body.discord_id)
-      } else {
-        ts.userError("Token was not sent")
-      }
-
-      let msg=await ts.clear(req.body)
-
-      await client.channels.get(ts.channels.clearSubmit).send(msg)
-      let json = {status:"sucessful",msg:msg}
-      res.setHeader('Content-Type', 'application/json; charset=utf-8');
-      res.send(JSON.stringify(json));
-    } catch (error){
-      res.send(ts.getWebUserErrorMsg(error))
-    }
-})
+  req.body.discord_id=await ts.checkBearerToken(req.body.token)
+  var user=await ts.get_user(req.body.discord_id)
+  
+  let msg=await ts.clear(req.body)
+  await client.channels.get(ts.channels.clearSubmit).send(msg)
+  let json = {status:"sucessful",msg:msg}
+  return json;
+}))
 
 
-app.post('/approve',async (req,res)=>{
+app.post('/approve',web_ts(async (ts,req)=>{
+  if(!req.body.token)
+    ts.userError("Token was not sent");
 
-  try {
-    console.log(req.headers)
-    console.log(req.body)
-    var ts=get_web_ts(req.body.url_slug)
-  } catch(error){
-    res.send(error)
-      console.error(error)
-      return false
-  }
-    try {
+  req.body.discord_id=await ts.checkBearerToken(req.body.token)
+  let user=await ts.get_user(req.body.discord_id)
 
-      if(req.body.token){
-        req.body.discord_id=await ts.checkBearerToken(req.body.token)
-        var user=await ts.get_user(req.body.discord_id)
-      }
-
-      if(user.shelder!="1"){
-        ts.userError("Forbidden")
-      }
-
-      //req.body.discord_id=discord_id
-      req.body.reason=req.body.comment
-
-      let msg=await ts.approve(req.body)
-      let clearmsg=await ts.clear(req.body)
-
-      await client.channels.get(ts.channels.clearSubmit).send(clearmsg)
-
-      json = {status:"sucessful",msg:msg}
-      res.setHeader('Content-Type', 'application/json; charset=utf-8');
-      res.send(JSON.stringify(json));
-    } catch (error){
-      res.send(ts.getWebUserErrorMsg(error))
-    }
-})
-
-app.post('/random',async (req,res)=>{
-
-  try {
-    console.log(req.headers)
-    console.log(req.body)
-    var ts=get_web_ts(req.body.url_slug)
-  } catch(error){
-      res.send(error)
-      console.log(error)
-      return false
+  if(user.shelder!="1"){
+    ts.userError("Forbidden");
   }
 
-    try {
+  req.body.reason=req.body.comment
 
-      if(req.body.token){
-        req.body.discord_id=await ts.checkBearerToken(req.body.token)
-        var user=await ts.get_user(req.body.discord_id)
-      }
+  let msg=await ts.approve(req.body)
+  let clearmsg=await ts.clear(req.body)
 
+  await client.channels.get(ts.channels.clearSubmit).send(clearmsg)
+  json = {status:"sucessful",msg:msg}
+  return json
+}))
 
-
-
-      let rand=await ts.randomLevel(req.body)
-      rand.status="sucessful"
-      res.setHeader('Content-Type', 'application/json; charset=utf-8');
-      res.send(JSON.stringify(rand));
-    } catch (error){
-      res.send(ts.getWebUserErrorMsg(error))
-    }
-})
-
-app.post('/feedback',async (req,res)=>{
-
-  try {
-    console.log(req.headers)
-    console.log(req.body)
-    var ts=get_web_ts(req.body.url_slug)
-  } catch(error){
-    res.send(error)
-    console.error(error)
-    return false
+app.post('/random',web_ts(async (ts,req)=>{
+  if(req.body.token){
+    req.body.discord_id=await ts.checkBearerToken(req.body.token)
+    var user=await ts.get_user(req.body.discord_id)
   }
 
-  try {
-    if(req.body.token && req.body.message){
-      if(req.body.message.length > 1000){
-        res.setHeader('Content-Type', 'application/json; charset=utf-8');
-        res.send(JSON.stringify({
-          status: "error",
-          message: "The supplied message is too long, please keep it lower than 1000 characters!"
-        }));
-        return;
-      }
+  let rand=await ts.randomLevel(req.body)
+  rand.status="sucessful"
+  return rand
+}))
 
-      req.body.discord_id=await ts.checkBearerToken(req.body.token)
+app.post('/feedback',web_ts(async (ts,req)=>{
+    
+  if(!req.body.token)
+    ts.userError("No token sent");
 
-      let ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-      let discordId = req.body.discord_id;
+  req.body.discord_id=await ts.checkBearerToken(req.body.token) //checks if logged in
+  let user=await ts.get_user(req.body.discord_id) //just checks if registered
 
-      await ts.putFeedback(ip, discordId, ts.config.config.feedback_salt, req.body.message);
+  if(!req.body.message)
+    ts.userError("No message was sent!")
 
-      res.setHeader('Content-Type', 'application/json; charset=utf-8');
-      res.send(JSON.stringify({
-        status: "successful"
-      }));
-    }
+  if(req.body.message.length > 1000)
+    ts.userError("The supplied message is too long, please keep it lower than 1000 characters!");
 
-    res.send(ts.getWebUserErrorMsg("No valid user was supplied!"));
-  } catch (error){
-    res.send(ts.getWebUserErrorMsg(error))
-  }
-})
+  let ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+  let discordId = req.body.discord_id;
+  await ts.putFeedback(ip, discordId, ts.config.config.feedback_salt, req.body.message);
+  return { status: "successful"}
+  
+}))
 
-app.post('/json/login', async (req, res) => {
-
-  try {
-    console.log(req.headers)
-    console.log(req.body)
-    var ts=get_web_ts(req.body.url_slug)
-  } catch(error){
-    res.send(error)
-    console.error(error)
-    return false
-  }
-
-  try{
-    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+app.post('/json/login', web_ts(async (ts,req) => {
     let returnObj={}
-
-    if(!req.body.otp) ts.userError("No OTP provided")
+    if(!req.body.otp)
+      ts.userError("No OTP provided");
 
     let token=await ts.db.Tokens.query()
       .where('token','=',req.body.otp)
@@ -428,8 +324,5 @@ app.post('/json/login', async (req, res) => {
       ts.userError("Your one time password was incorrect. You can DM ShellBot with !login to get another code")
     }
 
-      res.send(JSON.stringify(returnObj))
-    } catch (error){
-      res.send(ts.getWebUserErrorMsg(error));
-    }
-});
+    return returnObj
+}));
