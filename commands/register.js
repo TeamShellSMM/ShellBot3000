@@ -42,7 +42,7 @@ class TSRegister extends TSCommand {
       }
 
         await ts.gs.insert("Raw Members",row);
-        message.reply(ts.message("register.succeful",{ name:nickname }))
+        message.reply(ts.message("register.succesful",{ name:nickname }))
     }
 }
 module.exports = TSRegister;
