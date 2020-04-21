@@ -1,4 +1,5 @@
 const TSCommand = require('../TSCommand.js');
+const config = require('../config.json');
 class RenameMember extends TSCommand {
     constructor() {
         super('renamemember', {
@@ -13,15 +14,32 @@ class RenameMember extends TSCommand {
                 default: ''
             }],
             split: 'quoted',
-            ownerOnly: true,
-            category: 'owner'
         });
     }
 
+    canRun(ts,message){
+        if(config.ownerID && config.ownerID.indexOf(message.author.id)!==-1){
+            return true;
+        }
+        if(config.devs && config.devs.indexOf(message.author.id)!==-1){
+            return true;
+        }
+        let player=ts.gs.select("Raw Members",{"discord_id":message.author.id,"shelder":"1"},true)
+        if(player.length>0){
+            return true
+        }
+        
+        return false;
+    }
+
     async tsexec(ts,message, args) {
+        if(!this.canRun(ts,message)){
+            return false;
+        }
+
         await ts.load()
         let new_name_check=ts.gs.select("Raw Members",{"Name":args.new_name});
-        if(gs.select("Raw Members",{"Name":args.new_name})){
+        if(ts.gs.select("Raw Members",{"Name":args.new_name})){
             ts.userError("There is already another member with name \""+args.new_name+"\"")
         }
 

@@ -458,8 +458,8 @@ const TS=function(guild_id,config,client){ //loaded after gs
     if(typeof obj=="object" && obj.errorType=="user"){
       return obj.msg+ts.message("error.afterUserDiscord")
     } else {
-      console.error({error:obj,url_slug:this.config.url_slug})
-      return ts.message("error.unkownError")
+      console_error({error:obj.stack,url_slug:this.config.url_slug})
+      return ts.message("error.unknownError")
     }
   }
 
@@ -467,7 +467,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
     if(typeof obj=="object" && obj.errorType=="user"){
       return { status:"error", message:obj.msg+ts.message("error.afterUserWeb") }
     } else {
-      console.error({error:obj,url_slug:this.config.url_slug})
+      console_error({error:obj.stack,url_slug:this.config.url_slug})
       return { status:"error", message:ts.message("error.unknownError")}
     }
   }
@@ -941,7 +941,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
                 await curr_user.addRole(ts.channels.shellcult_id)
                   await client.channels.get(ts.channels.initiateChannel).send(ts.message("initiation.message",{discord_id:author.discord_id}))
               } else {
-                console.error(ts.message("initiation.userNotInDiscord",{name:author.Name})) //not a breaking error.
+                console_error(ts.message("initiation.userNotInDiscord",{name:author.Name})) //not a breaking error.
               }
             }
           }

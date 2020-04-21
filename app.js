@@ -14,11 +14,19 @@ if(config.json_dev){
   app.use("/dev", express.static(__dirname + '/json_dev.html'));
 }
 
+
+
 global.DEFAULTMESSAGES=require("./DefaultStrings.js");
 
 const client = new AkairoClient(config, {
     disableEveryone: true
 });
+
+global.console_error=async function(error){
+  let channel=await client.channels.get(config.error_channel)
+  channel.send("```"+JSON.stringify(error)+"```")
+  //
+}
 
 client.on("guildCreate", async guild => {
   console.log("Joined a new guild: " + guild.name);
@@ -58,7 +66,7 @@ client.on("ready", async () => {
     await client.login(config.discord_access_token);
     await app.listen(config.webPort, () => console.log(config.botName+':Web server now listening on '+config.webPort));
  } catch(error){
-  console.error(error)
+   console_error(error.stack)
  }
 })();
 
@@ -212,8 +220,8 @@ function web_ts(callback){
       if(!ts)
         throw '"'+req.body.url_slug+"\"  not found";
     } catch(error){
-      let ret={"error":error,"url_slug":req.body.url_slug}
-      console.error(ret)
+      let ret={"error":error.stack,"url_slug":req.body.url_slug}
+      console_error(ret)
       res.send(JSON.stringify(ret));
       throw error;
     }
