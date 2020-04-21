@@ -14,22 +14,22 @@ class tsadd extends TSCommand {
         code=code.toUpperCase()
 
       if(!ts.valid_code(code))
-        ts.userError("You did not provide a valid level code")
+        ts.userError(ts.message("error.invalidCode"))
 
       const level_name=command.arguments.join(" ")
 
       if(!level_name)
-        ts.userError("You didn't give a level name")
+        ts.userError(ts.message("add.noName"))
 
       await ts.gs.loadSheets(["Raw Members","Raw Levels"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
       const player=await ts.get_user(message);
       var existing_level=ts.gs.select("Raw Levels",{"Code":code})
 
       if(existing_level)
-        ts.userError("Level code has already been submitted as \""+existing_level["Level Name"]+"\" by "+existing_level.Creator);
+        ts.userError(ts.message("add.levelExisting",{level:existingLevel}));
 
       if(player.earned_points.available.toFixed(1)<0)
-        ts.userError("You need "+Math.abs(player.earned_points.available).toFixed(1)+" points to upload a new level");
+        ts.userError(ts.message("points.cantUpload",{points_needed:Math.abs(player.earned_points.available).toFixed(1)}));
 
       await ts.gs.insert("Raw Levels",{
         Code:code,
@@ -39,7 +39,7 @@ class tsadd extends TSCommand {
         Approved:0
       })
 
-      var reply="The level \""+level_name+"\" ("+code+") has been added"+(ts.emotes.love ? ts.emotes.love : "")
+      var reply=ts.message("add.succesful",{level_name,code})
       message.channel.send(player.user_reply+reply)
     }
 }

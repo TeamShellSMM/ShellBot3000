@@ -26,7 +26,7 @@ class playersRandom extends TSCommand {
       args.discord_id=message.author.id
       let rand=await ts.randomLevel(args)
 
-      let randomEmbed=ts.levelEmbed(rand.level).setAuthor("ShellBot rolled a d97 and found this level for "+args.players)
+      let randomEmbed=ts.levelEmbed(rand.level).setAuthor(ts.message("random.embedTitlePlayers",{players:args.players}))
       await message.channel.send(rand.player.user_reply)
       await message.channel.send(randomEmbed)
     }

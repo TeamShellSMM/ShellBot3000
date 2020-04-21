@@ -13,16 +13,42 @@ const TS=function(guild_id,config,client){ //loaded after gs
   this.db.Plays = require('./models/Plays.js')(guild_id);
   this.db.PendingVotes = require('./models/PendingVotes.js')(guild_id);
 
+  function _makeTemplate(template){
+    var template =Handlebars.compile(template)
+    return function(args){
+      if(!args) args={}
+      let obj={...ts.emotes,...ts.customStrings,...args}
+      return template(obj);
+    }
+  }
+
+  this.message=function(type,args){
+    if(this.messages[type]){
+      return this.messages[type](args)
+    }
+    throw "No message was found in ts.message"
+  }
+
   this.load=async function(){
-    ts.gs.clearCache()
-    this.pointMap={}
+  
+  ts.gs.clearCache()
+  this.pointMap={}
   this.channels={}
   this.emotes={}
+  this.messages={}
+  this.customStrings={ //defaults
+    "levelInfo":"@@LEVEL_PLACEHOLDER@@",
+    "teamurl":server_config.page_url+"/"+config.url_slug,
+    "BotName":"ShellBot3000",
+    "TeamName":"TeamTeam",
+    "ModName":"Mod",
+  }
 
   const static_vars=[
     "TeamShell Variable","Points",
     "TeamShell Ranks","Seasons",
     "Emotes","Channels","tags",
+    "CustomString","Messages",
     "Competition Winners", //static vars
     'Raw Members','Raw Levels' //play info
     ]; //initial vars to be loaded on bot load
@@ -32,14 +58,35 @@ const TS=function(guild_id,config,client){ //loaded after gs
     for(var i=0;i<_points.length;i++){
       this.pointMap[parseFloat(_points[i].Difficulty)]=parseFloat(_points[i].Points)
     }
-    var _channels=ts.gs.select("Channels");
+    var _channels=ts.gs.select("Channels",{},true);
     for(var i=0;i<_channels.length;i++){
       this.channels[_channels[i].Name]=_channels[i].value
     }
-      var _emotes=ts.gs.select("Emotes");
+      var _emotes=ts.gs.select("Emotes",{},true);
     for(var i=0;i<_emotes.length;i++){
       this.emotes[_emotes[i].Name]=_emotes[i].value?_emotes[i].value:""
     }
+
+    var _customString=ts.gs.select("CustomString",{},true);
+    for(var i=0;i<_customString.length;i++){
+      this.customStrings[_customString[i].Name]=_customString[i].value?_customString[i].value:""
+    }
+
+    var _messages=ts.gs.select("Messages",{},true);
+    for(var i=0;i<_messages.length;i++){
+      if(_messages[i].value){
+        this.messages[_messages[i].Name]=_makeTemplate(_messages[i].value)
+      }
+    }
+
+    for(var i in DEFAULTMESSAGES){
+      if(!this.messages[i]){
+        this.messages[i]=_makeTemplate(DEFAULTMESSAGES[i])
+      }
+    }
+
+    console.log(this.customString)
+    console.log(this.messages)
     console.log("TS Vars loaded")
   }
 
@@ -82,7 +129,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
       token: bearer,
       authenticated:1
     });
-    await client.guilds.get(this.channels.guild_id).members.get(discord_id).send("Your account was logged in on the website.")
+    await client.guilds.get(this.channels.guild_id).members.get(discord_id).send(ts.message("website.loggedin"))
     return bearer
   }
 
@@ -93,9 +140,9 @@ const TS=function(guild_id,config,client){ //loaded after gs
       const tokenExpireAt=moment(token.created_at).add(30,'days').valueOf()
       const now=moment().valueOf()
       if(tokenExpireAt<now)
-        ts.userError("Token expired. Need to relogin")
+        ts.userError(ts.message("website.tokenError"))
     } else {
-        ts.userError("Authentication error")
+        ts.userError(ts.message("website.authError"))
     }
     return token.discord_id
   }
@@ -212,19 +259,19 @@ const TS=function(guild_id,config,client){ //loaded after gs
         args.difficulty=''
         args.like="0"
       }
-
+      
       if(args.difficulty!=="0" && args.difficulty && !ts.valid_difficulty(args.difficulty)){
-        ts.userError("You did not provide a valid difficulty vote");
+        ts.userError(ts.message("clear.invalidDifficulty"));
       }
-
+      
       if(!args.discord_id)
-        ts.userError("We couldn't find your discord id")
+        ts.userError(ts.message("clear.discordId"))
 
       await ts.gs.loadSheets(["Raw Members","Raw Levels"]);
       const player=await ts.get_user(args.discord_id);
       var level=ts.getExistingLevel(args.code);
       if(level.Creator==player.Name)
-        ts.userError("You can't submit a clear for your own level");
+        ts.userError(ts.message("clear.ownLevel"));
 
       var existing_play = await ts.db.Plays.query()
         .where('code','=',args.code)
@@ -278,57 +325,73 @@ const TS=function(guild_id,config,client){ //loaded after gs
         if(args.difficulty!=='') updated.difficulty=1;
       }
 
-      var level_placeholder="@@LEVEL_PLACEHOLDER@@"
 
         if(updated.completed){
           if(args.completed==="0"){
-            msg.push(" ‣You have removed your clear for "+level_placeholder)
+            msg.push(ts.message("clear.removedClear",{level}))
           } else {
-            msg.push(" ‣You have cleared "+level_placeholder+" "+(ts.emotes.GG ? ts.emotes.GG : ""))
+            msg.push(ts.message("clear.addClear",{level}))
             if(level.Approved=="1"){
-              msg.push(" ‣You have earned "+this.pointMap[parseFloat(level.Difficulty)]+" points")
+              msg.push(ts.message("clear.earnedPoints",{
+                earned_points:this.pointMap[parseFloat(level.Difficulty)],
+              }))
             } else {
-              msg.push(" ‣This level is still pending")
+              msg.push(ts.message("clear.pendingLevel"))
             }
           }
         } else if(args.completed || args.completed==="0"){
           msg.push(args.completed==="0"?
-            " ‣You have not submited a clear for "+level_placeholder:
-            " ‣You have already submitted a clear for "+level_placeholder
+            ts.message("clear.alreadyUncleared"):
+            ts.message("clear.alreadyCleared")
           )
         }
 
         if(updated.difficulty){
           msg.push(args.difficulty==="0"?
-            " ‣You have removed your difficulty vote for "+level_placeholder+" "+(ts.emotes.bam ? ts.emotes.bam : ""):
-            " ‣You have voted "+args.difficulty+" as the difficulty for "+level_placeholder+" "+(ts.emotes.bam ? ts.emotes.bam : "")
+            ts.message("clear.removeDifficulty",{ level }):
+            ts.message("clear.addDifficulty",{
+              level:level,
+              difficulty_vote:args.difficulty,
+            })
           )
         } else if(args.difficulty || args.difficulty==="0" ){
           msg.push(args.difficulty==="0"?
-            " ‣You haven't submitted a difficulty vote for "+level_placeholder+" "+(ts.emotes.think ? ts.emotes.think : ""):
-            " ‣You have already voted "+args.difficulty+" for "+level_placeholder+" "+(ts.emotes.think ? ts.emotes.think : "")
+            ts.message("clear.alreadyDifficulty",{ level }):
+            ts.message("clear.alreadyNoDifficulty",{
+              level:level,
+              difficulty_vote:args.difficulty,
+            })
           )
         }
 
         if(updated.liked){
           msg.push(args.like==="0"?
-            " ‣You have unliked "+level_placeholder+" "+(ts.emotes.bam ? ts.emotes.bam : ""):
-            " ‣You have liked "+level_placeholder+" "+(ts.emotes.love ? ts.emotes.love : "")
-
+          ts.message("clear.removeLike",{ level }):
+          ts.message("clear.addLike",{ level })
           )
         } else if(args.like || args.like==="0" ){
           msg.push(args.like==="0"?
-            " ‣You have not added a like to "+level_placeholder+" "+(ts.emotes.think ? ts.emotes.think : ""):
-            " ‣You have already liked "+level_placeholder+" "+(ts.emotes.love ? ts.emotes.love : "")
+            ts.message("clear.alreadyLiked",{ level }):
+            ts.message("clear.alreadyUnliked",{ level })
           )
         }
 
 
-      var level_str="\""+level["Level Name"]+"\"  by "+creator_str
+      var level_placeholder=this.customStrings["levelInfo"]
+      var level_str=ts.message("clear.levelInfo",{ level , creator:creator_str })
+
+
+      console.log(msg)
+
+      var singleHave=ts.message("clear.singleHave")
+      var manyHave=ts.message("clear.manyHave")
+      var levelPronoun=ts.message("clear.levelPronoun")
       for(var i=0;i<msg.length;i++){
-        msg[i]=msg[i].replace(level_placeholder,level_str)
-        if(i>1) msg[i]=msg[i].replace("‣You have","‣You also have");
-        level_str="this level"
+        if(msg[i]){
+          msg[i]=msg[i].replace(level_placeholder,level_str)
+          if(i>1) msg[i]=msg[i].replace(singleHave,manyHave);
+          level_str=levelPronoun
+        }
       }
 
       return (strOnly?"":player.user_reply+"\n")+msg.join("\n");
@@ -353,13 +416,14 @@ const TS=function(guild_id,config,client){ //loaded after gs
         var matchStr=""
       }
 
-      ts.userError("The code `"+code+"` was not found in Team Shell's list."+matchStr);
+      
+      ts.userError(ts.message("error.levelNotFound", { code })+matchStr);
     }
     if(!includeRemoved && !(level.Approved==0 || level.Approved==1)){ //level is removed. not pending/accepted
       if(level.Approved==-10){
-        ts.userError("The level \""+level["Level Name"]+"\" is under 'Request to fix' status");
+        ts.userError(ts.getMessage("error.levelIsFixing",{ level }));
       }
-      ts.userError("The level \""+level["Level Name"]+"\" has been removed from Team Shell's list ");
+      ts.userError(ts.getMessage("error.levelIsRemoved",{ level }));
     }
     return level
   }
@@ -392,19 +456,19 @@ const TS=function(guild_id,config,client){ //loaded after gs
   }
   this.getUserErrorMsg=function(obj){
     if(typeof obj=="object" && obj.errorType=="user"){
-      return obj.msg+" "+this.emotes.think
+      return obj.msg+ts.message("error.afterUserDiscord")
     } else {
       console.error({error:obj,url_slug:this.config.url_slug})
-      return "Something went wrong "+this.emotes.buzzyS
+      return ts.message("error.unkownError")
     }
   }
 
   this.getWebUserErrorMsg=function(obj){
     if(typeof obj=="object" && obj.errorType=="user"){
-      return { status:"error", message:obj.msg }
+      return { status:"error", message:obj.msg+ts.message("error.afterUserWeb") }
     } else {
       console.error({error:obj,url_slug:this.config.url_slug})
-      return { status:"error", message:"Something went wrong buzzyS"}
+      return { status:"error", message:ts.message("error.unknownError")}
     }
   }
 
@@ -414,14 +478,15 @@ const TS=function(guild_id,config,client){ //loaded after gs
     return Math.floor(Math.random() * (max - min)) + min; //The maximum is exclusive and the minimum is inclusive
   }
 
+  
   this.randomLevel=async function(args){
     if(args.minDifficulty && !ts.valid_difficulty(args.minDifficulty)){
-      ts.userError(args.maxDifficulty? "You didn't specify a valid minimum difficulty" : "You didn't specify a valid difficulty")
+      ts.userError(args.maxDifficulty? ts.message("random.noMinDifficulty") : ts.message("random.noDifficulty"))
     }
 
     if(args.maxDifficulty){
       if(!ts.valid_difficulty(args.maxDifficulty))
-        ts.userError("You didn't specify a valid maxDifficulty")
+        ts.userError(ts.message("random.noMaxDifficulty"))
     } else {
       if(args.minDifficulty){
         args.maxDifficulty=args.minDifficulty
@@ -444,7 +509,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
       players=args.players.split(",")
       players.forEach( p => {
         if(rawPlayers.indexOf(p) === -1)
-          ts.userError(p+" is not found in the memory banks")
+          ts.userError(ts.message("random.playerNotFound",{player:p}))
       })
     } else {
       players=[player.Name]
@@ -525,7 +590,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
           && level.Tags.indexOf("Practice") === -1
       })
     } else {
-      throw "No levels found buzzyS"
+      throw ts.message("error.emptyLevelList")
     }
     //console.timeEnd("getting the range of levels")
 
@@ -535,7 +600,9 @@ const TS=function(guild_id,config,client){ //loaded after gs
     })
     //console.timeEnd("sorting levels")
     if(filtered_levels.length==0){
-      ts.userError("You have ran out of levels in this range ("+(min==max?min:min+"-"+max)+")")
+      ts.userError(ts.message("random.outOfLevels",{
+        range:(min==max?min:min+"-"+max)
+      }))
     }
 
     //console.time("rolling dice")
@@ -560,10 +627,10 @@ const TS=function(guild_id,config,client){ //loaded after gs
     })
 
     if(!player)
-      ts.userError("You are not yet registered");
+      ts.userError(ts.message("error.notRegistered"));
 
     if(player.banned)
-      ts.userError("You have been barred from using this service")
+      ts.userError(ts.message("error.userBanned"));
 
     player.earned_points= await this.calculatePoints(player.Name);
     player.rank=this.get_rank(player.earned_points.clearPoints);
@@ -577,15 +644,15 @@ const TS=function(guild_id,config,client){ //loaded after gs
     var rejectVotes = await ts.db.PendingVotes.query().where("code",level.Code).where("is_shellder",1).where("type","reject");
 
     var voteEmbed=ts.levelEmbed(level)
-        .setAuthor("The Judgement  has now begun for this level:");
+        .setAuthor(ts.message("approval.judgementBegin"));
 
     if(ts.emotes.judgement){
       voteEmbed.setThumbnail(ts.getEmoteUrl(ts.emotes.judgement));
     }
 
-      var postString = "__Current Votes for approving the level:__\n";
+      var postString = ts.message("approval.approvalVotes");
       if(approveVotes == undefined || approveVotes.length == 0){
-        postString += "> None\n";
+        postString += ts.message("noVotes");
       } else {
         for(var i = 0; i < approveVotes.length; i++){
           const curShellder = ts.gs.select("Raw Members",{"Name":approveVotes[i].player});
@@ -593,7 +660,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
         }
       }
 
-      postString += "\n__Current Votes for fixing the level:__\n";
+      postString += ts.message("approval.fixVotes");
       if(fixVotes == undefined || fixVotes.length == 0){
         postString += "> None\n";
       } else {
@@ -603,7 +670,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
         }
       }
 
-      postString += "\n__Current votes for rejecting the level:__\n";
+      postString += ts.message("approval.rejectVotes");
 
       if(rejectVotes == undefined || rejectVotes.length == 0){
         postString += "None\n";
@@ -625,24 +692,24 @@ const TS=function(guild_id,config,client){ //loaded after gs
 
     if(alreadyApprovedMessage){
       //If we got a level we already approved before we just build a mini embed with the message
-      voteEmbed.setAuthor("This level has been reuploaded and is now awaiting approval!")
-      .setDescription("This level was already approved before so if everything's alright you can approve it (use **!fixapprove**)")
+      voteEmbed.setAuthor(ts.message("pending.pendingTitle"))
+      .setDescription(ts.message("pending.alreadyApprovedBefore"))
       .addField(author.Name + ":", alreadyApprovedMessage);
       return voteEmbed;
     }
 
     if(refuse){
-        voteEmbed.setAuthor("This level has NOT been reuploaded!")
-        .setDescription("Refused by: Please check the fixvotes and decide if this is still acceptable to approve or not (use **!fixapprove** or **!fixreject** with a message).")
+        voteEmbed.setAuthor(ts.message("pending.refuseTitle"))
+        .setDescription(ts.message("pending.refuseDescription"))
     } else {
-      voteEmbed.setAuthor("This level has been reuploaded and is now awaiting approval!")
-      .setDescription("Please check if the mandatory fixes where made and make your decision (use **!fixapprove** or **!fixreject** with a message).")
+      voteEmbed.setAuthor(ts.messaga("pending.reuploadedTitle"))
+      .setDescription(ts.message("pending.fixReuploadDescription"))
     }
     if(ts.emotes.judgement){
       voteEmbed.setThumbnail(ts.getEmoteUrl(ts.emotes.judgement));
     }
 
-    let postString = "__Current Votes for fixing the level:__\n";
+    let postString = ts.message("approval.fixVotes");
     if(fixVotes == undefined || fixVotes.length == 0){
       postString += "> None\n";
     } else {
@@ -665,7 +732,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
       if(!vote){
         //We only check reason if we have no vote yet
         if(!args.reason){
-          ts.userError("You need to give a reason for the change (in quotation marks)!");
+          ts.userError(ts.message("approval.changeReason"));
         }
       }
 
@@ -673,18 +740,18 @@ const TS=function(guild_id,config,client){ //loaded after gs
       const author = ts.gs.select("Raw Members",{"Name":level.Creator});
 
       if(!author){
-        ts.userError("Author was not found in Members List!");
+        ts.userError(ts.message("approval.creatorNotFound"));
       }
 
       //Check if level is approved, if it's approved only allow rejection
       if(level.Approved === "1"){
         if(args.type === "approve"){
-          ts.userError("Level is already approved!");
+          ts.userError(ts.message("approval.levelAlreadyApproved"));
         }
       } else if(level.Approved === "0"){
         //I don't care that this is empty, I can't be arsed anymore to think how to structure this if
       } else {
-        ts.userError("Level is not pending!");
+        ts.userError(ts.message("approval.levelNotPending"));
       }
 
 
@@ -725,7 +792,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
       if(!discussionChannel){
         //Create new channel and set parent to category
         if(guild.channels.get(ts.channels.levelDiscussionCategory).children.size===50){
-          ts.userError("Your vote is saved but there are 50 discussion channels active right now so we can't make a new one for this level")
+          ts.userError(ts.message("approval.tooManyDiscussionChannels"))
         }
         discussionChannel = await guild.createChannel(args.code, {
           type: 'text',
@@ -746,9 +813,9 @@ const TS=function(guild_id,config,client){ //loaded after gs
 
       var replyMessage = "";
       if(updating){
-        replyMessage += "Your vote was changed in <#" + discussionChannel.id + ">!";
+        replyMessage += ts.message("approval.voteChanged",{channel_id:discussionChannel.id})
       } else {
-        replyMessage += "Your vote was added to <#" + discussionChannel.id + ">!";
+        replyMessage += ts.message("approval.voteAdded",{channel_id:discussionChannel.id})
       }
       return replyMessage
   }
@@ -766,7 +833,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
     const author = ts.gs.select("Raw Members",{"Name":level.Creator});
 
     if(!author){
-      ts.userError("Author was not found in Members List!")
+      ts.userError(ts.message("approval.creatorNotFound"))
     }
 
     //Get all current votes for this level
@@ -802,7 +869,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
 
     } else if (approvalVoteCount >= ts.get_variable("VotesNeeded")  && approvalVoteCount>rejectVoteCount && fixVoteCount > 0 && level.Approved !== "-10") {
       if(level.Approved !== "0")
-        ts.userError("Level is not pending")
+        ts.userError(ts.message("approval.levelNotPending"))
 
       //We set the level approval status to -10 aka requested fix
       var updateLevel = ts.gs.query("Raw Levels", {
@@ -816,7 +883,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
       }
 
       var color="#D68100";
-      var title="This level is one step from being approved, we'd just like to see some fixes!";
+      var title=ts.message("approval.fixPlayerInstructions");
       if(this.emotes.think){
         var image=this.getEmoteUrl(this.emotes.think);
       }
@@ -824,7 +891,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
       fixMode = true;
     } else if (approvalVoteCount >= ts.get_variable("VotesNeeded")  && approvalVoteCount>rejectVoteCount ){
       if(level.Approved !== "0" && level.Approved !== "-10")
-        ts.userError("Level is not pending")
+        ts.userError(ts.message("approval.levelNotPending"))
         //Get the average difficulty and round to nearest .5, build the message at the same time
         var diffCounter = 0;
         var diffSum = 0;
@@ -872,13 +939,9 @@ const TS=function(guild_id,config,client){ //loaded after gs
               var curr_user=await guild.members.get(author.discord_id)
               if(curr_user){ //assign role
                 await curr_user.addRole(ts.channels.shellcult_id)
-                if(ts.config.url_slug == 'teamshell'){
-                  await client.channels.get(ts.channels.initiateChannel).send("<a:ts_2:632758958284734506><a:ts_2:632758958284734506><a:ts_1:632758942992302090> <:SpigLove:628057762449850378> We welcome <@"+author.discord_id+"> into the shell cult <:PigChamp:628055057690132481> <a:ts_2:632758958284734506><a:ts_2:632758958284734506><a:ts_1:632758942992302090> <:bam:628731347724271647>")
-                } else {
-                  await client.channels.get(ts.channels.initiateChannel).send("We welcome <@"+author.discord_id+"> into the team!")
-                }
+                  await client.channels.get(ts.channels.initiateChannel).send(ts.message("initiation.message",{discord_id:author.discord_id}))
               } else {
-                console.error(author.Name+" was not found in the discord") //not a breaking error.
+                console.error(ts.message("initiation.userNotInDiscord",{name:author.Name})) //not a breaking error.
               }
             }
           }
@@ -891,12 +954,12 @@ const TS=function(guild_id,config,client){ //loaded after gs
           var image=this.getEmoteUrl(this.emotes.bam);
         }
       } else if(approvalVoteCount==rejectVoteCount ) {
-        ts.userError("The votes are the same! "+(ts.emotes.buzzyS ? ts.emotes.buzzyS + " ": "")+"We need a tiebreaker");
+        ts.userError(ts.message("approval.comboBreaker"));
       } else {
-        ts.userError("There must be at least "+ts.get_variable("VotesNeeded")+" Mods in agreement before this level can be judged!");
+        ts.userError(ts.message("approval.numVoteNeeded"),{vote_num:ts.get_variable("VotesNeeded")});
       }
 
-      var mention = "**<@" + author.discord_id + ">, we got some news for you: **";
+      var mention = ts.message("general.heyListen",{discord_id:author.discord_id});
       var exampleEmbed = ts.levelEmbed(level)
         .setColor(color)
         .setAuthor(title);
@@ -906,7 +969,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
       }
 
       if(fixMode){
-        exampleEmbed.setDescription("If you want to fix these issues use **!reupload** (to get it approved really quickly) or if you don't want to just use **!refusefix** and the mods will decide if it's still acceptable.");
+        exampleEmbed.setDescription(ts.message("approval.fixInstructionsCreator"));
       }
 
       if(fixMode){
@@ -942,9 +1005,9 @@ const TS=function(guild_id,config,client){ //loaded after gs
 
       //Remove Discussion Channel
       if(!fromFix){
-        await ts.deleteDiscussionChannel(level.Code,"Justice has been met!")
+        await ts.deleteDiscussionChannel(level.Code,ts.message("channelDeleted"))
       } else {
-        await ts.deleteReuploadChannel(level.Code,"Justice has been met!")
+        await ts.deleteReuploadChannel(level.Code,ts.message("channelDeleted"))
       }
   }
 
@@ -965,10 +1028,10 @@ const TS=function(guild_id,config,client){ //loaded after gs
 
     var color="#dc3545";
 
-    var mention = "**<@" + author.discord_id + ">, we got some news for you: **";
+    var mention = ts.message("general.heyListen",{discord_id:author.discord_id});
     var exampleEmbed = ts.levelEmbed(updateLevel)
       .setColor(color)
-      .setAuthor("We're really sorry, but this level was rejected after you refused to reupload.")
+      .setAuthor(ts.message("approval.rejectAfterRefuse"))
 
     if(this.emotes.axemuncher){
       var image=this.getEmoteUrl(this.emotes.axemuncher);
@@ -994,7 +1057,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
     await client.channels.get(ts.channels.shellderLevelChanges).send(exampleEmbed);
 
     //Remove Discussion Channel
-    await ts.deleteReuploadChannel(levelCode,"Justice has been met!")
+    await ts.deleteReuploadChannel(levelCode,ts.message("approval.channelDeleted"))
   }
 
   this.deleteDiscussionChannel=async function(levelCode,reason){
@@ -1073,7 +1136,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
       oldCode=oldCode.toUpperCase()
 
     if(!ts.valid_code(oldCode))
-      ts.userError("You did not provide a valid code for the old level")
+      ts.userError(ts.message("reupload.invalidOldCode"))
 
 
     let newCode=command.arguments.shift()
@@ -1081,14 +1144,14 @@ const TS=function(guild_id,config,client){ //loaded after gs
       newCode=newCode.toUpperCase()
 
     if(!ts.valid_code(newCode))
-      ts.userError("You did not provide a valid code for the new level")
+      ts.userError(ts.message("reupload.invalidNewCode"))
 
     const reason=command.arguments.join(" ")
 
     if(oldCode==newCode)
-      ts.userError("The codes given were the same")
+      ts.userError(ts.message("reupload.sameCode"))
     if(!reason){
-      ts.userError("Please provide a little message on why you reuploaded at the end of the command (in quotes)")
+      ts.userError(ts.message("reupload.giveReason"))
     }
 
     await ts.gs.loadSheets(["Raw Members","Raw Levels"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
@@ -1098,7 +1161,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
     })
 
     if(!player)
-      ts.userError("You are not yet registered");
+      ts.userError(ts.message("error.notRegistered"));
     var earned_points=await ts.calculatePoints(player.Name);
     var rank=ts.get_rank(earned_points.clearPoints);
     var user_reply="<@"+message.author.id+">"+(rank.Pips ? rank.Pips : "")+" ";
@@ -1113,22 +1176,22 @@ const TS=function(guild_id,config,client){ //loaded after gs
       update:{"NewCode":newCode}
     },true)
 
-    if(!level) ts.userError("Level not found");
+    if(!level) ts.userError(ts.message("error.levelNotFound",{code:oldCode}));
 
     var creator_points=await ts.calculatePoints(level.Creator,level.Approved=="1" || level.Approved=="0")
 
     if(new_level && level.Creator!=new_level.Creator)
-      ts.userError("The new level uploaded doesn't have the same creator as the old level");
+      ts.userError(ts.message("reupload.differentCreator"));
     if(new_level && new_level.Approved!=0 && new_level.Approved!=1 && new_level.Approved!=-10)
-      ts.userError("The new level is not approved, pending or in a fix request");
+      ts.userError(ts.message("reupload.wrongApprovedStatus"));
     if(!new_level && creator_points.available<0)
-      ts.userError("Creator doesn't have enough to upload a new level");
+      ts.userError(ts.message("reupload.notEnoughPoints"));
     if(level.NewCode && ts.valid_code(level.NewCode))
-      ts.userError("Level has already been reuploaded with Code "+level.NewCode)
+      ts.userError(ts.message("reupload.haveReuploaded",{code:level.NewCode}))
 
     //only creator and shellder can reupload a level
     if(!(level.Creator==player.Name || player.shelder=="1"))
-      ts.userError("You can't reupload \""+level["Level Name"]+"\" by "+level.Creator);
+      ts.userError(ts.message("reupload.noPermission", {level}));
 
     level=ts.gs.query("Raw Levels",{
       filter:{"Code":oldCode},
@@ -1158,7 +1221,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
       await ts.gs.batchUpdate(batch_updates)
     }
 
-    await ts.deleteReuploadChannel(oldCode,"Justice has been met!")
+    await ts.deleteReuploadChannel(oldCode,ts.message("approval.channelDeleted"))
 
     if(oldApproved == -10 || oldApproved == 1){
       //set the new one to fix request status and add channel
@@ -1184,12 +1247,12 @@ const TS=function(guild_id,config,client){ //loaded after gs
       discussionChannel = guild.channels.find(channel => channel.name === new_level.Code.toLowerCase() && channel.parent.id == ts.channels.pendingReuploadCategory); //not sure should specify guild/server
 
       if(discussionChannel){
-        await ts.deleteReuploadChannel(newCode,"Justice has been met!")
+        await ts.deleteReuploadChannel(newCode,ts.message("approval.channelDeleted"))
       }
 
       //Create new channel and set parent to category
       if(guild.channels.get(ts.channels.pendingReuploadCategory).children.size===50){
-        ts.userError("Can't handle the request right now because there are already 50 open reupload requests (this should really never happen)!")
+        ts.userError(ts.message("reupload.tooManyReuploadChannels"))
       }
       discussionChannel = await guild.createChannel(newCode, {
         type: 'text',
@@ -1213,17 +1276,17 @@ const TS=function(guild_id,config,client){ //loaded after gs
     let existingChannel=guild.channels.find(channel => channel.name === oldCode.toLowerCase() && channel.parent.id == ts.channels.levelDiscussionCategory)
     if(existingChannel){
       await existingChannel.setName(newCode.toLowerCase())
-      await existingChannel.send("This level has been reuploaded from "+oldCode+" to "+newCode+". Below are the comments of the old level")
+      await existingChannel.send(ts.message("reuploaded.reuploadNotify",{oldCode,newCode}))
       let oldEmbed=await ts.makeVoteEmbed(level)
       await existingChannel.send(oldEmbed)
     }
 
-    var reply="You have reuploaded \""+level["Level Name"]+"\" by "+level.Creator+" with code ("+newCode+")."+(ts.emotes.bam ? ts.emotes.bam : "")
+    var reply=ts.message("reupload.sucessful",{ level , newCode })
     if(!new_level){
-      reply+=" If you want to rename the new level, you can use !tsrename new-code level name."
+      reply+=ts.message("reupload.renamingInstructions")
     }
     if(oldApproved == -10 || oldApproved == 1){
-      reply += " Your level has also been put in the reupload queue, we'll get back to you shortly."
+      reply += ts.message("reupload.inReuploadQueue")
     }
 
     return user_reply+reply;
@@ -1276,7 +1339,11 @@ const TS=function(guild_id,config,client){ //loaded after gs
     var point_rank=ts.gs.select("TeamShell Ranks")
     for(var i=point_rank.length-1;i>=0;i--){
       if(parseFloat(points)>=parseFloat(point_rank[i]["Min Points"])){
-        return point_rank[i]
+        let ret={}
+        for(var j in point_rank[i]){
+          ret[j]=point_rank[i][j]?point_rank[i][j]:''
+        }
+        return ret
       }
     }
     return false

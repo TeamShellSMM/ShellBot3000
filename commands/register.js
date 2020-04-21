@@ -16,10 +16,10 @@ class TSRegister extends TSCommand {
       await ts.gs.loadSheets(["Raw Members"]);
       const player=ts.gs.select("Raw Members",{"discord_id":message.author.id});
       if(player && player.banned){
-        ts.userError("You're barred from using this service")
+        ts.userError(ts.message("register.barred"))
       }
       if(player){
-        ts.userError("You're already registered as **"+player.Name+"**")
+        ts.userError(ts.message("register.already",{ player }))
       }
 
       let command=ts.parse_command(message);
@@ -31,7 +31,7 @@ class TSRegister extends TSCommand {
       nickname=nickname.replace(/\\/g,'');
       ts.gs.select("Raw Members",{},true).forEach((member)=>{
           if(member && nickname.toLowerCase()==member.Name.toLowerCase()){
-            ts.userError("\""+member.Name+"\" has already been registered by someone else. Please use another nickname")
+            ts.userError(ts.message("register.nameTaken",{ name:nickname }))
           }
         })
 
@@ -42,7 +42,7 @@ class TSRegister extends TSCommand {
       }
 
         await ts.gs.insert("Raw Members",row);
-        message.reply("You are now registered as \""+nickname+"\". You can now start submitting your clears in #level-clears "+(ts.emotes.bam ? ts.emotes.bam : ""))
+        message.reply(ts.message("register.succeful",{ name:nickname }))
     }
 }
 module.exports = TSRegister;

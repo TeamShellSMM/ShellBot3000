@@ -11,6 +11,14 @@ class points extends TSCommand {
                 }],
            channelRestriction: 'guild'
         });
+        this.defaultMessage({
+          "points.points":
+            "You have {{player.earned_points.clearPoints}} clear points. You have submitted {{player.earned_points.levelsMade}} level(s)"+
+            "{{#if player.earned_points.freeSubmissions}}{{player.earned_points.freeSubmissions}} free submission(s){{/if}}.",
+          "points.canUpload":"You have enough points to upload a level {{{PigChamp}}}",
+          "points.cantUpload":"You need {{points_needed}} points to upload a new level {{{buzzyS}}}. Check how the points are mapped on {{teamurl}}",
+          "points.rank":" You have earned the rank **{{player.rank.Rank}}** {{{player.rank.Pips}}}",
+        })
     }
 
     async tsexec(ts,message,args) {
@@ -26,15 +34,16 @@ class points extends TSCommand {
           await message.member.addRole(player.rank.discord_roles)
         }
 
-        var msg="You have "+player.earned_points.clearPoints+" clear points. You have submitted "+player.earned_points.levelsMade+" level"+ts.plural(player.earned_points.levelsMade)+" "+(player.earned_points.freeSubmissions?"("+player.earned_points.freeSubmissions+" free submission"+ts.plural(player.earned_points.freeSubmissions)+")":"")+". "
+        var msg=ts.message("points.points",{ player })
 
         if(player.earned_points.available>=0){
-           msg+="You have enough points to upload a level "+ (ts.emotes.PigChamp ? ts.emotes.PigChamp : "");
+           msg+=ts.message("points.canUpload");
         } else {
-           msg+="You need "+Math.abs(player.earned_points.available).toFixed(1)+" points to upload a new level"+ (ts.emotes.buzzyS ? " " + ts.emotes.buzzyS : "")+". Check how the points are mapped on https://makerteams.net/" + ts.config.url_slug;
+           msg+=ts.message("points.cantUpload",{
+             "points_earned":Math.abs(player.earned_points.available).toFixed(1)
+           })
         }
-        msg+=" You have earned the rank **"+player.rank.Rank+"** "+ (player.rank.Pips ? player.rank.Pips : "")
-
+        msg+=ts.message("points.rank",{ player })
         message.channel.send(player.user_reply+msg)
     }
 }

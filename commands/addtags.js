@@ -19,11 +19,11 @@ class TSAddtags extends TSCommand {
           code=code.toUpperCase()
 
         if(!ts.valid_code(code))
-          ts.userError("You did not provide a valid level code")
+          ts.userError(ts.message("error.invalidCode"))
 
         let new_tags=command.arguments.join(" ")
         if(!new_tags)
-          ts.userError("You didn't give any tags")
+          ts.userError(ts.message("tags.noTags"))
         new_tags=new_tags.split(/[,\n]/)
 
         await ts.gs.loadSheets(["Raw Members","Raw Levels"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
@@ -66,7 +66,7 @@ class TSAddtags extends TSCommand {
           new_tags=[]
           filteredTags.forEach((tag)=>{
             if(locked_tags.indexOf(tag)!=-1 && player.shelder!="1")
-              ts.userError("You can't add the tag \""+tag+"\"")
+              ts.userError(ts.message("tags.cantAdd",{tag}))
             if(old_tags.indexOf(tag)==-1){
               new_tags.push(tag)
             }

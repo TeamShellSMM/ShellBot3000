@@ -14,6 +14,8 @@ if(config.json_dev){
   app.use("/dev", express.static(__dirname + '/json_dev.html'));
 }
 
+global.DEFAULTMESSAGES=require("./DefaultStrings.js");
+
 const client = new AkairoClient(config, {
     disableEveryone: true
 });
@@ -55,7 +57,6 @@ client.on("ready", async () => {
   try {
     await client.login(config.discord_access_token);
     await app.listen(config.webPort, () => console.log(config.botName+':Web server now listening on '+config.webPort));
-
  } catch(error){
   console.error(error)
  }
@@ -201,12 +202,12 @@ function web_ts(callback){
   return async (req, res) => {
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
     try {
-      console.log({
-        origin:req.headers.origin,
-        referer:req.headers.referer,
+      //console.log({
+       // origin:req.headers.origin,
+        //referer:req.headers.referer,
         //test_slug:req.headers.referer.split(req.headers.origin)[1].split('/'),
-        body:req.body,
-      })
+        //body:req.body,
+      //})
       var ts=get_web_ts(req.body.url_slug)
       if(!ts)
         throw '"'+req.body.url_slug+"\"  not found";
@@ -238,7 +239,8 @@ app.post('/json',web_ts(async (ts,req)=>{
 
 app.post('/clear',web_ts(async (ts,req)=>{
   if(!req.body.token)
-    ts.userError("Token was not sent");
+    ts.userError("website.noToken");
+
 
   req.body.discord_id=await ts.checkBearerToken(req.body.token)
   var user=await ts.get_user(req.body.discord_id)
@@ -252,7 +254,8 @@ app.post('/clear',web_ts(async (ts,req)=>{
 
 app.post('/approve',web_ts(async (ts,req)=>{
   if(!req.body.token)
-    ts.userError("Token was not sent");
+    ts.userError("website.noToken");
+
 
   req.body.discord_id=await ts.checkBearerToken(req.body.token)
   let user=await ts.get_user(req.body.discord_id)
@@ -285,16 +288,16 @@ app.post('/random',web_ts(async (ts,req)=>{
 app.post('/feedback',web_ts(async (ts,req)=>{
     
   if(!req.body.token)
-    ts.userError("No token sent");
+    ts.userError("website.noToken");
 
   req.body.discord_id=await ts.checkBearerToken(req.body.token) //checks if logged in
   let user=await ts.get_user(req.body.discord_id) //just checks if registered
 
   if(!req.body.message)
-    ts.userError("No message was sent!")
+    ts.userError(ts.message("feedback.noMessage"))
 
   if(req.body.message.length > 1000)
-    ts.userError("The supplied message is too long, please keep it lower than 1000 characters!");
+    ts.userError(ts.message("feedback.tooLong"));
 
   let ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
   let discordId = req.body.discord_id;
@@ -306,7 +309,7 @@ app.post('/feedback',web_ts(async (ts,req)=>{
 app.post('/json/login', web_ts(async (ts,req) => {
     let returnObj={}
     if(!req.body.otp)
-      ts.userError("No OTP provided");
+      ts.userError(ts.message("login.noOTP"));
 
     let token=await ts.db.Tokens.query()
       .where('token','=',req.body.otp)
@@ -316,12 +319,12 @@ app.post('/json/login', web_ts(async (ts,req) => {
       let tokenExpireAt=moment(token.created_at).add(30,'m').valueOf()
       let now=moment().valueOf()
       if(tokenExpireAt<now)
-        ts.userError("The OTP password given is already expired")
+        ts.userError(ts.message("login.expiredOTP"))
       let user=await ts.get_user(token.discord_id);
       let bearer=await ts.login(token.discord_id,token.id)
       returnObj={status:"logged_in",type:"bearer","discord_id":user.discord_id,"token":bearer,"user_info":user}
     } else {
-      ts.userError("Your one time password was incorrect. You can DM ShellBot with !login to get another code")
+      ts.userError(ts.message("login.invalidToken"))
     }
 
     return returnObj

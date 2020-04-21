@@ -20,7 +20,7 @@ class tsrandom extends TSCommand {
     async tsexec(ts,message,args) {
         args.discord_id=message.author.id
         let rand=await ts.randomLevel(args)
-        let randomEmbed=ts.levelEmbed(rand.level).setAuthor("ShellBot rolled a d97 and found this level for you")
+        let randomEmbed=ts.levelEmbed(rand.level).setAuthor(ts.message("random.embedTitle"))
         await message.channel.send(rand.player.user_reply)
         await message.channel.send(randomEmbed)
     }

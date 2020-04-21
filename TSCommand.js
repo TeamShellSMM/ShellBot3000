@@ -5,6 +5,10 @@ class TSCommand extends Command {
 
     }
 
+    defaultMessage(obj){
+        DEFAULTMESSAGES=Object.assign(DEFAULTMESSAGES,obj)
+    }
+
     async exec(message,args) {
         try {
             var ts=get_ts(message.guild.id)
