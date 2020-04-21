@@ -6,11 +6,11 @@ module.exports={
 
  "feedback.noMessage":"No message was sent!",
  "feedback.tooLong":"The supplied message is too long, please keep it lower than 1000 characters!",
- 
+
  "login.invalidToken":"Your one time password was incorrect. You can DM {{BotName}} with !login to get another code",
  "login.expiredOTP":"The OTP password given is already expired",
  "login.noOTP":"No OTP provided",
- 
+
  "clear.invalidDifficulty":"You did not provide a valid difficulty vote",
  "clear.discordId":"We couldn't find your discord id",
  "clear.ownLevel":"You can't submit a clear for your own level",
@@ -32,7 +32,7 @@ module.exports={
  "clear.manyHave":"‣You also have",
  "clear.levelPronoun":"this level",
  "clear.levelInfo":"\"{{level.[Level Name]}}\"  by {{{creator}}}", //creator is either string or @discord name
- 
+
  "random.embedTitle":"{{BotName}} rolled a d97 and found this level for you",
  "random.embedTitlePlayers":"{{BotName}} rolled a d97 and found this level for {{players}}",
  "random.noMinDifficulty":"You didn't specify a valid minimum difficulty",
@@ -41,7 +41,7 @@ module.exports={
  "random.playerNotFound":"{{player}} is not found in the memory banks",
  "random.outOfLevels":"You have ran out of levels in this range ({{range}})",
  "random.userBanned":"You have been barred from using this service",
- 
+
  "approval.judgementBegin":"The Judgement  has now begun for this level:",
  "approval.approvalVotes":"__Current Votes for approving the level:__\n",
  "approval.noVotes":"> None\n",
@@ -84,6 +84,7 @@ module.exports={
  "pending.pendingTitle":"This level has been reuploaded and is now awaiting approval!",
  "pending.alreadyApprovedBefore":"This level was already approved before so if everything's alright you can approve it (use **!fixapprove**)",
  "pending.refuseTitle":"This level has NOT been reuploaded!",
+ "pending.reuploadedTitle": "This level has been reuploaded and is now awaiting a decision!",
  "pending.refuseDescription":"Refused by: Please check the fixvotes and decide if this is still acceptable to approve or not (use **!fixapprove** or **!fixreject** with a message).",
  "pending.fixReuploadDescription":"Please check if the mandatory fixes where made and make your decision (use **!fixapprove** or **!fixreject** with a message).",
 
