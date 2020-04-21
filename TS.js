@@ -85,8 +85,6 @@ const TS=function(guild_id,config,client){ //loaded after gs
       }
     }
 
-    console.log(this.customString)
-    console.log(this.messages)
     console.log("TS Vars loaded")
   }
 
@@ -381,9 +379,6 @@ const TS=function(guild_id,config,client){ //loaded after gs
       var level_placeholder=this.customStrings["levelInfo"]
       var level_str=ts.message("clear.levelInfo",{ level , creator:creator_str })
 
-
-      console.log(msg)
-
       var singleHave=ts.message("clear.singleHave")
       var manyHave=ts.message("clear.manyHave")
       var levelPronoun=ts.message("clear.levelPronoun")
@@ -455,11 +450,17 @@ const TS=function(guild_id,config,client){ //loaded after gs
       "msg":errorStr
     }
   }
-  this.getUserErrorMsg=function(obj){
+  this.getUserErrorMsg=function(obj,message){
     if(typeof obj=="object" && obj.errorType=="user"){
       return obj.msg+ts.message("error.afterUserDiscord")
     } else {
-      console_error({error:obj.stack,url_slug:this.config.url_slug})
+      console_error({
+        error:obj.stack,
+        url_slug:this.config.url_slug,
+        content:message.content,
+        user:message.author.username,
+        channel:"<#"+message.channel.id+">"
+      })
       return ts.message("error.unknownError")
     }
   }

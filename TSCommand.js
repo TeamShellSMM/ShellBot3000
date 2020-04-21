@@ -21,7 +21,7 @@ class TSCommand extends Command {
             args.command=ts.parse_command(message)
             await this.tsexec(ts,message,args)
         } catch(error){
-            message.reply(ts.getUserErrorMsg(error))
+            message.reply(ts.getUserErrorMsg(error,message))
         }
     }
 }

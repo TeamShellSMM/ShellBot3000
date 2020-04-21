@@ -24,9 +24,10 @@ const client = new AkairoClient(config, {
 
 global.console_error=async function(error){
   let channel=await client.channels.get(config.error_channel)
-  let dev="<@"+config.devs.join(">,<@")+">"
-  channel.send(dev+"```"+JSON.stringify(error,null,2)+"```")
-  //
+  let dev="<@"+config.devs.join(">,<@")+"> "+(error.channel?" at "+error.channel:"")
+  console.error(error)
+  error=JSON.stringify(error,null,2).replace(/\\n/g,"\n")
+  channel.send(dev+"```fix\n"+error+"```")
 }
 
 client.on("guildCreate", async guild => {
