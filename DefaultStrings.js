@@ -105,7 +105,7 @@ module.exports={
  "points.rank":" You have earned the rank **{{player.rank.Rank}}** {{{player.rank.Pips}}}",
 
  "add.noName":"You didn't give a level name",
- "add.levelExisting":"Level code has already been submitted as \"{{level[Level Name]}}\" by {{level.Creator}}",
+ "add.levelExisting":"Level code has already been submitted as \"{{level.[Level Name]}}\" by {{level.Creator}}",
  "add.success":"The level {{level_name}} ({{code}}) has been added {{{love}}}",
 
  "tags.noTags":"You didn't give any tags",

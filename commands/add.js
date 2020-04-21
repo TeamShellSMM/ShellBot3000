@@ -26,7 +26,7 @@ class tsadd extends TSCommand {
       var existing_level=ts.gs.select("Raw Levels",{"Code":code})
 
       if(existing_level)
-        ts.userError(ts.message("add.levelExisting",{level:existingLevel}));
+        ts.userError(ts.message("add.levelExisting",{level:existing_level}));
 
       if(player.earned_points.available.toFixed(1)<0)
         ts.userError(ts.message("points.cantUpload",{points_needed:Math.abs(player.earned_points.available).toFixed(1)}));
@@ -39,7 +39,7 @@ class tsadd extends TSCommand {
         Approved:0
       })
 
-      var reply=ts.message("add.succesful",{level_name,code})
+      var reply=ts.message("add.success",{level_name,code})
       message.channel.send(player.user_reply+reply)
     }
 }

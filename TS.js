@@ -26,7 +26,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
     if(this.messages[type]){
       return this.messages[type](args)
     }
-    throw "No message was found in ts.message"
+    throw "`"+type+"` message string was found in ts.message"
   }
 
   this.load=async function(){
@@ -421,9 +421,9 @@ const TS=function(guild_id,config,client){ //loaded after gs
     }
     if(!includeRemoved && !(level.Approved==0 || level.Approved==1)){ //level is removed. not pending/accepted
       if(level.Approved==-10){
-        ts.userError(ts.getMessage("error.levelIsFixing",{ level }));
+        ts.userError(ts.message("error.levelIsFixing",{ level }));
       }
-      ts.userError(ts.getMessage("error.levelIsRemoved",{ level }));
+      ts.userError(ts.message("error.levelIsRemoved",{ level }));
     }
     return level
   }
@@ -652,7 +652,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
 
       var postString = ts.message("approval.approvalVotes");
       if(approveVotes == undefined || approveVotes.length == 0){
-        postString += ts.message("noVotes");
+        postString += ts.message("approval.noVotes");
       } else {
         for(var i = 0; i < approveVotes.length; i++){
           const curShellder = ts.gs.select("Raw Members",{"Name":approveVotes[i].player});
