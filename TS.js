@@ -1005,9 +1005,9 @@ const TS=function(guild_id,config,client){ //loaded after gs
 
       //Remove Discussion Channel
       if(!fromFix){
-        await ts.deleteDiscussionChannel(level.Code,ts.message("channelDeleted"))
+        await ts.deleteDiscussionChannel(level.Code,ts.message("approval.channelDeleted"))
       } else {
-        await ts.deleteReuploadChannel(level.Code,ts.message("channelDeleted"))
+        await ts.deleteReuploadChannel(level.Code,ts.message("approval.channelDeleted"))
       }
   }
 
