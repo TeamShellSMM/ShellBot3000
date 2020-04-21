@@ -1,5 +1,6 @@
 'use strict'
 const stringSimilarity = require('string-similarity')
+const Handlebars = require("handlebars");
 const crypto=require('crypto')
 const moment=require('moment')
 const server_config = require('./config.json');
@@ -17,7 +18,16 @@ const TS=function(guild_id,config,client){ //loaded after gs
     this.pointMap={}
   this.channels={}
   this.emotes={}
-  const response=await ts.gs.loadSheets(static_vars) //loading initial sheets
+
+  const static_vars=[
+    "TeamShell Variable","Points",
+    "TeamShell Ranks","Seasons",
+    "Emotes","Channels","tags",
+    "Competition Winners", //static vars
+    'Raw Members','Raw Levels' //play info
+    ]; //initial vars to be loaded on bot load
+
+    const response=await ts.gs.loadSheets(static_vars) //loading initial sheets
     var _points=ts.gs.select("Points");
     for(var i=0;i<_points.length;i++){
       this.pointMap[parseFloat(_points[i].Difficulty)]=parseFloat(_points[i].Points)
@@ -28,7 +38,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
     }
       var _emotes=ts.gs.select("Emotes");
     for(var i=0;i<_emotes.length;i++){
-      this.emotes[_emotes[i].Name]=_emotes[i].value
+      this.emotes[_emotes[i].Name]=_emotes[i].value?_emotes[i].value:""
     }
     console.log("TS Vars loaded")
   }
@@ -112,11 +122,6 @@ const TS=function(guild_id,config,client){ //loaded after gs
     }
     return false;
   }
-
-  const static_vars=[
-  "TeamShell Variable","Points","TeamShell Ranks","Seasons","Emotes","Channels","tags","Competition Winners", //static vars
-  'Raw Members','Raw Levels' //play info
-  ]; //initial vars to be loaded on bot load
 
   this.pointMap=null
 
@@ -387,10 +392,10 @@ const TS=function(guild_id,config,client){ //loaded after gs
   }
   this.getUserErrorMsg=function(obj){
     if(typeof obj=="object" && obj.errorType=="user"){
-      return obj.msg+" "+(this.emotes.think ? this.emotes.think : "")
+      return obj.msg+" "+this.emotes.think
     } else {
       console.error({error:obj,url_slug:this.config.url_slug})
-      return "Something went wrong "+(this.emotes.buzzyS ? this.emotes.buzzyS : "")
+      return "Something went wrong "+this.emotes.buzzyS
     }
   }
 

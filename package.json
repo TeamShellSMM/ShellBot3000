@@ -10,6 +10,7 @@
     "discord.js": "^11.5.1",
     "express": "^4.17.1",
     "googleapis": "^39.2.0",
+    "handlebars": "^4.7.6",
     "knex": "^0.20.13",
     "moment": "^2.24.0",
     "objection": "^2.1.3",

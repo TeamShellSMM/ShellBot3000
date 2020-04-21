@@ -23,7 +23,7 @@ class TSRerate extends TSCommand {
         });
     }
 
-    async exec(message,args) {
+    async tsexec(ts,message,args) {
       if(!(
         message.channel.id === ts.channels.shellderShellbot  //only in bot-test channel
       )) return false;
