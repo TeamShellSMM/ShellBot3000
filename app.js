@@ -24,7 +24,8 @@ const client = new AkairoClient(config, {
 
 global.console_error=async function(error){
   let channel=await client.channels.get(config.error_channel)
-  channel.send("```"+JSON.stringify(error)+"```")
+  let dev="<@"+config.devs.join(">,<@")+">"
+  channel.send(dev+"```"+JSON.stringify(error,null,2)+"```")
   //
 }
 

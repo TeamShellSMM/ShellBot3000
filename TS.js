@@ -149,6 +149,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
 
 
   this.valid_code=function(code){
+    if(code==null) return false;
     return /^[1234567890QWERTYUPASDFGHJKLXCVBNM]{3}-[1234567890QWERTYUPASDFGHJKLXCVBNM]{3}-[1234567890QWERTYUPASDFGHJKLXCVBNM]{3}$/.test(code.toUpperCase())
   }
 
@@ -702,7 +703,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
         voteEmbed.setAuthor(ts.message("pending.refuseTitle"))
         .setDescription(ts.message("pending.refuseDescription"))
     } else {
-      voteEmbed.setAuthor(ts.messaga("pending.reuploadedTitle"))
+      voteEmbed.setAuthor(ts.message("pending.reuploadedTitle"))
       .setDescription(ts.message("pending.fixReuploadDescription"))
     }
     if(ts.emotes.judgement){
