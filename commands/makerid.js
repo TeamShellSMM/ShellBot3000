@@ -22,8 +22,13 @@ class MakerId extends TSCommand {
       }
 
       let existing_member=ts.gs.select("Raw Members",{"maker_id":code},true)
-      if(existing_member.length>0)
-        ts.userError(ts.message("makerid.existing",{ code , name:existing_member[0].Name }))
+      if(existing_member.length>0){
+        if(existing_member.discord_id!=player.discord_id){
+            ts.userError(ts.message("makerid.existing",{ code , name:existing_member[0].Name }))
+        } else if(existing_member.maker_id==code) {
+            ts.userError(ts.message("makerid.already",{ code }))
+        }
+      }
 
       let member=ts.gs.query("Raw Members",{
         filter:{"discord_id":message.author.id},
