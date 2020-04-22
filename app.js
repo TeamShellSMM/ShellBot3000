@@ -73,25 +73,30 @@ client.on("ready", async () => {
 })();
 
 async function generateSiteJson(ts,isShellder){
+  await ts.gs.loadSheets(["Raw Members","Raw Levels"])
+
   const SheetCache = ts.gs.getArrayFormat([
         "Raw Levels!J",
         "Seasons!B",
         "tags",
         "Competition Winners",
-        "Raw Members",
         "Points!B"
       ])
 
     let _rawLevels = SheetCache["Raw Levels"]
-    let _seasons = SheetCache["Seasons"]
-    let tags = SheetCache["tags"];
+    
+    
     let competiton_winners = SheetCache["Competition Winners"];
-    let _members = SheetCache["Raw Members"]
     let _points = SheetCache["Points"]
+    
+    let tags = ts.gs.select("tags",{},true);
+    let _seasons = ts.gs.select("Seasons",{},true)
+    let _members = ts.gs.select("Raw Members",{},true)
+    
 
     let _playedLevels = await ts.db.Plays.query();
 
-    for(let i=0;i<_playedLevels.length;i++){
+    for(let i=0;i<_playedLevels.length;i++){ //fix old dates
       _playedLevels[i].created_at=typeof _playedLevels[i].created_at ==="string" ?
       (new Date(_playedLevels[i].created_at.replace(/-/g,"/"))).getTime()/1000:
       _playedLevels[i].created_at;
@@ -112,38 +117,36 @@ async function generateSiteJson(ts,isShellder){
       }
     }
 
+    //remove headers
+    competiton_winners.shift()
 
-    let tag_header=tags.shift()
-    let comp_winners_header=competiton_winners.shift()
     let _tags={}
     let _seperate=[]
     for(let i=0;i<tags.length;i++){
-      if(tags[i][2]=="1"){
-        _seperate.push(tags[i][0])
+      if(tags[i].Seperate=="1"){
+        _seperate.push(tags[i].Tag)
       }
-      _tags[tags[i][0]]=tags[i][1]
+      _tags[tags[i].Tag]=tags[i].Type
     }
 
-    let seasons_header=_seasons.shift()
     let Seasons=[]
     for(let i=0;i<_seasons.length;i++){
       Seasons.push({
-        name:_seasons[i][1],
-        startdate:_seasons[i][0]
+        name:_seasons[i].Name,
+        startdate:_seasons[i].StartDate
       })
     }
 
-    let ret_members=[]
-    for(let i=0;i<_members.length;i++){
-      let row=[
-        _members[i][0],
-        _members[i][1]?_members[i][1]:"",
-        _members[i][2]?_members[i][2]:"",
-        _members[i][5]?_members[i][5]:"",
-        _members[i][8]?_members[i][8]:"",
+    _members=_members.map( m =>{
+      return [
+        m.Name,
+        m.shelder?m.shelder:"0",
+        m.cult_member?m.cult_member:"0",
+        m.maker_id?m.maker_id:"",
+        m.badges?m.badges:"",
       ]
-      ret_members.push(row);
-    }
+    })
+    
 
     let d=new Date()
     let day = d.getDay();
@@ -160,7 +163,7 @@ async function generateSiteJson(ts,isShellder){
       "levels":rawLevels,
       "reuploaded":reuploaded,
       "played":_playedLevels,
-      "members":ret_members,
+      "members":_members,
       "tags":_tags,
       "seperate":_seperate,
       "points":_points,
@@ -196,10 +199,11 @@ async function generateSiteJson(ts,isShellder){
     return json;
 }
 
+/*
 function get_slug(){
   let refer=req.headers.referer.split(req.host)[1].split('/')
 }
-
+*/
 
 function get_web_ts(url_slug){
   for(var id in global.TS_LIST){
