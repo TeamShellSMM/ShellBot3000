@@ -21,12 +21,12 @@ class atmebot extends TSCommand {
 
       if(atmeCommands.indexOf(command.command)!=-1){
         var atmeVal="1"
-        var alreadyError="You already have chosen to be atted"
-        var msg="You will be atted by ShellBot "+(ts.emotes.bam ? ts.emotes.bam : "")
+        var alreadyError=ts.message("atme.already")
+        var msg=ts.message("atme.willBe")
       } else {
         var atmeVal=""
-        var alreadyError="You already have chosen to be not atted"
-        var msg="You will be not be atted by ShellBot "+(ts.emotes.bam ? ts.emotes.bam : "")
+        var alreadyError=ts.message("atme.alreadyNot")
+        var msg=ts.message("atme.willBeNot")
       }
 
       var member=ts.gs.query("Raw Members",{
