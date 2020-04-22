@@ -26,7 +26,7 @@ class TSAddtags extends TSCommand {
           ts.userError(ts.message("tags.noTags"))
         new_tags=new_tags.split(/[,\n]/)
 
-        await ts.gs.loadSheets(["Raw Members","Raw Levels"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
+        await ts.gs.loadSheets(["Raw Members","Raw Levels"]);
 
 
         const player=await ts.get_user(message);

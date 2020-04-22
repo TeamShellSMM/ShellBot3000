@@ -16,7 +16,7 @@ class tsinfo extends TSCommand {
       args.code=args.code.toUpperCase();
       if(!ts.valid_format(args.code))
         ts.userError("You did not provide a valid format for the level");
-      await ts.gs.loadSheets(["Raw Members","Raw Levels"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
+      await ts.gs.loadSheets(["Raw Members","Raw Levels"]);
       const player=await ts.get_user(message);
       var level=ts.getExistingLevel(args.code)
 

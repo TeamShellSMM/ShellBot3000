@@ -41,7 +41,7 @@ class TSAddvids extends TSCommand {
           ts.userError("The links below didn't look like urls: ```\n"+not_urls.join("\n")+"```")
         }
 
-        await ts.gs.loadSheets(["Raw Members","Raw Levels"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
+        await ts.gs.loadSheets(["Raw Members","Raw Levels"]);
 
         const player=await ts.get_user(message);
         var level=ts.getExistingLevel(code)

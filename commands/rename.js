@@ -22,7 +22,7 @@ class TSRename extends TSCommand {
         ts.userError("You didn't give a new level name")
 
 
-      await ts.gs.loadSheets(["Raw Members","Raw Levels"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
+      await ts.gs.loadSheets(["Raw Members","Raw Levels"]);
 
       const player=await ts.get_user(message);
       var level=ts.getExistingLevel(code)

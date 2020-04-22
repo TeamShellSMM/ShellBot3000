@@ -22,7 +22,7 @@ class TSRefuseFix extends TSCommand {
           ts.userError("Please provide a little message to the mods for context at the end of the command!")
         }
 
-        await ts.gs.loadSheets(["Raw Members","Raw Levels"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
+        await ts.gs.loadSheets(["Raw Members","Raw Levels"]);
         const player=await ts.get_user(message);
         var level=ts.gs.select("Raw Levels",{"Code":code});
         const author = ts.gs.select("Raw Members",{"Name":level.Creator});

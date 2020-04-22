@@ -78,7 +78,7 @@ async function generateSiteJson(ts,isShellder){
         "Seasons!B",
         "tags",
         "Competition Winners",
-        "Raw Members!C",
+        "Raw Members",
         "Points!B"
       ])
 
@@ -133,15 +133,17 @@ async function generateSiteJson(ts,isShellder){
       })
     }
 
+    let ret_members=[]
     for(let i=0;i<_members.length;i++){
-      if(_members[i].length==2){
-        _members[i].push("")
-      } else if(_members[i].length==1){ //so hack
-        _members[i].push("")
-        _members[i].push("")
-      }
+      let row=[
+        _members[i][0],
+        _members[i][1]?_members[i][1]:"",
+        _members[i][2]?_members[i][2]:"",
+        _members[i][5]?_members[i][5]:"",
+        _members[i][8]?_members[i][8]:"",
+      ]
+      ret_members.push(row);
     }
-
 
     let d=new Date()
     let day = d.getDay();
@@ -158,7 +160,7 @@ async function generateSiteJson(ts,isShellder){
       "levels":rawLevels,
       "reuploaded":reuploaded,
       "played":_playedLevels,
-      "members":_members,
+      "members":ret_members,
       "tags":_tags,
       "seperate":_seperate,
       "points":_points,
@@ -212,12 +214,6 @@ function web_ts(callback){
   return async (req, res) => {
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
     try {
-      //console.log({
-       // origin:req.headers.origin,
-        //referer:req.headers.referer,
-        //test_slug:req.headers.referer.split(req.headers.origin)[1].split('/'),
-        //body:req.body,
-      //})
       var ts=get_web_ts(req.body.url_slug)
       if(!ts)
         throw '"'+req.body.url_slug+"\"  not found";

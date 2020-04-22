@@ -1159,7 +1159,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
       ts.userError(ts.message("reupload.giveReason"))
     }
 
-    await ts.gs.loadSheets(["Raw Members","Raw Levels"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
+    await ts.gs.loadSheets(["Raw Members","Raw Levels"]);
 
     var player=ts.gs.select("Raw Members",{
       "discord_id":message.author.id
@@ -1236,7 +1236,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
           code: newCode
         });
 
-      await ts.gs.loadSheets(["Raw Members","Raw Levels"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
+      await ts.gs.loadSheets(["Raw Members","Raw Levels"]);
       new_level=ts.gs.query("Raw Levels",{
         filter:{"Code":newCode},
         update:{"Approved":-10},

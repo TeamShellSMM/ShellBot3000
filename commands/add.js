@@ -21,7 +21,7 @@ class tsadd extends TSCommand {
       if(!level_name)
         ts.userError(ts.message("add.noName"))
 
-      await ts.gs.loadSheets(["Raw Members","Raw Levels"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
+      await ts.gs.loadSheets(["Raw Members","Raw Levels"]);
       const player=await ts.get_user(message);
       var existing_level=ts.gs.select("Raw Levels",{"Code":code})
 
