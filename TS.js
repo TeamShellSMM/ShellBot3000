@@ -85,7 +85,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
       }
     }
 
-    console.log("TS Vars loaded")
+    console.log("Data loaded for "+this.customStrings.TeamName)
   }
 
   this.getGuild=function(){
@@ -455,7 +455,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
       return obj.msg+ts.message("error.afterUserDiscord")
     } else {
       console_error({
-        error:obj.stack,
+        error:obj.stack?obj.stack:obj,
         url_slug:this.config.url_slug,
         content:message.content,
         user:message.author.username,
@@ -469,7 +469,10 @@ const TS=function(guild_id,config,client){ //loaded after gs
     if(typeof obj=="object" && obj.errorType=="user"){
       return { status:"error", message:obj.msg+ts.message("error.afterUserWeb") }
     } else {
-      console_error({error:obj.stack?obj.stack:obj,url_slug:this.config.url_slug})
+      console_error({
+        error:obj.stack?obj.stack:obj,
+        url_slug:this.config.url_slug
+      })
       return { status:"error", message:ts.message("error.unknownError")}
     }
   }
@@ -958,7 +961,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
       } else if(approvalVoteCount==rejectVoteCount ) {
         ts.userError(ts.message("approval.comboBreaker"));
       } else {
-        ts.userError(ts.message("approval.numVoteNeeded"),{vote_num:ts.get_variable("VotesNeeded")});
+        ts.userError(ts.message("approval.numVotesNeeded"),{vote_num:ts.get_variable("VotesNeeded")});
       }
 
       var mention = ts.message("general.heyListen",{discord_id:author.discord_id});
@@ -1278,12 +1281,12 @@ const TS=function(guild_id,config,client){ //loaded after gs
     let existingChannel=guild.channels.find(channel => channel.name === oldCode.toLowerCase() && channel.parent.id == ts.channels.levelDiscussionCategory)
     if(existingChannel){
       await existingChannel.setName(newCode.toLowerCase())
-      await existingChannel.send(ts.message("reuploaded.reuploadNotify",{oldCode,newCode}))
+      await existingChannel.send(ts.message("reupload.reuploadNotify",{oldCode,newCode}))
       let oldEmbed=await ts.makeVoteEmbed(level)
       await existingChannel.send(oldEmbed)
     }
 
-    var reply=ts.message("reupload.sucessful",{ level , newCode })
+    var reply=ts.message("reupload.success",{ level , newCode })
     if(!new_level){
       reply+=ts.message("reupload.renamingInstructions")
     }

@@ -40,7 +40,7 @@ module.exports={
  "random.noMaxDifficulty":"You didn't specify a valid maximum difficulty",
  "random.playerNotFound":"{{player}} is not found in the memory banks",
  "random.outOfLevels":"You have ran out of levels in this range ({{range}})",
- "random.userBanned":"You have been barred from using this service",
+
 
  "approval.judgementBegin":"The Judgement  has now begun for this level:",
  "approval.approvalVotes":"__Current Votes for approving the level:__\n",
@@ -72,7 +72,7 @@ module.exports={
  "reupload.noPermission":"You can't reupload \"{{level.[Level Name]}}\" by {{level.Creator}}",
  "reupload.tooManyReuploadChannels":"Can't handle the request right now because there are already 50 open reupload requests (this should really never happen)!",
  "reupload.reuploadNotify":"This level has been reuploaded from {{oldCode}} to {{newCode}}. Below are the comments of the old level",
- "reupload.succesful":"You have reuploaded \"{{level.[Level Name]}}\" by {{level.Creator}} with code `{{newCode}}. {{{bam}}}",
+ "reupload.success":"You have reuploaded \"{{level.[Level Name]}}\" by {{level.Creator}} with code `{{newCode}}. {{{bam}}}",
  "reupload.renamingInstructions":" If you want to rename the new level, you can use !rename new-code level name.",
  "reupload.inReuploadQueue":" Your level has also been put in the reupload queue, we'll get back to you shortly.",
 
@@ -88,6 +88,7 @@ module.exports={
  "pending.refuseDescription":"Refused by: Please check the fixvotes and decide if this is still acceptable to approve or not (use **!fixapprove** or **!fixreject** with a message).",
  "pending.fixReuploadDescription":"Please check if the mandatory fixes where made and make your decision (use **!fixapprove** or **!fixreject** with a message).",
 
+ "error.userBanned":"You have been barred from using this service",
  "error.notRegistered":"You are not yet registered",
  "error.emptyLevelList":"No levels found buzzyS",
  "error.afterUserDiscord":"{{{think}}}",
@@ -116,4 +117,6 @@ module.exports={
  "register.already":"You're already registered as **{{player.Name}}**",
  "register.nameTaken":"\"{{name}}\" has already been registered by someone else. Please use another nickname",
  "register.succesful":"You are now registered as \"{{name}}\". You can now start submitting your clears in #level-clears {{{bam}}}",
+
+ "login.reply":" You have requested a login token for the website. click the link below to login.:\n <{{login_link}}> {{bam}}\n If you're on mobile, copy the link and paste it into your preferred browser app. If you open this link in an in-app browser, your login might not be saved properly. {{{buzzyS}}}\n This token will only be valid for 30 minutes",
 }

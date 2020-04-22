@@ -7,9 +7,6 @@ class login extends TSCommand {
            cooldown: 5000,
            channelRestriction: 'guild'
         });
-        this.defaultMessage({
-          "login.reply":" You have requested a login token for the website. click the link below to login.:\n <{{login_link}}> {{bam}}\n If you're on mobile, copy the link and paste it into your preferred browser app. If you open this link in an in-app browser, your login might not be saved properly. {{{buzzyS}}}\n This token will only be valid for 30 minutes"
-        })
     }
 
     async tsexec(ts,message,args) {
