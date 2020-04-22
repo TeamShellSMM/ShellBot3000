@@ -122,10 +122,9 @@ module.exports={
  "login.reply":" You have requested a login token for the website. click the link below to login.:\n <{{login_link}}> {{bam}}\n If you're on mobile, copy the link and paste it into your preferred browser app. If you open this link in an in-app browser, your login might not be saved properly. {{{buzzyS}}}\n This token will only be valid for 30 minutes",
  "makerid.success":"You have updated your maker-id to {{code}} {{{bam}}}",
  "makerid.existing":"`{{code}} is already being used by \"{{name}}\" ",
- "makerid.already":"`{{code}}` is already what you have set for your maker-id "
+ "makerid.already":"`{{code}}` is already what you have set for your maker-id ",
  "atme.already":"You already have chosen to be atted",
  "atme.willBe":"You will be atted by {{BotName}} {{{bam}}}",
  "atme.alreadyNot":"You already have chosen not to be atted",
  "atme.willBeNot":"You will not be atted by {{BotName}} {{{bam}}}",
- 
 }
