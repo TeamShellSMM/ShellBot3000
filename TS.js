@@ -26,7 +26,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
     if(this.messages[type]){
       return this.messages[type](args)
     }
-    throw "`"+type+"` message string was found in ts.message"
+    throw "`"+type+"` message string was not found in ts.message";
   }
 
   this.load=async function(){
@@ -469,7 +469,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
     if(typeof obj=="object" && obj.errorType=="user"){
       return { status:"error", message:obj.msg+ts.message("error.afterUserWeb") }
     } else {
-      console_error({error:obj.stack,url_slug:this.config.url_slug})
+      console_error({error:obj.stack?obj.stack:obj,url_slug:this.config.url_slug})
       return { status:"error", message:ts.message("error.unknownError")}
     }
   }

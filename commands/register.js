@@ -37,8 +37,8 @@ class TSRegister extends TSCommand {
 
       var row={
         "Name":nickname,
-        "discord_id":message.author.id,
-        "discord_name":message.author.username,
+        "discord_id":"'"+message.author.id, //insert as string
+        "discord_name":"'"+message.author.username,
       }
 
         await ts.gs.insert("Raw Members",row);
