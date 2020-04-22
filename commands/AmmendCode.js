@@ -31,31 +31,37 @@ class AmmendCode extends TSCommand {
         return false;
     }
 
-    async tsexec(ts,message, args) {
+    async tsexec(ts,message, { oldCode, newCode }) {
         if(!this.canRun(ts,message)){
             return false;
         }
+        oldCode=oldCode.toUpperCase()
+        newCode=newCode.toUpperCase()
 
-        await ts.load()
-        if(ts.gs.selectOne("Raw Members",{"Name":args.new_name})){
-            ts.userError("There is already another member with name \""+args.new_name+"\"")
+        if(!ts.valid_code(oldCode)){
+            ts.userError(ts.message("reupload.invalidOldCode"))
+        }
+        if(!ts.valid_code(newCode)){
+            ts.userError(ts.message("reupload.invalidNewCode"))
+        }
+        if(oldCode==newCode){
+            ts.userError(ts.message('reupload.sameCode'))
         }
 
-        let member_update=ts.gs.query("Raw Members", {
-            filter: {"discord_id":args.discord_id},
-            update: {"Name":args.new_name}
-        });
-        if(!member_update)
-            ts.userError("No member found with that discord_id");
+        await ts.gs.loadSheets(["Raw Members","Raw Levels","Competition Winners"]);
 
-        let updates=member_update.update_ranges;
-
-        let oldName=member_update.Name
-
+        const existing_level=ts.getExistingLevel(oldCode,true)
+        const new_code_check=ts.gs.selectOne("Raw Levels",{"Code":newCode});
+        if(new_code_check){
+            ts.userError(ts.message('add.levelExisting',{ level: new_code_check}))
+        }
+        
+        let updates=[]
         let level_update=ts.gs.query("Raw Levels", {
-            filter: {"Creator":oldName},
-            update: {"Creator":args.new_name}
+            filter: {Code:oldCode},
+            update: {Code:newCode}
         },true);
+
         if(level_update){
             level_update=level_update.map((level)=>{
                 return level.update_ranges[0]
@@ -64,8 +70,8 @@ class AmmendCode extends TSCommand {
         }
 
         let winners=ts.gs.query("Competition Winners", {
-            filter: {"Creator":oldName},
-            update: {"Creator":args.new_name}
+            filter: {Code:oldCode},
+            update: {Code:newCode}
         },true);
         if(winners){
             winners=winners.map((level)=>{
@@ -74,15 +80,20 @@ class AmmendCode extends TSCommand {
             updates=updates.concat(winners)
         }
 
-
         if(updates){
             await ts.gs.batchUpdate(updates);
-            let oldPlays=await ts.db.Plays.query().patch({"player":args.new_name}).where("player",oldName)
-            let pendingVotes=await ts.db.PendingVotes.query().patch({"player":args.new_name}).where("player",oldName)
+            await ts.db.Plays.query().patch({"code":newCode}).where("code",oldCode)
+            await ts.db.PendingVotes.query().patch({"code":newCode}).where("code",oldCode)
             await ts.load()
         }
 
-        return message.reply('"'+oldName+'" has been renamed to "'+args.new_name+'"');
+        let guild=ts.getGuild();
+        let existingChannel=guild.channels.find(channel => channel.name === oldCode.toLowerCase() && channel.parent.id == ts.channels.levelDiscussionCategory)
+        if(existingChannel){
+            await existingChannel.setName(newCode.toLowerCase())
+        }
+        
+        return message.reply(ts.message('ammendCode.success',{ level:existing_level, oldCode,newCode}));
     }
 }
 

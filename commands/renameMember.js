@@ -37,7 +37,7 @@ class RenameMember extends TSCommand {
             return false;
         }
 
-        await ts.load()
+        await ts.gs.loadSheets(["Raw Members","Raw Levels","Competition Winners"]);
         if(ts.gs.selectOne("Raw Members",{"Name":args.new_name})){
             ts.userError("There is already another member with name \""+args.new_name+"\"")
         }
