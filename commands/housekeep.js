@@ -16,7 +16,7 @@ class housekeep extends TSCommand {
             if(channel.parentID==ts.channels.levelDiscussionCategory){
                 const levelCode=channel.name.toUpperCase()
                 let deleteLevel=false,reason="";
-                let currentLevel=ts.gs.select("Raw Levels",{Code:levelCode})
+                let currentLevel=ts.gs.selectOne("Raw Levels",{Code:levelCode})
                 if(currentLevel){
                     if(currentLevel.Approved!=="0"){
                         deleteLevel=true

@@ -41,7 +41,7 @@ class TSRerate extends TSCommand {
 
       await ts.gs.loadSheets(["Raw Levels", "Raw Members"]);
       const level=ts.getExistingLevel(args.code);
-      const author = ts.gs.select("Raw Members",{"Name":level.Creator});
+      const author = ts.gs.selectOne("Raw Members",{"Name":level.Creator});
 
       if(level.Approved!=="1")
         ts.userError("Level is not an approved level")

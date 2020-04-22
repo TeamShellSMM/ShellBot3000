@@ -53,26 +53,26 @@ const TS=function(guild_id,config,client){ //loaded after gs
     'Raw Members','Raw Levels' //play info
     ]; //initial vars to be loaded on bot load
 
-    const response=await ts.gs.loadSheets(static_vars) //loading initial sheets
+    await ts.gs.loadSheets(static_vars) //loading initial sheets
     var _points=ts.gs.select("Points");
     for(var i=0;i<_points.length;i++){
       this.pointMap[parseFloat(_points[i].Difficulty)]=parseFloat(_points[i].Points)
     }
-    var _channels=ts.gs.select("Channels",{},true);
+    var _channels=ts.gs.select("Channels");
     for(var i=0;i<_channels.length;i++){
       this.channels[_channels[i].Name]=_channels[i].value
     }
-      var _emotes=ts.gs.select("Emotes",{},true);
+      var _emotes=ts.gs.select("Emotes");
     for(var i=0;i<_emotes.length;i++){
       this.emotes[_emotes[i].Name]=_emotes[i].value?_emotes[i].value:""
     }
 
-    var _customString=ts.gs.select("CustomString",{},true);
+    var _customString=ts.gs.select("CustomString");
     for(var i=0;i<_customString.length;i++){
       this.customStrings[_customString[i].Name]=_customString[i].value?_customString[i].value:""
     }
 
-    var _messages=ts.gs.select("Messages",{},true);
+    var _messages=ts.gs.select("Messages");
     for(var i=0;i<_messages.length;i++){
       if(_messages[i].value){
         this.messages[_messages[i].Name]=_makeTemplate(_messages[i].value)
@@ -201,7 +201,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
   }
 
   this.creator_str=function(level){
-    var creator=ts.gs.select("Raw Members",{"Name":level.Creator});
+    var creator=ts.gs.selectOne("Raw Members",{"Name":level.Creator});
     if(creator && creator.atme=="1" && creator.discord_id){
       return "<@"+creator.discord_id+">"
       } else {
@@ -277,7 +277,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
         .where('player','=',player.Name)
         .first();
 
-      var creator=ts.gs.select("Raw Members",{"Name":level.Creator}); //oddface/taika is only non registered member with a level
+      var creator=ts.gs.selectOne("Raw Members",{"Name":level.Creator}); //oddface/taika is only non registered member with a level
       if(creator && creator.atme=="1" && creator.discord_id && !strOnly){
       var creator_str="<@"+creator.discord_id+">"
       } else {
@@ -394,7 +394,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
   }
 
   this.getExistingLevel=function(code,includeRemoved=false){
-    var level=ts.gs.select("Raw Levels",{"Code":code})
+    var level=ts.gs.selectOne("Raw Levels",{"Code":code})
     if(!level){ //level doesn't exist
       let notDeletedLevels={}
       let allLevels={}
@@ -425,7 +425,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
   }
 
   this.get_variable=function(var_name){
-    var ret=ts.gs.select("TeamShell Variable",{
+    var ret=ts.gs.selectOne("TeamShell Variable",{
       "Variable":var_name
     })
     return ret?ret.Value:false
@@ -508,7 +508,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
     const player=args.discord_id!=null? await ts.get_user(args.discord_id) : null
     let players=null;
     if(args.players){
-      let rawPlayers=ts.gs.select("Raw Members",true).map( p => {
+      let rawPlayers=ts.gs.select("Raw Members").map( p => {
         return p.Name
       });
       players=args.players.split(",")
@@ -627,7 +627,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
 
   this.get_user= async function(message){
     var discord_id=typeof message=="string"?message:message.author.id
-    var player=ts.gs.select("Raw Members",{
+    var player=ts.gs.selectOne("Raw Members",{
       "discord_id":discord_id
     })
 
@@ -660,7 +660,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
         postString += ts.message("approval.noVotes");
       } else {
         for(var i = 0; i < approveVotes.length; i++){
-          const curShellder = ts.gs.select("Raw Members",{"Name":approveVotes[i].player});
+          const curShellder = ts.gs.selectOne("Raw Members",{"Name":approveVotes[i].player});
           postString += "<@" + curShellder.discord_id + "> - Difficulty: " + approveVotes[i].difficulty_vote + ", Reason: " + approveVotes[i].reason + "\n";
         }
       }
@@ -670,7 +670,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
         postString += "> None\n";
       } else {
         for(var i = 0; i < fixVotes.length; i++){
-          const curShellder = ts.gs.select("Raw Members",{"Name":fixVotes[i].player});
+          const curShellder = ts.gs.selectOne("Raw Members",{"Name":fixVotes[i].player});
           postString += "<@" + curShellder.discord_id + "> - Difficulty: " + fixVotes[i].difficulty_vote + ", Requested fixes: " + fixVotes[i].reason + "\n";
         }
       }
@@ -681,7 +681,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
         postString += "None\n";
       } else {
         for(var i = 0; i < rejectVotes.length; i++){
-          const curShellder = ts.gs.select("Raw Members",{"Name":rejectVotes[i].player});
+          const curShellder = ts.gs.selectOne("Raw Members",{"Name":rejectVotes[i].player});
           postString += "<@" + curShellder.discord_id + "> - Reason: " + rejectVotes[i].reason + "\n";
         }
       }
@@ -719,7 +719,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
       postString += "> None\n";
     } else {
       for(var i = 0; i < fixVotes.length; i++){
-        const curShellder = ts.gs.select("Raw Members",{"Name":fixVotes[i].player});
+        const curShellder = ts.gs.selectOne("Raw Members",{"Name":fixVotes[i].player});
         postString += "<@" + curShellder.discord_id + "> - Difficulty: " + fixVotes[i].difficulty_vote + ", Requested fixes: " + fixVotes[i].reason + "\n";
       }
     }
@@ -742,7 +742,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
       }
 
       const level=ts.getExistingLevel(args.code);
-      const author = ts.gs.select("Raw Members",{"Name":level.Creator});
+      const author = ts.gs.selectOne("Raw Members",{"Name":level.Creator});
 
       if(!author){
         ts.userError(ts.message("approval.creatorNotFound"));
@@ -831,11 +831,11 @@ const TS=function(guild_id,config,client){ //loaded after gs
     await ts.gs.loadSheets(["Raw Levels", "Raw Members"]);
     var level;
     if(fromFix){
-      level = ts.gs.select("Raw Levels",{"Code":levelCode});
+      level = ts.gs.selectOne("Raw Levels",{"Code":levelCode});
     } else {
       level = ts.getExistingLevel(levelCode);
     }
-    const author = ts.gs.select("Raw Members",{"Name":level.Creator});
+    const author = ts.gs.selectOne("Raw Members",{"Name":level.Creator});
 
     if(!author){
       ts.userError(ts.message("approval.creatorNotFound"))
@@ -1029,7 +1029,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
     if(updateLevel.Code == levelCode){
       await ts.gs.batchUpdate(updateLevel.update_ranges);
     }
-    const author = ts.gs.select("Raw Members",{"Name":updateLevel.Creator});
+    const author = ts.gs.selectOne("Raw Members",{"Name":updateLevel.Creator});
 
     var color="#dc3545";
 
@@ -1095,6 +1095,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
     })
     videoStr=videoStr.join(",")
     var tagStr=[]
+    level.Tags=level.Tags?level.Tags:""
     level.Tags.split(",").forEach((tag)=>{
       if(tag) tagStr.push("["+tag+"](" + server_config.page_url + ts.config.url_slug + "/levels/"+encodeURIComponent(tag)+")")
     })
@@ -1161,7 +1162,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
 
     await ts.gs.loadSheets(["Raw Members","Raw Levels"]);
 
-    var player=ts.gs.select("Raw Members",{
+    var player=ts.gs.selectOne("Raw Members",{
       "discord_id":message.author.id
     })
 
@@ -1172,7 +1173,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
     var user_reply="<@"+message.author.id+">"+(rank.Pips ? rank.Pips : "")+" ";
 
     var level=ts.getExistingLevel(oldCode,true)
-    var new_level=ts.gs.select("Raw Levels",{"Code":newCode}) //new level just incase they've already tsadded
+    var new_level=ts.gs.selectOne("Raw Levels",{"Code":newCode}) //new level just incase they've already tsadded
 
     var oldApproved = level.Approved;
 
@@ -1242,7 +1243,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
         update:{"Approved":-10},
       })
       await ts.gs.batchUpdate(new_level.update_ranges);
-      const author = ts.gs.select("Raw Members",{"Name":new_level.Creator});
+      const author = ts.gs.selectOne("Raw Members",{"Name":new_level.Creator});
 
       var overviewMessage;
       var discussionChannel;
@@ -1355,7 +1356,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
   }
 
   this.calculatePoints= async function(user,if_remove_check){ //delta check is to see if we can add a level if we remove it
-    var currentLevels = ts.gs.select("Raw Levels",{},true);
+    var currentLevels = ts.gs.select("Raw Levels");
     var levelMap={};
     var ownLevels=[];
     var freeSubmissions=0;

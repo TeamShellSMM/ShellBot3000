@@ -117,10 +117,11 @@ var GS=function(config){
   }
 
   //need to load
-  this.select=function(sheet,filter,forceArray){
-    return this.query(sheet,{
-      filter:filter
-    },forceArray)
+  this.select=function(sheet,filter){
+    return this.query(sheet,{ filter },true)
+  }
+  this.selectOne=function(sheet,filter){
+    return this.select(sheet,filter)[0]
   }
 
   this.query=function (sheet,parameters,forceArray){ //may break if column named updated or row
@@ -133,17 +134,16 @@ var GS=function(config){
       header_to_id[headers[i]]=i;
     }
 
+    let filter=function(){return true;}
     if(parameters && parameters.filter){
-      var filter=function(row){
+      filter=function(row){
         var matched=true;
         for(var f in parameters.filter){
           if(row[f]!=parameters.filter[f]) matched=false;
         }
         return matched;
       }
-    } else {
-        var filter=function(){return true;}
-    }
+    } 
 
     var ret=[]
     for (var row = 0; row < querySheet.length; row++){
@@ -172,6 +172,7 @@ var GS=function(config){
         ret.push(obj)
       }
     }
+    
     if(forceArray)
       return ret;
 

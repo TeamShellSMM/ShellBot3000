@@ -21,11 +21,11 @@ class mockUser extends TSCommand {
         
         await ts.gs.loadSheets(["Raw Members"]);
 
-        let player=ts.gs.select("Raw Members",{ 
+        let player=ts.gs.selectOne("Raw Members",{ 
             "discord_id":message.author.id
         })
 
-        let target=ts.gs.select("Raw Members",{
+        let target=ts.gs.selectOne("Raw Members",{
             "Name":args.user
         })
 

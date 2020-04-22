@@ -89,9 +89,9 @@ async function generateSiteJson(ts,isShellder){
     let competiton_winners = SheetCache["Competition Winners"];
     let _points = SheetCache["Points"]
     
-    let tags = ts.gs.select("tags",{},true);
-    let _seasons = ts.gs.select("Seasons",{},true)
-    let _members = ts.gs.select("Raw Members",{},true)
+    let tags = ts.gs.select("tags");
+    let _seasons = ts.gs.select("Seasons")
+    let _members = ts.gs.select("Raw Members")
     
 
     let _playedLevels = await ts.db.Plays.query();

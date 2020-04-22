@@ -37,8 +37,7 @@ class AmmendCode extends TSCommand {
         }
 
         await ts.load()
-        let new_name_check=ts.gs.select("Raw Members",{"Name":args.new_name});
-        if(ts.gs.select("Raw Members",{"Name":args.new_name})){
+        if(ts.gs.selectOne("Raw Members",{"Name":args.new_name})){
             ts.userError("There is already another member with name \""+args.new_name+"\"")
         }
 

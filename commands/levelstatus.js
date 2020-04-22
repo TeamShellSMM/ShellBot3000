@@ -21,7 +21,7 @@ class TSLevelStatus extends TSCommand {
 
         args.code=args.code.toUpperCase()
 
-        const level=ts.gs.select("Raw Levels",{"Code":args.code});
+        const level=ts.gs.selectOne("Raw Levels",{"Code":args.code});
 
         if(!level){
             message.reply("Level Code was not found! " + (ts.emotes.think ? ts.emotes.think : ""));

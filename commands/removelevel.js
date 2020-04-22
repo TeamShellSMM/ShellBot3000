@@ -56,7 +56,7 @@ class tsremove extends TSCommand {
         //Send updates to to #shellbot-level-update
 
         if(level.Creator!=player.Name){ //moderation
-          const creator=ts.gs.select("Raw Members",{"Name":level.Creator})
+          const creator=ts.gs.selectOne("Raw Members",{"Name":level.Creator})
           var mention = "**<@" + creator.discord_id + ">, we got some news for you: **";
           await this.client.channels.get(ts.channels.shellderLevelChanges).send(mention);
         }

@@ -24,8 +24,8 @@ class TSRefuseFix extends TSCommand {
 
         await ts.gs.loadSheets(["Raw Members","Raw Levels"]);
         const player=await ts.get_user(message);
-        var level=ts.gs.select("Raw Levels",{"Code":code});
-        const author = ts.gs.select("Raw Members",{"Name":level.Creator});
+        var level=ts.gs.selectOne("Raw Levels",{"Code":code});
+        const author = ts.gs.selectOne("Raw Members",{"Name":level.Creator});
 
         if(level.Approved!="-10")
           ts.userError("This level is not currently in a fix request!");

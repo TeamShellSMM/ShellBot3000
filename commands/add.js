@@ -23,7 +23,7 @@ class tsadd extends TSCommand {
 
       await ts.gs.loadSheets(["Raw Members","Raw Levels"]);
       const player=await ts.get_user(message);
-      var existing_level=ts.gs.select("Raw Levels",{"Code":code})
+      var existing_level=ts.gs.selectOne("Raw Levels",{"Code":code})
 
       if(existing_level)
         ts.userError(ts.message("add.levelExisting",{level:existing_level}));

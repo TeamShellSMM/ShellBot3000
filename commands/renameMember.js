@@ -24,7 +24,7 @@ class RenameMember extends TSCommand {
         if(config.devs && config.devs.indexOf(message.author.id)!==-1){
             return true;
         }
-        let player=ts.gs.select("Raw Members",{"discord_id":message.author.id,"shelder":"1"},true)
+        const player=ts.gs.select("Raw Members",{"discord_id":message.author.id,"shelder":"1"},true)
         if(player.length>0){
             return true
         }
@@ -38,8 +38,7 @@ class RenameMember extends TSCommand {
         }
 
         await ts.load()
-        let new_name_check=ts.gs.select("Raw Members",{"Name":args.new_name});
-        if(ts.gs.select("Raw Members",{"Name":args.new_name})){
+        if(ts.gs.selectOne("Raw Members",{"Name":args.new_name})){
             ts.userError("There is already another member with name \""+args.new_name+"\"")
         }
 

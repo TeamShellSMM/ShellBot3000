@@ -91,7 +91,7 @@ module.exports={
  "error.userBanned":"You have been barred from using this service",
  "error.notRegistered":"You are not yet registered",
  "error.emptyLevelList":"No levels found buzzyS",
- "error.afterUserDiscord":"{{{think}}}",
+ "error.afterUserDiscord":" {{{think}}}",
  "error.afterUserWeb":"",
  "error.levelNotFound":"The code {{code}} was not found in {{TeamName}}'s list.",
  "error.levelIsFixing":"The level \"{{{level.[Level Name]}}}\" is under 'Request to fix' status",
