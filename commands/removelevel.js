@@ -58,13 +58,13 @@ class tsremove extends TSCommand {
         if(level.Creator!=player.Name){ //moderation
           const creator=ts.gs.selectOne("Raw Members",{"Name":level.Creator})
           var mention = "**<@" + creator.discord_id + ">, we got some news for you: **";
-          await this.client.channels.get(ts.channels.shellderLevelChanges).send(mention);
+          await this.client.channels.get(ts.channels.levelChangeNotification).send(mention);
         }
 
         await ts.deleteDiscussionChannel(level.Code,"Level has been removed via !tsremove")
 
         var reply="You have removed \""+level["Level Name"]+"\" by "+level.Creator+" "+(ts.emotes.buzzyS ? ts.emotes.buzzyS : "")
-        await this.client.channels.get(ts.channels.shellderLevelChanges).send(removeEmbed);
+        await this.client.channels.get(ts.channels.levelChangeNotification).send(removeEmbed);
         await message.channel.send(player.user_reply+reply)
     }
 }

@@ -15,70 +15,66 @@ const TS=function(guild_id,config,client){ //loaded after gs
 
 
   this.load=async function(){
-  
-  ts.gs.clearCache();
-  let guild=await ts.getGuild()
+    
+    ts.gs.clearCache();
+    let guild=await ts.getGuild()
 
-  
-  const defaultVars = {
-    customStrings:{ //defaults
-      "levelInfo":"@@LEVEL_PLACEHOLDER@@",
-      "teamurl": server_config.page_url+"/"+config.url_slug,
-      "BotName":"ShellBot3000",
-      "TeamName":"team",
-      "ModName":"Mod",
-    },
-    emotes:{},
-  }
-  guild.emojis.forEach((e)=>{
-    defaultVars.emotes[e.name]=e.toString()
-  });
-
-  const static_vars=[
-    "TeamSettings","Points",
-    "Ranks","Seasons",
-    "Emotes","Channels","tags",
-    "CustomString","Messages",
-    "Competition Winners", //static vars
-    'Raw Members','Raw Levels' //play info
-    ]; //initial vars to be loaded on bot load
-
-    await ts.gs.loadSheets(static_vars) //loading initial sheets
-
-    this.pointMap={}
-    var _points=ts.gs.select("Points");
-    for(let i=0;i<_points.length;i++){
-      this.pointMap[parseFloat(_points[i].Difficulty)]=parseFloat(_points[i].Points)
+    
+    const defaultVars = {
+      customStrings:{ //defaults
+        "levelInfo":"@@LEVEL_PLACEHOLDER@@",
+        "teamurl": server_config.page_url+"/"+config.url_slug,
+        "BotName":"ShellBot3000",
+      },
+      emotes:{},
     }
-
-    let sheetToMap={
-      channels:'Channels',
-      emotes:'Emotes',
-      customStrings:'CustomString',
-      teamVariables:'TeamSettings',
-    }
-
-    for(let key in sheetToMap){
-      this[key]={...defaultVars[key]}
-      ts.gs.select(sheetToMap[key]).forEach(v=>{
-        this[key][v.Name]=v.value?v.value:'';
-      });
-    }
-
-    this.messages={}
-    var _messages=ts.gs.select("Messages").forEach(v=>{
-      if(v.value){
-        this.messages[v.Name]=_makeTemplate(v.value)
-      }
+    guild.emojis.forEach((e)=>{
+      defaultVars.emotes[e.name]=e.toString()
     });
 
-    for(var i in DEFAULTMESSAGES){
-      if(this.messages[i]==null){
-        this.messages[i]=_makeTemplate(DEFAULTMESSAGES[i])
-      }
-    }
+    const static_vars=[
+      "TeamSettings","Points",
+      "Ranks","Seasons",
+      "Emotes","Channels","tags",
+      "CustomString","Messages",
+      "Competition Winners", //static vars
+      'Raw Members','Raw Levels' //play info
+      ]; //initial vars to be loaded on bot load
 
-    console.log(`Data loaded for ${this.customStrings.TeamName}`)
+      await ts.gs.loadSheets(static_vars) //loading initial sheets
+
+      this.pointMap={}
+      var _points=ts.gs.select("Points");
+      for(let i=0;i<_points.length;i++){
+        this.pointMap[parseFloat(_points[i].Difficulty)]=parseFloat(_points[i].Points)
+      }
+
+      let sheetToMap={
+        channels:'Channels',
+        emotes:'Emotes',
+        customStrings:'CustomString',
+        teamVariables:'TeamSettings',
+      }
+
+      for(let key in sheetToMap){
+        this[key]={...defaultVars[key]}
+        ts.gs.select(sheetToMap[key]).forEach(v=>{
+          this[key][v.Name]=v.value?v.value:'';
+        });
+      }
+
+      this.messages={}
+      ts.gs.select("Messages").forEach((v)=>{
+        this.messages[v.Name]=_makeTemplate(v.value||'')
+      });
+
+      for(var i in DEFAULTMESSAGES){
+        if(this.messages[i] === undefined){ 
+          this.messages[i]=_makeTemplate(DEFAULTMESSAGES[i])
+        }
+      }
+
+      console.log(`Data loaded for ${this.teamVariables.TeamName}`)
   }
 
   /* template and string */
@@ -1011,8 +1007,8 @@ const TS=function(guild_id,config,client){ //loaded after gs
         }
       }
 
-      await client.channels.get(ts.channels.shellderLevelChanges).send(mention);
-      await client.channels.get(ts.channels.shellderLevelChanges).send(judgeEmbed);
+      await client.channels.get(ts.channels.levelChangeNotification).send(mention);
+      await client.channels.get(ts.channels.levelChangeNotification).send(judgeEmbed);
 
 
       //Remove Discussion Channel
@@ -1065,8 +1061,8 @@ const TS=function(guild_id,config,client){ //loaded after gs
       ts.embedAddLongField(exampleEmbed,embedHeader,allComments[i].reason)
     }
 
-    await client.channels.get(ts.channels.shellderLevelChanges).send(mention);
-    await client.channels.get(ts.channels.shellderLevelChanges).send(exampleEmbed);
+    await client.channels.get(ts.channels.levelChangeNotification).send(mention);
+    await client.channels.get(ts.channels.levelChangeNotification).send(exampleEmbed);
 
     //Remove Discussion Channel
     await ts.deleteReuploadChannel(levelCode,ts.message("approval.channelDeleted"))

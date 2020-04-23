@@ -25,7 +25,7 @@ class TSRerate extends TSCommand {
 
     async tsexec(ts,message,args) {
       if(!(
-        message.channel.id === ts.channels.shellderShellbot  //only in bot-test channel
+        message.channel.id === ts.channels.modChannel  //only in bot-test channel
       )) return false;
 
       if(args.code){
@@ -68,7 +68,7 @@ class TSRerate extends TSCommand {
             .setAuthor(ts.message('difficulty.updated',{ old_difficulty:oldDiff,new_difficulty:args.difficulty}))
             .addField("\u200b","**Reason** :\n```"+args.reason+"```Rerated by <@" +message.member.id + ">")
 
-      var levelChangeChannel=await this.client.channels.get(ts.channels.shellderLevelChanges)
+      var levelChangeChannel=await this.client.channels.get(ts.channels.levelChangeNotification)
 
       if(author){ //edge case of no discord_id
         var mention = "**<@" + author.discord_id + ">, we got some news for you: **";
