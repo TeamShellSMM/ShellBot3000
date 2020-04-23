@@ -9,13 +9,24 @@ class TSCommand extends Command {
         DEFAULTMESSAGES=Object.assign(DEFAULTMESSAGES,obj)
     }
 
+    canRun(ts,message){
+        return true
+    }
+
     async exec(message,args) {
+        let ts;
         try {
-            var ts=get_ts(message.guild.id)
+            ts=get_ts(message.guild.id)
         } catch(error){
             message.reply(error)
             throw error;
         }
+        
+        if(!this.canRun(ts,message)){
+            console.log(`can't run: ${message.content}`)
+            return false;
+        }
+        
 
         try{
             args.command=ts.parse_command(message)

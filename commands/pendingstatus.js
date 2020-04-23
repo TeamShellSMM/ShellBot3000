@@ -12,7 +12,7 @@ class PendingStatus extends TSCommand {
         await ts.gs.loadSheets(["Raw Levels","Raw Members"]);
         const player=await ts.get_user(message);
 
-        const levels=ts.gs.select("Raw Levels",{"Creator":player.Name,"Approved":"0"},true);
+        const levels=ts.gs.select("Raw Levels",{"Creator":player.Name,"Approved":"0"});
 
         if(!levels){
             message.reply(player.user_reply+"\nYou have no levels pending");
@@ -24,10 +24,10 @@ class PendingStatus extends TSCommand {
             let rejectVotes = await ts.db.PendingVotes.query().where("code",level.Code).where("is_shellder",1).where("type","reject");
             let statusStr=[]
             if(approvalVotes && approvalVotes.length>0){
-                statusStr.push(approvalVotes.length+" approval"+ts.plural(approvalVotes.length));
+                statusStr.push(approvalVotes.length+" approval(s)");
             }
             if(rejectVotes && rejectVotes.length>0){
-                statusStr.push(rejectVotes.length+" rejection"+ts.plural(rejectVotes.length));
+                statusStr.push(rejectVotes.length+" rejection(s)");
             }
             statusStr=statusStr.length>0?statusStr.join(","):"No votes has been cast yet"
 

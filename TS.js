@@ -13,35 +13,18 @@ const TS=function(guild_id,config,client){ //loaded after gs
   this.db.Plays = require('./models/Plays.js')(guild_id);
   this.db.PendingVotes = require('./models/PendingVotes.js')(guild_id);
 
-  function _makeTemplate(template){
-    var template =Handlebars.compile(template)
-    return function(args){
-      if(!args) args={}
-      let obj={...ts.emotes,...ts.customStrings,...args}
-      return template(obj);
-    }
-  }
-
-  this.message=function(type,args){
-    if(this.messages[type]){
-      return this.messages[type](args)
-    }
-    throw "`"+type+"` message string was not found in ts.message";
-  }
 
   this.load=async function(){
   
-  ts.gs.clearCache()
-  this.pointMap={}
-  this.channels={}
-  this.emotes={}
-  this.messages={}
-  this.customStrings={ //defaults
-    "levelInfo":"@@LEVEL_PLACEHOLDER@@",
-    "teamurl":server_config.page_url+"/"+config.url_slug,
-    "BotName":"ShellBot3000",
-    "TeamName":"TeamTeam",
-    "ModName":"Mod",
+  ts.gs.clearCache();
+  const defaultVars = {
+    customStrings:{ //defaults
+      "levelInfo":"@@LEVEL_PLACEHOLDER@@",
+      "teamurl": server_config.page_url+"/"+config.url_slug,
+      "BotName":"ShellBot3000",
+      "TeamName":"team",
+      "ModName":"Mod",
+    }
   }
 
   const static_vars=[
@@ -54,46 +37,64 @@ const TS=function(guild_id,config,client){ //loaded after gs
     ]; //initial vars to be loaded on bot load
 
     await ts.gs.loadSheets(static_vars) //loading initial sheets
+
+    this.pointMap={}
     var _points=ts.gs.select("Points");
-    for(var i=0;i<_points.length;i++){
+    for(let i=0;i<_points.length;i++){
       this.pointMap[parseFloat(_points[i].Difficulty)]=parseFloat(_points[i].Points)
     }
-    var _channels=ts.gs.select("Channels");
-    for(var i=0;i<_channels.length;i++){
-      this.channels[_channels[i].Name]=_channels[i].value
-    }
-      var _emotes=ts.gs.select("Emotes");
-    for(var i=0;i<_emotes.length;i++){
-      this.emotes[_emotes[i].Name]=_emotes[i].value?_emotes[i].value:""
+
+    let sheetToMap={
+      channels:'Channels',
+      emotes:'Emotes',
+      customStrings:'CustomString',
+      teamVariables:'TeamShell Variable',
     }
 
-    var _customString=ts.gs.select("CustomString");
-    for(var i=0;i<_customString.length;i++){
-      this.customStrings[_customString[i].Name]=_customString[i].value?_customString[i].value:""
+    for(let key in sheetToMap){
+      this[key]={...defaultVars[key]}
+      ts.gs.select(sheetToMap[key]).forEach(v=>{
+        this[key][v.Name]=v.value?v.value:'';
+      });
     }
 
-    var _messages=ts.gs.select("Messages");
-    for(var i=0;i<_messages.length;i++){
-      if(_messages[i].value){
-        this.messages[_messages[i].Name]=_makeTemplate(_messages[i].value)
+    this.messages={}
+    var _messages=ts.gs.select("Messages").forEach(v=>{
+      if(v.value){
+        this.messages[v.Name]=_makeTemplate(v.value)
       }
-    }
+    });
 
     for(var i in DEFAULTMESSAGES){
-      if(!this.messages[i]){
+      if(this.messages[i]==null){
         this.messages[i]=_makeTemplate(DEFAULTMESSAGES[i])
       }
     }
 
-    console.log("Data loaded for "+this.customStrings.TeamName)
+    console.log(`Data loaded for ${this.customStrings.TeamName}`)
   }
+
+  /* template and string */
+  function _makeTemplate(template){
+    var template =Handlebars.compile(template)
+    return function(args){
+      if(!args) args={}
+      let obj={...ts.emotes,...ts.customStrings,...ts.teamVariables,...args}
+      return template(obj);
+    }
+  }
+
+  this.message=function(type,args){
+    if(this.messages[type]){
+      return this.messages[type](args)
+    }
+    throw `"${type}" message string was not found in ts.message`;
+  }
+
+
 
   this.getGuild=function(){
     return client.guilds.get(this.channels.guild_id)
-  }
-
-  this.plural=function(num){
-    return num>1||num==0?"s":""
   }
 
   this.valid_format=function(code){
@@ -130,7 +131,6 @@ const TS=function(guild_id,config,client){ //loaded after gs
     await client.guilds.get(this.channels.guild_id).members.get(discord_id).send(ts.message("website.loggedin"))
     return bearer
   }
-
 
   this.checkBearerToken=async function(token){
     token=await ts.db.Tokens.query().where('token','=',token).first()
@@ -178,7 +178,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
   this.isReupload=async function(code){
     let reuploads=ts.gs.select("Raw Levels",{
       "NewCode":code
-    },true)
+    })
     if(reuploads.length===0) return false
 
     let isFixStatus=false;
@@ -425,10 +425,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
   }
 
   this.get_variable=function(var_name){
-    var ret=ts.gs.selectOne("TeamShell Variable",{
-      "Variable":var_name
-    })
-    return ret?ret.Value:false
+    return this.teamVariables[var_name]
   }
 
   this.levelsAvailable=function(points,levelsUploaded,freeLevels){
@@ -866,8 +863,12 @@ const TS=function(guild_id,config,client){ //loaded after gs
       }
 
       //Build embed
-      var color="#dc3545";
-      var title="Level was " + (level.Approved === "0" ? "rejected" : "removed") + "!";
+      var color="#dc3545",title;
+      if(level.Approved==="0"){
+        title=ts.message("judge.levelRejected")
+      } else {
+        title=ts.message("judge.levelRemoved")
+      }
       if(this.emotes.axemuncher){
         var image=this.getEmoteUrl(this.emotes.axemuncher);
       }
@@ -954,7 +955,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
 
         //Build Status Message
         var color="#01A19F";
-        var title="This level was approved for difficulty: " + finalDiff + "!";
+        var title=ts.message('judge.approved',{difficulty:finalDiff});
         if(this.emotes.bam){
           var image=this.getEmoteUrl(this.emotes.bam);
         }
@@ -965,48 +966,47 @@ const TS=function(guild_id,config,client){ //loaded after gs
       }
 
       var mention = ts.message("general.heyListen",{discord_id:author.discord_id});
-      var exampleEmbed = ts.levelEmbed(level)
+      var judgeEmbed = ts.levelEmbed(level)
         .setColor(color)
         .setAuthor(title);
 
       if(image){
-        exampleEmbed.setThumbnail(image);
+        judgeEmbed.setThumbnail(image);
       }
 
       if(fixMode){
-        exampleEmbed.setDescription(ts.message("approval.fixInstructionsCreator"));
+        judgeEmbed.setDescription(ts.message("approval.fixInstructionsCreator"));
       }
 
       if(fixMode){
-        for(var i = 0; i < fixComments.length; i++){
-          let action = "";
+        for(let i = 0; i < fixComments.length; i++){
+          let msgString = "";
           if(fixComments[i].type=="fix"){
-            action = " voted for fix with difficulty " + fixComments[i].difficulty_vote;
+            msgString='judge.votedFix';
           } else {
-            action = " voted for rejection";
+            msgString='judge.votedReject';
           }
-          var embedHeader=fixComments[i].player + action +":"
-          ts.embedAddLongField(exampleEmbed,embedHeader,fixComments[i].reason)
+          let embedHeader=ts.message(msgString,{ ...fixComments[i] })
+          ts.embedAddLongField(judgeEmbed,embedHeader,fixComments[i].reason)
         }
       } else {
-        for(var i = 0; i < allComments.length; i++){
-          let action = "";
+        for(let i = 0; i < allComments.length; i++){
+          let msgString = "";
           if(allComments[i].type=="fix"){
-            action = " voted for fix with difficulty " + allComments[i].difficulty_vote;
+            msgString='judge.votedFix'
           } else if(allComments[i].type=="approve"){
-            action = " voted to approve with difficulty " + allComments[i].difficulty_vote;
+            msgString='judge.votedApprove'
           } else {
-            action = " voted for rejection";
+            msgString='judge.votedReject'
           }
-          var embedHeader=allComments[i].player + action +":"
-          ts.embedAddLongField(exampleEmbed,embedHeader,allComments[i].reason)
+          let embedHeader=ts.message(msgString,{ ...allComments[i] })
+          ts.embedAddLongField(judgeEmbed,embedHeader,allComments[i].reason)
         }
       }
 
       await client.channels.get(ts.channels.shellderLevelChanges).send(mention);
-      await client.channels.get(ts.channels.shellderLevelChanges).send(exampleEmbed);
+      await client.channels.get(ts.channels.shellderLevelChanges).send(judgeEmbed);
 
-      //if(client.util.resolveChannel())
 
       //Remove Discussion Channel
       if(!fromFix){
@@ -1193,7 +1193,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
     if(!new_level && creator_points.available<0)
       ts.userError(ts.message("reupload.notEnoughPoints"));
     if(level.NewCode && ts.valid_code(level.NewCode))
-      ts.userError(ts.message("reupload.haveReuploaded",{code:level.NewCode}))
+      ts.userError(ts.message("reupload.haveReuploaded",{code:level.NewCode}));
 
     //only creator and shellder can reupload a level
     if(!(level.Creator==player.Name || player.shelder=="1"))

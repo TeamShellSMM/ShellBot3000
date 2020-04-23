@@ -31,7 +31,7 @@ global.console_error=async function(error){
 }
 
 client.on("guildCreate", async guild => {
-  console.log("Joined a new guild: " + guild.name);
+  console.log(`Joined a new guild: ${guild.name}`);
 });
 
 global.TS_LIST={}
@@ -39,13 +39,13 @@ global.get_ts=function(guild_id){
   if(TS_LIST[guild_id]){
     return TS_LIST[guild_id];
   } else {
-    throw "This team has not yet setup it's config, buzzyS";
+    throw `This team, with guild id ${guild_id} has not yet setup it's config, buzzyS`;
   }
 }
 
 
 client.on("ready", async () => {
-  console.log(config.botName+` has started, with ${client.users.size} users, in ${client.channels.size} channels of ${client.guilds.size} guilds.`);
+  console.log(`${config.botName} has started, with ${client.users.size} users, in ${client.channels.size} channels of ${client.guilds.size} guilds.`);
   await client.guilds.forEach(async guild =>{
     let Teams = require('./models/Teams.js')(guild.id);
     let team_config=await Teams.query().select().first();
@@ -219,8 +219,8 @@ function web_ts(callback){
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
     try {
       var ts=get_web_ts(req.body.url_slug)
-      if(!ts)
-        throw '"'+req.body.url_slug+"\"  not found";
+      if(!ts) 
+        throw `"${req.body.url_slug}" not found`;
     } catch(error){
       let ret={"error":error.stack,"url_slug":req.body.url_slug}
       console_error(ret)

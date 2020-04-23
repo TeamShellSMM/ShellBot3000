@@ -61,6 +61,13 @@ module.exports={
  'approval.channelDeleted':'Justice has been met!',
  'approval.rejectAfterRefuse':'We\'re really sorry, but this level was rejected after you refused to reupload.',
 
+ 'judge.levelRejected':'Sorry, this level didn\'t quite make the cut for {{TeamName}}, but feel free to use the advice below to improve your level and resubmit it to us at later time',
+ 'judge.levelRemoved':'Level was removed!',
+ 'judge.approved':"This level was approved for difficulty: {{difficulty}}!",
+ 'judge.votedApprove':'{{player}} voted for approval with difficulty {{difficulty_vote}}:',
+ 'judge.votedReject':'{{player}} voted for rejection:',
+ 'judge.votedFix':'{{player}} voted for fix with difficulty {{difficulty_vote}}:',
+
  'reupload.invalidOldCode':'You did not provide a valid code for the old level',
  'reupload.invalidNewCode':'You did not provide a valid code for the new level',
  'reupload.sameCode':'The codes given were the same',
@@ -88,6 +95,7 @@ module.exports={
  'pending.refuseDescription':'Refused by: Please check the fixvotes and decide if this is still acceptable to approve or not (use **!fixapprove** or **!fixreject** with a message).',
  'pending.fixReuploadDescription':'Please check if the mandatory fixes where made and make your decision (use **!fixapprove** or **!fixreject** with a message).',
 
+ 'error.notApproved':'Level is not approved',
  'error.userBanned':'You have been barred from using this service',
  'error.notRegistered':'You are not yet registered',
  'error.emptyLevelList':'No levels found buzzyS',
@@ -100,12 +108,12 @@ module.exports={
  'error.invalidCode':'You did not provide a valid level code',
  'error.invalidMakerCode':'`{{code}}` is not a valid maker id',
 
- 'points.points':
-    'You have {{player.earned_points.clearPoints}} clear points. You have submitted {{player.earned_points.levelsMade}} level(s)'+
-    '{{#if player.earned_points.freeSubmissions}} ({{player.earned_points.freeSubmissions}} free submission(s)){{/if}}.',
+ 'points.points':'You have {{player.earned_points.clearPoints}} clear points. You have submitted {{player.earned_points.levelsMade}} level(s) {{#if player.earned_points.freeSubmissions}} ({{player.earned_points.freeSubmissions}} free submission(s)){{/if}}.',
  'points.canUpload':'You have enough points to upload a level {{{PigChamp}}}',
  'points.cantUpload':'You need {{points_needed}} points to upload a new level {{{buzzyS}}}. Check how the points are mapped on {{teamurl}}',
  'points.rank':' You have earned the rank **{{player.rank.Rank}}** {{{player.rank.Pips}}}',
+
+ 'difficulty.updated':'Difficulty rating updated from {{old_difficulty}} + {{new_difficulty}}',
 
  'add.noName':'You didn\'t give a level name',
  'add.levelExisting':'`{{level.Code}}` has already been submitted as \'{{{level.[Level Name]}}}\' by {{level.Creator}}',
@@ -129,4 +137,5 @@ module.exports={
  'atme.willBeNot':'You will not be atted by {{BotName}} {{{bam}}}',
 
  'ammendCode.success':'The level "{{{level.[Level Name]}}}", by {{level.Creator}}, has changed code from `{{oldCode}}` to `{{newCode}}`',
+
 }

@@ -16,20 +16,20 @@ class TSLevelStatus extends TSCommand {
     async tsexec(ts,message,args) {
         await ts.gs.loadSheets(["Raw Levels"]);
 
-        if(!ts.valid_format(args.code)) throw "Level code given was not in xxx-xxx-xxx format "+(ts.emotes.think ? ts.emotes.think : "")
-        if(!ts.valid_code(args.code))   throw "There were some invalid characters in your level code "+(ts.emotes.think ? ts.emotes.think : "")
+        if(!ts.valid_format(args.code))
+            ts.userError("Level code given was not in xxx-xxx-xxx format")
+        if(!ts.valid_code(args.code))
+            ts.userError("There were some invalid characters in your level code")
 
         args.code=args.code.toUpperCase()
 
         const level=ts.gs.selectOne("Raw Levels",{"Code":args.code});
 
-        if(!level){
-            message.reply("Level Code was not found! " + (ts.emotes.think ? ts.emotes.think : ""));
-            return false;
-        }
+        if(!level)
+            ts.userError("Level Code was not found!");
 
         if(level.Approved === "1"){
-            message.reply("This level has already been approved! " + (ts.emotes.bam ? ts.emotes.bam : ""));
+            message.reply("This level has already been approved! " + ts.emotes.bam);
         } else if(level.Approved.startsWith("del")){
             message.reply("This level has already been removed/rejected!");
         } else if(level.Approved == "0"){

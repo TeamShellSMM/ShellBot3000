@@ -126,7 +126,7 @@ var GS=function(config){
 
   this.query=function (sheet,parameters,forceArray){ //may break if column named updated or row
     var querySheet = SheetCache[sheet]
-    if(!querySheet) throw "No cached sheet found"
+    if(!querySheet) throw `"${sheet}" was not loaded`
     var headers=json_header[sheet];
 
     var header_to_id={}
@@ -188,9 +188,9 @@ var GS=function(config){
 
   this.insert =async function(sheet,pData){
     var header=json_header[sheet];
-    if(!sheet) throw "No sheet selected";
-    if(!header) throw "Sheet has not been loaded or doesn't exist";
-    if(!pData) throw "Passed data must not be null";
+    if(!sheet) throw 'No sheet selected';
+    if(!header) throw `The sheet "${sheet}" has not been loaded or doesn't exist`;
+    if(!pData) throw 'Passed data must not be null';
     let url = "https://sheets.googleapis.com/v4/spreadsheets/"+config.spreadsheetId+"/values/"+encodeURI("'"+sheet+"'")+":append?insertDataOption=INSERT_ROWS&valueInputOption=USER_ENTERED"
     var new_row=[],hasData=false;
     for(var i=0;i<header.length;i++){
@@ -205,7 +205,7 @@ var GS=function(config){
       new_row.push(cur_col);
     }
 
-    if(!hasData) throw "There was no valid data given for this sheet";
+    if(!hasData) throw 'There was no valid data given for this sheet';
 
     var data={
       "values":[new_row]

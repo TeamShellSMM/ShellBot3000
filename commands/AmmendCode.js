@@ -23,7 +23,7 @@ class AmmendCode extends TSCommand {
         if(config.devs && config.devs.indexOf(message.author.id)!==-1){
             return true;
         }
-        let player=ts.gs.select("Raw Members",{"discord_id":message.author.id,"shelder":"1"},true)
+        let player=ts.gs.select("Raw Members",{"discord_id":message.author.id,"shelder":"1"})
         if(player.length>0){
             return true
         }

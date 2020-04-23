@@ -21,7 +21,7 @@ class MakerId extends TSCommand {
         ts.userError(ts.message("error.invalidMakerCode",{ code }))
       }
 
-      let existing_member=ts.gs.select("Raw Members",{"maker_id":code},true)
+      let existing_member=ts.gs.select("Raw Members",{"maker_id":code})
       if(existing_member.length>0){
         if(existing_member[0].discord_id!=player.discord_id){
             ts.userError(ts.message("makerid.existing",{ code , name:existing_member[0].Name }))

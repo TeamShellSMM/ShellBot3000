@@ -1,5 +1,5 @@
+const config = require('../config.json');
 const TSCommand = require('../TSCommand.js');
-
 class mockUser extends TSCommand {
     constructor() {
         super('mockUser', {
@@ -9,16 +9,26 @@ class mockUser extends TSCommand {
             type: 'string',
             default: ''
           }],
-          ownerOnly: true,
-          channelRestriction: 'guild'
         });
     }
 
-    async tsexec(ts,message,args) {
-        if(ts.channels.isTesting!=="yes"){
+    canRun(ts,message){
+        if(ts.teamVariables.isTesting!=="yes"){
             return false
         }
+
+        if(config.ownerID && config.ownerID.indexOf(message.author.id)!==-1){
+            return true;
+        }
+        if(config.devs && config.devs.indexOf(message.author.id)!==-1){
+            return true;
+        }
         
+        return false;
+    }
+
+
+    async tsexec(ts,message,args) {
         await ts.gs.loadSheets(["Raw Members"]);
 
         let player=ts.gs.selectOne("Raw Members",{ 

@@ -44,8 +44,7 @@ class TSRerate extends TSCommand {
       const author = ts.gs.selectOne("Raw Members",{"Name":level.Creator});
 
       if(level.Approved!=="1")
-        ts.userError("Level is not an approved level")
-
+        ts.userError(ts.message('error.notApproved'))
 
       if(!args.reason)
         ts.userError("You need to give a reason for the change (in quotation marks)!");
@@ -66,7 +65,7 @@ class TSRerate extends TSCommand {
 
       var rerateEmbed = ts.levelEmbed(level)
             .setColor("#17a2b8")
-            .setAuthor("Difficulty rating updated from "+oldDiff + " to " + args.difficulty)
+            .setAuthor(ts.message('difficulty.updated',{ old_difficulty:oldDiff,new_difficulty:args.difficulty}))
             .addField("\u200b","**Reason** :\n```"+args.reason+"```Rerated by <@" +message.member.id + ">")
 
       var levelChangeChannel=await this.client.channels.get(ts.channels.shellderLevelChanges)

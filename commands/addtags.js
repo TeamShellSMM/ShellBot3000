@@ -74,7 +74,7 @@ class TSAddtags extends TSCommand {
           if(new_tags.length==0)
             ts.userError("No new tags added for \""+level["Level Name"]+"\" by "+level.Creator+"\nCurrent tags:```\n"+old_tags.join("\n")+"```")
           old_tags=old_tags.concat(new_tags)
-          var reply="Tags added for  \""+level["Level Name"]+"\" ("+code+")"+(ts.emotes.bam ? ts.emotes.bam : "")+"\nCurrent tags:```\n"+old_tags.join("\n")+"```"
+          var reply="Tags added for  \""+level["Level Name"]+"\" ("+code+")"+ts.emotes.bam+"\nCurrent tags:```\n"+old_tags.join("\n")+"```"
         } else { // removing
           if(!(level.Creator==player.Name || player.shelder=="1"))
             ts.userError("You can't remove tags from  \""+level["Level Name"]+"\" by "+level.Creator);
