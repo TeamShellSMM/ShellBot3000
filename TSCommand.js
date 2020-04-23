@@ -23,7 +23,7 @@ class TSCommand extends Command {
         }
         
         if(!this.canRun(ts,message)){
-            console.log(`can't run: ${message.content}`)
+            console_error(ts.makeErrorObj(`can't run: ${message.content}`,message))
             return false;
         }
         

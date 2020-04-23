@@ -1,8 +1,9 @@
 const TSCommand = require('../TSCommand.js');
-class InitChannels extends TSCommand {
+
+class InitRoles extends TSCommand {
     constructor() {
-        super('initchannels', {
-            aliases: ['initchannels'],
+        super('initroles', {
+            aliases: ['initroles'],
         });
     }
 
@@ -14,6 +15,9 @@ class InitChannels extends TSCommand {
     }
 
     async tsexec(ts,message, args) {        
+
+ /*
+        
         const defaultChannels={
           'modChannel':{
               permissionOverwrites:[
@@ -86,10 +90,17 @@ class InitChannels extends TSCommand {
         let sheet_updates=[];
         for(let i in channels){
             let c=channels[i]
-            if(!c.value){                
+            if(!c.value){
+                console.log({
+                    type:"notset",
+                    row:c,
+                    data:defaultChannels[c.Name],
+                })
+                
                 let channelTemplate=defaultChannels[c.Name];
                 let channelName=c.default
                 channelTemplate.permissionOverwrites.push(botPermissions)
+                console.log(channelTemplate)
                 let newChannel=message.guild.channels.find(channel => channel.name === channelName)
                 if(!newChannel) newChannel=await message.guild.createChannel(channelName,channelTemplate)
                 let embed = ts.client.util.embed()
@@ -118,10 +129,10 @@ class InitChannels extends TSCommand {
         }
 
         if(sheet_updates.length>0) await ts.gs.batchUpdate(sheet_updates);
-
+*/
         await ts.load()
-        message.reply(change?'Commands done':'Nothing was done');
+        message.reply('reloaded');
     }
 }
 
-module.exports = InitChannels;
+module.exports = InitRoles;

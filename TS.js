@@ -7,6 +7,7 @@ const server_config = require('./config.json');
 const GS=require("./GS.js");
 const TS=function(guild_id,config,client){ //loaded after gs
   const ts=this
+  this.client=client
   this.gs=new GS(config)
   this.db={}
   this.db.Tokens=require('./models/Tokens.js')
@@ -450,17 +451,22 @@ const TS=function(guild_id,config,client){ //loaded after gs
       "msg":errorStr
     }
   }
+
+  this.makeErrorObj=function(obj,message){
+    return {
+      error:obj.stack?obj.stack:obj,
+      url_slug:this.config.url_slug,
+      content:message.content,
+      user:message.author.username,
+      channel:"<#"+message.channel.id+">"
+    };
+  }
+
   this.getUserErrorMsg=function(obj,message){
     if(typeof obj=="object" && obj.errorType=="user"){
       return obj.msg+ts.message("error.afterUserDiscord")
     } else {
-      console_error({
-        error:obj.stack?obj.stack:obj,
-        url_slug:this.config.url_slug,
-        content:message.content,
-        user:message.author.username,
-        channel:"<#"+message.channel.id+">"
-      })
+      console_error(ts.makeErrorObj(obj,message))
       return ts.message("error.unknownError")
     }
   }

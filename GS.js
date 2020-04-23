@@ -124,6 +124,10 @@ var GS=function(config){
     return this.select(sheet,filter)[0]
   }
 
+  this.queryOne=function(sheet,parameters){
+    return this.query(sheet,parameters,true)[0]
+  }
+
   this.query=function (sheet,parameters,forceArray){ //may break if column named updated or row
     var querySheet = SheetCache[sheet]
     if(!querySheet) throw `"${sheet}" was not loaded`

@@ -22,10 +22,14 @@ const client = new AkairoClient(config, {
     disableEveryone: true
 });
 
+client.on('shardError', error => {
+	 console.error('A websocket connection encountered an error:', error);
+});
+
 global.console_error=async function(error){
+  console.error(error)
   let channel=await client.channels.get(config.error_channel)
   let dev="<@"+config.devs.join(">,<@")+"> "+(error.channel?" at "+error.channel:"")
-  console.error(error)
   error=JSON.stringify(error,null,2).replace(/\\n/g,"\n")
   channel.send(dev+"```fix\n"+error+"```")
 }
@@ -256,7 +260,7 @@ app.post('/clear',web_ts(async (ts,req)=>{
   var user=await ts.get_user(req.body.discord_id)
   
   let msg=await ts.clear(req.body)
-  await client.channels.get(ts.channels.clearSubmit).send(msg)
+  await client.channels.get(ts.channels.commandFeed).send(msg)
   let json = {status:"sucessful",msg:msg}
   return json;
 }))
@@ -279,7 +283,7 @@ app.post('/approve',web_ts(async (ts,req)=>{
   let msg=await ts.approve(req.body)
   let clearmsg=await ts.clear(req.body)
 
-  await client.channels.get(ts.channels.clearSubmit).send(clearmsg)
+  await client.channels.get(ts.channels.commandFeed).send(clearmsg)
   json = {status:"sucessful",msg:msg}
   return json
 }))
