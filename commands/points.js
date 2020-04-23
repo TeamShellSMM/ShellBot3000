@@ -17,7 +17,7 @@ class points extends TSCommand {
         await ts.gs.loadSheets(["Raw Members","Raw Levels"]);
         const player=await ts.get_user(message);
 
-        var all_ranks=ts.gs.select("TeamShell Ranks");
+        var all_ranks=ts.gs.select("Ranks");
         var all_ranks_id=all_ranks.map(r=>r.discord_roles)
         if(role=="role" || role=="norole"){
           await message.member.removeRoles(all_ranks_id)

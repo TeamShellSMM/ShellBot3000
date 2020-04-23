@@ -84,7 +84,7 @@ module.exports={
  'reupload.inReuploadQueue':' Your level has also been put in the reupload queue, we\'ll get back to you shortly.',
 
  'initiation.message':'We welcome <@{{discord_id}}> to our team!',
- 'initiation.userNotInDiscord':'{{name}} was not found in the discord',
+ 'initiation.userNotInDiscord':'{{name}} was not found in {{TeamName}}\'s discord',
 
  'general.heyListen':'**<@{{discord_id}}>, we got some news for you: **',
 

@@ -17,6 +17,9 @@ const TS=function(guild_id,config,client){ //loaded after gs
   this.load=async function(){
   
   ts.gs.clearCache();
+  let guild=await ts.getGuild()
+
+  
   const defaultVars = {
     customStrings:{ //defaults
       "levelInfo":"@@LEVEL_PLACEHOLDER@@",
@@ -24,12 +27,16 @@ const TS=function(guild_id,config,client){ //loaded after gs
       "BotName":"ShellBot3000",
       "TeamName":"team",
       "ModName":"Mod",
-    }
+    },
+    emotes:{},
   }
+  guild.emojis.forEach((e)=>{
+    defaultVars.emotes[e.name]=e.toString()
+  });
 
   const static_vars=[
-    "TeamShell Variable","Points",
-    "TeamShell Ranks","Seasons",
+    "TeamSettings","Points",
+    "Ranks","Seasons",
     "Emotes","Channels","tags",
     "CustomString","Messages",
     "Competition Winners", //static vars
@@ -48,7 +55,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
       channels:'Channels',
       emotes:'Emotes',
       customStrings:'CustomString',
-      teamVariables:'TeamShell Variable',
+      teamVariables:'TeamSettings',
     }
 
     for(let key in sheetToMap){
@@ -94,7 +101,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
 
 
   this.getGuild=function(){
-    return client.guilds.get(this.channels.guild_id)
+    return client.guilds.get(guild_id)
   }
 
   this.valid_format=function(code){
@@ -128,7 +135,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
       token: bearer,
       authenticated:1
     });
-    await client.guilds.get(this.channels.guild_id).members.get(discord_id).send(ts.message("website.loggedin"))
+    await client.guilds.get(guild_id).members.get(discord_id).send(ts.message("website.loggedin"))
     return bearer
   }
 
@@ -824,7 +831,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
 
 
   this.judge=async function(levelCode, fromFix = false){
-    var guild=client.guilds.get(this.channels.guild_id)
+    var guild=this.getGuild()
     await ts.gs.loadSheets(["Raw Levels", "Raw Members"]);
     var level;
     if(fromFix){
@@ -944,7 +951,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
             if(author.discord_id){
               var curr_user=await guild.members.get(author.discord_id)
               if(curr_user){ //assign role
-                await curr_user.addRole(ts.channels.shellcult_id)
+                await curr_user.addRole(ts.teamVariables.memberRoleId)
                   await client.channels.get(ts.channels.initiateChannel).send(ts.message("initiation.message",{discord_id:author.discord_id}))
               } else {
                 console_error(ts.message("initiation.userNotInDiscord",{name:author.Name})) //not a breaking error.
@@ -1342,7 +1349,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
   }
 
   this.get_rank=function(points){
-    var point_rank=ts.gs.select("TeamShell Ranks")
+    var point_rank=ts.gs.select("Ranks")
     for(var i=point_rank.length-1;i>=0;i--){
       if(parseFloat(points)>=parseFloat(point_rank[i]["Min Points"])){
         let ret={}

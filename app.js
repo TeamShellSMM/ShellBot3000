@@ -303,11 +303,8 @@ app.post('/feedback',web_ts(async (ts,req)=>{
   req.body.discord_id=await ts.checkBearerToken(req.body.token) //checks if logged in
   let user=await ts.get_user(req.body.discord_id) //just checks if registered
 
-  if(!req.body.message)
-    ts.userError(ts.message("feedback.noMessage"))
-
-  if(req.body.message.length > 1000)
-    ts.userError(ts.message("feedback.tooLong"));
+  if(req.body.message == null) ts.userError(ts.message("feedback.noMessage"));
+  if(req.body.message.length > 1000) ts.userError(ts.message("feedback.tooLong"));
 
   let ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
   let discordId = req.body.discord_id;
