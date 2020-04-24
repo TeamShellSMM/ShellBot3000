@@ -12,7 +12,7 @@ class mockUser extends TSCommand {
         });
     }
 
-    canRun(ts,message){
+    async canRun(ts,message){
         if(ts.teamVariables.isTesting!=="yes"){
             return false
         }
@@ -29,40 +29,28 @@ class mockUser extends TSCommand {
 
 
     async tsexec(ts,message,args) {
-        await ts.gs.loadSheets(["Raw Members"]);
 
-        let player=ts.gs.selectOne("Raw Members",{ 
-            "discord_id":message.author.id
-        })
+        let player=await ts.get_user(message)
+        let target=await ts.db.Members.query().where({ name:args.user }).first()
 
-        let target=ts.gs.selectOne("Raw Members",{
-            "Name":args.user
-        })
-
-        if(!target){
-            ts.userError("No user found")
-        }
-        if(target.Name==player.Name)
-            ts.userError("You're already them")
-
-        var temp_id=player.discord_id_temp?player.discord_id_temp:"1"
+        if(!target) ts.userError('No user found');
+        if(target.name==player.name) ts.userError('You\'re already them');
         
-        player=ts.gs.query("Raw Members",{
-            "filter":{"discord_id":message.author.id},
-            "update":{"discord_id":temp_id}
-        });
-        target=ts.gs.query("Raw Members",{
-            "filter":{"Name":args.user},
-            "update":{
-                "discord_id":message.author.id,
-                "discord_id_temp":target.discord_id
-            }
-        });
-        let batch_updates=player.update_ranges.concat(target.update_ranges)
-        await ts.gs.batchUpdate(batch_updates)
-        await ts.gs.loadSheets(["Raw Members"])
+        await ts.db.Members
+          .query()
+          .patch({discord_id: player.discord_id_temp || "1" })
+          .where({discord_id:message.author.id})
+
+        await ts.db.Members
+          .query()
+          .patch({
+              discord_id:message.author.id,
+              discord_id_temp:target.discord_id,
+            })
+          .where({name:target.name})
+
         let p=await ts.get_user(message)
-        message.channel.send("You're now "+p.Name+"("+p.rank.Rank+"). Identity theft is not a joke, Jim!")
+        message.channel.send(`You're now ${p.name}. Identity theft is not a joke, Jim!`)
     }
 }
 module.exports = mockUser;

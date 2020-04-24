@@ -16,15 +16,18 @@ class AmmendCode extends TSCommand {
         });
     }
 
-    canRun(ts,message){
+    async canRun(ts,message){
         if(config.ownerID && config.ownerID.indexOf(message.author.id)!==-1){
             return true;
         }
         if(config.devs && config.devs.indexOf(message.author.id)!==-1){
             return true;
         }
-        let player=ts.gs.select("Raw Members",{"discord_id":message.author.id,"shelder":"1"})
-        if(player.length>0){
+        let player=await ts.db.Members.query()
+          .where({discord_id:message.author.id})
+          .where({is_mod:1})
+          .first()
+        if(player){
             return true
         }
         
@@ -32,9 +35,6 @@ class AmmendCode extends TSCommand {
     }
 
     async tsexec(ts,message, { oldCode, newCode }) {
-        if(!this.canRun(ts,message)){
-            return false;
-        }
         oldCode=oldCode.toUpperCase()
         newCode=newCode.toUpperCase()
 
@@ -48,7 +48,7 @@ class AmmendCode extends TSCommand {
             ts.userError(ts.message('reupload.sameCode'))
         }
 
-        await ts.gs.loadSheets(["Raw Members","Raw Levels","Competition Winners"]);
+        await ts.gs.loadSheets(["Raw Levels","Competition Winners"]);
 
         const existing_level=ts.getExistingLevel(oldCode,true)
         const new_code_check=ts.gs.selectOne("Raw Levels",{"Code":newCode});

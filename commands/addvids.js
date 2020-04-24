@@ -41,7 +41,7 @@ class TSAddvids extends TSCommand {
           ts.userError("The links below didn't look like urls: ```\n"+not_urls.join("\n")+"```")
         }
 
-        await ts.gs.loadSheets(["Raw Members","Raw Levels"]);
+        await ts.gs.loadSheets(["Raw Levels"]);
 
         const player=await ts.get_user(message);
         var level=ts.getExistingLevel(code)
@@ -61,7 +61,7 @@ class TSAddvids extends TSCommand {
           old_vids=old_vids.concat(new_vids)
           var reply="Clear videos added for  \""+level["Level Name"]+"\" ("+code+")"+(ts.emotes.bam ? ts.emotes.bam : "")+"\nCurrent Videos:```\n"+old_vids.join("\n")+"```"
         } else { // removing
-          if(!(level.Creator==player.Name || player.shelder=="1"))
+          if(!(level.Creator==player.name || player.is_mod=="1"))
             ts.userError("You can't remove videos from  \""+level["Level Name"]+"\" by "+level.Creator);
 
           new_vids=[]

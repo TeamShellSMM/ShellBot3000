@@ -14,12 +14,13 @@ class TSRegister extends TSCommand {
 
     async tsexec(ts,message,args) {
       await ts.gs.loadSheets(['Raw Members']);
-      const player=ts.gs.selectOne('Raw Members',{'discord_id':message.author.id});
-      if(player && player.banned){
+      const player=await ts.db.Members.query().where({discord_id:message.author.id}).first();
+      if(player && player.is_banned){
         ts.userError(ts.message('register.barred'))
       }
+      console.log(player)
       if(player){
-        ts.userError(ts.message('register.already',{ player }))
+        ts.userError(ts.message('register.already',{ ...player }))
       }
 
       let command=ts.parse_command(message);
@@ -29,17 +30,17 @@ class TSRegister extends TSCommand {
       }
 
       nickname=nickname.replace(/\\/g,'');
-      ts.gs.select('Raw Members').forEach((member)=>{
-          if(member && nickname.toLowerCase()==member.Name.toLowerCase()){
-            ts.userError(ts.message('register.nameTaken',{ name:nickname }))
-          }
-        })
-        await ts.gs.insert('Raw Members',{
-          'Name':nickname,
-          'discord_id':"'"+message.author.id, //insert as string
-          'discord_name':"'"+message.author.username,
-        });
-        message.reply(ts.message('register.succesful',{ name:nickname }))
+      if(await ts.db.Members.query().whereRaw('lower(name) = ?',[nickname]).first()){
+        ts.userError(ts.message('register.nameTaken',{ name:nickname }));
+      }
+
+      await ts.db.Members.query().insert({
+        name:nickname,
+        discord_id:message.author.id, //insert as string
+        discord_name:message.author.username,
+      })
+        
+      message.reply(ts.message('register.succesful',{ name:nickname }))
     }
 }
 module.exports = TSRegister;

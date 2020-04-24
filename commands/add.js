@@ -21,7 +21,7 @@ class tsadd extends TSCommand {
       if(!level_name)
         ts.userError(ts.message("add.noName"))
 
-      await ts.gs.loadSheets(["Raw Members","Raw Levels"]);
+      await ts.gs.loadSheets(["Raw Levels"]);
       const player=await ts.get_user(message);
       var existing_level=ts.gs.selectOne("Raw Levels",{"Code":code})
 
@@ -34,7 +34,7 @@ class tsadd extends TSCommand {
       await ts.gs.insert("Raw Levels",{
         Code:code,
         "Level Name":level_name,
-        Creator:player.Name,
+        Creator:player.name,
         Difficulty:0,
         Approved:0
       })

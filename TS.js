@@ -10,9 +10,10 @@ const TS=function(guild_id,config,client){ //loaded after gs
   this.client=client
   this.gs=new GS(config)
   this.db={}
-  this.db.Tokens=require('./models/Tokens.js')
-  this.db.Plays = require('./models/Plays.js')(guild_id);
-  this.db.PendingVotes = require('./models/PendingVotes.js')(guild_id);
+  this.db.Tokens=require('./models/Tokens')
+  this.db.Plays = require('./models/Plays')(guild_id);
+  this.db.PendingVotes = require('./models/PendingVotes')(guild_id);
+  this.db.Members=require('./models/Members')(guild_id);
 
 
   this.load=async function(){
@@ -39,7 +40,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
       "Emotes","Channels","tags",
       "CustomString","Messages",
       "Competition Winners", //static vars
-      'Raw Members','Raw Levels' //play info
+      'Raw Levels' //play info 'Raw Members',
       ]; //initial vars to be loaded on bot load
 
       await ts.gs.loadSheets(static_vars) //loading initial sheets
@@ -204,15 +205,6 @@ const TS=function(guild_id,config,client){ //loaded after gs
     }
   }
 
-  this.creator_str=function(level){
-    var creator=ts.gs.selectOne("Raw Members",{"Name":level.Creator});
-    if(creator && creator.atme=="1" && creator.discord_id){
-      return "<@"+creator.discord_id+">"
-      } else {
-      return level.Creator
-      }
-  }
-
   this.embedAddLongField=function(embed,header,body){
     if(!header) header="\u200b"
     var bodyArr=body?body.split("."):[]
@@ -270,18 +262,18 @@ const TS=function(guild_id,config,client){ //loaded after gs
       if(!args.discord_id)
         ts.userError(ts.message("clear.discordId"))
 
-      await ts.gs.loadSheets(["Raw Members","Raw Levels"]);
+      await ts.gs.loadSheets(["Raw Levels"]);
       const player=await ts.get_user(args.discord_id);
       var level=ts.getExistingLevel(args.code);
-      if(level.Creator==player.Name)
+      if(level.Creator==player.name)
         ts.userError(ts.message("clear.ownLevel"));
 
       var existing_play = await ts.db.Plays.query()
         .where('code','=',args.code)
-        .where('player','=',player.Name)
+        .where('player','=',player.name)
         .first();
 
-      var creator=ts.gs.selectOne("Raw Members",{"Name":level.Creator}); //oddface/taika is only non registered member with a level
+      var creator=ts.db.Members.query().where({ name:level.Creator }).first(); //oddface/taika is only non registered member with a level
       if(creator && creator.atme=="1" && creator.discord_id && !strOnly){
       var creator_str="<@"+creator.discord_id+">"
       } else {
@@ -317,9 +309,9 @@ const TS=function(guild_id,config,client){ //loaded after gs
       } else {
         await ts.db.Plays.query().insert({
           "code":args.code,
-          "player":player.Name,
+          "player":player.name,
           "completed": args.completed?1:0,
-          "is_shellder":player.shelder,
+          "is_shellder":player.is_mod,
           "liked":args.like?1:0,
           "difficulty_vote":args.difficulty==="0" ? null:args.difficulty
         });
@@ -510,20 +502,19 @@ const TS=function(guild_id,config,client){ //loaded after gs
       args.minDifficulty=temp
     }
 
-    await ts.gs.loadSheets(["Raw Members","Raw Levels"]);
+    await ts.gs.loadSheets(["Raw Levels"]);
     const player=args.discord_id!=null? await ts.get_user(args.discord_id) : null
     let players=null;
     if(args.players){
-      let rawPlayers=ts.gs.select("Raw Members").map( p => {
-        return p.Name
-      });
       players=args.players.split(",")
-      players.forEach( p => {
-        if(rawPlayers.indexOf(p) === -1)
-          ts.userError(ts.message("random.playerNotFound",{player:p}))
+      let rawPlayers=await ts.db.Members.query().whereIn('name',players)
+      rawPlayers.forEach( p => {
+        if(players.indexOf(p.name) === -1){
+          ts.userError(ts.message("random.playerNotFound",{player:p.name}));
+        } 
       })
     } else {
-      players=[player.Name]
+      players=[player.name]
     }
 
     //console.time("get levels")
@@ -553,7 +544,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
       //console.time("process plays")
       plays.forEach((clear)=>{
         const level=levels[clear.code]
-        if(level && level.Approved=="1" && level.Creator!=player.Name){
+        if(level && level.Approved=="1" && level.Creator!=player.name){
           played.push(level.Code)
           difficulties.push(level.Difficulty)
         }
@@ -633,9 +624,8 @@ const TS=function(guild_id,config,client){ //loaded after gs
 
   this.get_user= async function(message){
     var discord_id=typeof message=="string"?message:message.author.id
-    var player=ts.gs.selectOne("Raw Members",{
-      "discord_id":discord_id
-    })
+    var player=await ts.db.Members.query().where({ discord_id }).first()
+
 
     if(!player)
       ts.userError(ts.message("error.notRegistered"));
@@ -643,7 +633,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
     if(player.banned)
       ts.userError(ts.message("error.userBanned"));
 
-    player.earned_points= await this.calculatePoints(player.Name);
+    player.earned_points= await this.calculatePoints(player.name);
     player.rank=this.get_rank(player.earned_points.clearPoints);
     player.user_reply="<@"+discord_id+">" + (player.rank.Pips ? player.rank.Pips : "") + " ";
     return player
@@ -666,7 +656,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
         postString += ts.message("approval.noVotes");
       } else {
         for(var i = 0; i < approveVotes.length; i++){
-          const curShellder = ts.gs.selectOne("Raw Members",{"Name":approveVotes[i].player});
+          const curShellder = await ts.db.Members.query.where({name:approveVotes[i].player}).first();
           postString += "<@" + curShellder.discord_id + "> - Difficulty: " + approveVotes[i].difficulty_vote + ", Reason: " + approveVotes[i].reason + "\n";
         }
       }
@@ -676,7 +666,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
         postString += "> None\n";
       } else {
         for(var i = 0; i < fixVotes.length; i++){
-          const curShellder = ts.gs.selectOne("Raw Members",{"Name":fixVotes[i].player});
+          const curShellder = await ts.db.Members.query.where({name:fixVotes[i].player}).first();
           postString += "<@" + curShellder.discord_id + "> - Difficulty: " + fixVotes[i].difficulty_vote + ", Requested fixes: " + fixVotes[i].reason + "\n";
         }
       }
@@ -687,7 +677,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
         postString += "None\n";
       } else {
         for(var i = 0; i < rejectVotes.length; i++){
-          const curShellder = ts.gs.selectOne("Raw Members",{"Name":rejectVotes[i].player});
+          const curShellder = await ts.db.Members.query.where({name:rejectVotes[i].player}).first();
           postString += "<@" + curShellder.discord_id + "> - Reason: " + rejectVotes[i].reason + "\n";
         }
       }
@@ -705,7 +695,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
       //If we got a level we already approved before we just build a mini embed with the message
       voteEmbed.setAuthor(ts.message("pending.pendingTitle"))
       .setDescription(ts.message("pending.alreadyApprovedBefore"))
-      .addField(author.Name + ":", alreadyApprovedMessage);
+      .addField(author.name + ":", alreadyApprovedMessage);
       return voteEmbed;
     }
 
@@ -725,7 +715,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
       postString += "> None\n";
     } else {
       for(var i = 0; i < fixVotes.length; i++){
-        const curShellder = ts.gs.selectOne("Raw Members",{"Name":fixVotes[i].player});
+        const curShellder = await ts.db.Members.query.where({name:fixVotes[i].player}).first();
         postString += "<@" + curShellder.discord_id + "> - Difficulty: " + fixVotes[i].difficulty_vote + ", Requested fixes: " + fixVotes[i].reason + "\n";
       }
     }
@@ -736,9 +726,9 @@ const TS=function(guild_id,config,client){ //loaded after gs
 
   this.approve=async function(args){
       //Check if vote already exists
-      await ts.gs.loadSheets(["Raw Levels", "Raw Members"]);
+      await ts.gs.loadSheets(["Raw Levels"]);
       const shellder=await ts.get_user(args.discord_id);
-      var vote=await ts.db.PendingVotes.query().where("code",args.code).where("player",shellder.Name).first();
+      var vote=await ts.db.PendingVotes.query().where("code",args.code).where("player",shellder.name).first();
 
       if(!vote){
         //We only check reason if we have no vote yet
@@ -748,7 +738,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
       }
 
       const level=ts.getExistingLevel(args.code);
-      const author = ts.gs.selectOne("Raw Members",{"Name":level.Creator});
+      const author = await ts.db.Members.query.where({name:level.Creator}).first();
 
       if(!author){
         ts.userError(ts.message("approval.creatorNotFound"));
@@ -772,7 +762,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
         await ts.db.PendingVotes.query().insert({
           code: level.Code,
           is_shellder: 1, //to be changed to member value?
-          player: shellder.Name,
+          player: shellder.name,
           type: args.type,
           difficulty_vote: (args.type=== "approve" || args.type == "fix") ? args.difficulty : "",
           reason: args.reason
@@ -834,14 +824,14 @@ const TS=function(guild_id,config,client){ //loaded after gs
 
   this.judge=async function(levelCode, fromFix = false){
     var guild=this.getGuild()
-    await ts.gs.loadSheets(["Raw Levels", "Raw Members"]);
+    await ts.gs.loadSheets(["Raw Levels"]);
     var level;
     if(fromFix){
       level = ts.gs.selectOne("Raw Levels",{"Code":levelCode});
     } else {
       level = ts.getExistingLevel(levelCode);
     }
-    const author = ts.gs.selectOne("Raw Members",{"Name":level.Creator});
+    const author = await ts.db.Members.query.where({name:level.Creator}).first();
 
     if(!author){
       ts.userError(ts.message("approval.creatorNotFound"))
@@ -940,24 +930,18 @@ const TS=function(guild_id,config,client){ //loaded after gs
         }
 
         //Update author to set cult_member if they're not already. send initiate message and assign cult role
-        if(author.cult_member !== "1"){
-          var updateAuthor = ts.gs.query("Raw Members", {
-            filter: {"Name":author.Name},
-            update: {
-              "cult_member": "1"
-            }
-          });
+        if(author.is_member != 1){
+          await ts.db.Members.query()
+            .patch({is_member:1})
+            .where({name:author.name})
 
-          if(updateAuthor.Name == author.Name){
-            await ts.gs.batchUpdate(updateAuthor.update_ranges); //should combine the batch updates
-            if(author.discord_id){
-              var curr_user=await guild.members.get(author.discord_id)
-              if(curr_user){ //assign role
-                await curr_user.addRole(ts.teamVariables.memberRoleId)
-                  await client.channels.get(ts.channels.initiateChannel).send(ts.message("initiation.message",{discord_id:author.discord_id}))
-              } else {
-                console_error(ts.message("initiation.userNotInDiscord",{name:author.Name})) //not a breaking error.
-              }
+          if(author.discord_id){
+            var curr_user=await guild.members.get(author.discord_id)
+            if(curr_user){ //assign role
+              await curr_user.addRole(ts.teamVariables.memberRoleId)
+                await client.channels.get(ts.channels.initiateChannel).send(ts.message("initiation.message",{discord_id:author.discord_id}))
+            } else {
+              console_error(ts.message("initiation.userNotInDiscord",{name:author.name})) //not a breaking error.
             }
           }
         }
@@ -1038,7 +1022,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
     if(updateLevel.Code == levelCode){
       await ts.gs.batchUpdate(updateLevel.update_ranges);
     }
-    const author = ts.gs.selectOne("Raw Members",{"Name":updateLevel.Creator});
+    const author = await ts.db.Member.query().where({"name":updateLevel.Creator});
 
     var color="#dc3545";
 
@@ -1169,15 +1153,13 @@ const TS=function(guild_id,config,client){ //loaded after gs
       ts.userError(ts.message("reupload.giveReason"))
     }
 
-    await ts.gs.loadSheets(["Raw Members","Raw Levels"]);
+    await ts.gs.loadSheets(["Raw Levels"]);
 
-    var player=ts.gs.selectOne("Raw Members",{
-      "discord_id":message.author.id
-    })
+    var player=await ts.db.Members.query().where({ discord_id:message.author.id }).first()
 
     if(!player)
       ts.userError(ts.message("error.notRegistered"));
-    var earned_points=await ts.calculatePoints(player.Name);
+    var earned_points=await ts.calculatePoints(player.name);
     var rank=ts.get_rank(earned_points.clearPoints);
     var user_reply="<@"+message.author.id+">"+(rank.Pips ? rank.Pips : "")+" ";
 
@@ -1205,7 +1187,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
       ts.userError(ts.message("reupload.haveReuploaded",{code:level.NewCode}));
 
     //only creator and shellder can reupload a level
-    if(!(level.Creator==player.Name || player.shelder=="1"))
+    if(!(level.Creator==player.name || player.is_mod=="1"))
       ts.userError(ts.message("reupload.noPermission", {level}));
 
     level=ts.gs.query("Raw Levels",{
@@ -1246,13 +1228,13 @@ const TS=function(guild_id,config,client){ //loaded after gs
           code: newCode
         });
 
-      await ts.gs.loadSheets(["Raw Members","Raw Levels"]);
+      await ts.gs.loadSheets(["Raw Levels"]);
       new_level=ts.gs.query("Raw Levels",{
         filter:{"Code":newCode},
         update:{"Approved":-10},
       })
       await ts.gs.batchUpdate(new_level.update_ranges);
-      const author = ts.gs.selectOne("Raw Members",{"Name":new_level.Creator});
+      const author = await ts.db.Members.query().where({name:new_level.Creator}).first();
 
       var overviewMessage;
       var discussionChannel;

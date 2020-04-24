@@ -77,7 +77,7 @@ client.on("ready", async () => {
 })();
 
 async function generateSiteJson(ts,isShellder){
-  await ts.gs.loadSheets(["Raw Members","Raw Levels"])
+  await ts.gs.loadSheets(["Raw Levels"])
 
   const SheetCache = ts.gs.getArrayFormat([
         "Raw Levels!J",
@@ -92,11 +92,9 @@ async function generateSiteJson(ts,isShellder){
     
     let competiton_winners = SheetCache["Competition Winners"];
     let _points = SheetCache["Points"]
-    
     let tags = ts.gs.select("tags");
     let _seasons = ts.gs.select("Seasons")
-    let _members = ts.gs.select("Raw Members")
-    
+    let _members = await ts.db.Members.query.select();
 
     let _playedLevels = await ts.db.Plays.query();
 
@@ -144,10 +142,10 @@ async function generateSiteJson(ts,isShellder){
     _members=_members.map( m =>{
       return [
         m.Name,
-        m.shelder?m.shelder:"0",
-        m.cult_member?m.cult_member:"0",
-        m.maker_id?m.maker_id:"",
-        m.badges?m.badges:"",
+        m.is_mod||"0",
+        m.is_member||"0",
+        m.maker_id||"",
+        m.badges||"",
       ]
     })
     
@@ -247,7 +245,7 @@ app.post('/json',web_ts(async (ts,req)=>{
       var user=await ts.get_user(req.body.discord_id)
     }
     
-    let json = await generateSiteJson(ts,user?user.shelder:false)
+    let json = await generateSiteJson(ts,user?user.is_mod:false)
     return json;
 }))
 
@@ -274,7 +272,7 @@ app.post('/approve',web_ts(async (ts,req)=>{
   req.body.discord_id=await ts.checkBearerToken(req.body.token)
   let user=await ts.get_user(req.body.discord_id)
 
-  if(user.shelder!="1"){
+  if(user.is_mod!="1"){
     ts.userError("Forbidden");
   }
 

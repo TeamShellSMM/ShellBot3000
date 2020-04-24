@@ -39,9 +39,9 @@ class TSRerate extends TSCommand {
       if(!ts.valid_difficulty(args.difficulty))
           ts.userError("Invalid difficulty format!");
 
-      await ts.gs.loadSheets(["Raw Levels", "Raw Members"]);
+      await ts.gs.loadSheets(["Raw Levels"]);
       const level=ts.getExistingLevel(args.code);
-      const author = ts.gs.selectOne("Raw Members",{"Name":level.Creator});
+      const author = await ts.db.Members.query().where({name:level.Creator}).first();
 
       if(level.Approved!=="1")
         ts.userError(ts.message('error.notApproved'))

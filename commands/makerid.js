@@ -13,7 +13,6 @@ class MakerId extends TSCommand {
     }
 
     async tsexec(ts,message,{ code }) {
-      await ts.gs.loadSheets(["Raw Members"]);
       const player=await ts.get_user(message);
 
       code=code.toUpperCase();
@@ -21,21 +20,22 @@ class MakerId extends TSCommand {
         ts.userError(ts.message("error.invalidMakerCode",{ code }))
       }
 
-      let existing_member=ts.gs.select("Raw Members",{"maker_id":code})
-      if(existing_member.length>0){
-        if(existing_member[0].discord_id!=player.discord_id){
-            ts.userError(ts.message("makerid.existing",{ code , name:existing_member[0].Name }))
-        } else if(existing_member[0].maker_id==code) {
+      let existing_member=await ts.db.Members.query().where({maker_id:code}).first()
+      if(existing_member){
+        if(existing_member.discord_id!=player.discord_id){
+            ts.userError(ts.message("makerid.existing",{ code , name:existing_member.name }))
+        } else if(existing_member.maker_id==code) {
             ts.userError(ts.message("makerid.already",{ code }))
         }
       }
 
-      let member=ts.gs.query("Raw Members",{
-        filter:{"discord_id":message.author.id},
-        update:{"maker_id":code}
-      })
 
-      await ts.gs.batchUpdate(member.update_ranges)
+      await ts.db.Members
+        .query()
+        .patch({maker_id:code})
+        .where({discord_id:message.author.id})
+      
+      
       message.channel.send(player.user_reply+ts.message("makerid.success",{ code }))
     }
 }

@@ -123,7 +123,7 @@ module.exports={
  'tags.cantAdd':'You can\'t add the tag \'{{tag}}\'',
 
  'register.barred':'You\'re barred from using this service',
- 'register.already':'You\'re already registered as **{{player.Name}}**',
+ 'register.already':'You\'re already registered as **{{name}}**',
  'register.nameTaken':'\'{{name}}\' has already been registered by someone else. Please use another nickname',
  'register.succesful':'You are now registered as \'{{name}}\'. You can now start submitting your clears in #level-clears {{{bam}}}',
 

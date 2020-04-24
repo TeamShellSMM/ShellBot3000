@@ -22,12 +22,12 @@ class TSRename extends TSCommand {
         ts.userError("You didn't give a new level name")
 
 
-      await ts.gs.loadSheets(["Raw Members","Raw Levels"]);
+      await ts.gs.loadSheets(["Raw Levels"]);
 
       const player=await ts.get_user(message);
       var level=ts.getExistingLevel(code)
 
-      if(!(level.Creator==player.Name || player.shelder=="1"))
+      if(!(level.Creator==player.name || player.is_mod=="1"))
         ts.userError("You can't rename \""+level["Level Name"]+"\" by "+level.Creator);
 
       level=ts.gs.query("Raw Levels",{

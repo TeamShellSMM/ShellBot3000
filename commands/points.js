@@ -14,7 +14,7 @@ class points extends TSCommand {
     }
 
     async tsexec(ts,message,{ role }) {
-        await ts.gs.loadSheets(["Raw Members","Raw Levels"]);
+        await ts.gs.loadSheets(["Raw Levels"]);
         const player=await ts.get_user(message);
 
         var all_ranks=ts.gs.select("Ranks");

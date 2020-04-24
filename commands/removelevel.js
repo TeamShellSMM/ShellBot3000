@@ -21,7 +21,7 @@ class tsremove extends TSCommand {
           ts.userError("You did not provide a reason to remove this level. If you want to reupload, we recommend using the `!reupload` command. If you want to remove it now and reupload it later make sure __you don't lose the old code__")
 
 
-        await ts.gs.loadSheets(["Raw Members","Raw Levels"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
+        await ts.gs.loadSheets(["Raw Levels"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
         const player=await ts.get_user(message);
         var level=ts.getExistingLevel(level_code)
 
@@ -29,10 +29,10 @@ class tsremove extends TSCommand {
           ts.userError("\""+level["Level Name"]+"\" by "+level.Creator+" has already been removed");
 
         //only creator and shellder can reupload a level
-        if(!(level.Creator==player.Name || player.shelder=="1"))
+        if(!(level.Creator==player.name || player.is_mod=="1"))
           ts.userError("You can't remove \""+level["Level Name"]+"\" by "+level.Creator);
 
-        const approvedStr=level.Approved=="1"?2: (level.Creator!=player.Name && player.shelder=="1"?-2:-1); //tsremove run by shellders and not their own levels get -2
+        const approvedStr=level.Approved=="1"?2: (level.Creator!=player.name && player.is_mod=="1"?-2:-1); //tsremove run by shellders and not their own levels get -2
         level=ts.gs.query("Raw Levels",{
           filter:{"Code":level_code},
           update:{"Approved":approvedStr},
@@ -45,7 +45,7 @@ class tsremove extends TSCommand {
 
         var removeEmbed=ts.levelEmbed(level,1)
             .setColor("#dc3545")
-            .setAuthor("This level has been removed by "+player.Name);
+            .setAuthor("This level has been removed by "+player.name);
 
         if(ts.emotes.buzzyS){
           removeEmbed.setThumbnail(ts.getEmoteUrl(ts.emotes.buzzyS));
@@ -55,8 +55,8 @@ class tsremove extends TSCommand {
         removeEmbed = removeEmbed.setTimestamp();
         //Send updates to to #shellbot-level-update
 
-        if(level.Creator!=player.Name){ //moderation
-          const creator=ts.gs.selectOne("Raw Members",{"Name":level.Creator})
+        if(level.Creator!=player.name){ //moderation
+          const creator=await ts.db.Members.query().where({name:level.Creator}).first()
           var mention = "**<@" + creator.discord_id + ">, we got some news for you: **";
           await this.client.channels.get(ts.channels.levelChangeNotification).send(mention);
         }

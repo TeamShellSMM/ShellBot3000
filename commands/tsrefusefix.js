@@ -22,16 +22,16 @@ class TSRefuseFix extends TSCommand {
           ts.userError("Please provide a little message to the mods for context at the end of the command!")
         }
 
-        await ts.gs.loadSheets(["Raw Members","Raw Levels"]);
+        await ts.gs.loadSheets(["Raw Levels"]);
         const player=await ts.get_user(message);
         var level=ts.gs.selectOne("Raw Levels",{"Code":code});
-        const author = ts.gs.selectOne("Raw Members",{"Name":level.Creator});
+        const author = await ts.db.Members.query().where({name:level.Creator}).first();
 
         if(level.Approved!="-10")
           ts.userError("This level is not currently in a fix request!");
 
         //only creator can use this command
-        if(!(level.Creator==player.Name))
+        if(!(level.Creator==player.name))
           ts.userError("You can only use this command on one of your own levels that currently has an open fix request.");
 
         //generate judgement embed

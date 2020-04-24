@@ -16,29 +16,25 @@ class atmebot extends TSCommand {
       const atmeCommands=["atmebot",'atme']
       var command=ts.parse_command(message);
 
-      await ts.gs.loadSheets(["Raw Members","Raw Levels"]);
+      await ts.gs.loadSheets(["Raw Levels"]);
       const player=await ts.get_user(message);
 
       if(atmeCommands.indexOf(command.command)!=-1){
-        var atmeVal="1"
+        var atmeVal=1
         var alreadyError=ts.message("atme.already")
         var msg=ts.message("atme.willBe")
       } else {
-        var atmeVal=""
+        var atmeVal=null
         var alreadyError=ts.message("atme.alreadyNot")
         var msg=ts.message("atme.willBeNot")
       }
 
-      var member=ts.gs.query("Raw Members",{
-        filter:{"discord_id":message.author.id},
-        update:{"atme":atmeVal}
-      })
+      if(player.atme==atmeVal) ts.userError(alreadyError);
 
-      if(member && !member.updated["atme"]){
-        ts.userError(alreadyError)
-      }
+      await ts.db.Members.query()
+        .patch({atme:atmeVal})
+        .where({discord_id:message.author.id})
 
-      await ts.gs.batchUpdate(member.update_ranges)
       message.channel.send(player.user_reply+msg)
     }
 }

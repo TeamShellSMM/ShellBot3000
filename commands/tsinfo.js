@@ -14,7 +14,7 @@ class tsinfo extends TSCommand {
 
     async tsexec(ts,message,args) {
       args.code=args.code.toUpperCase();
-      await ts.gs.loadSheets(["Raw Members","Raw Levels"]);
+      await ts.gs.loadSheets(["Raw Levels"]);
       const player=await ts.get_user(message);
       var level=ts.getExistingLevel(args.code)
 

@@ -26,7 +26,7 @@ class TSAddtags extends TSCommand {
           ts.userError(ts.message("tags.noTags"))
         new_tags=new_tags.split(/[,\n]/)
 
-        await ts.gs.loadSheets(["Raw Members","Raw Levels"]);
+        await ts.gs.loadSheets(["Raw Levels"]);
 
 
         const player=await ts.get_user(message);
@@ -65,7 +65,7 @@ class TSAddtags extends TSCommand {
 
           new_tags=[]
           filteredTags.forEach((tag)=>{
-            if(locked_tags.indexOf(tag)!=-1 && player.shelder!="1")
+            if(locked_tags.indexOf(tag)!=-1 && player.is_mod!="1")
               ts.userError(ts.message("tags.cantAdd",{tag}))
             if(old_tags.indexOf(tag)==-1){
               new_tags.push(tag)
@@ -76,7 +76,7 @@ class TSAddtags extends TSCommand {
           old_tags=old_tags.concat(new_tags)
           var reply="Tags added for  \""+level["Level Name"]+"\" ("+code+")"+ts.emotes.bam+"\nCurrent tags:```\n"+old_tags.join("\n")+"```"
         } else { // removing
-          if(!(level.Creator==player.Name || player.shelder=="1"))
+          if(!(level.Creator==player.name || player.is_mod=="1"))
             ts.userError("You can't remove tags from  \""+level["Level Name"]+"\" by "+level.Creator);
 
           let locked_tags=[]
@@ -90,7 +90,7 @@ class TSAddtags extends TSCommand {
           new_tags=[]
           let notRemoved=true
           old_tags.forEach((tag)=>{
-            if(locked_tags.indexOf(tag)!=-1 && player.shelder!="1")
+            if(locked_tags.indexOf(tag)!=-1 && player.is_mod!="1")
               ts.userError("You can't remove the tag \""+tag+"\"")
             if(filteredTags.indexOf(tag)==-1){
               new_tags.push(tag)
