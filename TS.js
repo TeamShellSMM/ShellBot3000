@@ -584,9 +584,12 @@ const TS=function(guild_id,config,client){ //loaded after gs
     if(allLevels){
     var filtered_levels=allLevels.filter((level)=>{
         var currDifficulty=parseFloat(level.Difficulty)
-        return level.Approved=="1" &&
-          currDifficulty>=min &&
-          currDifficulty<=max
+        level.Tags=level.Tags||""
+        console.log(played)
+        console.log(level)
+        return level.Approved=="1" 
+          && currDifficulty>=min 
+          && currDifficulty<=max
           && played.indexOf(level.Code)==-1
           && level.Tags.indexOf("Consistency") === -1
           && level.Tags.indexOf("Practice") === -1
@@ -656,7 +659,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
         postString += ts.message("approval.noVotes");
       } else {
         for(var i = 0; i < approveVotes.length; i++){
-          const curShellder = await ts.db.Members.query.where({name:approveVotes[i].player}).first();
+          const curShellder = await ts.db.Members.query().where({name:approveVotes[i].player}).first();
           postString += "<@" + curShellder.discord_id + "> - Difficulty: " + approveVotes[i].difficulty_vote + ", Reason: " + approveVotes[i].reason + "\n";
         }
       }
@@ -666,7 +669,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
         postString += "> None\n";
       } else {
         for(var i = 0; i < fixVotes.length; i++){
-          const curShellder = await ts.db.Members.query.where({name:fixVotes[i].player}).first();
+          const curShellder = await ts.db.Members.query().where({name:fixVotes[i].player}).first();
           postString += "<@" + curShellder.discord_id + "> - Difficulty: " + fixVotes[i].difficulty_vote + ", Requested fixes: " + fixVotes[i].reason + "\n";
         }
       }
@@ -677,7 +680,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
         postString += "None\n";
       } else {
         for(var i = 0; i < rejectVotes.length; i++){
-          const curShellder = await ts.db.Members.query.where({name:rejectVotes[i].player}).first();
+          const curShellder = await ts.db.Members.query().where({name:rejectVotes[i].player}).first();
           postString += "<@" + curShellder.discord_id + "> - Reason: " + rejectVotes[i].reason + "\n";
         }
       }
@@ -715,7 +718,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
       postString += "> None\n";
     } else {
       for(var i = 0; i < fixVotes.length; i++){
-        const curShellder = await ts.db.Members.query.where({name:fixVotes[i].player}).first();
+        const curShellder = await ts.db.Members.query().where({name:fixVotes[i].player}).first();
         postString += "<@" + curShellder.discord_id + "> - Difficulty: " + fixVotes[i].difficulty_vote + ", Requested fixes: " + fixVotes[i].reason + "\n";
       }
     }
@@ -738,7 +741,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
       }
 
       const level=ts.getExistingLevel(args.code);
-      const author = await ts.db.Members.query.where({name:level.Creator}).first();
+      const author = await ts.db.Members.query().where({name:level.Creator}).first();
 
       if(!author){
         ts.userError(ts.message("approval.creatorNotFound"));
@@ -831,7 +834,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
     } else {
       level = ts.getExistingLevel(levelCode);
     }
-    const author = await ts.db.Members.query.where({name:level.Creator}).first();
+    const author = await ts.db.Members.query().where({name:level.Creator}).first();
 
     if(!author){
       ts.userError(ts.message("approval.creatorNotFound"))
