@@ -22,7 +22,7 @@ class points extends TSCommand {
         if(role=="role" || role=="norole"){
           await message.member.removeRoles(all_ranks_id)
         }
-        if(role=="role"){
+        if(role=="role" && player.rank.discord_roles){
           await message.member.addRole(player.rank.discord_roles)
         }
 
