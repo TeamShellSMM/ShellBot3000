@@ -21,17 +21,16 @@ class TSRefuseFix extends TSCommand {
         if(!reason){
           ts.userError("Please provide a little message to the mods for context at the end of the command!")
         }
-
-        await ts.gs.loadSheets(["Raw Levels"]);
+        
         const player=await ts.get_user(message);
-        var level=ts.gs.selectOne("Raw Levels",{"Code":code});
-        const author = await ts.db.Members.query().where({name:level.Creator}).first();
+        var level=await ts.db.Levels.query().where({code}).first();
+        const author = await ts.db.Members.query().where({name:level.creator}).first();
 
-        if(level.Approved!="-10")
+        if(level.status!=ts.LEVEL_STATUS.NEED_FIX)
           ts.userError("This level is not currently in a fix request!");
 
         //only creator can use this command
-        if(!(level.Creator==player.name))
+        if(!(level.creator==player.name))
           ts.userError("You can only use this command on one of your own levels that currently has an open fix request.");
 
         //generate judgement embed
@@ -40,7 +39,7 @@ class TSRefuseFix extends TSCommand {
 
         let guild=ts.getGuild()
 
-        discussionChannel = guild.channels.find(channel => channel.name === level.Code.toLowerCase() && channel.parent.id == ts.channels.pendingReuploadCategory); //not sure should specify guild/server
+        discussionChannel = guild.channels.find(channel => channel.name === level.code.toLowerCase() && channel.parent.id == ts.channels.pendingReuploadCategory); //not sure should specify guild/server
 
         if(!discussionChannel){
           //Create new channel and set parent to category

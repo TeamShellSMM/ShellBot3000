@@ -23,6 +23,10 @@ class mockUser extends TSCommand {
         if(config.devs && config.devs.indexOf(message.author.id)!==-1){
             return true;
         }
+
+        if(message.author.id==ts.client.user.id){
+          return true;
+        }
         
         return false;
     }
@@ -38,7 +42,7 @@ class mockUser extends TSCommand {
         
         await ts.db.Members
           .query()
-          .patch({discord_id: player.discord_id_temp || "1" })
+          .patch({discord_id: player.discord_id_temp || '1' })
           .where({discord_id:message.author.id})
 
         await ts.db.Members

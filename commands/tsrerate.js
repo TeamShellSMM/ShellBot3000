@@ -23,50 +23,50 @@ class TSRerate extends TSCommand {
         });
     }
 
-    async tsexec(ts,message,args) {
+    async tsexec(ts,message,{ code , difficulty, reason }) {
       if(!(
         message.channel.id === ts.channels.modChannel  //only in bot-test channel
       )) return false;
 
-      if(args.code){
-        args.code = args.code.toUpperCase();
+      if(code){
+        code = code.toUpperCase();
       }
 
       //Check all the args first
-      if(!ts.valid_code(args.code))
+      if(!ts.valid_code(code))
         ts.userError("Level Code is invalid!")
 
-      if(!ts.valid_difficulty(args.difficulty))
+      if(!ts.valid_difficulty(difficulty))
           ts.userError("Invalid difficulty format!");
 
-      await ts.gs.loadSheets(["Raw Levels"]);
-      const level=ts.getExistingLevel(args.code);
-      const author = await ts.db.Members.query().where({name:level.Creator}).first();
+      const level=await ts.getExistingLevel(code);
+      const author = await ts.db.Members.query().where({name:level.creator}).first();
 
-      if(level.Approved!=="1")
+      if(level.status!== ts.LEVEL_STATUS.APPROVED)
         ts.userError(ts.message('error.notApproved'))
 
-      if(!args.reason)
+      if(!reason)
         ts.userError("You need to give a reason for the change (in quotation marks)!");
 
-      var oldDiff = level.Difficulty;
 
-      var updateLevel = ts.gs.query("Raw Levels", {
-        filter: {"Code":args.code},
-        update: {"Difficulty": args.difficulty}
-      });
+      if(level.difficulty==difficulty) ts.userError("\""+level.level_name+"\" is already rated "+difficulty);
 
-      if(!updateLevel.updated["Difficulty"])
-        ts.userError("\""+level["Level Name"]+"\" is already rated "+args.difficulty)
+      await ts.db.Levels.query()
+        .patch({difficulty})
+        .where({code})
+      
 
-      if(updateLevel.Code == args.code){
+      if(updateLevel.code == code){
         await ts.gs.batchUpdate(updateLevel.update_ranges);
       }
 
       var rerateEmbed = ts.levelEmbed(level)
             .setColor("#17a2b8")
-            .setAuthor(ts.message('difficulty.updated',{ old_difficulty:oldDiff,new_difficulty:args.difficulty}))
-            .addField("\u200b","**Reason** :\n```"+args.reason+"```Rerated by <@" +message.member.id + ">")
+            .setAuthor(ts.message('difficulty.updated',{ 
+              old_difficulty:level.difficulty,
+              new_difficulty:difficulty,
+            }))
+            .addField("\u200b","**Reason** :\n```"+reason+"```Rerated by <@" +message.member.id + ">")
 
       var levelChangeChannel=await this.client.channels.get(ts.channels.levelChangeNotification)
 

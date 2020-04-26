@@ -12,7 +12,7 @@ module.exports={
  'login.noOTP':'No OTP provided',
 
  'clear.invalidDifficulty':'You did not provide a valid difficulty vote',
- 'clear.discordId':'We couldn\'t find your discord id',
+ 'clear.discordId':'We couldn\'t find your `discord id',
  'clear.ownLevel':'You can\'t submit a clear for your own level',
  'clear.removedClear':'You have removed your clear for {{{levelInfo}}}',
  'clear.addClear':' ‣You have cleared {{{levelInfo}}} {{{GG}}}',
@@ -31,7 +31,7 @@ module.exports={
  'clear.singleHave':'‣You have',
  'clear.manyHave':'‣You also have',
  'clear.levelPronoun':'this level',
- 'clear.levelInfo':'\'{{{level.[Level Name]}}}\'  by {{{creator}}}', //creator is either string or @discord name
+ 'clear.levelInfo':'\'{{{level.level_name}}}\'  by {{{creator}}}', //creator is either string or @discord name
 
  'random.embedTitle':'{{BotName}} rolled a d97 and found this level for you',
  'random.embedTitlePlayers':'{{BotName}} rolled a d97 and found this level for {{players}}',
@@ -41,7 +41,7 @@ module.exports={
  'random.playerNotFound':'{{player}} is not found in the memory banks',
  'random.outOfLevels':'You have ran out of levels in this range ({{range}})',
 
-
+ 'approval.invalidDifficulty':"Invalid difficulty format!",
  'approval.judgementBegin':'The Judgement  has now begun for this level:',
  'approval.approvalVotes':'__Current Votes for approving the level:__\n',
  'approval.noVotes':'> None\n',
@@ -76,10 +76,10 @@ module.exports={
  'reupload.wrongApprovedStatus':'The new level is not approved, pending or in a fix request',
  'reupload.notEnoughPoints':'Creator doesn\'t have enough points to upload a new level',
  'reupload.haveReuploaded':'Level has already been reuploaded with Code {{code}}',
- 'reupload.noPermission':'You can\'t reupload \'{{{level.[Level Name]}}}\' by {{level.Creator}}',
+ 'reupload.noPermission':'You can\'t reupload \'{{{level.level_name}}}\' by {{level.creator}}',
  'reupload.tooManyReuploadChannels':'Can\'t handle the request right now because there are already 50 open reupload requests (this should really never happen)!',
- 'reupload.reuploadNotify':'This level has been reuploaded from {{oldCode}} to {{newCode}}. Below are the comments of the old level',
- 'reupload.success':'You have reuploaded \'{{{level.[Level Name]}}}\' by {{level.Creator}} with code `{{newCode}}. {{{bam}}}',
+ 'reupload.reuploadNotify':'This level has been reuploaded from {{old_code}} to {{new_code}}. Below are the comments of the old level',
+ 'reupload.success':'You have reuploaded \'{{{level.level_name}}}\' by {{level.creator}} with code `{{new_code}}. {{{bam}}}',
  'reupload.renamingInstructions':' If you want to rename the new level, you can use !rename new-code level name.',
  'reupload.inReuploadQueue':' Your level has also been put in the reupload queue, we\'ll get back to you shortly.',
 
@@ -102,9 +102,10 @@ module.exports={
  'error.afterUserDiscord':' {{{think}}}',
  'error.afterUserWeb':'',
  'error.levelNotFound':'The code {{code}} was not found in {{TeamName}}\'s list.',
- 'error.levelIsFixing':'The level \'{{{level.[Level Name]}}}\' is under \'Request to fix\' status',
- 'error.levelIsRemoved':'The level \'{{{level.[Level Name]}}}\'  has been removed from {{TeamName}}\'s list',
+ 'error.levelIsFixing':'The level \'{{{level.level_name}}}\' is under \'Request to fix\' status',
+ 'error.levelIsRemoved':'The level \'{{{level.level_name}}}\'  has been removed from {{TeamName}}\'s list',
  'error.unknownError':'something went wrong buzzyS',
+ 'error.noCode':'You did not give a level code',
  'error.invalidCode':'You did not provide a valid level code',
  'error.invalidMakerCode':'`{{code}}` is not a valid maker id',
 
@@ -116,7 +117,7 @@ module.exports={
  'difficulty.updated':'Difficulty rating updated from {{old_difficulty}} + {{new_difficulty}}',
 
  'add.noName':'You didn\'t give a level name',
- 'add.levelExisting':'`{{level.Code}}` has already been submitted as \'{{{level.[Level Name]}}}\' by {{level.Creator}}',
+ 'add.levelExisting':'`{{level.code}}` has already been submitted as \'{{{level.level_name}}}\' by {{level.creator}}',
  'add.success':'The level {{{level_name}}} ({{code}}) has been added {{{love}}}',
 
  'tags.noTags':'You didn\'t give any tags',
@@ -136,6 +137,10 @@ module.exports={
  'atme.alreadyNot':'You already have chosen not to be atted',
  'atme.willBeNot':'You will not be atted by {{BotName}} {{{bam}}}',
 
- 'ammendCode.success':'The level "{{{level.[Level Name]}}}", by {{level.Creator}}, has changed code from `{{oldCode}}` to `{{newCode}}`',
+ 'ammendCode.success':'The level "{{{level.level_name}}}", by {{level.creator}}, has changed code from `{{old_code}}` to `{{new_code}}`',
+
+
+ 'help.basic':'You can find all the commands at <https://makerteams.net/features>',
+ 
 
 }

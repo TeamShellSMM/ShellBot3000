@@ -7,22 +7,17 @@ exports.up = function(knex) {
     t.dateTime('deleted_at').nullable();
 
     t.string('guild_id',30).notNull();
-    t.string('discord_id').notNull();
     t.string('code').notNull();
     t.string('creator').notNull();
     t.string('level_name').notNull();
 
     t.string('difficulty').nullable();
-    t.integer('approved').nullable();
-    
+    t.integer('status').notNull().defaultTo(0);
     t.string('new_code').nullable();
-    t.string('videos').nullable();
-    t.string('tags').nullable();
-    t.booelan('free_submission').nullable();
-
-
-   
-
+    
+    t.string('videos').notNull().defaultTo('');
+    t.string('tags').notNull().defaultTo('');
+    t.boolean('is_free_submission').nullable();
   
   });
 };

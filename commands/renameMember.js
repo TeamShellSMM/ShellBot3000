@@ -39,7 +39,7 @@ class RenameMember extends TSCommand {
 
     async tsexec(ts,message,{ discord_id,new_name }) {
 
-        await ts.gs.loadSheets(["Raw Levels","Competition Winners"]);
+        await ts.gs.loadSheets(["Competition Winners"]);
         if(await ts.db.Members.query().whereRaw('lower(name) = ?',[new_name]).first()){
             ts.userError(`There is already another member with name "${new_name}"`)
         }
@@ -47,26 +47,27 @@ class RenameMember extends TSCommand {
         let existing_member=await ts.db.Members.query().where({ discord_id }).first()
         if(!existing_member)
             ts.userError('No member found with that discord_id');
-        let oldName=existing_member.name
+        let old_name=existing_member.name
 
-        await ts.db.Members.query().patch({name:new_name}).where({discord_id}).first()
+        await ts.db.Members.query()
+          .patch({name:new_name})
+          .where({discord_id})
+
+        await ts.db.Levels.query()
+          .patch({creator:new_name})
+          .where({creator:old_name})
+
+        await ts.db.Plays.query()
+          .patch({player:new_name})
+          .where({player:old_name})
+
+        await ts.db.PendingVotes.query()
+          .patch({player:new_name})
+          .where({player:old_name})
 
         let updates=[]
-        
-
-        let level_update=ts.gs.query("Raw Levels", {
-            filter: {"Creator":oldName},
-            update: {"Creator":new_name}
-        },true);
-        if(level_update){
-            level_update=level_update.map((level)=>{
-                return level.update_ranges[0]
-            })
-            updates=updates.concat(level_update)
-        }
-
         let winners=ts.gs.query("Competition Winners", {
-            filter: {"Creator":oldName},
+            filter: {"Creator":old_name},
             update: {"Creator":new_name}
         },true);
         if(winners){
@@ -79,12 +80,11 @@ class RenameMember extends TSCommand {
 
         if(updates){
             await ts.gs.batchUpdate(updates);
-            let oldPlays=await ts.db.Plays.query().patch({player:new_name}).where({player:oldName})
-            let pendingVotes=await ts.db.PendingVotes.query().patch({player:new_name}).where({player:oldName})
+            
             await ts.load()
         }
 
-        return message.reply('"'+oldName+'" has been renamed to "'+new_name+'"');
+        return message.reply('"'+old_name+'" has been renamed to "'+new_name+'"');
     }
 }
 

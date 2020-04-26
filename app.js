@@ -14,7 +14,7 @@ if(config.json_dev){
   app.use("/dev", express.static(__dirname + '/json_dev.html'));
 }
 
-
+process.on('unhandledRejection', err => console_error(err)); // eslint-disable-line no-console
 
 global.DEFAULTMESSAGES=require("./DefaultStrings.js");
 
@@ -28,10 +28,12 @@ client.on('shardError', error => {
 
 global.console_error=async function(error){
   console.error(error)
-  let channel=await client.channels.get(config.error_channel)
-  let dev="<@"+config.devs.join(">,<@")+"> "+(error.channel?" at "+error.channel:"")
-  error=JSON.stringify(error,null,2).replace(/\\n/g,"\n")
-  channel.send(dev+"```fix\n"+error+"```")
+  if(process.argv[2]!=='--test'){
+    let channel=await client.channels.get(config.error_channel)
+    let dev="<@"+config.devs.join(">,<@")+"> "+(error.channel?" at "+error.channel:"")
+    error=JSON.stringify(error,null,2).replace(/\\n/g,"\n")
+    channel.send(dev+"```fix\n"+error+"```")
+  }
 }
 
 client.on("guildCreate", async guild => {
@@ -51,17 +53,28 @@ global.get_ts=function(guild_id){
 client.on("ready", async () => {
   console.log(`${config.botName} has started, with ${client.users.size} users, in ${client.channels.size} channels of ${client.guilds.size} guilds.`);
   await client.guilds.forEach(async guild =>{
-    let Teams = require('./models/Teams.js')(guild.id);
-    let team_config=await Teams.query().select().first();
-    if(team_config==null){
+    if(
+        process.argv[2]!=='--test' 
+        || process.argv[2]==='--test' 
+        && (
+          !  config.AutomatedTest 
+          || config.AutomatedTest == guild.id
+      )){
+      let Teams = require('./models/Teams.js')(guild.id);
+      let team_config=await Teams.query().select().first();
+      if(team_config==null){
 
-    } else {
-      team_config.config=team_config.config?JSON.parse(team_config.config):{}
-      team_config.web_config=team_config.web_config?JSON.parse(team_config.web_config):{}
-      global.TS_LIST[guild.id]=new TS(guild.id,team_config.config,client)
-      await global.TS_LIST[guild.id].load()
-      global.TS_LIST[guild.id].db.Teams=Teams
-      global.TS_LIST[guild.id].config=team_config
+      } else {
+        team_config.config=team_config.config?JSON.parse(team_config.config):{}
+        team_config.web_config=team_config.web_config?JSON.parse(team_config.web_config):{}
+        global.TS_LIST[guild.id]=new TS(guild.id,team_config.config,client)
+        await global.TS_LIST[guild.id].load()
+        if(config.AutomatedTest == guild.id && process.argv[2]==='--test'){
+          guild.channels.get(global.TS_LIST[guild.id].channels.modChannel).send('?test')
+        }
+        global.TS_LIST[guild.id].db.Teams=Teams
+        global.TS_LIST[guild.id].config=team_config
+      }
     }
   })
 });
@@ -76,46 +89,69 @@ client.on("ready", async () => {
  }
 })();
 
+function sqlDateToTimestamp(date){
+  if(!date) return ""
+  return (new Date(date.replace(/-/g,"/"))).getTime()/1000
+}
+
+//to be used until we update web frontend
+function newLevelDataToOld(level){
+  return [
+    level.code,
+    level.creator,
+    level.level_name,
+    level.difficulty,
+    level.status,
+    level.new_code || '', 
+    level.videos || '',
+    sqlDateToTimestamp(level.timestamp),
+    level.tags || '',
+    level.is_free_submission || '',
+  ];
+}
+
 async function generateSiteJson(ts,isShellder){
-  await ts.gs.loadSheets(["Raw Levels"])
 
   const SheetCache = ts.gs.getArrayFormat([
-        "Raw Levels!J",
         "Seasons!B",
         "tags",
         "Competition Winners",
         "Points!B"
       ])
 
-    let _rawLevels = SheetCache["Raw Levels"]
     
     
     let competiton_winners = SheetCache["Competition Winners"];
     let _points = SheetCache["Points"]
     let tags = ts.gs.select("tags");
     let _seasons = ts.gs.select("Seasons")
+
     let _members = await ts.db.Members.query().select();
-
     let _playedLevels = await ts.db.Plays.query();
+    //for(let i=0;i<_playedLevels.length;i++){ //fix old dates
+    //  _playedLevels[i].created_at=typeof _playedLevels[i].created_at ==="string" ?
+     // (new Date(_playedLevels[i].created_at.replace(/-/g,"/"))).getTime()/1000:
+     // _playedLevels[i].created_at;
+    //}
 
-    for(let i=0;i<_playedLevels.length;i++){ //fix old dates
-      _playedLevels[i].created_at=typeof _playedLevels[i].created_at ==="string" ?
-      (new Date(_playedLevels[i].created_at.replace(/-/g,"/"))).getTime()/1000:
-      _playedLevels[i].created_at;
-    }
-
-    let rawLevels=[_rawLevels[0]];
+    let _rawLevels = await ts.db.Levels.query().select().whereIn('status',[
+      ts.LEVEL_STATUS.PENDING,
+      ts.LEVEL_STATUS.APPROVED,
+      ts.LEVEL_STATUS.REUPLOADED,
+      ts.LEVEL_STATUS.NEED_FIX,
+    ])
+    let rawLevels=[];
     let reuploaded=[]
     let pending=[]
     for(let i=1;i<_rawLevels.length;i++){
-      if(_rawLevels[i][4]=="0"){
-        pending.push(_rawLevels[i][0])
+      if(_rawLevels[i].status==ts.LEVEL_STATUS.PENDING){
+        pending.push(_rawLevels[i].code)
       }
-      if(_rawLevels[i][4]=="0" || _rawLevels[i][4]=="1"){
-        rawLevels.push(_rawLevels[i])
+      if(_rawLevels[i].status==ts.LEVEL_STATUS.PENDING || _rawLevels[i].status==ts.LEVEL_STATUS.APPROVED){
+        rawLevels.push(newLevelDataToOld(_rawLevels[i]))
       }
-      if(_rawLevels[i][4]=="2" && _rawLevels[i][5]){
-        reuploaded.push(_rawLevels[i])
+      if(_rawLevels[i].status==ts.LEVEL_STATUS.REUPLOADED && _rawLevels[i].new_code){
+        reuploaded.push(newLevelDataToOld(_rawLevels[i]))
       }
     }
 
@@ -125,7 +161,7 @@ async function generateSiteJson(ts,isShellder){
     let _tags={}
     let _seperate=[]
     for(let i=0;i<tags.length;i++){
-      if(tags[i].Seperate=="1"){
+      if(tags[i].Seperate=='1'){
         _seperate.push(tags[i].Tag)
       }
       _tags[tags[i].Tag]=tags[i].Type
@@ -142,8 +178,8 @@ async function generateSiteJson(ts,isShellder){
     _members=_members.map( m =>{
       return [
         m.Name,
-        m.is_mod||"0",
-        m.is_member||"0",
+        m.is_mod||'0',
+        m.is_member||'0',
         m.maker_id||"",
         m.badges||"",
       ]
@@ -156,7 +192,7 @@ async function generateSiteJson(ts,isShellder){
     let WEEK_START=(new Date(d.getFullYear(), d.getMonth(), d.getDate() + (day == 0?-6:1)-day )).getTime()/1000;
     let MONTH_START=(new Date(d.getFullYear(), d.getMonth(), 1)).getTime()/1000;
     let json={
-      "lastUpdated":ts.gs.lastUpdated,
+      //"lastUpdated":ts.gs.lastUpdated,
       "DAY_START":DAY_START,
       "WEEK_START":WEEK_START,
       "MONTH_START":MONTH_START,
@@ -189,7 +225,7 @@ async function generateSiteJson(ts,isShellder){
             voteCounts[currCode][_comments[i].type]++
           }
           let temp=Object.assign({},_comments[i])
-          delete temp.Code
+          delete temp.code
           comments[currCode].push(temp)
         }
       }
@@ -250,12 +286,10 @@ app.post('/json',web_ts(async (ts,req)=>{
 }))
 
 app.post('/clear',web_ts(async (ts,req)=>{
-  if(!req.body.token)
-    ts.userError("website.noToken");
-
+  if(!req.body.token) ts.userError("website.noToken");
 
   req.body.discord_id=await ts.checkBearerToken(req.body.token)
-  var user=await ts.get_user(req.body.discord_id)
+  await ts.get_user(req.body.discord_id)
   
   let msg=await ts.clear(req.body)
   await client.channels.get(ts.channels.commandFeed).send(msg)
@@ -263,18 +297,13 @@ app.post('/clear',web_ts(async (ts,req)=>{
   return json;
 }))
 
-
 app.post('/approve',web_ts(async (ts,req)=>{
-  if(!req.body.token)
-    ts.userError("website.noToken");
-
+  if(!req.body.token) ts.userError("website.noToken");
 
   req.body.discord_id=await ts.checkBearerToken(req.body.token)
   let user=await ts.get_user(req.body.discord_id)
 
-  if(user.is_mod!="1"){
-    ts.userError("Forbidden");
-  }
+  if(user.is_mod!='1') ts.userError("Forbidden");
 
   req.body.reason=req.body.comment
 

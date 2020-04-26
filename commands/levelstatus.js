@@ -13,29 +13,29 @@ class TSLevelStatus extends TSCommand {
         });
     }
 
-    async tsexec(ts,message,args) {
-        await ts.gs.loadSheets(["Raw Levels"]);
+    async tsexec(ts,message,{ code }) {
+        const votes_needed=ts.get_variable("VotesNeeded")
 
-        if(!ts.valid_format(args.code))
+        if(!ts.valid_format(code))
             ts.userError("Level code given was not in xxx-xxx-xxx format")
-        if(!ts.valid_code(args.code))
+        if(!ts.valid_code(code))
             ts.userError("There were some invalid characters in your level code")
 
-        args.code=args.code.toUpperCase()
+        code=code.toUpperCase()
 
-        const level=ts.gs.selectOne("Raw Levels",{"Code":args.code});
+        const level=await ts.db.Levels.query().where({ code });
 
         if(!level)
             ts.userError("Level Code was not found!");
 
-        if(level.Approved === "1"){
+        if(level.status === ts.LEVEL_STATUS.APPROVED){
             message.reply("This level has already been approved! " + ts.emotes.bam);
-        } else if(level.Approved.startsWith("del")){
+        } else if(level.status.startsWith("del")){
             message.reply("This level has already been removed/rejected!");
-        } else if(level.Approved == "0"){
-            var approvalVotes = await ts.db.PendingVotes.query().where("code",args.code).where("is_shellder",1).where("type","approve");
-            var fixVotes = await ts.db.PendingVotes.query().where("code",args.code).where("is_shellder",1).where("type","fix");
-            var rejectVotes = await ts.db.PendingVotes.query().where("code",args.code).where("is_shellder",1).where("type","reject");
+        } else if(level.status == ts.LEVEL_STATUS.PENDING){
+            var approvalVotes = await ts.db.PendingVotes.query().where("code",code).where("type","approve");
+            var fixVotes = await ts.db.PendingVotes.query().where("code",code).where("type","fix");
+            var rejectVotes = await ts.db.PendingVotes.query().where("code",code).where("type","reject");
 
             //Count Approval and Rejection Votes
             var approvalVoteCount = approvalVotes.length + fixVotes.length;
@@ -43,18 +43,18 @@ class TSLevelStatus extends TSCommand {
 
             var text = "";
 
-            if( (approvalVoteCount > 3 || rejectVoteCount > 3) && approvalVoteCount!=rejectVoteCount ){
+            if( (approvalVoteCount > votes_needed || rejectVoteCount > votes_needed) && approvalVoteCount!=rejectVoteCount ){
                 text = "This level is ready to be judged: ";
             } else {
                 text = "This level is in judgement right now: ";
             }
 
             if(approvalVoteCount > 0 && rejectVoteCount > 0){
-                text +=  approvalVoteCount + "/3 votes for approval, " + rejectVoteCount + "/3 votes for rejection!";
+                text +=  approvalVoteCount + "/votes_needed votes for approval, " + rejectVoteCount + "/votes_needed votes for rejection!";
             } else if(approvalVoteCount > 0){
-                text += approvalVoteCount + "/3 votes for approval!";
+                text += approvalVoteCount + "/votes_needed votes for approval!";
             } else if(rejectVoteCount > 0){
-                text += rejectVoteCount + "/3 votes for rejection!";
+                text += rejectVoteCount + "/votes_needed votes for rejection!";
             } else {
                 text = "This level is not in judgement, no mods seem to have gotten to it yet!";
             }

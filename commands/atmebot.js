@@ -15,8 +15,6 @@ class atmebot extends TSCommand {
     async tsexec(ts,message,args) {
       const atmeCommands=["atmebot",'atme']
       var command=ts.parse_command(message);
-
-      await ts.gs.loadSheets(["Raw Levels"]);
       const player=await ts.get_user(message);
 
       if(atmeCommands.indexOf(command.command)!=-1){

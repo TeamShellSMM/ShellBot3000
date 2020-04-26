@@ -18,7 +18,6 @@ class TSRegister extends TSCommand {
       if(player && player.is_banned){
         ts.userError(ts.message('register.barred'))
       }
-      console.log(player)
       if(player){
         ts.userError(ts.message('register.already',{ ...player }))
       }
@@ -30,7 +29,7 @@ class TSRegister extends TSCommand {
       }
 
       nickname=nickname.replace(/\\/g,'');
-      if(await ts.db.Members.query().whereRaw('lower(name) = ?',[nickname]).first()){
+      if(await ts.db.Members.query().whereRaw('lower(name) = ?',[ nickname.toLowerCase() ]).first()){
         ts.userError(ts.message('register.nameTaken',{ name:nickname }));
       }
 

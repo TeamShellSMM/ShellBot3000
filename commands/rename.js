@@ -21,26 +21,20 @@ class TSRename extends TSCommand {
       if(!level_name)
         ts.userError("You didn't give a new level name")
 
-
-      await ts.gs.loadSheets(["Raw Levels"]);
-
       const player=await ts.get_user(message);
-      var level=ts.getExistingLevel(code)
+      var level=await ts.getExistingLevel(code)
 
-      if(!(level.Creator==player.name || player.is_mod=="1"))
-        ts.userError("You can't rename \""+level["Level Name"]+"\" by "+level.Creator);
+      if(!(level.creator==player.name || player.is_mod=='1'))
+        ts.userError("You can't rename \""+level.level_name+"\" by "+level.creator);
 
-      level=ts.gs.query("Raw Levels",{
-        filter:{"Code":code},
-        update:{"Level Name":level_name},
-      })
-
-      if(!level.updated["Level Name"])
+      if(level.level_name==level_name)
         ts.userError("Level name is already \""+level_name+"\"")
 
-      await ts.gs.batchUpdate(level.update_ranges)
+      await ts.db.Levels.query()
+        .patch({level_name})
+        .where({code})
 
-      var reply="The level \""+level["Level Name"]+"\" ("+code+") has been renamed to \""+level_name+"\" "+(ts.emotes.bam ? ts.emotes.bam : "")
+      var reply="The level \""+level.level_name+"\" ("+code+") has been renamed to \""+level_name+"\" "+(ts.emotes.bam ? ts.emotes.bam : "")
       message.channel.send(player.user_reply+reply)
     }
 }

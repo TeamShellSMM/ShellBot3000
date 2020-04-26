@@ -41,12 +41,10 @@ class TSAddvids extends TSCommand {
           ts.userError("The links below didn't look like urls: ```\n"+not_urls.join("\n")+"```")
         }
 
-        await ts.gs.loadSheets(["Raw Levels"]);
-
         const player=await ts.get_user(message);
-        var level=ts.getExistingLevel(code)
+        var level=await ts.getExistingLevel(code)
 
-        let old_vids=level["Clear Video"]?level["Clear Video"].split(","):[]
+        let old_vids=level.videos?level.videos.split(","):[]
 
 
         if(addCommands.indexOf(command.command)!=-1){ //adding
@@ -57,12 +55,12 @@ class TSAddvids extends TSCommand {
             }
           })
           if(new_vids.length==0)
-            ts.userError("No new clear video added for \""+level["Level Name"]+"\" by "+level.Creator+"\nCurrent Videos:```\n"+old_vids.join("\n")+"```")
+            ts.userError("No new clear video added for \""+level.level_name+"\" by "+level.creator+"\nCurrent Videos:```\n"+old_vids.join("\n")+"```")
           old_vids=old_vids.concat(new_vids)
-          var reply="Clear videos added for  \""+level["Level Name"]+"\" ("+code+")"+(ts.emotes.bam ? ts.emotes.bam : "")+"\nCurrent Videos:```\n"+old_vids.join("\n")+"```"
+          var reply="Clear videos added for  \""+level.level_name+"\" ("+code+")"+(ts.emotes.bam ? ts.emotes.bam : "")+"\nCurrent Videos:```\n"+old_vids.join("\n")+"```"
         } else { // removing
-          if(!(level.Creator==player.name || player.is_mod=="1"))
-            ts.userError("You can't remove videos from  \""+level["Level Name"]+"\" by "+level.Creator);
+          if(!(level.creator==player.name || player.is_mod=='1'))
+            ts.userError("You can't remove videos from  \""+level.level_name+"\" by "+level.creator);
 
           new_vids=[]
           let notRemoved=true
@@ -74,20 +72,18 @@ class TSAddvids extends TSCommand {
             }
           })
           if(notRemoved)
-            ts.userError("No clear videos have been removed for \""+level["Level Name"]+"\" ("+code+")\nCurrent Videos:```\n"+old_vids.join("\n")+"```")
+            ts.userError("No clear videos have been removed for \""+level.level_name+"\" ("+code+")\nCurrent Videos:```\n"+old_vids.join("\n")+"```")
           old_vids=new_vids
-          var reply="Clear videos removed for  \""+level["Level Name"]+"\" ("+code+")"+(ts.emotes.bam ? ts.emotes.bam : "")+"\nCurrent Videos:```\n"+old_vids.join("\n")+"```"
+          var reply="Clear videos removed for  \""+level.level_name+"\" ("+code+")"+(ts.emotes.bam ? ts.emotes.bam : "")+"\nCurrent Videos:```\n"+old_vids.join("\n")+"```"
         }
 
 
-        level=ts.gs.query("Raw Levels",{
-          filter:{"Code":code},
-          update:{"Clear Video":old_vids.join(",")},
-        })
+  
+      await ts.db.Levels.query()
+        .patch({videos:old_vids.join(',')})
+        .where({code})
 
-        await ts.gs.batchUpdate(level.update_ranges)
-
-        message.channel.send(player.user_reply+reply)
+      message.channel.send(player.user_reply+reply)
     }
 }
 module.exports = TSAddvids;
