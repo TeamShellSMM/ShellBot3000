@@ -36,6 +36,14 @@ class TestBot extends Command {
             throw error;
         }
 
+        //just setup consistent
+        ts.teamVariables['Minimum Point']=0;
+        ts.teamVariables['New Level']=0;
+        ts.teamVariables.VotesNeeded=1;
+        ts.teamVariables.memberRoleId='701487078852001942';
+        ts.teamVariables.includeOwnPoints=false;
+
+
         const bot_id=ts.client.user.id
         const bot_reply=`<@${bot_id}> `
         const guild=ts.getGuild()
@@ -51,18 +59,16 @@ class TestBot extends Command {
             await ts.db.PendingVotes.query().select().del()
             await ts.db.Plays.query().select().del()
         }
-        async function makeMember(name){
-            await ts.db.Members.query().insert({
-                name:name,
-                discord_id:'1',
-            })
+        async function makeMember(data){
+            await ts.db.Members.query().insert(data)
         }
     
+        //TODO: make mock users from switching discord_in message
         const defaultChannel=ts.channels.modChannel
         const TESTOPTIONS=[{
             setup:async function(){
                     await clearDb();
-                    await ts.db.Members.query().insert({
+                    await makeMember({
                         name:"banned",
                         discord_id:bot_id,
                         is_banned:1,
@@ -70,31 +76,44 @@ class TestBot extends Command {
                 },
                 description:'Check !register with banned person',
                 cmd:'!register',
+                discord_id:bot_id,
                 expected:ts.message('error.userBanned')+ts.message('error.afterUserDiscord'),
             },{
                 description:'Check !points when barred',
                 cmd:'!points',
+                discord_id:bot_id,
                 expected:ts.message('error.userBanned')+ts.message('error.afterUserDiscord'),
             },{
                 setup:async function(){
                     await clearDb();
-                    await makeMember('mockMod1')
-                    await makeMember('mockPlayer1')
+                    await makeMember({
+                        name:'mockMod1',
+                        discord_id:123,
+                        is_mod:1,
+                    })
+                    await makeMember({
+                        name:'mockPlayer1',
+                        discord_id:256,
+                    })
                 },
                 description:'Check !points when not registered',
                 cmd:'!points',
+                discord_id:bot_id,
                 expected:ts.message('error.notRegistered')+ts.message('error.afterUserDiscord'),
             },{
                 description:'registering with existing name',
                 cmd:'!register mockPlayer1',
+                discord_id:bot_id,
                 expected:ts.message('register.nameTaken',{name:'mockPlayer1'})+ts.message('error.afterUserDiscord'),
             },{
                 description:'register as mockCreator',
                 cmd:'!register mockCreator',
+                discord_id:bot_id,
                 expected:ts.message('register.succesful',{name:'mockCreator'}),
             },{
                 description:'at me bot',
                 cmd:'!atmebot',
+                discord_id:bot_id,
                 async expected(value){
                     //message is correct
                     if((bot_reply+ts.message('atme.willBe'))!=value) return false;
@@ -109,6 +128,7 @@ class TestBot extends Command {
             },{
                 description:'at me bot already',
                 cmd:'!atmebot',
+                discord_id:bot_id,
                 async expected(value){
                     //message is correct
                     if((ts.message('atme.already')+ts.message('error.afterUserDiscord'))!=value) return false;
@@ -123,6 +143,7 @@ class TestBot extends Command {
             },{
                 description:'dont at me bot',
                 cmd:'!dontatmebot',
+                discord_id:bot_id,
                 async expected(value){
                     //message is correct
                     if((bot_reply+ts.message('atme.willBeNot'))!=value) return false;
@@ -137,6 +158,7 @@ class TestBot extends Command {
             },{
                 description:'dont at me already',
                 cmd:'!dontatmebot',
+                discord_id:bot_id,
                 async expected(value){
                     //message is correct
                     if((ts.message('atme.alreadyNot')+ts.message('error.afterUserDiscord'))!=value) return false;
@@ -150,18 +172,22 @@ class TestBot extends Command {
             },{
                 description:'!add without any arguments',
                 cmd:'!add',
+                discord_id:bot_id,
                 expected:ts.message('error.noCode')+ts.message('error.afterUserDiscord'),
             },{
                 description:'!add with invalid level code',
                 cmd:'!add xxx-xxx-xx',
+                discord_id:bot_id,
                 expected:ts.message('error.invalidCode')+ts.message('error.afterUserDiscord'),
             },{
                 description:'!add without any level name',
                 cmd:'!add xxx-xxx-xxx',
+                discord_id:bot_id,
                 expected:ts.message('add.noName')+ts.message('error.afterUserDiscord'),
             },{
                 description:'succesful level add',
                 cmd:'!add xxx-xxx-xxx level name is long',
+                discord_id:bot_id,
                 expected:bot_reply+ts.message('add.success',{
                     level_name:'level name is long',
                     code:'XXX-XXX-XXX',
@@ -170,6 +196,7 @@ class TestBot extends Command {
             },{
                 description:'adding an existing level',
                 cmd:'!add xxx-xxx-xxx long',
+                discord_id:bot_id,
                 expected:ts.message('add.levelExisting',{
                     level:{
                         level_name:'level name is long',
@@ -180,16 +207,19 @@ class TestBot extends Command {
             },{
                 description:'!addtags, no tags given',
                 cmd:'!addtag xxx-xxx-xxx',
+                discord_id:bot_id,
                 expected:ts.message('tags.noTags')+ts.message('error.afterUserDiscord'),
             },{
                 description:'add tags one tag',
                 cmd:'!addtag xxx-xxx-xxx SMW',
+                discord_id:bot_id,
                 expected:bot_reply+'Tags added for  "level name is long" (XXX-XXX-XXX)\n' +
                 'Current tags:```\n' +
                 'SMW```',
             },{
                 description:'add tags multiple tag',
                 cmd:'!addtag xxx-xxx-xxx Speed-Run,Yoshi Tech',
+                discord_id:bot_id,
                 expected:bot_reply+'Tags added for  "level name is long" (XXX-XXX-XXX)\n' +
                 'Current tags:```\n' +
                 'SMW\n' +
@@ -198,6 +228,7 @@ class TestBot extends Command {
             },{
                 description:'add tags one tag repeated',
                 cmd:'!addtag xxx-xxx-xxx smw',
+                discord_id:bot_id,
                 expected:'No new tags added for "level name is long" by mockCreator\n' +
                 'Current tags:```\n' +
                 'SMW\n' +
@@ -206,6 +237,7 @@ class TestBot extends Command {
             },{
                 description:'add tags many tag some repeated',
                 cmd:'!addtag xxx-xxx-xxx yoshi tech,fire-flower,smw',
+                discord_id:bot_id,
                 expected:bot_reply+'Tags added for  "level name is long" (XXX-XXX-XXX)\n' +
                 'Current tags:```\n' +
                 'SMW\n' +
@@ -215,6 +247,7 @@ class TestBot extends Command {
             },{
                 description:'add tags many all repeated',
                 cmd:'!addtag xxx-xxx-xxx SMW,yoshi tech,smw',
+                discord_id:bot_id,
                 expected:'No new tags added for "level name is long" by mockCreator\n' +
                 'Current tags:```\n' +
                 'SMW\n' +
@@ -224,6 +257,7 @@ class TestBot extends Command {
             },{
                 description:'removetags one tags',
                 cmd:'!removetag xxx-xxx-xxx smw',
+                discord_id:bot_id,
                 expected:bot_reply+'Tags removed for  "level name is long" (XXX-XXX-XXX)\n' +
                 'Current tags:```\n' +
                 'Speed-Run\n' +
@@ -232,6 +266,7 @@ class TestBot extends Command {
             },{
                 description:'removetags on repeat',
                 cmd:'!removetag xxx-xxx-xxx smw',
+                discord_id:bot_id,
                 expected:'No tags have been removed for "level name is long" (XXX-XXX-XXX)\n' +
                 'Current Tags:```\n' +
                 'Speed-Run\n' +
@@ -240,20 +275,19 @@ class TestBot extends Command {
             },{
                 description:'!clear with a slightly wrong level code',
                 cmd:'!clear xxx-xxx-xx',
+                discord_id:bot_id,
                 expected:"The code XXX-XXX-XX was not found in TeamJamp's list.Did you mean:```\n" +
                 'XXX-XXX-XXX - "level name is long" by mockCreator``` ',
             },{
                 description:"Can't clear own level",
                 cmd:'!clear xxx-xxx-xxx',
+                discord_id:bot_id,
                 expected:ts.message('clear.ownLevel')+ts.message('error.afterUserDiscord'),
-            },{
-                description:'Change user to mockPlayer for next tests',
-                cmd:'!mockuser mockPlayer1',
-                expected:ts.message('mock.userSuccess',{name:'mockPlayer1'})
             },{
                 description:'!points with no clear',
                 cmd:'!points',
-                expected:bot_reply+
+                discord_id:'256',
+                expected:'<@256> '+
                     ts.message('points.points',{
                         player:{
                             earned_points:{
@@ -269,45 +303,48 @@ class TestBot extends Command {
             },{
                 description:'!clear wrong difficulty rating',
                 cmd:'!clear xxx-xxx-xxx lol lol',
+                discord_id:'256',
                 expected:ts.message('clear.invalidDifficulty')+ts.message('error.afterUserDiscord'),
             },{
                 description:'!clear wrong difficulty rating',
                 cmd:'!clear xxx-xxx-xxx lol lol',
+                discord_id:'256',
                 expected:ts.message('clear.invalidDifficulty')+ts.message('error.afterUserDiscord'),
             },{
                 description:'!clear without discord id (this is more for web api)',
-                async setup(){
-                    message.author.id=null
-                },
                 cmd:'!clear xxx-xxx-xxx',
+                discord_id:null,
                 expected:ts.message('clear.discordId')+ts.message('error.afterUserDiscord'),
-                async teardown(){
-                    message.author.id=bot_id
-                },
             },{
                 description:'Succesful clear, level is pending',
                 cmd:'!clear xxx-xxx-xxx',
-                expected:bot_reply+'\n ‣You have cleared \'level name is long\'  by mockCreator \n'+
+                discord_id:'256',
+                expected:'<@256> '+'\n ‣You have cleared \'level name is long\'  by mockCreator \n'+
                 ' ‣This level is still pending',
             },{
                 description: "remove clears",
                 cmd:'!removeclear xxx-xxx-xxx',
-                expected:bot_reply+'\n' +
+                discord_id:'256',
+                expected:'<@256> '+'\n' +
                 ts.message('clear.removedClear',{levelInfo:"'level name is long'  by mockCreator"}),
             },{
                 description: "Already remove clear",
                 cmd:'!removeclear xxx-xxx-xxx',
-                expected:bot_reply+'\n' +
+                discord_id:'256',
+                expected:'<@256> '+'\n' +
                 ts.message('clear.alreadyUncleared',{levelInfo:"'level name is long'  by mockCreator"}),
             },{
                 cmd:'!approve xxx-xxx-xxx',
+                discord_id:'123',
                 expected:ts.message('approval.invalidDifficulty')+ts.message('error.afterUserDiscord'),
         
             },{
                 cmd:'!approve xxx-xxx-xxx 5',
+                discord_id:'123',
                 expected:ts.message('approval.changeReason')+ts.message('error.afterUserDiscord'),
             },{
                 cmd:'!approve xxx-xxx-xxx 5 "some reason"',
+                discord_id:'123',
                 async expected(value){
                     try{
                       const newChannel=await guild.channels.find(c => c.name === 'xxx-xxx-xxx')
@@ -319,14 +356,12 @@ class TestBot extends Command {
                         console.log(error)
                         return false;
                     }
-                }
-            },{
-                description:'Change user to a mod for next tests',
-                cmd:'!mockuser mockMod1',
-                expected:ts.message('mock.userSuccess',{name:'mockMod1'})
+                },
+                slow:true,
             },{
                 description:"judge a level. Channel should be deleted",
                 cmd:'!judge',
+                discord_id:'123',
                 channel:"xxx-xxx-xxx",
                 async expected(value){
                     const newChannel=await guild.channels.find(c => c.name === 'xxx-xxx-xxx')
@@ -339,15 +374,53 @@ class TestBot extends Command {
                     return true;
                     //not sure how to test initiation and show approval stuff
                 },
+                slow:true,
             },{
-                description:'Change to mockplayer for next tests',
-                cmd:'!mockUser mockPlayer1',
-                expected:ts.message('mock.userSuccess',{name:'mockPlayer1'})
+                description:'!points, count self option=off',
+                cmd:'!points',
+                discord_id:bot_id,
+                expected:bot_reply+
+                ts.message('points.points',{
+                    player:{
+                        earned_points:{
+                            clearPoints:'0.0',
+                            levelsMade:1,
+                        },
+                    },
+                })+ts.message('points.canUpload')+ts.message('points.rank',{
+                    player:{
+                        rank:ts.ranks[0],
+                    },
+                }),
+            },{
+                description:'!points, count self option=yes',
+                cmd:'!points',
+                setup(){
+                    ts.teamVariables.includeOwnPoints='yes'
+                },
+                discord_id:bot_id,
+                expected:bot_reply+
+                ts.message('points.points',{
+                    player:{
+                        earned_points:{
+                            clearPoints:'5.0',
+                            levelsMade:1,
+                        },
+                    },
+                })+ts.message('points.canUpload')+ts.message('points.rank',{
+                    player:{
+                        rank:ts.ranks[0],
+                    },
+                }),
+                teardown(){
+                    ts.teamVariables.includeOwnPoints=null;
+                }
             },{
                 description:'Succesful approved clear+like',
                 cmd:'!clear xxx-xxx-xxx like',
+                discord_id:'256',
                 expected:[
-                    bot_reply,
+                    '<@256> ',
                     ts.message('clear.addClear',{levelInfo:"'level name is long'  by mockCreator"}),
                     ' ‣You have earned 5 points',
                     ' ‣You also have liked this level ',
@@ -355,7 +428,8 @@ class TestBot extends Command {
             },{
                 description:'Check points after clearing a level',
                 cmd:'!points',
-                expected:bot_reply+
+                discord_id:'256',
+                expected:'<@256> '+
                     ts.message('points.points',{
                         player:{
                             earned_points:{
@@ -369,10 +443,15 @@ class TestBot extends Command {
                         },
                     }),
             },{
+                description:'Change bot user to mockPlayer',
+                cmd:'!mockuser mockPlayer1',
+                discord_id:bot_id,
+                expected:ts.message('mock.userSuccess',{name:'mockPlayer1'})
+            },{
                 cmd:'!points role',
+                discord_id:bot_id,
                 async expected(value){
-                    let reply=bot_reply
-                    +ts.message('points.points',{
+                    let reply=bot_reply+ts.message('points.points',{
                         player:{
                             earned_points:{
                                 clearPoints:'5.0',
@@ -385,47 +464,59 @@ class TestBot extends Command {
                         },
                     });
                     return reply==value
-                }
+                },
+                slow:true,
         
             },{
+                description:'Change bot user to mockCreator for next tests',
                 cmd:'!mockuser mockCreator',
+                discord_id:bot_id,
                 expected:ts.message('mock.userSuccess',{name:'mockCreator'})
             },{
                 cmd:'!reupload xxx-xxx-xxx',
+                discord_id:bot_id,
                 expected:ts.message('reupload.invalidNewCode')+ts.message('error.afterUserDiscord'),
             },{
                 cmd:'!reupload xxx-xxx-xxx xxx-xxx-xxx',
+                discord_id:bot_id,
                 expected:ts.message('reupload.sameCode')+ts.message('error.afterUserDiscord'),
             },{
                 cmd:'!reupload xxx-xxx-xxx xxx-xxx-yy',
+                discord_id:bot_id,
                 expected:ts.message('reupload.invalidNewCode')+ts.message('error.afterUserDiscord'),
             },{
                 cmd:'!reupload xxx-xxx-xxx xxx-xxx-yyy',
+                discord_id:bot_id,
                 expected:ts.message('reupload.giveReason')+ts.message('error.afterUserDiscord'),
             },{
                 cmd:'!reupload xxx-xxx-xxx xxx-xxx-yyy "some reason"',
+                discord_id:bot_id,
                 expected:bot_reply+ts.message('reupload.success',{
                     level:{
                         level_name:'level name is long',
                         creator:'mockCreator',
                     },
                     new_code:'XXX-XXX-YYY'
-                })+ts.message('reupload.inReuploadQueue')
+                })+ts.message('reupload.inReuploadQueue'),
+                slow:true,
             },{
                 cmd:'!fixapprove',
+                discord_id:bot_id,
                 channel:"xxx-xxx-yyy",
                 async expected(value){
                     //TODO: check if channel is deleted
                     return true;
-                }
-            }
+                },
+                slow:true,
+            },
         ];  
 
-async function send({ setup, cmd , channel}){
+async function send({ setup, cmd , channel, discord_id}){
     if((typeof setup)==="function"){
         await setup()
     }
-    message.content=cmd
+    message.author.id=discord_id;
+    message.content = cmd;
     channel=channel || defaultChannel
     if(/[^0-9]/.test(channel)){
         message.channel=await guild.channels.find(c => c.name === channel.toLowerCase())
@@ -482,7 +573,7 @@ function post_result(obj){
 let i=-1;
 global.NEXTTEST=async function(){
     i++
-    await _sleep(1000)
+    await _sleep(TESTOPTIONS[i] && TESTOPTIONS[i].slow?1000:500)
     if(!has_error && i<TESTOPTIONS.length){
         send(TESTOPTIONS[i])
         timeout_id=setTimeout(async function(){

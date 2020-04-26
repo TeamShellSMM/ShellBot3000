@@ -1363,26 +1363,30 @@ const TS=function(guild_id,config,client){ //loaded after gs
     var freeSubmissions=0;
     var reuploads={};
     for (let row = currentLevels.length-1; row >=0 ; row--) {
-      if(currentLevels[row].status==ts.LEVEL_STATUS.APPROVED){
-        if(currentLevels[row].creator==user){
-          ownLevels.push(currentLevels[row].code)
-          if(currentLevels[row].is_free_submission){
+      let level=currentLevels[row];
+      if(level.status==ts.LEVEL_STATUS.APPROVED){
+        if(level.creator==user){
+          ownLevels.push(level.code)
+          if(level.is_free_submission){
             freeSubmissions++;
           }
+          if(ts.teamVariables.includeOwnPoints==="yes"){
+            levelMap[level.code]=this.pointMap[parseFloat(level.difficulty)];
+          }
         } else {
-          levelMap[currentLevels[row].code]=this.pointMap[parseFloat(currentLevels[row].difficulty)]
+          levelMap[level.code]=this.pointMap[parseFloat(level.difficulty)];
         }
-      } else if(currentLevels[row].status=="2") { //reupload
-        if(currentLevels[row].creator==user){
+      } else if(level.status=="2") { //reupload
+        if(level.creator==user){
           //reuploads don't count for self
         } else {
-          if(currentLevels[row].new_code){
-            reuploads[currentLevels[row].code]=currentLevels[row].new_code
-            levelMap[currentLevels[row].code]=this.pointMap[parseFloat(currentLevels[row].difficulty)]
+          if(level.new_code){
+            reuploads[level.code]=level.new_code
+            levelMap[level.code]=this.pointMap[parseFloat(level.difficulty)]
           }
         }
-      } else if( currentLevels[row].status==ts.LEVEL_STATUS.PENDING && currentLevels[row].creator==user){
-        ownLevels.push(currentLevels[row].code)
+      } else if( level.status==ts.LEVEL_STATUS.PENDING && level.creator==user){
+        ownLevels.push(level.code)
       }
 
     }
