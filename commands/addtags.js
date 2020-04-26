@@ -30,7 +30,9 @@ class TSAddtags extends TSCommand {
         var level=await ts.getExistingLevel(code)
         //First we get all available tags
         var all_tags = [];
-        await ts.db.Levels.query().select().forEach((level)=>{
+        let _levels=await ts.db.Levels.query().select()
+        
+        _levels.forEach((level)=>{
           if(level.tags){
             level.tags.split(",").forEach((tag)=>{
               if(all_tags.indexOf(tag)===-1)

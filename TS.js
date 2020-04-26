@@ -297,8 +297,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
         ts.userError(ts.message("clear.invalidDifficulty"));
       }
       
-      if(!args.discord_id)
-        ts.userError(ts.message("clear.discordId"))
+      if(!args.discord_id) ts.userError(ts.message("clear.discordId"));
 
       const player=await ts.get_user(args.discord_id);
       var level=await ts.getExistingLevel(args.code);
@@ -680,7 +679,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
     if(!player)
       ts.userError(ts.message("error.notRegistered"));
 
-    if(player.banned)
+    if(player.is_banned)
       ts.userError(ts.message("error.userBanned"));
 
     player.earned_points= await this.calculatePoints(player.name);

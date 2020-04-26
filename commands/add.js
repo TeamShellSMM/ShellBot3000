@@ -24,8 +24,7 @@ class tsadd extends TSCommand {
       const player=await ts.get_user(message);
       var existing_level=await ts.db.Levels.query().where({ code }).first()
 
-      if(existing_level)
-        ts.userError(ts.message("add.levelExisting",{level:existing_level}));
+      if(existing_level) ts.userError(ts.message("add.levelExisting",{level:existing_level}));
 
       if(player.earned_points.available.toFixed(1)<0)
         ts.userError(ts.message("points.cantUpload",{points_needed:Math.abs(player.earned_points.available).toFixed(1)}));

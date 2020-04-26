@@ -28,7 +28,7 @@ client.on('shardError', error => {
 
 global.console_error=async function(error){
   console.error(error)
-  if(process.argv[2]!=='--test'){
+  if(process.argv[2]!=='--test'){ 
     let channel=await client.channels.get(config.error_channel)
     let dev="<@"+config.devs.join(">,<@")+"> "+(error.channel?" at "+error.channel:"")
     error=JSON.stringify(error,null,2).replace(/\\n/g,"\n")

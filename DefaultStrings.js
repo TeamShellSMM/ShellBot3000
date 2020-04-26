@@ -1,4 +1,5 @@
 module.exports={
+  //website json api
  'website.loggedin':'Your account was logged in on the website.',
  'website.tokenError':'Token expired. Need to relogin',
  'website.authError':'Authentication error',
@@ -11,8 +12,10 @@ module.exports={
  'login.expiredOTP':'The OTP password given is already expired',
  'login.noOTP':'No OTP provided',
 
- 'clear.invalidDifficulty':'You did not provide a valid difficulty vote',
+ 
+
  'clear.discordId':'We couldn\'t find your `discord id',
+ 'clear.invalidDifficulty':'You did not provide a valid difficulty vote',
  'clear.ownLevel':'You can\'t submit a clear for your own level',
  'clear.removedClear':'You have removed your clear for {{{levelInfo}}}',
  'clear.addClear':' ‣You have cleared {{{levelInfo}}} {{{GG}}}',
@@ -123,7 +126,6 @@ module.exports={
  'tags.noTags':'You didn\'t give any tags',
  'tags.cantAdd':'You can\'t add the tag \'{{tag}}\'',
 
- 'register.barred':'You\'re barred from using this service',
  'register.already':'You\'re already registered as **{{name}}**',
  'register.nameTaken':'\'{{name}}\' has already been registered by someone else. Please use another nickname',
  'register.succesful':'You are now registered as \'{{name}}\'. You can now start submitting your clears in #level-clears {{{bam}}}',
@@ -141,6 +143,8 @@ module.exports={
 
 
  'help.basic':'You can find all the commands at <https://makerteams.net/features>',
+
+ 'mock.userSuccess':"You're now {{name}}. Identity theft is not a joke, Jim!",
  
 
 }

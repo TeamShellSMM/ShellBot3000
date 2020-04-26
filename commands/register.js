@@ -13,10 +13,9 @@ class TSRegister extends TSCommand {
     }
 
     async tsexec(ts,message,args) {
-      await ts.gs.loadSheets(['Raw Members']);
       const player=await ts.db.Members.query().where({discord_id:message.author.id}).first();
       if(player && player.is_banned){
-        ts.userError(ts.message('register.barred'))
+        ts.userError(ts.message('error.userBanned'))
       }
       if(player){
         ts.userError(ts.message('register.already',{ ...player }))
