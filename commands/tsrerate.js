@@ -30,35 +30,27 @@ class TSRerate extends TSCommand {
 
       if(code){
         code = code.toUpperCase();
+      } else {
+        ts.userError(ts.message('error.noCode'))
       }
 
       //Check all the args first
-      if(!ts.valid_code(code))
-        ts.userError("Level Code is invalid!")
-
-      if(!ts.valid_difficulty(difficulty))
-          ts.userError("Invalid difficulty format!");
+      if(!ts.valid_difficulty(difficulty)) ts.userError("Invalid difficulty format!");
+      if(!reason) ts.userError(ts.message('difficulty.noReason'));
 
       const level=await ts.getExistingLevel(code);
+      if(level.status!== ts.LEVEL_STATUS.APPROVED) ts.userError(ts.message('error.notApproved'));
+
+      
+      
       const author = await ts.db.Members.query().where({name:level.creator}).first();
-
-      if(level.status!== ts.LEVEL_STATUS.APPROVED)
-        ts.userError(ts.message('error.notApproved'))
-
-      if(!reason)
-        ts.userError("You need to give a reason for the change (in quotation marks)!");
-
 
       if(level.difficulty==difficulty) ts.userError("\""+level.level_name+"\" is already rated "+difficulty);
 
       await ts.db.Levels.query()
         .patch({difficulty})
         .where({code})
-      
-
-      if(updateLevel.code == code){
-        await ts.gs.batchUpdate(updateLevel.update_ranges);
-      }
+        
 
       var rerateEmbed = ts.levelEmbed(level)
             .setColor("#17a2b8")
@@ -75,7 +67,7 @@ class TSRerate extends TSCommand {
         await levelChangeChannel.send(mention);
       }
       await levelChangeChannel.send(rerateEmbed);
-      message.reply("Difficulty was successfully changed!");
+      message.reply(ts.message('difficulty.success'));
   }
 }
 module.exports = TSRerate;

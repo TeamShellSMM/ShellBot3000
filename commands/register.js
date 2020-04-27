@@ -38,7 +38,7 @@ class TSRegister extends TSCommand {
         discord_name:message.author.username,
       })
         
-      message.reply(ts.message('register.succesful',{ name:nickname }))
+      message.reply(ts.message('register.success',{ name:nickname }))
     }
 }
 module.exports = TSRegister;

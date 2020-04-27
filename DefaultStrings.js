@@ -122,7 +122,9 @@ module.exports={
  'points.cantUpload':'You need {{points_needed}} points to upload a new level {{{buzzyS}}}. Check how the points are mapped on {{teamurl}}',
  'points.rank':' You have earned the rank **{{player.rank.Rank}}** {{{player.rank.Pips}}}',  //✅
 
- 'difficulty.updated':'Difficulty rating updated from {{old_difficulty}} + {{new_difficulty}}',
+ 'difficulty.updated':'Difficulty rating updated from {{old_difficulty}} - {{new_difficulty}}',//✅
+ 'difficulty.success':'Difficulty was successfully changed!',//✅
+ 'difficulty.noReason':'You need to give a reason for the change (in quotation marks)!',//✅
 
  'add.noName':'You didn\'t give a level name', //✅
  'add.levelExisting':'`{{level.code}}` has already been submitted as \'{{{level.level_name}}}\' by {{level.creator}}',//✅
@@ -133,14 +135,14 @@ module.exports={
 
  'register.already':'You\'re already registered as **{{name}}**',//✅
  'register.nameTaken':'\'{{name}}\' has already been registered by someone else. Please use another nickname',//✅
- 'register.succesful':'You are now registered as \'{{name}}\'. You can now start submitting your clears in #level-clears {{{bam}}}',//✅
+ 'register.success':'You are now registered as \'{{name}}\'. You can now start submitting your clears in #level-clears {{{bam}}}',//✅
 
  'login.reply':' You have requested a login token for the website. click the link below to login.:\n <{{login_link}}> {{{bam}}}\n If you\'re on mobile, copy the link and paste it into your preferred browser app. If you open this link in an in-app browser, your login might not be saved properly. {{{buzzyS}}}\n This token will only be valid for 30 minutes',
 
- 'makerid.noCode':'You didn\'t provide any maker code',
- 'makerid.success':'You have updated your maker-id to {{code}} {{{bam}}}',
- 'makerid.existing':'`{{code}} is already being used by \'{{name}}\' ',
- 'makerid.already':'`{{code}}` is already what you have set for your maker-id ',
+ 'makerid.noCode':'You didn\'t provide any maker code',//✅
+ 'makerid.success':'You have updated your maker-id to {{code}} {{{bam}}}',//✅
+ 'makerid.existing':'`{{code}} is already being used by \'{{name}}\' ',//✅
+ 'makerid.already':'`{{code}}` is already what you have set for your maker-id ',//✅
 
  'atme.already':'You already have chosen to be atted',//✅
  'atme.willBe':'You will be atted by {{BotName}} {{{bam}}}',//✅

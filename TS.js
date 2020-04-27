@@ -973,8 +973,8 @@ const TS=function(guild_id,config,client){ //loaded after gs
             .patch({is_member:1})
             .where({name:author.name})
 
-          if(!argv.test && author.discord_id){
-            //doesn't work with mock method here. 
+          if(author.discord_id){ //!argv.test && 
+            //doesn't work with mocked user method here. 
             try{
               var curr_user=await guild.members.get(author.discord_id)
             } catch (error){
