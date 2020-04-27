@@ -190,7 +190,7 @@ async function generateSiteJson(ts,isShellder){
 
     _members=_members.map( m =>{
       return [
-        m.Name,
+        m.name,
         ts.is_mod(m)?'1':'0',
         m.is_member||'0',
         m.maker_id||"",
