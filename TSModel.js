@@ -7,7 +7,7 @@ module.exports = (guild_id,table_name) => {
     constructor(...args) {
       super(...args);
       this.onBuild(builder => {
-        builder.where(table_name + '.guild_id',guild_id);
+        builder.where(this.tableName() + '.guild_id',guild_id);
       });
     }
   }

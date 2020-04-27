@@ -140,8 +140,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
     let members = await ts.db.Members.query().select().where('clear_score_sum', '=', 0.0);
 
     for(let member of members){
-      let memberPlays = await ts.db.Plays.query().select().where('player', '=', member.name);
-      let result = await ts.db.Plays.query().join('levels', 'plays.code', '=', 'levels.code').where('player', '=', member.name).sum('levels.clear_score as score_sum');
+      let result = await ts.db.Plays.query().join('levels', 'plays.code', '=', 'levels.code').where('player', '=', member.name).where('completed', '=', '1').sum('levels.clear_score as score_sum');
       if(result.length > 0 && result[0].score_sum){
         await ts.db.Members.query().where('name', member.name).update({
           clear_score_sum: result[0].score_sum
@@ -152,7 +151,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
     members = await ts.db.Members.query().select().where('levels_cleared', '=', 0);
 
     for(let member of members){
-      let result = await ts.db.Plays.query().where('player', '=', member.name).count('id as clear_count');
+      let result = await ts.db.Plays.query().where('player', '=', member.name).where('completed', '=', '1').count('id as clear_count');
       if(result.length > 0 && result[0].clear_count){
         await ts.db.Members.query().where('name', member.name).update({
           levels_cleared: result[0].clear_count

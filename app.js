@@ -268,30 +268,64 @@ async function generateMembersJson(ts,isShellder, data){
 
   let json = [];
 
-  let memberCounter = 1;
-  for(let member of members){
-    let comps = [];
-    for(let comp of competiton_winners){
-      if(comp[1] === member.name){
-        comps.push({
-          name: comp[2],
-          rank: comp[3]
-        })
+  if(data.timePeriod == '1' && data.timePeriod2 == '1'){
+    let memberCounter = 1;
+    for(let member of members){
+      let comps = [];
+      for(let comp of competiton_winners){
+        if(comp[1] === member.name){
+          comps.push({
+            name: comp[2],
+            rank: comp[3]
+          })
+        }
       }
+
+      let memberObj = {
+        "id": memberCounter,
+        "name": member.name,
+        "wonComps": comps,
+        "levels_created": member.levels_created,
+        "levels_cleared": member.levels_cleared,
+        "clear_score_sum": member.clear_score_sum
+      }
+      json.push(memberObj);
+
+      memberCounter++;
     }
+  } else {
+    let calcedMembers = [];
+    let memberCounter = 1;
+    for(let member of members){
+      let lCountResult = await ts.db.Levels.select().where('creator', '=', 'member.name').sum('id as count_created');
+      let createdCount = 0;
+      if(lCountResult.length > 0 && lCountResult[0].count_created){
+        createdCount = lCountResult[0].count_created;
+      }
 
-    let memberObj = {
-      "id": memberCounter,
-      "name": member.name,
-      "wonComps": comps,
-      "levels_created": member.levels_created,
-      "levels_cleared": member.levels_cleared,
-      "clear_score_sum": member.clear_score_sum
+      let cCountResult = await ts.db.Plays.select().where('player', '=', 'member.name').where('completed', '=', '1').sum('id as count_cleared');
+      let clearedCount = 0;
+      if(cCountResult.length > 0 && cCountResult[0].count_cleared){
+        clearedCount = cCountResult[0].count_cleared;
+      }
+
+      let sumResult = await ts.db.Plays.query().join('levels', 'plays.code', '=', 'levels.code').where('player', '=', member.name).where('completed', '=', '1').sum('levels.clear_score as score_sum');
+      let scoreSum = 0.0;
+      if(sumResult.length > 0 && sumResult[0].score_sum){
+        scoreSum = sumResult[0].score_sum;
+      }
+
+      let memberObj = {
+        "id": memberCounter++,
+        "name": member.name,
+        "wonComps": comps,
+        "levels_created": createdCount,
+        "levels_cleared": clearedCount,
+        "clear_score_sum": scoreSum
+      }
+
+      json.push(memberObj);
     }
-
-    json.push(memberObj);
-
-    memberCounter++;
   }
 
   return json;
