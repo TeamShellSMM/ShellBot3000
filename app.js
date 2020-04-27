@@ -266,6 +266,8 @@ async function generateMembersJson(ts,isShellder, data){
     members = await ts.db.Members.query().select().orderBy("clear_score_sum", "desc");
   }
 
+  console.log(members.length);
+
   let json = [];
 
   let memberCounter = 1;
@@ -305,9 +307,6 @@ function get_slug(){
 
 function get_web_ts(url_slug){
   for(var id in global.TS_LIST){
-    if(global.TS_LIST[id].config){
-      console.log(global.TS_LIST[id].config.url_slug, url_slug, global.TS_LIST[id].config.url_slug == url_slug);
-    }
     if(global.TS_LIST[id].config && global.TS_LIST[id].config.url_slug == url_slug){
       return global.TS_LIST[id];
     }
