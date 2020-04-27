@@ -92,13 +92,13 @@ const TS=function(guild_id,config,client){ //loaded after gs
 
       for(let member of members){
         let memberPlays = await ts.db.Plays.query().select().where('player', '=', member.name);
-        console.log(memberPlays);
         if(memberPlays.length > 0){
           let result = await ts.db.Plays.query().join('levels', 'plays.code', '=', 'levels.code').where('player', '=', member.name).sum('levels.clear_score as score_sum');
-          console.log(result);
-          await ts.db.Members.query().where('name', member.name).update({
-            clear_score_sum: result[0].score_sum
-          });
+          if(result.length > 0 && result[0].score_sum){
+            await ts.db.Members.query().where('name', member.name).update({
+              clear_score_sum: result[0].score_sum
+            });
+          }
         }
       }
 
