@@ -252,6 +252,7 @@ async function generateMembersJson(ts,isShellder){
   for(let _point of _points){
     points[_point[0]] = _point[1];
     let dbPoint = await ts.db.Points.query().select().where('difficulty', _point[0]);
+    console.log(dbPoint);
     if(!dbPoint){
       await ts.db.Points.query().insert({
         difficulty: _point[0],
