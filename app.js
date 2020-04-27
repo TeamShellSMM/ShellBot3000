@@ -10,7 +10,7 @@ const compression = require('compression')
 const app = express();
 
 global.DEFAULTMESSAGES=require("./DefaultStrings.js");
-
+f 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(compression())
 if(config.json_dev){
@@ -141,7 +141,7 @@ async function generateSiteJson(ts,isShellder){
     let rawLevels=[];
     let reuploaded=[]
     let pending=[]
-    for(let i=1;i<_rawLevels.length;i++){
+    for(let i=0;i<_rawLevels.length;i++){
       if(_rawLevels[i].status==ts.LEVEL_STATUS.PENDING){
         pending.push(_rawLevels[i].code)
       }
