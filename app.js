@@ -284,6 +284,8 @@ async function generateMembersJson(ts,isShellder){
       playCount,
       sumPoints
     ]
+
+    json.push(memberArr);
   }
 
   return json;
