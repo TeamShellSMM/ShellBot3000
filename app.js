@@ -267,11 +267,6 @@ async function generateMembersJson(ts,isShellder){
 
     let playCount = await ts.db.Plays.query().select().where('player', '=', member.name).count('id as id_count');
 
-    let plays = await ts.db.Plays.query().select().where('player', '=', member.name).join('levels', 'plays.code', '=', 'levels.code').whereIn('status',[
-      ts.LEVEL_STATUS.APPROVED,
-      ts.LEVEL_STATUS.REUPLOADED
-    ]).select('levels.difficulty');
-
     let memberArr = [
       member.name,
       levelCount[0].id_count,
