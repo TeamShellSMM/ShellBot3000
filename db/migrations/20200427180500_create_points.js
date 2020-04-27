@@ -11,5 +11,7 @@ exports.up = function(knex) {
 
 exports.down = function(knex) {
   return knex.schema.dropTable('points')
-  .table('levels').dropColumn('clear_score');
+  .table('levels', function(t){
+    t.dropColumn('clear_score');
+  });
 };
