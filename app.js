@@ -246,7 +246,7 @@ async function generateMembersJson(ts,isShellder){
   let _points = SheetCache["Points"]
   let seasons = ts.gs.select("Seasons")
 
-  console.log(competiton_winners);
+  competiton_winners.shift();
 
   _points.unshift();
   let points = {};
@@ -263,10 +263,10 @@ async function generateMembersJson(ts,isShellder){
   for(let member of members){
     let comps = [];
     for(let comp of competiton_winners){
-      if(comp.Creator === member.name){
+      if(comp[1] === member.name){
         comps.push({
-          name: comp["Competiton Name"],
-          rank: comp.Rank
+          name: comp[2],
+          rank: comp[3]
         })
       }
     }
