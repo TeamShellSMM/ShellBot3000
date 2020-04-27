@@ -234,7 +234,7 @@ async function generateSiteJson(ts,isShellder){
     return json;
 }
 
-async function generateMembersJson(ts,isShellder){
+async function generateMembersJson(ts,isShellder, data){
   const SheetCache = ts.gs.getArrayFormat([
       "Seasons!B",
       "tags",
@@ -244,7 +244,6 @@ async function generateMembersJson(ts,isShellder){
 
   let competiton_winners = SheetCache["Competition Winners"];
   let _points = SheetCache["Points"]
-  let seasons = ts.gs.select("Seasons")
 
   competiton_winners.shift();
 
@@ -255,7 +254,18 @@ async function generateMembersJson(ts,isShellder){
     points[_point[0]] = _point[1];
   }
 
-  let members = await ts.db.Members.query().select().orderBy("clear_score_sum", "desc");
+  let members = [];
+
+  if(data.membershipStatus == "5"){
+    members = await ts.db.Members.query().select().orderBy("clear_score_sum", "desc");
+  } else if(data.membershipStatus == "1"){
+    members = await ts.db.Members.query().select().where("is_member", '=', true).orderBy("clear_score_sum", "desc");
+  } else if(data.membershipStatus == "2"){
+    members = await ts.db.Members.query().select().orderBy("clear_score_sum", "desc");
+    members = members.filter(member => ts.is_mod(member));
+  } else if(data.membershipStatus == "4"){
+    members = await ts.db.Members.query().select().where("is_member", '=', false).orderBy("clear_score_sum", "desc");
+  }
 
   let json = [];
 
@@ -342,7 +352,7 @@ app.post('/json/members',web_ts(async (ts,req)=>{
     var user=await ts.get_user(req.body.discord_id)
   }
 
-  let json = await generateMembersJson(ts,user && ts.is_mod(user))
+  let json = await generateMembersJson(ts,user && ts.is_mod(user), req.body)
   return json;
 }))
 
