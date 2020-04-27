@@ -179,13 +179,12 @@ async function generateSiteJson(ts,isShellder){
     _members=_members.map( m =>{
       return [
         m.name,
-        ts.is_mod(m)?'1':'0',
-        m.is_member||'0',
+        ts.is_mod(m)?1:'',
+        m.is_member?1:'',
         m.maker_id||"",
         m.badges||"",
       ]
     })
-    
 
     let d=new Date()
     let day = d.getDay();
