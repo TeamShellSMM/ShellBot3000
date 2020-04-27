@@ -253,6 +253,8 @@ async function generateMembersJson(ts,isShellder, data){
     points[_point[0]] = _point[1];
   }
 
+  console.log(data);
+
   let members = [];
 
   if(data.membershipStatus == 1){
