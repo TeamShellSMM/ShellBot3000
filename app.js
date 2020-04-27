@@ -253,15 +253,26 @@ async function generateMembersJson(ts,isShellder){
     points[_point[0]] = _point[1];
   }
 
-  let members = await ts.db.Members.query().select();
+  let members = await ts.db.Members.query().select().orderBy("clear_score_sum", "desc");
 
   let json = [];
 
   let memberCounter = 1;
   for(let member of members){
+    let comps = [];
+    for(let comp of competiton_winners){
+      if(comp.Creator === member.name){
+        comps.push({
+          name: comp["Competiton Name"],
+          rank: comp.Rank
+        })
+      }
+    }
+
     let memberObj = {
       "id": memberCounter,
       "name": member.name,
+      "wonComps": comps,
       "levels_created": member.levels_created,
       "levels_cleared": member.levels_cleared,
       "clear_score_sum": member.clear_score_sum
