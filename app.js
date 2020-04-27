@@ -260,6 +260,8 @@ async function generateMembersJson(ts,isShellder){
   for(let member of members){
     let memberArr = [
       member.name,
+      member.levels_created,
+      member.levels_cleared,
       member.clear_score_sum
     ]
 

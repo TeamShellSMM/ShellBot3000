@@ -9,6 +9,8 @@ exports.up = function(knex) {
   })
   .alterTable('members', function(t) {
     t.float('clear_score_sum').notNull().defaultTo(0.0);
+    t.integer('levels_created').notNull().defaultTo(0);
+    t.integer('levels_cleared').notNull().defaultTo(0);
   });;
 };
 
@@ -19,5 +21,7 @@ exports.down = function(knex) {
   })
   .table('members', function(t){
     t.dropColumn('clear_score_sum');
+    t.dropColumn('levels_created');
+    t.dropColumn('levels_cleared');
   });
 };

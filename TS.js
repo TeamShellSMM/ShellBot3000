@@ -88,6 +88,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
         }
       }
 
+      //This whole thing is highly inefficient but I don't wanna think about it right now, it's alright for now
       let members = await ts.db.Members.query().select().where('clear_score_sum', '=', 0.0);
 
       for(let member of members){
@@ -99,6 +100,28 @@ const TS=function(guild_id,config,client){ //loaded after gs
               clear_score_sum: result[0].score_sum
             });
           }
+        }
+      }
+
+      members = await ts.db.Members.query().select().where('levels_created', '=', 0);
+
+      for(let member of members){
+        let result = await ts.db.Plays.query().where('player', '=', member.name).count('id as clear_count');
+        if(result.length > 0 && result[0].clear_count){
+          await ts.db.Members.query().where('name', member.name).update({
+            levels_cleared: result[0].clear_count
+          });
+        }
+      }
+
+      members = await ts.db.Members.query().select().where('levels_cleared', '=', 0);
+
+      for(let member of members){
+        let result = await ts.db.Levels.query().where('creator', '=', member.name).count('id as level_count');
+        if(result.length > 0 && result[0].level_count){
+          await ts.db.Members.query().where('name', member.name).update({
+            levels_created: result[0].level_count
+          });
         }
       }
 
