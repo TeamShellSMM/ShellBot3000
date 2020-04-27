@@ -6,12 +6,18 @@ exports.up = function(knex) {
   })
   .alterTable('levels', function(t) {
     t.float('clear_score').notNull().defaultTo(0.0);
-  });
+  })
+  .alterTable('members', function(t) {
+    t.float('clear_score_sum').notNull().defaultTo(0.0);
+  });;
 };
 
 exports.down = function(knex) {
   return knex.schema.dropTable('points')
   .table('levels', function(t){
     t.dropColumn('clear_score');
+  })
+  .table('members', function(t){
+    t.dropColumn('clear_score_sum');
   });
 };
