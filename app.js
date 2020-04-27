@@ -297,15 +297,15 @@ async function generateMembersJson(ts,isShellder, data){
     let calcedMembers = [];
     let memberCounter = 1;
     for(let member of members){
-      let lCountQueryBuilder = ts.db.Levels.query().where('creator', '=', 'member.name');
+      let lCountQueryBuilder = ts.db.Levels.query().where('creator', '=', member.name);
       if (data.timePeriod == '2') {
         lCountQueryBuilder = lCountQueryBuilder.whereRaw("strftime('%m-%Y', created_at) = strftime('%m-%Y', CURRENT_TIMESTAMP)")
-      } else if (data.timePeriod == '2') {
+      } else if (data.timePeriod == '3') {
         lCountQueryBuilder = lCountQueryBuilder.whereRaw("strftime('%W-%Y', created_at) = strftime('%W-%Y', CURRENT_TIMESTAMP)");
-      } else if (data.timePeriod == '2') {
+      } else if (data.timePeriod == '4') {
         lCountQueryBuilder = lCountQueryBuilder.whereRaw("strftime('%j-%Y', created_at) = strftime('%j-%Y', CURRENT_TIMESTAMP)");
       }
-      let lCountResult = await lCountQueryBuilder.count('id as count_created');;
+      let lCountResult = await lCountQueryBuilder.count('id as count_created');
       let createdCount = 0;
       if(lCountResult.length > 0 && lCountResult[0].count_created){
         createdCount = lCountResult[0].count_created;
@@ -314,7 +314,7 @@ async function generateMembersJson(ts,isShellder, data){
       // strftime('%m-%Y', created_at)
       // strftime('%m-%Y', CURRENT_TIMESTAMP)
 
-      let cCountResult = await ts.db.Plays.query().where('player', '=', 'member.name').where('completed', '=', '1').count('id as count_cleared');
+      let cCountResult = await ts.db.Plays.query().where('player', '=', member.name).where('completed', '=', '1').count('id as count_cleared');
       let clearedCount = 0;
       if(cCountResult.length > 0 && cCountResult[0].count_cleared){
         clearedCount = cCountResult[0].count_cleared;
