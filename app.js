@@ -130,11 +130,9 @@ async function generateSiteJson(ts,isShellder){
     let _playedLevels = await ts.db.Plays.query();
 
 
-    //for(let i=0;i<_playedLevels.length;i++){ //fix old dates
-    //  _playedLevels[i].created_at=typeof _playedLevels[i].created_at ==="string" ?
-     // (new Date(_playedLevels[i].created_at.replace(/-/g,"/"))).getTime()/1000:
-     // _playedLevels[i].created_at;
-    //}
+    for(let i=0;i<_playedLevels.length;i++){ //fix old dates
+      _playedLevels[i].created_at=(new Date(_playedLevels[i].created_at.replace(/-/g,"/"))).getTime()/1000;
+    }
 
     let _rawLevels = await ts.db.Levels.query().select().whereIn('status',[
       ts.LEVEL_STATUS.PENDING,
@@ -142,6 +140,7 @@ async function generateSiteJson(ts,isShellder){
       ts.LEVEL_STATUS.REUPLOADED,
       ts.LEVEL_STATUS.NEED_FIX,
     ])
+    
     let rawLevels=[];
     let reuploaded=[]
     let pending=[]

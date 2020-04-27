@@ -105,7 +105,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
   }
 
   this.is_mod=function(player){
-    return ts.mods && player && ts.mods.indexOf(player.discord_id)!==-1;
+    return player && ts.mods.indexOf(player.discord_id)!==-1;
     
     
   }
