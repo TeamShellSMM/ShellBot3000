@@ -2,12 +2,12 @@ const { Model,QueryBuilder } = require('objection');
 const knex = require('./db/knex')
 Model.knex(knex)
 
-module.exports = (guild_id) => { 
+module.exports = (guild_id,table_name) => {
   class TSQueryBuilder extends QueryBuilder {
     constructor(...args) {
       super(...args);
       this.onBuild(builder => {
-        builder.where('guild_id',guild_id);
+        builder.where(table_name + '.guild_id',guild_id);
       });
     }
   }
@@ -20,5 +20,5 @@ module.exports = (guild_id) => {
 
   }
   TSModel.QueryBuilder = TSQueryBuilder
-  return TSModel; 
+  return TSModel;
 }
