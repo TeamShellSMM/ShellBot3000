@@ -382,6 +382,10 @@ async function generateMembersJson(ts,isShellder, data){
       }
       return 0;
     });
+
+    for(let obj of json){
+      obj.id = memberCounter++;
+    }
   }
 
   return json;
