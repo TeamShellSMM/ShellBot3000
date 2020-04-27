@@ -253,22 +253,18 @@ async function generateMembersJson(ts,isShellder, data){
     points[_point[0]] = _point[1];
   }
 
-  console.log(data);
-
   let members = [];
 
-  if(data.membershipStatus == 1){
-    members = await ts.db.Members.query().select().where("is_member", '=', true).orderBy("clear_score_sum", "desc");
-  } else if(data.membershipStatus == 2){
+  if(data.membershipStatus == '1'){
+    members = await ts.db.Members.query().select().where("is_member", '=', 1).orderBy("clear_score_sum", "desc");
+  } else if(data.membershipStatus == '2'){
     members = await ts.db.Members.query().select().orderBy("clear_score_sum", "desc");
     members = members.filter(member => ts.is_mod(member));
-  } else if(data.membershipStatus == 4){
-    members = await ts.db.Members.query().select().where("is_member", '=', false).orderBy("clear_score_sum", "desc");
+  } else if(data.membershipStatus == '4'){
+    members = await ts.db.Members.query().select().where("is_member", '=', 0).orderBy("clear_score_sum", "desc");
   } else {
     members = await ts.db.Members.query().select().orderBy("clear_score_sum", "desc");
   }
-
-  console.log(members.length);
 
   let json = [];
 
