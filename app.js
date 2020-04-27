@@ -326,7 +326,7 @@ async function generateMembersJson(ts,isShellder, data){
       } else if (data.timePeriod2 == '4') {
         cCountQueryBuilder = cCountQueryBuilder.whereRaw("strftime('%j-%Y', plays.created_at) = strftime('%j-%Y', CURRENT_TIMESTAMP)");
       }
-      let cCountResult = await cCountQueryBuilder.count('id as count_cleared');
+      let cCountResult = await cCountQueryBuilder.count('plays.id as count_cleared');
       let clearedCount = 0;
       if(cCountResult.length > 0 && cCountResult[0].count_cleared){
         clearedCount = cCountResult[0].count_cleared;
