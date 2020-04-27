@@ -255,6 +255,8 @@ async function generateMembersJson(ts,isShellder, data){
 
   let members = [];
 
+  console.log(data);
+
   if(data.membershipStatus == 1){
     members = await ts.db.Members.query().select().where("is_member", '=', true).orderBy("clear_score_sum", "desc");
   } else if(data.membershipStatus == 2){
