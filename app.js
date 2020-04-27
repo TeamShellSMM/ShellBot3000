@@ -275,7 +275,7 @@ async function generateMembersJson(ts,isShellder){
     let sumPoints = 0.0;
 
     for(let play of plays){
-      sumPoints += parseFloat(points[play.difficulty]);
+      sumPoints += play.difficulty;
     }
 
     let memberArr = [
