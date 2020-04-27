@@ -253,24 +253,32 @@ async function generateMembersJson(ts,isShellder){
     points[_point[0]] = _point[1];
   }
 
+  console.log("--- members query start ---", new Date());
   let members = await ts.db.Members.query().select();
+  console.log("--- members query end ---", new Date());
 
   let json = [];
 
   for(let member of members){
+    console.log("--- level count query start ---", new Date());
     let levelCount = await ts.db.Levels.query().select().whereIn('status',[
       ts.LEVEL_STATUS.APPROVED,
       ts.LEVEL_STATUS.REUPLOADED,
       ts.LEVEL_STATUS.PENDING,
     ]).where('creator', '=', member.name)
     .count('id as id_count');
+    console.log("--- level count query end ---", new Date());
 
+    console.log("--- play count query start ---", new Date());
     let playCount = await ts.db.Plays.query().select().where('player', '=', member.name).count('id as id_count');
+    console.log("--- play count query end ---", new Date());
 
+    console.log("--- plays query start ---", new Date());
     let plays = await ts.db.Plays.query().select().where('player', '=', member.name).join('levels', 'plays.code', '=', 'levels.code').whereIn('status',[
       ts.LEVEL_STATUS.APPROVED,
       ts.LEVEL_STATUS.REUPLOADED
     ]).select('levels.difficulty');
+    console.log("--- plays query end ---", new Date());
 
     let sumPoints = 0.0;
 
