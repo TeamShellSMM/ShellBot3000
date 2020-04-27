@@ -16,11 +16,8 @@ class ReloadData extends TSCommand {
         if(config.devs && config.devs.indexOf(message.author.id)!==-1){
             return true;
         }
-        let player=await ts.db.Members.query()
-            .where({discord_id:message.author.id})
-            .where({is_mod:1})
-            .first()
-        if(player){
+        
+        if(ts.is_mod({discord_id:message.author.id})){
             return true
         }
         

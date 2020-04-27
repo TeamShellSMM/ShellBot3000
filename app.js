@@ -178,7 +178,7 @@ async function generateSiteJson(ts,isShellder){
     _members=_members.map( m =>{
       return [
         m.Name,
-        m.is_mod||'0',
+        ts.is_mod(m)?'1':'0',
         m.is_member||'0',
         m.maker_id||"",
         m.badges||"",
@@ -281,7 +281,7 @@ app.post('/json',web_ts(async (ts,req)=>{
       var user=await ts.get_user(req.body.discord_id)
     }
     
-    let json = await generateSiteJson(ts,user?user.is_mod:false)
+    let json = await generateSiteJson(ts,ts.is_mod(user))
     return json;
 }))
 
@@ -303,7 +303,7 @@ app.post('/approve',web_ts(async (ts,req)=>{
   req.body.discord_id=await ts.checkBearerToken(req.body.token)
   let user=await ts.get_user(req.body.discord_id)
 
-  if(user.is_mod!='1') ts.userError("Forbidden");
+  if(ts.is_mod(user)) ts.userError("Forbidden");
 
   req.body.reason=req.body.comment
 

@@ -24,7 +24,7 @@ class TSRename extends TSCommand {
       const player=await ts.get_user(message);
       var level=await ts.getExistingLevel(code)
 
-      if(!(level.creator==player.name || player.is_mod=='1'))
+      if(!(level.creator==player.name || ts.is_mod(player)))
         ts.userError("You can't rename \""+level.level_name+"\" by "+level.creator);
 
       if(level.level_name==level_name)

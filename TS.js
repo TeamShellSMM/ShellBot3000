@@ -8,7 +8,7 @@ const GS=require("./GS.js");
 const TS=function(guild_id,config,client){ //loaded after gs
   const ts=this;
   this.client=client;
-  this.gs=new GS(config);
+  this.gs=new GS({...server_config,...config});
   this.db={
     Tokens:require('./models/Tokens'),
     Plays:require('./models/Plays')(guild_id),
@@ -31,6 +31,9 @@ const TS=function(guild_id,config,client){ //loaded after gs
     ts.gs.clearCache();
     let guild=await ts.getGuild()
 
+    await guild.fetchMembers(); //just load up all members
+
+    //member.roles.some(role => role.id === role_id))
     
     const defaultVars = {
       customStrings:{ //defaults
@@ -89,12 +92,20 @@ const TS=function(guild_id,config,client){ //loaded after gs
       this.ranks=ts.gs.select("Ranks");
       this.rank_ids=this.ranks.map((r)=>r.discord_roles) 
 
+      if(this.teamVariables.ModName){
+        ts.mods=guild.members
+          .filter((m)=> m.roles.some(role=> role.name==this.teamVariables.ModName))
+          .map((m)=> m.user.id)
+      } else {
+        ts.mods=[guild.owner.user.id]
+      }
+
       
-
-
-    
-
       console.log(`Data loaded for ${this.teamVariables.TeamName}`)
+  }
+
+  this.is_mod=function(player){
+    return ts.mods.indexOf(player.discord_id)!==-1;
   }
 
   this.getDiscordMember=function(discord_id){
@@ -297,7 +308,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
         ts.userError(ts.message("clear.invalidDifficulty"));
       }
       
-      if(!args.discord_id) ts.userError(ts.message("clear.discordId"));
+      if(!args.discord_id) ts.userError(ts.message("error.noDiscordId"));
 
       const player=await ts.get_user(args.discord_id);
       var level=await ts.getExistingLevel(args.code);
@@ -347,7 +358,6 @@ const TS=function(guild_id,config,client){ //loaded after gs
           code:args.code,
           player:player.name,
           completed: args.completed?1:0,
-          is_shellder:player.is_mod||0,
           liked:args.like?1:0,
           difficulty_vote:args.difficulty==='0' ? null:args.difficulty
         });
@@ -673,8 +683,8 @@ const TS=function(guild_id,config,client){ //loaded after gs
 
   this.get_user= async function(message){
     var discord_id=typeof message=="string"?message:message.author.id
+    if(!discord_id) ts.userError(ts.message('error.noDiscordId'));
     var player=await ts.db.Members.query().where({ discord_id }).first()
-
 
     if(!player)
       ts.userError(ts.message("error.notRegistered"));
@@ -964,14 +974,20 @@ const TS=function(guild_id,config,client){ //loaded after gs
             .where({name:author.name})
 
           if(author.discord_id){
-            var curr_user=await guild.members.get(author.discord_id)
+            /*
+            try{
+              var curr_user=await guild.members.get(author.discord_id)
+            } catch (error){
+              throw "Can't find ${author.discord_id} in guild"
+            }
             if(curr_user){ //assign role
               await curr_user.addRole(ts.teamVariables.memberRoleId)
                 await client.channels.get(ts.channels.initiateChannel).send(ts.message("initiation.message",{discord_id:author.discord_id}))
             } else {
               console_error(ts.message("initiation.userNotInDiscord",{name:author.name})) //not a breaking error.
             }
-          }
+            */
+          } 
         }
 
         //Build Status Message
@@ -1201,7 +1217,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
       ts.userError(ts.message("reupload.haveReuploaded",{code:level.new_code}));
 
     //only creator and shellder can reupload a level
-    if(!(level.creator==player.name || player.is_mod=='1')){
+    if(!(level.creator==player.name || ts.is_mod(player))){
       ts.userError(ts.message("reupload.noPermission", {level}));
     }
 
@@ -1357,24 +1373,30 @@ const TS=function(guild_id,config,client){ //loaded after gs
   }
 
   this.calculatePoints= async function(user,if_remove_check){ //delta check is to see if we can add a level if we remove it
-    var currentLevels = await ts.db.Levels.query().select();
-    var levelMap={};
-    var ownLevels=[];
-    var freeSubmissions=0;
-    var reuploads={};
+    let currentLevels = await ts.db.Levels.query().select();
+    let levelMap={};
+    let ownLevels=[];
+    let freeSubmissions=0;
+    let reuploads={};
+    let ownLevelPoints=0;
+
+    //get all the levels the player has played
+    //if can play own level, the levels player has uploaded
+    //get all the levels the player has made, and free submision
     for (let row = currentLevels.length-1; row >=0 ; row--) {
       let level=currentLevels[row];
-      if(level.status==ts.LEVEL_STATUS.APPROVED){
-        if(level.creator==user){
+      if(level.status == ts.LEVEL_STATUS.APPROVED){
+        if(level.creator == user){
+
+          
           ownLevels.push(level.code)
-          if(level.is_free_submission){
-            freeSubmissions++;
-          }
-          if(ts.teamVariables.includeOwnPoints==="yes"){
-            levelMap[level.code]=this.pointMap[parseFloat(level.difficulty)];
-          }
+          //count free submissions
+          if(level.is_free_submission) freeSubmissions++;
+
+          //only most recent levels get tallied up for own levels points
+          ownLevelPoints+=this.pointMap[parseFloat(level.difficulty)];
         } else {
-          levelMap[level.code]=this.pointMap[parseFloat(level.difficulty)];
+            levelMap[level.code]=this.pointMap[parseFloat(level.difficulty)];
         }
       } else if(level.status=="2") { //reupload
         if(level.creator==user){
@@ -1388,22 +1410,30 @@ const TS=function(guild_id,config,client){ //loaded after gs
       } else if( level.status==ts.LEVEL_STATUS.PENDING && level.creator==user){
         ownLevels.push(level.code)
       }
-
     }
 
     var playedLevels = await ts.db.Plays.query()
       .where('player', '=', user)
       .where('completed', '=', '1');
 
+
+    // this takes all the played levels and compare with reuploads. 
+    // we only take the maximum point from a reupload
     var userCleared={};
     for (var row = 0; playedLevels && row < playedLevels.length; row++){
         var id= reuploads[playedLevels[row].code] ? reuploads[playedLevels[row].code] : playedLevels[row].code
         userCleared[id]= Math.max( userCleared[id]?userCleared[id]:0, levelMap[playedLevels[row].code] )
     }
 
+
+    //tally up the points
     var clearPoints=0;
     for(var id in userCleared){
       if(userCleared[id]) clearPoints+=userCleared[id]
+    }
+
+    if(ts.teamVariables.includeOwnPoints){
+      clearPoints+=ownLevelPoints
     }
 
 

@@ -14,7 +14,7 @@ module.exports={
 
  
 
- 'clear.discordId':'We couldn\'t find your `discord id',
+ 'error.noDiscordId':'We couldn\'t find your `discord id',
  'clear.invalidDifficulty':'You did not provide a valid difficulty vote', //✅
  'clear.ownLevel':'You can\'t submit a clear for your own level', //✅
  'clear.removedClear':'You have removed your clear for {{{levelInfo}}}', //✅
@@ -98,6 +98,8 @@ module.exports={
  'pending.refuseDescription':'Refused by: Please check the fixvotes and decide if this is still acceptable to approve or not (use **!fixapprove** or **!fixreject** with a message).',
  'pending.fixReuploadDescription':'Please check if the mandatory fixes where made and make your decision (use **!fixapprove** or **!fixreject** with a message).',
 
+ 'removeLevel.cant':'You can\'t remove videos from  "{{{level_name}}}" by {{{creator}}}',
+ 'removeLevel.success':'You have removed "{{{level_name}}}" by {{{creator}}} {{{buzzyS}}}',
  'error.notApproved':'Level is not approved',
  'error.userBanned':'You have been barred from using this service',
  'error.notRegistered':'You are not yet registered',

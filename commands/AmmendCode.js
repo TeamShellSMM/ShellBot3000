@@ -23,10 +23,7 @@ class AmmendCode extends TSCommand {
     if(config.devs && config.devs.indexOf(message.author.id)!==-1){
       return true;
     }
-    if(await ts.db.Members.query()
-    .where({discord_id:message.author.id})
-    .where({is_mod:1})
-    .first()){
+    if(ts.is_mod({discord_id:message.author.id})){
         return true
     }
     

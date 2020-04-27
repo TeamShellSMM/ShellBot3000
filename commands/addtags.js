@@ -64,7 +64,7 @@ class TSAddtags extends TSCommand {
 
           new_tags=[]
           filteredTags.forEach((tag)=>{
-            if(locked_tags.indexOf(tag)!=-1 && player.is_mod!='1')
+            if(locked_tags.indexOf(tag)!=-1 && ts.is_mod(player))
               ts.userError(ts.message("tags.cantAdd",{tag}))
             if(old_tags.indexOf(tag)==-1){
               new_tags.push(tag)
@@ -75,7 +75,7 @@ class TSAddtags extends TSCommand {
           old_tags=old_tags.concat(new_tags)
           var reply="Tags added for  \""+level.level_name+"\" ("+code+")"+ts.emotes.bam+"\nCurrent tags:```\n"+old_tags.join("\n")+"```"
         } else { // removing
-          if(!(level.creator==player.name || player.is_mod=='1'))
+          if(!(level.creator==player.name || ts.is_mod(player)))
             ts.userError("You can't remove tags from  \""+level.level_name+"\" by "+level.creator);
 
           let locked_tags=[]
@@ -89,7 +89,7 @@ class TSAddtags extends TSCommand {
           new_tags=[]
           let notRemoved=true
           old_tags.forEach((tag)=>{
-            if(locked_tags.indexOf(tag)!=-1 && player.is_mod!='1')
+            if(locked_tags.indexOf(tag)!=-1 && !ts.is_mod(player))
               ts.userError("You can't remove the tag \""+tag+"\"")
             if(filteredTags.indexOf(tag)==-1){
               new_tags.push(tag)

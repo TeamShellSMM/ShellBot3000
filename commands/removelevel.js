@@ -27,12 +27,12 @@ class tsremove extends TSCommand {
           ts.userError("\""+level.level_name+"\" by "+level.creator+" has already been removed");
 
         //only creator and shellder can reupload a level
-        if(!(level.creator==player.name || player.is_mod=='1'))
-          ts.userError("You can't remove \""+level.level_name+"\" by "+level.creator);
+        if(!(level.creator==player.name || ts.is_mod(player)))
+          ts.userError(ts.message('removeLevel.cant',level))
 
         //tsremove run by shellders and not their own levels get -2
         const approvedStr=level.status= ts.LEVEL_STATUS.APPROVED? ts.LEVEL_STATUS.REUPLOADED: (
-          level.creator!=player.name && player.is_mod=='1'? ts.LEVEL_STATUS.REMOVED : ts.LEVEL_STATUS.REJECTED); 
+          level.creator!=player.name && ts.is_mod(player)? ts.LEVEL_STATUS.REMOVED : ts.LEVEL_STATUS.REJECTED); 
         
         await ts.db.Levels.query()
           .patch({status:approvedStr})
@@ -59,7 +59,7 @@ class tsremove extends TSCommand {
 
         await ts.deleteDiscussionChannel(level.code,"Level has been removed via !tsremove")
 
-        var reply="You have removed \""+level.level_name+"\" by "+level.creator+" "+(ts.emotes.buzzyS ? ts.emotes.buzzyS : "")
+        var reply=ts.message('removeLevel.success',level)
         await this.client.channels.get(ts.channels.levelChangeNotification).send(removeEmbed);
         await message.channel.send(player.user_reply+reply)
     }
