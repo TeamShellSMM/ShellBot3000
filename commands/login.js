@@ -10,7 +10,6 @@ class login extends TSCommand {
     }
 
     async tsexec(ts,message,args) {
-      await ts.gs.loadSheets(["Raw Members","Raw Levels"]);
       const player=await ts.get_user(message);
       let otp=await ts.generateOtp(message.author.id)
       let login_link=config.page_url + ts.config.url_slug + "/login/"+otp;

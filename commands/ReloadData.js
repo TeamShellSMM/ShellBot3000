@@ -9,15 +9,15 @@ class ReloadData extends TSCommand {
         });
     }
 
-    canRun(ts,message){
+    async canRun(ts,message){
         if(config.ownerID && config.ownerID.indexOf(message.author.id)!==-1){
             return true;
         }
         if(config.devs && config.devs.indexOf(message.author.id)!==-1){
             return true;
         }
-        const player=ts.gs.select("Raw Members",{"discord_id":message.author.id,"shelder":"1"})
-        if(player.length>0){
+        
+        if(ts.is_mod({discord_id:message.author.id})){
             return true
         }
         
@@ -26,10 +26,6 @@ class ReloadData extends TSCommand {
     
 
     async tsexec(ts,message, args){
-        
-        if(!this.canRun(ts,message)){
-            return false;
-        }
 
         await ts.load()
         return message.reply(`Reloaded data!`);

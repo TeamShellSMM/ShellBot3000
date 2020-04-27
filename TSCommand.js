@@ -9,11 +9,15 @@ class TSCommand extends Command {
         DEFAULTMESSAGES=Object.assign(DEFAULTMESSAGES,obj)
     }
 
-    canRun(ts,message){
+    async canRun(ts,message){
         return true
     }
 
     async exec(message,args) {
+        if(process.argv[2]==='--test' && typeof global.TESTREPLY === "function" ){
+            message.reply=global.TESTREPLY
+            message.channel.send=global.TESTREPLY
+        }
         let ts;
         try {
             ts=get_ts(message.guild.id)
@@ -22,7 +26,7 @@ class TSCommand extends Command {
             throw error;
         }
         
-        if(!this.canRun(ts,message)){
+        if(!await this.canRun(ts,message)){
             console_error(ts.makeErrorObj(`can't run: ${message.content}`,message))
             return false;
         }
@@ -34,6 +38,7 @@ class TSCommand extends Command {
         } catch(error){
             message.reply(ts.getUserErrorMsg(error,message))
         }
+        
     }
 }
 module.exports = TSCommand;

@@ -8,44 +8,38 @@ class tsremove extends TSCommand {
         });
     }
 
-    async tsexec(ts,message,args) {
-        var command=ts.parse_command(message)
+    async tsexec(ts,message,{command}) {
 
-        var level_code=command.arguments.shift().toUpperCase();
+        var code=command.arguments.shift();
+        if(!code) ts.userError(ts.message('error.noCode'))
+        code=code.toUpperCase()
         var reason=command.arguments.join(" ")
 
-        if(!ts.valid_code(level_code))
-          ts.userError("You did not provide a valid code for the level")
-
         if(!reason)
-          ts.userError("You did not provide a reason to remove this level. If you want to reupload, we recommend using the `!reupload` command. If you want to remove it now and reupload it later make sure __you don't lose the old code__")
+          ts.userError(ts.userError(ts.message('removeLevel.noReason')))
 
-
-        await ts.gs.loadSheets(["Raw Members","Raw Levels"]); //when everything goes through shellbot 3000 we can do cache invalidation stuff
         const player=await ts.get_user(message);
-        var level=ts.getExistingLevel(level_code)
+        var level=await ts.getExistingLevel(code,true)
 
-        if(level.Approved!="0" && level.Approved!="1")
-          ts.userError("\""+level["Level Name"]+"\" by "+level.Creator+" has already been removed");
+        if(level.status!= ts.LEVEL_STATUS.PENDING && level.status!=ts.LEVEL_STATUS.APPROVED)
+          ts.userError(ts.message('removeLevel.alreadyRemoved',level));
 
         //only creator and shellder can reupload a level
-        if(!(level.Creator==player.Name || player.shelder=="1"))
-          ts.userError("You can't remove \""+level["Level Name"]+"\" by "+level.Creator);
+        if(!(level.creator==player.name || ts.is_mod(player)))
+          ts.userError(ts.message('removeLevel.cant',level))
 
-        const approvedStr=level.Approved=="1"?2: (level.Creator!=player.Name && player.shelder=="1"?-2:-1); //tsremove run by shellders and not their own levels get -2
-        level=ts.gs.query("Raw Levels",{
-          filter:{"Code":level_code},
-          update:{"Approved":approvedStr},
-        })
+        //tsremove run by shellders and not their own levels get -2
+        const approvedStr=level.status= ts.LEVEL_STATUS.APPROVED? ts.LEVEL_STATUS.REUPLOADED: (
+          level.creator!=player.name && ts.is_mod(player)? ts.LEVEL_STATUS.REMOVED : ts.LEVEL_STATUS.REJECTED); 
+        
+        await ts.db.Levels.query()
+          .patch({status:approvedStr})
+          .where({code})
 
-
-        //combine all the updates into one array to be passed to gs.batchUpdate
-        var batch_updates=level.update_ranges
-        await ts.gs.batchUpdate(batch_updates)
 
         var removeEmbed=ts.levelEmbed(level,1)
             .setColor("#dc3545")
-            .setAuthor("This level has been removed by "+player.Name);
+            .setAuthor("This level has been removed by "+player.name);
 
         if(ts.emotes.buzzyS){
           removeEmbed.setThumbnail(ts.getEmoteUrl(ts.emotes.buzzyS));
@@ -55,15 +49,15 @@ class tsremove extends TSCommand {
         removeEmbed = removeEmbed.setTimestamp();
         //Send updates to to #shellbot-level-update
 
-        if(level.Creator!=player.Name){ //moderation
-          const creator=ts.gs.selectOne("Raw Members",{"Name":level.Creator})
+        if(level.creator!=player.name){ //moderation
+          const creator=await ts.db.Members.query().where({name:level.creator}).first()
           var mention = "**<@" + creator.discord_id + ">, we got some news for you: **";
           await this.client.channels.get(ts.channels.levelChangeNotification).send(mention);
         }
 
-        await ts.deleteDiscussionChannel(level.Code,"Level has been removed via !tsremove")
+        await ts.deleteDiscussionChannel(level.code,"Level has been removed via !tsremove")
 
-        var reply="You have removed \""+level["Level Name"]+"\" by "+level.Creator+" "+(ts.emotes.buzzyS ? ts.emotes.buzzyS : "")
+        var reply=ts.message('removeLevel.success',level)
         await this.client.channels.get(ts.channels.levelChangeNotification).send(removeEmbed);
         await message.channel.send(player.user_reply+reply)
     }

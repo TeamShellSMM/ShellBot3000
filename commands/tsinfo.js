@@ -14,9 +14,8 @@ class tsinfo extends TSCommand {
 
     async tsexec(ts,message,args) {
       args.code=args.code.toUpperCase();
-      await ts.gs.loadSheets(["Raw Members","Raw Levels"]);
       const player=await ts.get_user(message);
-      var level=ts.getExistingLevel(args.code)
+      var level=await ts.getExistingLevel(args.code)
 
       var randomEmbed=ts.levelEmbed(level)
 

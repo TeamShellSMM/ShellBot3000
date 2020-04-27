@@ -12,13 +12,14 @@ class housekeep extends TSCommand {
         await ts.load()
         let guild=ts.getGuild();
         let housekept=0;
-        await guild.channels.forEach(async (channel)=>{
+        for(let i=0;i<guild.channels.length;i++){
+            let channel=guild.channels[i]
             if(channel.parentID==ts.channels.levelDiscussionCategory){
-                const levelCode=channel.name.toUpperCase()
+                const code=channel.name.toUpperCase()
                 let deleteLevel=false,reason="";
-                let currentLevel=ts.gs.selectOne("Raw Levels",{Code:levelCode})
+                let currentLevel=await ts.db.Levels.query().where({code})
                 if(currentLevel){
-                    if(currentLevel.Approved!=="0"){
+                    if(currentLevel.status!==ts.LEVEL_STATUS.PENDING){
                         deleteLevel=true
                         reason="Level not pending anymore"
                     }
@@ -27,12 +28,12 @@ class housekeep extends TSCommand {
                     reason="No level found in list"
                 }
                 if(deleteLevel){
-                    await ts.deleteDiscussionChannel(levelCode,reason)
+                    await ts.deleteDiscussionChannel(code,reason)
                     housekept++
                 }
             }
-        });
-        message.reply("Housekeeping done "+(ts.emotes.robo ? ts.emotes.robo : ""))
+        };
+        message.reply("Housekeeping done")
     }
 }
 

@@ -13,34 +13,31 @@ class tsadd extends TSCommand {
       if(code)
         code=code.toUpperCase()
 
-      if(!ts.valid_code(code))
-        ts.userError(ts.message("error.invalidCode"))
+      if(!code) ts.userError(ts.message('error.noCode'));
+      if(!ts.valid_code(code)) ts.userError(ts.message("error.invalidCode"));
 
       const level_name=command.arguments.join(" ")
 
       if(!level_name)
         ts.userError(ts.message("add.noName"))
 
-      await ts.gs.loadSheets(["Raw Members","Raw Levels"]);
       const player=await ts.get_user(message);
-      var existing_level=ts.gs.selectOne("Raw Levels",{"Code":code})
+      var existing_level=await ts.db.Levels.query().where({ code }).first()
 
-      if(existing_level)
-        ts.userError(ts.message("add.levelExisting",{level:existing_level}));
+      if(existing_level) ts.userError(ts.message("add.levelExisting",{level:existing_level}));
 
       if(player.earned_points.available.toFixed(1)<0)
         ts.userError(ts.message("points.cantUpload",{points_needed:Math.abs(player.earned_points.available).toFixed(1)}));
 
-      await ts.gs.insert("Raw Levels",{
-        Code:code,
-        "Level Name":level_name,
-        Creator:player.Name,
-        Difficulty:0,
-        Approved:0
+      await ts.db.Levels.query().insert({
+        code,
+        level_name,
+        creator:player.name,
+        difficulty:0,
+        status:0
       })
 
-      var reply=ts.message("add.success",{level_name,code})
-      message.channel.send(player.user_reply+reply)
+      message.channel.send(player.user_reply+ts.message("add.success",{level_name,code}))
     }
 }
 module.exports = tsadd;

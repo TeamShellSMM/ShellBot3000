@@ -26,16 +26,15 @@ class TSAddtags extends TSCommand {
           ts.userError(ts.message("tags.noTags"))
         new_tags=new_tags.split(/[,\n]/)
 
-        await ts.gs.loadSheets(["Raw Members","Raw Levels"]);
-
-
         const player=await ts.get_user(message);
-        var level=ts.getExistingLevel(code)
+        var level=await ts.getExistingLevel(code)
         //First we get all available tags
         var all_tags = [];
-        ts.gs.select("Raw Levels").forEach((level)=>{
-          if(level.Tags){
-            level.Tags.split(",").forEach((tag)=>{
+        let _levels=await ts.db.Levels.query().select()
+        
+        _levels.forEach((level)=>{
+          if(level.tags){
+            level.tags.split(",").forEach((tag)=>{
               if(all_tags.indexOf(tag)===-1)
                   all_tags.push(tag);
             })
@@ -52,7 +51,7 @@ class TSAddtags extends TSCommand {
         })
       }
         let filteredTags=new_tags
-        let old_tags=level.Tags?level.Tags.split(","):[]
+        let old_tags=level.tags?level.tags.split(","):[]
 
 
         if(addCommands.indexOf(command.command)!=-1){ //adding
@@ -65,19 +64,19 @@ class TSAddtags extends TSCommand {
 
           new_tags=[]
           filteredTags.forEach((tag)=>{
-            if(locked_tags.indexOf(tag)!=-1 && player.shelder!="1")
+            if(locked_tags.indexOf(tag)!=-1 && ts.is_mod(player))
               ts.userError(ts.message("tags.cantAdd",{tag}))
             if(old_tags.indexOf(tag)==-1){
               new_tags.push(tag)
             }
           })
           if(new_tags.length==0)
-            ts.userError("No new tags added for \""+level["Level Name"]+"\" by "+level.Creator+"\nCurrent tags:```\n"+old_tags.join("\n")+"```")
+            ts.userError("No new tags added for \""+level.level_name+"\" by "+level.creator+"\nCurrent tags:```\n"+old_tags.join("\n")+"```")
           old_tags=old_tags.concat(new_tags)
-          var reply="Tags added for  \""+level["Level Name"]+"\" ("+code+")"+ts.emotes.bam+"\nCurrent tags:```\n"+old_tags.join("\n")+"```"
+          var reply="Tags added for  \""+level.level_name+"\" ("+code+")"+ts.emotes.bam+"\nCurrent tags:```\n"+old_tags.join("\n")+"```"
         } else { // removing
-          if(!(level.Creator==player.Name || player.shelder=="1"))
-            ts.userError("You can't remove tags from  \""+level["Level Name"]+"\" by "+level.Creator);
+          if(!(level.creator==player.name || ts.is_mod(player)))
+            ts.userError("You can't remove tags from  \""+level.level_name+"\" by "+level.creator);
 
           let locked_tags=[]
           ts.gs.select("tags").forEach((tag)=>{
@@ -90,7 +89,7 @@ class TSAddtags extends TSCommand {
           new_tags=[]
           let notRemoved=true
           old_tags.forEach((tag)=>{
-            if(locked_tags.indexOf(tag)!=-1 && player.shelder!="1")
+            if(locked_tags.indexOf(tag)!=-1 && !ts.is_mod(player))
               ts.userError("You can't remove the tag \""+tag+"\"")
             if(filteredTags.indexOf(tag)==-1){
               new_tags.push(tag)
@@ -99,18 +98,15 @@ class TSAddtags extends TSCommand {
             }
           })
           if(notRemoved)
-            ts.userError("No tags have been removed for \""+level["Level Name"]+"\" ("+code+")\nCurrent Tags:```\n"+old_tags.join("\n")+"```")
+            ts.userError("No tags have been removed for \""+level.level_name+"\" ("+code+")\nCurrent Tags:```\n"+old_tags.join("\n")+"```")
           old_tags=new_tags
-          var reply="Tags removed for  \""+level["Level Name"]+"\" ("+code+")"+(ts.emotes.bam ? ts.emotes.bam : "")+"\nCurrent tags:```\n"+old_tags.join("\n")+"```"
+          var reply="Tags removed for  \""+level.level_name+"\" ("+code+")"+(ts.emotes.bam ? ts.emotes.bam : "")+"\nCurrent tags:```\n"+old_tags.join("\n")+"```"
         }
 
+        await ts.db.Levels.query()
+          .patch({tags:old_tags.join(',')})
+          .where({code})
 
-        level=ts.gs.query("Raw Levels",{
-          filter:{"Code":code},
-          update:{"Tags":old_tags.join(",")},
-        })
-
-        await ts.gs.batchUpdate(level.update_ranges)
         message.channel.send(player.user_reply+reply)
     }
 }

@@ -17,56 +17,53 @@ class RenameMember extends TSCommand {
         });
     }
 
-    canRun(ts,message){
+    async canRun(ts,message){
         if(config.ownerID && config.ownerID.indexOf(message.author.id)!==-1){
             return true;
         }
         if(config.devs && config.devs.indexOf(message.author.id)!==-1){
             return true;
         }
-        const player=ts.gs.select("Raw Members",{"discord_id":message.author.id,"shelder":"1"})
-        if(player.length>0){
+        
+        if(ts.is_mod({discord_id:message.author.id})){
             return true
         }
-        
+
         return false;
     }
 
-    async tsexec(ts,message, args) {
-        if(!this.canRun(ts,message)){
-            return false;
+    async tsexec(ts,message,{ discord_id,new_name }) {
+
+        await ts.gs.loadSheets(["Competition Winners"]);
+        if(await ts.db.Members.query().whereRaw('lower(name) = ?',[new_name]).first()){
+            ts.userError(`There is already another member with name "${new_name}"`)
         }
 
-        await ts.gs.loadSheets(["Raw Members","Raw Levels","Competition Winners"]);
-        if(ts.gs.selectOne("Raw Members",{"Name":args.new_name})){
-            ts.userError("There is already another member with name \""+args.new_name+"\"")
-        }
+        let existing_member=await ts.db.Members.query().where({ discord_id }).first()
+        if(!existing_member)
+            ts.userError('No member found with that discord_id');
+        let old_name=existing_member.name
 
-        let member_update=ts.gs.query("Raw Members", {
-            filter: {"discord_id":args.discord_id},
-            update: {"Name":args.new_name}
-        });
-        if(!member_update)
-            ts.userError("No member found with that discord_id");
+        await ts.db.Members.query()
+          .patch({name:new_name})
+          .where({discord_id})
 
-        let updates=member_update.update_ranges;
+        await ts.db.Levels.query()
+          .patch({creator:new_name})
+          .where({creator:old_name})
 
-        let oldName=member_update.Name
+        await ts.db.Plays.query()
+          .patch({player:new_name})
+          .where({player:old_name})
 
-        let level_update=ts.gs.query("Raw Levels", {
-            filter: {"Creator":oldName},
-            update: {"Creator":args.new_name}
-        },true);
-        if(level_update){
-            level_update=level_update.map((level)=>{
-                return level.update_ranges[0]
-            })
-            updates=updates.concat(level_update)
-        }
+        await ts.db.PendingVotes.query()
+          .patch({player:new_name})
+          .where({player:old_name})
 
+        let updates=[]
         let winners=ts.gs.query("Competition Winners", {
-            filter: {"Creator":oldName},
-            update: {"Creator":args.new_name}
+            filter: {"Creator":old_name},
+            update: {"Creator":new_name}
         },true);
         if(winners){
             winners=winners.map((level)=>{
@@ -78,12 +75,11 @@ class RenameMember extends TSCommand {
 
         if(updates){
             await ts.gs.batchUpdate(updates);
-            let oldPlays=await ts.db.Plays.query().patch({"player":args.new_name}).where("player",oldName)
-            let pendingVotes=await ts.db.PendingVotes.query().patch({"player":args.new_name}).where("player",oldName)
+            
             await ts.load()
         }
 
-        return message.reply('"'+oldName+'" has been renamed to "'+args.new_name+'"');
+        return message.reply('"'+old_name+'" has been renamed to "'+new_name+'"');
     }
 }
 

@@ -6,7 +6,7 @@ class InitChannels extends TSCommand {
         });
     }
 
-    canRun(ts,message){
+    async canRun(ts,message){
         if(message.member.hasPermission("ADMINISTRATOR")){
             return true
         }
