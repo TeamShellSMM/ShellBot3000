@@ -140,7 +140,7 @@ async function generateSiteJson(ts,isShellder){
     let _members = await ts.db.Members.query().select();
     let _playedLevels = await ts.db.Plays.query();
 
-    _playedLevels=_playedLevels.map(newPlayFataToOld)
+    _playedLevels=_playedLevels.map(newPlayDataToOld)
     //for(let i=0;i<_playedLevels.length;i++){ //fix old dates
     //  _playedLevels[i].created_at=typeof _playedLevels[i].created_at ==="string" ?
      // (new Date(_playedLevels[i].created_at.replace(/-/g,"/"))).getTime()/1000:
