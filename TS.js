@@ -93,11 +93,11 @@ const TS=function(guild_id,config,client){ //loaded after gs
       this.rank_ids=this.ranks.map((r)=>r.discord_roles) 
 
       if(this.teamVariables.ModName){
-        ts.mods=guild.members
+        this.mods=guild.members
           .filter((m)=> m.roles.some(role=> role.name==this.teamVariables.ModName))
           .map((m)=> m.user.id)
       } else {
-        ts.mods=[guild.owner.user.id]
+        this.mods=[guild.owner.user.id]
       }
 
       
@@ -105,7 +105,12 @@ const TS=function(guild_id,config,client){ //loaded after gs
   }
 
   this.is_mod=function(player){
-    return ts.mods.indexOf(player.discord_id)!==-1;
+    if(ts.mods){
+      return ts.mods.indexOf(player.discord_id)!==-1;
+    } else {
+      return false
+    }
+    
   }
 
   this.getDiscordMember=function(discord_id){
