@@ -246,6 +246,8 @@ async function generateMembersJson(ts,isShellder){
   let _points = SheetCache["Points"]
   let seasons = ts.gs.select("Seasons")
 
+  console.log(competiton_winners);
+
   _points.unshift();
   let points = {};
 
