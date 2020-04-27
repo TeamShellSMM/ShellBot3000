@@ -297,13 +297,13 @@ async function generateMembersJson(ts,isShellder, data){
     let calcedMembers = [];
     let memberCounter = 1;
     for(let member of members){
-      let lCountResult = await ts.db.Levels.select().where('creator', '=', 'member.name').sum('id as count_created');
+      let lCountResult = await ts.db.Levels.query().where('creator', '=', 'member.name').count('id as count_created');
       let createdCount = 0;
       if(lCountResult.length > 0 && lCountResult[0].count_created){
         createdCount = lCountResult[0].count_created;
       }
 
-      let cCountResult = await ts.db.Plays.select().where('player', '=', 'member.name').where('completed', '=', '1').sum('id as count_cleared');
+      let cCountResult = await ts.db.Plays.query().where('player', '=', 'member.name').where('completed', '=', '1').count('id as count_cleared');
       let clearedCount = 0;
       if(cCountResult.length > 0 && cCountResult[0].count_cleared){
         clearedCount = cCountResult[0].count_cleared;

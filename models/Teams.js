@@ -3,7 +3,7 @@ const { Model } = require('objection');
 
 module.exports = (guild_id) => {
   if(guild_id){
-    class Teams extends TSModel(guild_id,'teams') {
+    class Teams extends TSModel(guild_id) {
       static get tableName() {
         return 'teams';
       }
