@@ -294,8 +294,6 @@ async function generateMembersJson(ts,isShellder, data){
       memberCounter++;
     }
   } else {
-    let calcedMembers = [];
-    let memberCounter = 1;
     for(let member of members){
       let lCountQueryBuilder = ts.db.Levels.query().where('creator', '=', member.name);
       if (data.timePeriod == '2') {
@@ -347,7 +345,7 @@ async function generateMembersJson(ts,isShellder, data){
       } else if (data.timePeriod2 == '4') {
         sumResultQueryBuilder = sumResultQueryBuilder.whereRaw("strftime('%j-%Y', plays.created_at) = strftime('%j-%Y', CURRENT_TIMESTAMP)");
       }
-      let sumResult = sumResultQueryBuilder.sum('levels.clear_score as score_sum');
+      let sumResult = await sumResultQueryBuilder.sum('levels.clear_score as score_sum');
       let scoreSum = 0.0;
       if(sumResult.length > 0 && sumResult[0].score_sum){
         scoreSum = sumResult[0].score_sum;
@@ -364,7 +362,6 @@ async function generateMembersJson(ts,isShellder, data){
       }
 
       let memberObj = {
-        "id": memberCounter++,
         "name": member.name,
         "wonComps": comps,
         "levels_created": createdCount,
@@ -374,6 +371,17 @@ async function generateMembersJson(ts,isShellder, data){
 
       json.push(memberObj);
     }
+
+    let memberCounter = 1;
+    json.sort(function(a,b){
+      if(a.clear_score_sum > b.clear_score_sum){
+        return -1;
+      }
+      if(a.clear_score_sum < b.clear_score_sum){
+        return 1;
+      }
+      return 0;
+    });
   }
 
   return json;
