@@ -315,6 +315,16 @@ async function generateMembersJson(ts,isShellder, data){
         scoreSum = sumResult[0].score_sum;
       }
 
+      let comps = [];
+      for(let comp of competiton_winners){
+        if(comp[1] === member.name){
+          comps.push({
+            name: comp[2],
+            rank: comp[3]
+          })
+        }
+      }
+
       let memberObj = {
         "id": memberCounter++,
         "name": member.name,
