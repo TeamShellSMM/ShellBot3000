@@ -66,8 +66,8 @@ const TS=function(guild_id,config,client){ //loaded after gs
         let dbPoint = await ts.db.Points.query().select().where('difficulty', parseFloat(_points[i].Difficulty));
         if(dbPoint.length == 0){
           await ts.db.Points.query().insert({
-            difficulty: _point[0],
-            score: _point[1]
+            difficulty: _points[i].Difficulty,
+            score: _points[i].Points
           });
         } else {
           await ts.db.Points.query().where('difficulty', parseFloat(_points[i].Difficulty)).update({
