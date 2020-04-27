@@ -103,7 +103,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
         }
       }
 
-      members = await ts.db.Members.query().select().where('levels_created', '=', 0);
+      members = await ts.db.Members.query().select().where('levels_cleared', '=', 0);
 
       for(let member of members){
         let result = await ts.db.Plays.query().where('player', '=', member.name).count('id as clear_count');
@@ -114,7 +114,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
         }
       }
 
-      members = await ts.db.Members.query().select().where('levels_cleared', '=', 0);
+      members = await ts.db.Members.query().select().where('levels_created', '=', 0);
 
       for(let member of members){
         let result = await ts.db.Levels.query().where('creator', '=', member.name).count('id as level_count');
