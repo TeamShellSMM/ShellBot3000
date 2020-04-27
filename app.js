@@ -10,7 +10,6 @@ const compression = require('compression')
 const app = express();
 
 global.DEFAULTMESSAGES=require("./DefaultStrings.js");
-f 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(compression())
 if(config.json_dev){
