@@ -311,16 +311,43 @@ async function generateMembersJson(ts,isShellder, data){
         createdCount = lCountResult[0].count_created;
       }
 
-      // strftime('%m-%Y', created_at)
-      // strftime('%m-%Y', CURRENT_TIMESTAMP)
-
-      let cCountResult = await ts.db.Plays.query().where('player', '=', member.name).where('completed', '=', '1').count('id as count_cleared');
+      let cCountQueryBuilder = ts.db.Plays.query().join('levels', 'plays.code', '=', 'levels.code').where('plays.player', '=', member.name).where('plays.completed', '=', '1');
+      if (data.timePeriod == '2') {
+        cCountQueryBuilder = cCountQueryBuilder.whereRaw("strftime('%m-%Y', levels.created_at) = strftime('%m-%Y', CURRENT_TIMESTAMP)")
+      } else if (data.timePeriod == '3') {
+        cCountQueryBuilder = cCountQueryBuilder.whereRaw("strftime('%W-%Y', levels.created_at) = strftime('%W-%Y', CURRENT_TIMESTAMP)");
+      } else if (data.timePeriod == '4') {
+        cCountQueryBuilder = cCountQueryBuilder.whereRaw("strftime('%j-%Y', levels.created_at) = strftime('%j-%Y', CURRENT_TIMESTAMP)");
+      }
+      if (data.timePeriod2 == '2') {
+        cCountQueryBuilder = cCountQueryBuilder.whereRaw("strftime('%m-%Y', plays.created_at) = strftime('%m-%Y', CURRENT_TIMESTAMP)")
+      } else if (data.timePeriod2 == '3') {
+        cCountQueryBuilder = cCountQueryBuilder.whereRaw("strftime('%W-%Y', plays.created_at) = strftime('%W-%Y', CURRENT_TIMESTAMP)");
+      } else if (data.timePeriod2 == '4') {
+        cCountQueryBuilder = cCountQueryBuilder.whereRaw("strftime('%j-%Y', plays.created_at) = strftime('%j-%Y', CURRENT_TIMESTAMP)");
+      }
+      let cCountResult = await cCountQueryBuilder.count('id as count_cleared');
       let clearedCount = 0;
       if(cCountResult.length > 0 && cCountResult[0].count_cleared){
         clearedCount = cCountResult[0].count_cleared;
       }
 
-      let sumResult = await ts.db.Plays.query().join('levels', 'plays.code', '=', 'levels.code').where('player', '=', member.name).where('completed', '=', '1').sum('levels.clear_score as score_sum');
+      let sumResultQueryBuilder = ts.db.Plays.query().join('levels', 'plays.code', '=', 'levels.code').where('plays.player', '=', member.name).where('plays.completed', '=', '1');
+      if (data.timePeriod == '2') {
+        sumResultQueryBuilder = sumResultQueryBuilder.whereRaw("strftime('%m-%Y', levels.created_at) = strftime('%m-%Y', CURRENT_TIMESTAMP)")
+      } else if (data.timePeriod == '3') {
+        sumResultQueryBuilder = sumResultQueryBuilder.whereRaw("strftime('%W-%Y', levels.created_at) = strftime('%W-%Y', CURRENT_TIMESTAMP)");
+      } else if (data.timePeriod == '4') {
+        sumResultQueryBuilder = sumResultQueryBuilder.whereRaw("strftime('%j-%Y', levels.created_at) = strftime('%j-%Y', CURRENT_TIMESTAMP)");
+      }
+      if (data.timePeriod2 == '2') {
+        sumResultQueryBuilder = sumResultQueryBuilder.whereRaw("strftime('%m-%Y', plays.created_at) = strftime('%m-%Y', CURRENT_TIMESTAMP)")
+      } else if (data.timePeriod2 == '3') {
+        sumResultQueryBuilder = sumResultQueryBuilder.whereRaw("strftime('%W-%Y', plays.created_at) = strftime('%W-%Y', CURRENT_TIMESTAMP)");
+      } else if (data.timePeriod2 == '4') {
+        sumResultQueryBuilder = sumResultQueryBuilder.whereRaw("strftime('%j-%Y', plays.created_at) = strftime('%j-%Y', CURRENT_TIMESTAMP)");
+      }
+      let sumResult = sumResultQueryBuilder.sum('levels.clear_score as score_sum');
       let scoreSum = 0.0;
       if(sumResult.length > 0 && sumResult[0].score_sum){
         scoreSum = sumResult[0].score_sum;
