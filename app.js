@@ -1,5 +1,6 @@
 'use strict'
 const config = require('./config.json');
+const argv = require('yargs').argv
 const { AkairoClient } = require('discord-akairo');
 const TS=require('./TS.js')
 const express = require('express');
@@ -7,16 +8,14 @@ const bodyParser = require('body-parser');
 const moment = require('moment');
 const compression = require('compression')
 const app = express();
+
+global.DEFAULTMESSAGES=require("./DefaultStrings.js");
+
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(compression())
-
 if(config.json_dev){
   app.use("/dev", express.static(__dirname + '/json_dev.html'));
 }
-
-process.on('unhandledRejection', err => console_error(err)); // eslint-disable-line no-console
-
-global.DEFAULTMESSAGES=require("./DefaultStrings.js");
 
 const client = new AkairoClient(config, {
     disableEveryone: true
@@ -28,7 +27,7 @@ client.on('shardError', error => {
 
 global.console_error=async function(error){
   console.error(error)
-  if(process.argv[2]!=='--test'){ 
+  if(argv.test){ 
     let channel=await client.channels.get(config.error_channel)
     let dev="<@"+config.devs.join(">,<@")+"> "+(error.channel?" at "+error.channel:"")
     error=JSON.stringify(error,null,2).replace(/\\n/g,"\n")
@@ -54,8 +53,8 @@ client.on("ready", async () => {
   console.log(`${config.botName} has started, with ${client.users.size} users, in ${client.channels.size} channels of ${client.guilds.size} guilds.`);
   await client.guilds.forEach(async guild =>{
     if(
-        process.argv[2]!=='--test' 
-        || process.argv[2]==='--test' 
+        !argv.test
+        || argv.test
         && (
           !  config.AutomatedTest 
           || config.AutomatedTest == guild.id
@@ -69,7 +68,7 @@ client.on("ready", async () => {
         team_config.web_config=team_config.web_config?JSON.parse(team_config.web_config):{}
         global.TS_LIST[guild.id]=new TS(guild.id,team_config.config,client)
         await global.TS_LIST[guild.id].load()
-        if(config.AutomatedTest == guild.id && process.argv[2]==='--test'){
+        if(config.AutomatedTest == guild.id && argv.test){
           guild.channels.get(global.TS_LIST[guild.id].channels.modChannel).send('?test')
         }
         global.TS_LIST[guild.id].db.Teams=Teams

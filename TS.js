@@ -1,5 +1,6 @@
 'use strict'
 const stringSimilarity = require('string-similarity')
+const argv = require('yargs').argv
 const Handlebars = require("handlebars");
 const crypto=require('crypto')
 const moment=require('moment')
@@ -33,7 +34,6 @@ const TS=function(guild_id,config,client){ //loaded after gs
 
     await guild.fetchMembers(); //just load up all members
 
-    //member.roles.some(role => role.id === role_id))
     
     const defaultVars = {
       customStrings:{ //defaults
@@ -973,20 +973,19 @@ const TS=function(guild_id,config,client){ //loaded after gs
             .patch({is_member:1})
             .where({name:author.name})
 
-          if(author.discord_id){
-            /*
+          if(!argv.test && author.discord_id){
+            //doesn't work with mock method here. 
             try{
               var curr_user=await guild.members.get(author.discord_id)
             } catch (error){
-              throw "Can't find ${author.discord_id} in guild"
+              throw `Can't find ${author.discord_id} in guild`
             }
             if(curr_user){ //assign role
-              await curr_user.addRole(ts.teamVariables.memberRoleId)
+                await curr_user.addRole(ts.teamVariables.memberRoleId)
                 await client.channels.get(ts.channels.initiateChannel).send(ts.message("initiation.message",{discord_id:author.discord_id}))
             } else {
               console_error(ts.message("initiation.userNotInDiscord",{name:author.name})) //not a breaking error.
             }
-            */
           } 
         }
 

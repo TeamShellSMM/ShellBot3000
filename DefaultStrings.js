@@ -98,11 +98,14 @@ module.exports={
  'pending.refuseDescription':'Refused by: Please check the fixvotes and decide if this is still acceptable to approve or not (use **!fixapprove** or **!fixreject** with a message).',
  'pending.fixReuploadDescription':'Please check if the mandatory fixes where made and make your decision (use **!fixapprove** or **!fixreject** with a message).',
 
- 'removeLevel.cant':'You can\'t remove videos from  "{{{level_name}}}" by {{{creator}}}',
- 'removeLevel.success':'You have removed "{{{level_name}}}" by {{{creator}}} {{{buzzyS}}}',
+ 'removeLevel.cant':'You can\'t remove videos from  "{{{level_name}}}" by {{{creator}}}',//✅
+ 'removeLevel.success':'You have removed "{{{level_name}}}" by {{{creator}}} {{{buzzyS}}}',//✅
+ 'removeLevel.noReason':"You did not provide a reason to remove this level. If you want to reupload, we recommend using the `!reupload` command. If you want to remove it now and reupload it later make sure __you don't lose the old code__",//✅
+ 'removeLevel.alreadyRemoved':'"{{{level_name}}}" by {{{creator}}} has already been removed',//✅
+
  'error.notApproved':'Level is not approved',
- 'error.userBanned':'You have been barred from using this service',
- 'error.notRegistered':'You are not yet registered',
+ 'error.userBanned':'You have been barred from using this service',//✅
+ 'error.notRegistered':'You are not yet registered',//✅
  'error.emptyLevelList':'No levels found buzzyS',
  'error.afterUserDiscord':' {{{think}}}',
  'error.afterUserWeb':'',
@@ -133,6 +136,8 @@ module.exports={
  'register.succesful':'You are now registered as \'{{name}}\'. You can now start submitting your clears in #level-clears {{{bam}}}',//✅
 
  'login.reply':' You have requested a login token for the website. click the link below to login.:\n <{{login_link}}> {{{bam}}}\n If you\'re on mobile, copy the link and paste it into your preferred browser app. If you open this link in an in-app browser, your login might not be saved properly. {{{buzzyS}}}\n This token will only be valid for 30 minutes',
+
+ 'makerid.noCode':'You didn\'t provide any maker code',
  'makerid.success':'You have updated your maker-id to {{code}} {{{bam}}}',
  'makerid.existing':'`{{code}} is already being used by \'{{name}}\' ',
  'makerid.already':'`{{code}}` is already what you have set for your maker-id ',

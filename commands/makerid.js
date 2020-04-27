@@ -13,11 +13,16 @@ class MakerId extends TSCommand {
     }
 
     async tsexec(ts,message,{ code }) {
+
+      if(!code) ts.userError(ts.message('makerid.noCode'));
+
       const player=await ts.get_user(message);
+
+    
 
       code=code.toUpperCase();
       if(!ts.valid_code(code)){
-        ts.userError(ts.message("error.invalidMakerCode",{ code }))
+        ts.userError(ts.message('error.invalidMakerCode',{ code }))
       }
 
       let existing_member=await ts.db.Members.query().where({maker_id:code}).first()

@@ -18,13 +18,14 @@
     "request-promise": "^4.2.5",
     "sqlite3": "^4.1.1",
     "string-similarity": "^4.0.1",
-    "valid-url": "^1.0.9"
+    "valid-url": "^1.0.9",
+    "yargs": "^15.3.1"
   },
   "devDependencies": {},
   "scripts": {
     "migrate": "node_modules/.bin/knex migrate:latest",
     "start": "node app.js",
-    "test": "node app.js --test stop"
+    "test": "node app.js --test"
   },
   "keywords": [],
   "author": "",

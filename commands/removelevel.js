@@ -8,23 +8,21 @@ class tsremove extends TSCommand {
         });
     }
 
-    async tsexec(ts,message,args) {
-        var command=ts.parse_command(message)
+    async tsexec(ts,message,{command}) {
 
-        var code=command.arguments.shift().toUpperCase();
+        var code=command.arguments.shift();
+        if(!code) ts.userError(ts.message('error.noCode'))
+        code=code.toUpperCase()
         var reason=command.arguments.join(" ")
 
-        if(!ts.valid_code(code))
-          ts.userError("You did not provide a valid code for the level")
-
         if(!reason)
-          ts.userError("You did not provide a reason to remove this level. If you want to reupload, we recommend using the `!reupload` command. If you want to remove it now and reupload it later make sure __you don't lose the old code__")
+          ts.userError(ts.userError(ts.message('removeLevel.noReason')))
 
         const player=await ts.get_user(message);
-        var level=await ts.getExistingLevel(code)
+        var level=await ts.getExistingLevel(code,true)
 
         if(level.status!= ts.LEVEL_STATUS.PENDING && level.status!=ts.LEVEL_STATUS.APPROVED)
-          ts.userError("\""+level.level_name+"\" by "+level.creator+" has already been removed");
+          ts.userError(ts.message('removeLevel.alreadyRemoved',level));
 
         //only creator and shellder can reupload a level
         if(!(level.creator==player.name || ts.is_mod(player)))
