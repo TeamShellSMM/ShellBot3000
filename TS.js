@@ -61,7 +61,20 @@ const TS=function(guild_id,config,client){ //loaded after gs
       this.pointMap={}
       var _points=ts.gs.select("Points");
       for(let i=0;i<_points.length;i++){
-        this.pointMap[parseFloat(_points[i].Difficulty)]=parseFloat(_points[i].Points)
+        this.pointMap[parseFloat(_points[i].Difficulty)]=parseFloat(_points[i].Points);
+
+        let dbPoint = await ts.db.Points.query().select().where('difficulty', parseFloat(_points[i].Difficulty));
+        if(dbPoint.length == 0){
+          await ts.db.Points.query().insert({
+            difficulty: _point[0],
+            score: _point[1]
+          });
+        } else {
+          await ts.db.Points.query().where('difficulty', parseFloat(_points[i].Difficulty)).update({
+            difficulty: _points[i].Difficulty,
+            score: _points[i].Points
+          });
+        }
       }
 
       let sheetToMap={
