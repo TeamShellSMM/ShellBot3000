@@ -280,7 +280,7 @@ app.post('/json',web_ts(async (ts,req)=>{
       var user=await ts.get_user(req.body.discord_id)
     }
     
-    let json = await generateSiteJson(ts,ts.is_mod(user))
+    let json = await generateSiteJson(ts,user && ts.is_mod(user))
     return json;
 }))
 
