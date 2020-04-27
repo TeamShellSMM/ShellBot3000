@@ -62,67 +62,6 @@ const TS=function(guild_id,config,client){ //loaded after gs
       var _points=ts.gs.select("Points");
       for(let i=0;i<_points.length;i++){
         this.pointMap[parseFloat(_points[i].Difficulty)]=parseFloat(_points[i].Points);
-
-        let dbPoint = await ts.db.Points.query().select().where('difficulty', parseFloat(_points[i].Difficulty));
-        if(dbPoint.length == 0){
-          await ts.db.Points.query().insert({
-            difficulty: _points[i].Difficulty,
-            score: _points[i].Points
-          });
-        } else {
-          await ts.db.Points.query().where('difficulty', parseFloat(_points[i].Difficulty)).update({
-            difficulty: _points[i].Difficulty,
-            score: _points[i].Points
-          });
-        }
-      }
-
-      let levels = await ts.db.Levels.query().select();
-
-      for(let level of levels){
-        let clearScore = this.pointMap[level.difficulty];
-        if(level.clear_score != clearScore){
-          await ts.db.Levels.query().where('code', level.code).update({
-            clear_score: clearScore
-          });
-        }
-      }
-
-      //This whole thing is highly inefficient but I don't wanna think about it right now, it's alright for now
-      let members = await ts.db.Members.query().select().where('clear_score_sum', '=', 0.0);
-
-      for(let member of members){
-        let memberPlays = await ts.db.Plays.query().select().where('player', '=', member.name);
-        if(memberPlays.length > 0){
-          let result = await ts.db.Plays.query().join('levels', 'plays.code', '=', 'levels.code').where('player', '=', member.name).sum('levels.clear_score as score_sum');
-          if(result.length > 0 && result[0].score_sum){
-            await ts.db.Members.query().where('name', member.name).update({
-              clear_score_sum: result[0].score_sum
-            });
-          }
-        }
-      }
-
-      members = await ts.db.Members.query().select().where('levels_cleared', '=', 0);
-
-      for(let member of members){
-        let result = await ts.db.Plays.query().where('player', '=', member.name).count('id as clear_count');
-        if(result.length > 0 && result[0].clear_count){
-          await ts.db.Members.query().where('name', member.name).update({
-            levels_cleared: result[0].clear_count
-          });
-        }
-      }
-
-      members = await ts.db.Members.query().select().where('levels_created', '=', 0);
-
-      for(let member of members){
-        let result = await ts.db.Levels.query().where('creator', '=', member.name).count('id as level_count');
-        if(result.length > 0 && result[0].level_count){
-          await ts.db.Members.query().where('name', member.name).update({
-            levels_created: result[0].level_count
-          });
-        }
       }
 
       let sheetToMap={
@@ -164,6 +103,75 @@ const TS=function(guild_id,config,client){ //loaded after gs
 
 
       console.log(`Data loaded for ${this.teamVariables.TeamName}`)
+  }
+
+  this.recalc=async function(){
+    var _points=ts.gs.select("Points");
+    for(let i=0;i<_points.length;i++){
+      this.pointMap[parseFloat(_points[i].Difficulty)]=parseFloat(_points[i].Points);
+
+      let dbPoint = await ts.db.Points.query().select().where('difficulty', parseFloat(_points[i].Difficulty));
+      if(dbPoint.length == 0){
+        await ts.db.Points.query().insert({
+          difficulty: _points[i].Difficulty,
+          score: _points[i].Points
+        });
+      } else {
+        await ts.db.Points.query().where('difficulty', parseFloat(_points[i].Difficulty)).update({
+          difficulty: _points[i].Difficulty,
+          score: _points[i].Points
+        });
+      }
+    }
+
+
+    //This whole thing is highly inefficient but I don't wanna think about it right now, it's alright for now
+    let levels = await ts.db.Levels.query().select();
+
+    for(let level of levels){
+      let clearScore = this.pointMap[level.difficulty];
+      if(level.clear_score != clearScore){
+        await ts.db.Levels.query().where('code', level.code).update({
+          clear_score: clearScore
+        });
+      }
+    }
+
+    let members = await ts.db.Members.query().select().where('clear_score_sum', '=', 0.0);
+
+    for(let member of members){
+      let memberPlays = await ts.db.Plays.query().select().where('player', '=', member.name);
+      if(memberPlays.length > 0){
+        let result = await ts.db.Plays.query().join('levels', 'plays.code', '=', 'levels.code').where('player', '=', member.name).sum('levels.clear_score as score_sum');
+        if(result.length > 0 && result[0].score_sum){
+          await ts.db.Members.query().where('name', member.name).update({
+            clear_score_sum: result[0].score_sum
+          });
+        }
+      }
+    }
+
+    members = await ts.db.Members.query().select().where('levels_cleared', '=', 0);
+
+    for(let member of members){
+      let result = await ts.db.Plays.query().where('player', '=', member.name).count('id as clear_count');
+      if(result.length > 0 && result[0].clear_count){
+        await ts.db.Members.query().where('name', member.name).update({
+          levels_cleared: result[0].clear_count
+        });
+      }
+    }
+
+    members = await ts.db.Members.query().select().where('levels_created', '=', 0);
+
+    for(let member of members){
+      let result = await ts.db.Levels.query().where('creator', '=', member.name).count('id as level_count');
+      if(result.length > 0 && result[0].level_count){
+        await ts.db.Members.query().where('name', member.name).update({
+          levels_created: result[0].level_count
+        });
+      }
+    }
   }
 
   this.is_mod=function(player){
