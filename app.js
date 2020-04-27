@@ -258,6 +258,7 @@ async function generateMembersJson(ts,isShellder){
   let json = [];
 
   for(let member in members){
+    console.log(member);
     let levelCount = await ts.db.Levels.query().select().whereIn('status',[
       ts.LEVEL_STATUS.APPROVED,
       ts.LEVEL_STATUS.REUPLOADED,
