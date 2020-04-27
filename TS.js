@@ -77,6 +77,17 @@ const TS=function(guild_id,config,client){ //loaded after gs
         }
       }
 
+      let levels = await ts.db.Levels.query().select();
+
+      for(let level of levels){
+        let clearScore = pointMap[level.difficulty];
+        if(level.clear_score != clearScore){
+          await ts.db.Levels.query().where('code', level.code).update({
+            clear_score: clearScore
+          });
+        }
+      }
+
       let sheetToMap={
         channels:'Channels',
         emotes:'Emotes',
