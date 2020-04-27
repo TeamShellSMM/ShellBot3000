@@ -257,15 +257,19 @@ async function generateMembersJson(ts,isShellder){
 
   let json = [];
 
+  let memberCounter = 1;
   for(let member of members){
-    let memberArr = [
-      member.name,
-      member.levels_created,
-      member.levels_cleared,
-      member.clear_score_sum
-    ]
+    let memberObj = {
+      "id": memberCounter,
+      "name": member.name,
+      "levels_created": member.levels_created,
+      "levels_cleared": member.levels_cleared,
+      "clear_score_sum": member.clear_score_sum
+    }
 
-    json.push(memberArr);
+    json.push(memberObj);
+
+    memberCounter++;
   }
 
   return json;
