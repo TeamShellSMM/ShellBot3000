@@ -272,19 +272,11 @@ async function generateMembersJson(ts,isShellder){
       ts.LEVEL_STATUS.REUPLOADED
     ]).select('levels.difficulty');
 
-    let sumPoints = 0.0;
-
-    for(let play of plays){
-      if(points[play.difficulty]){
-        sumPoints += parseFloat(points[play.difficulty]);
-      }
-    }
-
     let memberArr = [
       member.name,
       levelCount[0].id_count,
       playCount[0].id_count,
-      sumPoints
+      member.clear_score_sum
     ]
 
     json.push(memberArr);
