@@ -299,11 +299,11 @@ async function generateMembersJson(ts,isShellder, data){
     for(let member of members){
       let lCountQueryBuilder = ts.db.Levels.query().where('creator', '=', 'member.name');
       if (data.timePeriod == '2') {
-        lCountQueryBuilder = lCountQueryBuilder.where("strftime('%m-%Y', created_at)", "=", "strftime('%m-%Y', CURRENT_TIMESTAMP)")
+        lCountQueryBuilder = lCountQueryBuilder.whereRaw("strftime('%m-%Y', created_at) = strftime('%m-%Y', CURRENT_TIMESTAMP)")
       } else if (data.timePeriod == '2') {
-        lCountQueryBuilder = lCountQueryBuilder.where("strftime('%W-%Y', created_at)", "=", "strftime('%W-%Y', CURRENT_TIMESTAMP)");
+        lCountQueryBuilder = lCountQueryBuilder.whereRaw("strftime('%W-%Y', created_at) = strftime('%W-%Y', CURRENT_TIMESTAMP)");
       } else if (data.timePeriod == '2') {
-        lCountQueryBuilder = lCountQueryBuilder.where("strftime('%j-%Y', created_at)", "=", "strftime('%j-%Y', CURRENT_TIMESTAMP)");
+        lCountQueryBuilder = lCountQueryBuilder.whereRaw("strftime('%j-%Y', created_at) = strftime('%j-%Y', CURRENT_TIMESTAMP)");
       }
       let lCountResult = await lCountQueryBuilder.count('id as count_created');;
       let createdCount = 0;
