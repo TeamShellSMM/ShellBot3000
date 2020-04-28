@@ -293,64 +293,61 @@ async function generateMembersJson(ts,isShellder, data){
 
       memberCounter++;
     }
+
+    return json;
   } else {
-    for(let member of members){
-      let lCountQueryBuilder = ts.db.Levels.query().where('creator', '=', member.name);
-      if (data.timePeriod == '2') {
-        lCountQueryBuilder = lCountQueryBuilder.whereRaw("strftime('%m-%Y', created_at) = strftime('%m-%Y', CURRENT_TIMESTAMP)")
-      } else if (data.timePeriod == '3') {
-        lCountQueryBuilder = lCountQueryBuilder.whereRaw("strftime('%W-%Y', created_at) = strftime('%W-%Y', CURRENT_TIMESTAMP)");
-      } else if (data.timePeriod == '4') {
-        lCountQueryBuilder = lCountQueryBuilder.whereRaw("strftime('%j-%Y', created_at) = strftime('%j-%Y', CURRENT_TIMESTAMP)");
-      }
-      let lCountResult = await lCountQueryBuilder.count('id as count_created');
-      let createdCount = 0;
-      if(lCountResult.length > 0 && lCountResult[0].count_created){
-        createdCount = lCountResult[0].count_created;
-      }
+    let membersObj = {};
 
-      let cCountQueryBuilder = ts.db.Plays.query().join('levels', 'plays.code', '=', 'levels.code').where('plays.player', '=', member.name).where('plays.completed', '=', '1');
-      if (data.timePeriod == '2') {
-        cCountQueryBuilder = cCountQueryBuilder.whereRaw("strftime('%m-%Y', levels.created_at) = strftime('%m-%Y', CURRENT_TIMESTAMP)")
-      } else if (data.timePeriod == '3') {
-        cCountQueryBuilder = cCountQueryBuilder.whereRaw("strftime('%W-%Y', levels.created_at) = strftime('%W-%Y', CURRENT_TIMESTAMP)");
-      } else if (data.timePeriod == '4') {
-        cCountQueryBuilder = cCountQueryBuilder.whereRaw("strftime('%j-%Y', levels.created_at) = strftime('%j-%Y', CURRENT_TIMESTAMP)");
-      }
-      if (data.timePeriod2 == '2') {
-        cCountQueryBuilder = cCountQueryBuilder.whereRaw("strftime('%m-%Y', plays.created_at) = strftime('%m-%Y', CURRENT_TIMESTAMP)")
-      } else if (data.timePeriod2 == '3') {
-        cCountQueryBuilder = cCountQueryBuilder.whereRaw("strftime('%W-%Y', plays.created_at) = strftime('%W-%Y', CURRENT_TIMESTAMP)");
-      } else if (data.timePeriod2 == '4') {
-        cCountQueryBuilder = cCountQueryBuilder.whereRaw("strftime('%j-%Y', plays.created_at) = strftime('%j-%Y', CURRENT_TIMESTAMP)");
-      }
-      let cCountResult = await cCountQueryBuilder.count('plays.id as count_cleared');
-      let clearedCount = 0;
-      if(cCountResult.length > 0 && cCountResult[0].count_cleared){
-        clearedCount = cCountResult[0].count_cleared;
-      }
+    let memberNames = Array.from(members, x => x.name);
 
-      let sumResultQueryBuilder = ts.db.Plays.query().join('levels', 'plays.code', '=', 'levels.code').where('plays.player', '=', member.name).where('plays.completed', '=', '1');
-      if (data.timePeriod == '2') {
-        sumResultQueryBuilder = sumResultQueryBuilder.whereRaw("strftime('%m-%Y', levels.created_at) = strftime('%m-%Y', CURRENT_TIMESTAMP)")
-      } else if (data.timePeriod == '3') {
-        sumResultQueryBuilder = sumResultQueryBuilder.whereRaw("strftime('%W-%Y', levels.created_at) = strftime('%W-%Y', CURRENT_TIMESTAMP)");
-      } else if (data.timePeriod == '4') {
-        sumResultQueryBuilder = sumResultQueryBuilder.whereRaw("strftime('%j-%Y', levels.created_at) = strftime('%j-%Y', CURRENT_TIMESTAMP)");
-      }
-      if (data.timePeriod2 == '2') {
-        sumResultQueryBuilder = sumResultQueryBuilder.whereRaw("strftime('%m-%Y', plays.created_at) = strftime('%m-%Y', CURRENT_TIMESTAMP)")
-      } else if (data.timePeriod2 == '3') {
-        sumResultQueryBuilder = sumResultQueryBuilder.whereRaw("strftime('%W-%Y', plays.created_at) = strftime('%W-%Y', CURRENT_TIMESTAMP)");
-      } else if (data.timePeriod2 == '4') {
-        sumResultQueryBuilder = sumResultQueryBuilder.whereRaw("strftime('%j-%Y', plays.created_at) = strftime('%j-%Y', CURRENT_TIMESTAMP)");
-      }
-      let sumResult = await sumResultQueryBuilder.sum('levels.clear_score as score_sum');
-      let scoreSum = 0.0;
-      if(sumResult.length > 0 && sumResult[0].score_sum){
-        scoreSum = sumResult[0].score_sum;
-      }
+    let lCountQueryBuilder = ts.db.Levels.query().whereIn('creator',memberNames);
+    if (data.timePeriod == '2') {
+      lCountQueryBuilder = lCountQueryBuilder.whereRaw("strftime('%m-%Y', created_at) = strftime('%m-%Y', CURRENT_TIMESTAMP)")
+    } else if (data.timePeriod == '3') {
+      lCountQueryBuilder = lCountQueryBuilder.whereRaw("strftime('%W-%Y', created_at) = strftime('%W-%Y', CURRENT_TIMESTAMP)");
+    } else if (data.timePeriod == '4') {
+      lCountQueryBuilder = lCountQueryBuilder.whereRaw("strftime('%j-%Y', created_at) = strftime('%j-%Y', CURRENT_TIMESTAMP)");
+    }
+    let lCountResult = await lCountQueryBuilder.groupBy('creator').select('creator').count('id as count_created');
 
+    for(let row of lCountResult){
+      membersObj[row.creator] = {
+        "name": row.creator,
+        "levels_created": row.count_created
+      };
+    }
+
+    let cCountQueryBuilder = ts.db.Plays.query().join('levels', function() {
+      this.on('plays.code', '=', 'levels.code').on('plays.guild_id', '=', 'levels.guild_id')
+    }).join('points', function() {
+      this.on('levels.difficulty', '=', 'points.difficulty').on('levels.guild_id', '=', 'points.guild_id')
+    }).where('plays.player', '=', member.name).where('plays.completed', '=', '1');
+
+    if (data.timePeriod == '2') {
+      cCountQueryBuilder = cCountQueryBuilder.whereRaw("strftime('%m-%Y', levels.created_at) = strftime('%m-%Y', CURRENT_TIMESTAMP)")
+    } else if (data.timePeriod == '3') {
+      cCountQueryBuilder = cCountQueryBuilder.whereRaw("strftime('%W-%Y', levels.created_at) = strftime('%W-%Y', CURRENT_TIMESTAMP)");
+    } else if (data.timePeriod == '4') {
+      cCountQueryBuilder = cCountQueryBuilder.whereRaw("strftime('%j-%Y', levels.created_at) = strftime('%j-%Y', CURRENT_TIMESTAMP)");
+    }
+    if (data.timePeriod2 == '2') {
+      cCountQueryBuilder = cCountQueryBuilder.whereRaw("strftime('%m-%Y', plays.created_at) = strftime('%m-%Y', CURRENT_TIMESTAMP)")
+    } else if (data.timePeriod2 == '3') {
+      cCountQueryBuilder = cCountQueryBuilder.whereRaw("strftime('%W-%Y', plays.created_at) = strftime('%W-%Y', CURRENT_TIMESTAMP)");
+    } else if (data.timePeriod2 == '4') {
+      cCountQueryBuilder = cCountQueryBuilder.whereRaw("strftime('%j-%Y', plays.created_at) = strftime('%j-%Y', CURRENT_TIMESTAMP)");
+    }
+    let cCountResult = await cCountQueryBuilder.groupBy('plays.player').select('plays.player').count('plays.id as count_cleared').sum('points.score as score_sum');
+
+    for(let row of cCountResult){
+      let memName = row['plays.player'];
+      membersObj[memName]["levels_cleared"] = row.count_cleared;
+      membersObj[memName]["clear_score_sum"] = row.score_sum;
+    }
+
+    let memberArr = Object.values(membersObj);
+
+    for(let mem of memberArr){
       let comps = [];
       for(let comp of competiton_winners){
         if(comp[1] === member.name){
@@ -361,16 +358,10 @@ async function generateMembersJson(ts,isShellder, data){
         }
       }
 
-      let memberObj = {
-        "name": member.name,
-        "wonComps": comps,
-        "levels_created": createdCount,
-        "levels_cleared": clearedCount,
-        "clear_score_sum": scoreSum
-      }
-
-      json.push(memberObj);
+      mem['wonComps'] = comps;
     }
+
+    json = memberArr;
 
     let memberCounter = 1;
     json.sort(function(a,b){
@@ -386,9 +377,9 @@ async function generateMembersJson(ts,isShellder, data){
     for(let obj of json){
       obj.id = memberCounter++;
     }
-  }
 
-  return json;
+    return json;
+  }
 }
 
 /*
