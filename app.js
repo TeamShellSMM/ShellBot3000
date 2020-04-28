@@ -443,14 +443,14 @@ async function generateMakersJson(ts,isShellder, data){
         AND levels.guild_id = plays.guild_id
     INNER JOIN points ON levels.difficulty = points.difficulty
         AND levels.guild_id = points.guild_id
-    WHERE levels.status IN (1)
+    WHERE levels.status IN (:statuses:)
         AND levels.created_at >= datetime(:from_season, 'unixepoch')
         AND levels.created_at < datetime(:to_season, 'unixepoch')
         AND members.name in :members
     GROUP BY members.name
         ,levels.code
     )
-  GROUP BY name;`,{ memberNames, from_season, to_season });
+  GROUP BY name;`,{ statuses:[ts.LEVEL_STATUS.PENDING,ts.LEVEL_STATUS.APPROVED], memberNames, from_season, to_season });
 
   return json;
 }
