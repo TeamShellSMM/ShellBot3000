@@ -7,6 +7,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const moment = require('moment');
 const compression = require('compression')
+const knex = require('./db/knex');
 const app = express();
 
 global.DEFAULTMESSAGES=require("./DefaultStrings.js");
@@ -424,9 +425,7 @@ async function generateMakersJson(ts,isShellder, data){
 
   let memberNames = Array.from(members, x => x.name);
 
-  console.log("doing sql with", { statuses:[ts.LEVEL_STATUS.PENDING,ts.LEVEL_STATUS.APPROVED], from_season, to_season, memberNames });
-
-  json=await ts.db.Members.knex().raw(`SELECT name
+  json=await knex.raw(`SELECT name
     ,COUNT(distinct code) as levels_created
     ,SUM(clears)
     ,SUM(likes)
