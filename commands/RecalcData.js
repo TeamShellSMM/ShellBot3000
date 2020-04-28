@@ -28,6 +28,8 @@ class RecalcData extends TSCommand {
     async tsexec(ts,message, args){
 
         //await ts.recalc()
+        /*
+        benchmarks
         console.time('recalc')
         await ts.recalculateAfterUpdate()
         console.timeEnd('recalc')
@@ -43,7 +45,8 @@ class RecalcData extends TSCommand {
         console.time('codeCalc2')
         await ts.recalculateAfterUpdate({code:'X56-MM6-P8G'})
         console.timeEnd('codeCalc2')
-        
+        */
+        await ts.recalculateAfterUpdate()
         return message.reply(`Recalculated data!`);
     }
 }

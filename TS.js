@@ -190,7 +190,6 @@ const TS=function(guild_id,config,client){ //loaded after gs
         if(ts.teamVariables.includeOwnPoints){
           calculated_values[j].total_score+=calculated_values[j].own_score;
         }
-        
         await ts.db.Members.query(trx)
         .patch({
           clear_score_sum:calculated_values[j].total_score||0,
@@ -1509,47 +1508,21 @@ const TS=function(guild_id,config,client){ //loaded after gs
   }
 
   this.get_levels=async function(isMap){ //get the aggregates
-      var clears={}
-      var plays = await ts.db.Plays.query();
-      plays.forEach((played)=>{
-        if(!clears[played.code]) clears[played.code]={}
-        clears[played.code][played.player]=played
-      });
-      var levels=isMap?{}:[]
-      const _levels=await ts.db.Levels.query().select()
-      _levels.forEach((level)=>{
-          var tsclears=0;
-          var votesum=0;
-          var votetotal=0;
-          var likes=0;
-
-          if(clears[level.code]){
-            for(var player in clears[level.code]){
-              if(player!=level.creator){
-                if(clears[level.code][player].completed=='1'){
-                  tsclears++;
-                }
-                if(clears[level.code][player].difficulty_vote){
-                  votetotal++;
-                  votesum+=Number(clears[level.code][player].difficulty_vote)
-                }
-                if(clears[level.code][player].liked=='1'){
-                  likes++;
-                }
-              }
-            }
-          }
-          level.clears=tsclears //no. of clears
-          level.vote=votetotal>0? ((votesum/votetotal).toFixed(1)):0 //avg vote, num votes
-          level.votetotal=votetotal
-          level.likes=likes
-          if(isMap){
-            levels[level.code]=level
-          } else {
-            levels.push(level)
-          }
-      })
-      return levels
+    const levels=await ts.db.Levels.knex().raw(`
+    SELECT levels.*,levels.level_name,
+    sum(nullif(plays.completed,0)) as clears,
+    count(nullif(plays.difficulty_vote,0)) as votetotal,
+    avg(nullif(plays.difficulty_vote,0)) as vote,
+    sum(plays.liked) as likes
+    FROM levels
+      LEFT JOIN plays ON 
+      levels.code=plays.code and
+      levels.guild_id=plays.guild_id
+      where levels.guild_id=:guild_id
+    group by levels.id
+    `,{guild_id});
+    console.log(levels)
+    return levels
   }
 
   this.get_rank=function(points){
