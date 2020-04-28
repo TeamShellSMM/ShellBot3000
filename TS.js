@@ -905,7 +905,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
 
     let fixMode = false;
 
-    if(rejectVoteCount >= ts.get_variable("ApprovalVotesNeeded") && rejectVoteCount>approvalVoteCount){
+    if(rejectVoteCount >= ts.get_variable("RejectVotesNeeded") && rejectVoteCount>approvalVoteCount){
       //Reject level
       await ts.db.Levels.query()
         .patch({status:ts.LEVEL_STATUS.REMOVED})
@@ -922,7 +922,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
         var image=this.getEmoteUrl(this.emotes.axemuncher);
       }
 
-    } else if (approvalVoteCount >= ts.get_variable("RejectVotesNeeded")  && approvalVoteCount>rejectVoteCount && fixVoteCount > 0 && level.status !== ts.LEVEL_STATUS.NEED_FIX) {
+    } else if (approvalVoteCount >= ts.get_variable("ApprovalVotesNeeded")  && approvalVoteCount>rejectVoteCount && fixVoteCount > 0 && level.status !== ts.LEVEL_STATUS.NEED_FIX) {
       if(level.status !== ts.LEVEL_STATUS.PENDING)
         ts.userError(ts.message("approval.levelNotPending"))
 
