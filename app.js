@@ -440,16 +440,16 @@ async function generateMakersJson(ts,isShellder, data){
         ,SUM(plays.liked) / SUM(plays.completed) AS clear_like_ratio
         ,(SUM(plays.liked) * 2 + SUM(plays.completed)) * points.score * (SUM(plays.liked) / SUM(plays.completed)) AS maker_points
     FROM members
-    INNER JOIN levels ON levels.creator = members.name
+    LEFT JOIN levels ON levels.creator = members.name
         AND levels.guild_id = members.guild_id
-    INNER JOIN plays ON levels.code = plays.code
+    LEFT JOIN plays ON levels.code = plays.code
         AND levels.guild_id = plays.guild_id
-    INNER JOIN points ON levels.difficulty = points.difficulty
+    LEFT JOIN points ON levels.difficulty = points.difficulty
         AND levels.guild_id = points.guild_id
     WHERE levels.status IN (:statuses:)
-        AND levels.created_at >= datetime(:from_season, 'unixepoch')
-        AND levels.created_at < datetime(:to_season, 'unixepoch')
-        AND members.name in (:memberNames:)
+        AND levels.created_at >= datetime(:from_season:, 'unixepoch')
+        AND levels.created_at < datetime(:to_season:, 'unixepoch')
+        AND members.name in (:memberNames)
     GROUP BY members.name
         ,levels.code
     )
