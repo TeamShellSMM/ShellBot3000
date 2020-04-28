@@ -401,7 +401,7 @@ async function generateMakersJson(ts,isShellder, data){
   let current_season = seasons[data.season - 1];
   let from_season = current_season[0];
   let to_season = 9999999999;
-  if(seasons.length >= data.season){
+  if(seasons.length > data.season){
     let next_season = seasons[data.season];
     to_season = parseInt(next_season[0]);
   }
