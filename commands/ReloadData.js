@@ -26,7 +26,7 @@ class ReloadData extends TSCommand {
     
 
     async tsexec(ts,message, args){
-
+        await ts.saveSheetToDb()
         await ts.load()
         return message.reply(`Reloaded data!`);
     }

@@ -36,6 +36,8 @@ class tsremove extends TSCommand {
           .patch({status:approvedStr})
           .where({code})
 
+        await ts.recalculateAfterUpdate({code})
+
 
         var removeEmbed=ts.levelEmbed(level,1)
             .setColor("#dc3545")

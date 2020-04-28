@@ -36,6 +36,7 @@ class tsadd extends TSCommand {
         difficulty:0,
         status:0
       })
+      await ts.recalculateAfterUpdate({name:player.name})
 
       message.channel.send(player.user_reply+ts.message("add.success",{level_name,code}))
     }

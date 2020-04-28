@@ -3,7 +3,7 @@ const moment = require('moment');
 const knex = require('./db/knex')
 Model.knex(knex)
 
-module.exports = (guild_id,table_name) => {
+module.exports = (guild_id,ts) => {
   class TSQueryBuilder extends QueryBuilder {
     constructor(...args) {
       super(...args);
@@ -14,13 +14,9 @@ module.exports = (guild_id,table_name) => {
   }
 
   class TSModel extends Model {
-
-    $beforeInsert() {
+    async $beforeInsert(queryContext) {
+      await super.$beforeInsert(queryContext);
       this.guild_id=guild_id
-    }
-
-    $beforeUpdate() {
-      this.updated_at=moment().format("YYYY-MM-DD HH:mm:ss")
     }
 
   }

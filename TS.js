@@ -10,14 +10,6 @@ const TS=function(guild_id,config,client){ //loaded after gs
   const ts=this;
   this.client=client;
   this.gs=new GS({...server_config,...config});
-  this.db={
-    Tokens:require('./models/Tokens'),
-    Plays:require('./models/Plays')(guild_id),
-    PendingVotes:require('./models/PendingVotes')(guild_id),
-    Members:require('./models/Members')(guild_id),
-    Levels:require('./models/Levels')(guild_id),
-    Points:require('./models/Points')(guild_id),
-  };
 
   this.LEVEL_STATUS={
     PENDING:0,
@@ -29,6 +21,14 @@ const TS=function(guild_id,config,client){ //loaded after gs
   };
 
   this.load=async function(){
+    this.db={
+      Tokens:require('./models/Tokens'),
+      Plays:require('./models/Plays')(guild_id,ts),
+      PendingVotes:require('./models/PendingVotes')(guild_id,ts),
+      Members:require('./models/Members')(guild_id,ts),
+      Levels:require('./models/Levels')(guild_id,ts),
+      Points:require('./models/Points')(guild_id,ts),
+    };
 
     ts.gs.clearCache();
     let guild=await ts.getGuild()
@@ -101,15 +101,133 @@ const TS=function(guild_id,config,client){ //loaded after gs
         this.mods=[guild.owner.user.id]
       }
 
+      ts.recalculateAfterUpdate()
+
 
       console.log(`Data loaded for ${this.teamVariables.TeamName}`)
   }
+
+  this.getPoints=function(difficulty){
+    return this.pointMap[parseFloat(difficulty)]
+  }
+
+  //to be called whenever there are any updates to level difficulty and clears
+  this.recalculateAfterUpdate=async function(args){
+    //const wheres=
+    let code,name;
+    if(args){
+      code=args.code;
+      name=args.name;
+    }
+
+    let filter1='';
+    let filter2='';
+    let filter3='';
+    if(name){
+      filter1='and plays.player=:name';
+      filter2='and levels.creator=:name';
+      filter3='and members.name=:name';
+    } else if(code) {
+      let subsql='select player from plays where guild_id=:guild_id and code=:code and completed=1'
+      filter1=`and plays.player in (${subsql})`;
+      filter2=`and levels.creator in (${subsql})`;
+      filter3=`and members.name in (${subsql})`;
+    }
+
+    
+
+    let calculated_values=await this.db.Members.knex().raw(`
+      SELECT
+        members.id,
+        members.guild_id,
+        members.name,
+        total_score,
+        total_cleared,
+        calculated_levels_created,
+        own_score,
+        free_submissions
+      FROM members LEFT JOIN (
+        SELECT
+          plays.guild_id,
+          plays.player,
+          sum(points.score) total_score,
+          count(plays.id) total_cleared from plays
+        INNER JOIN levels ON 
+          levels.code=plays.code 
+          AND levels.guild_id=plays.guild_id
+        INNER JOIN points ON 
+          levels.difficulty=points.difficulty 
+          AND points.guild_id=levels.guild_id
+        WHERE
+          levels.status=1 
+          AND plays.completed=1
+          AND levels.guild_id=:guild_id
+          ${filter1}
+        GROUP BY plays.player,plays.guild_id
+      ) clear_stats ON 
+            members.guild_id=clear_stats.guild_id
+            AND members.name=clear_stats.player
+      LEFT JOIN (
+        SELECT
+          levels.guild_id,
+          COUNT(levels.id) calculated_levels_created,
+          SUM(levels.is_free_submission) free_submissions,
+          SUM(points.score) own_score,
+          levels.creator 
+        FROM levels 
+        INNER JOIN points ON points.difficulty=levels.difficulty AND points.guild_id=levels.guild_id 
+        WHERE
+          levels.guild_id=:guild_id
+          ${filter2}
+        GROUP BY creator,levels.guild_id
+      ) own_levels ON
+          members.guild_id=own_levels.guild_id
+          AND members.name=own_levels.creator
+      WHERE members.guild_id=:guild_id ${filter3}`,{ guild_id, name, code });
+
+    await ts.db.Members.transaction(async (trx)=>{
+      for(let j=0;j<calculated_values.length;j++){
+        if(ts.teamVariables.includeOwnPoints){
+          calculated_values[j].total_score+=calculated_values[j].own_score;
+        }
+        
+        await ts.db.Members.query(trx)
+        .patch({
+          clear_score_sum:calculated_values[j].total_score||0,
+          levels_cleared:calculated_values[j].total_cleared||0,
+          levels_created:calculated_values[j].calculated_levels_created||0,
+        })
+        .findById(calculated_values[j].id)
+      }
+    })
+  }
+
+  //used to save variables to db?
+  this.saveSheetToDb=async function(){ 
+    ts.gs.loadSheets(["Points"]);
+    var _points=ts.gs.select("Points");
+    for(let i=0;i<_points.length;i++){
+      this.pointMap[parseFloat(_points[i].Difficulty)]=parseFloat(_points[i].Points);
+      let dbPoint = await ts.db.Points.query().select().where('difficulty', parseFloat(_points[i].Difficulty));
+      if(dbPoint.length == 0){
+        await ts.db.Points.query().insert({
+          difficulty: _points[i].Difficulty,
+          score: _points[i].Points
+        });
+      } else {
+        await ts.db.Points.query().where('difficulty', parseFloat(_points[i].Difficulty)).update({
+          difficulty: _points[i].Difficulty,
+          score: _points[i].Points
+        });
+      }
+    }
+  }
+
 
   this.recalc=async function(){
     var _points=ts.gs.select("Points");
     for(let i=0;i<_points.length;i++){
       this.pointMap[parseFloat(_points[i].Difficulty)]=parseFloat(_points[i].Points);
-
       let dbPoint = await ts.db.Points.query().select().where('difficulty', parseFloat(_points[i].Difficulty));
       if(dbPoint.length == 0){
         await ts.db.Points.query().insert({
@@ -125,50 +243,55 @@ const TS=function(guild_id,config,client){ //loaded after gs
     }
 
 
+
+
     //This whole thing is highly inefficient but I don't wanna think about it right now, it's alright for now
-    let levels = await ts.db.Levels.query().select();
+    //await ts.db.Levels.transaction(async ()=>{
+      //let =null
+      let levels = await ts.db.Levels.query().select();
 
-    for(let level of levels){
-      let clearScore = this.pointMap[level.difficulty];
-      if(level.clear_score != clearScore){
-        await ts.db.Levels.query().where('code', level.code).update({
-          clear_score: clearScore
-        });
+      for(let level of levels){
+        let clearScore = this.pointMap[level.difficulty];
+        if(level.clear_score != clearScore){
+          await ts.db.Levels.query().where('code', level.code).update({
+            clear_score: clearScore
+          });
+        }
       }
-    }
 
-    let members = await ts.db.Members.query().select().where('clear_score_sum', '=', 0.0);
+      let members = await ts.db.Members.query().select().where('clear_score_sum', '=', 0.0);
 
-    for(let member of members){
-      let result = await ts.db.Plays.query().join('levels', 'plays.code', '=', 'levels.code').where('player', '=', member.name).where('completed', '=', '1').sum('levels.clear_score as score_sum');
-      if(result.length > 0 && result[0].score_sum){
-        await ts.db.Members.query().where('name', member.name).update({
-          clear_score_sum: result[0].score_sum
-        });
+      for(let member of members){
+        let result = await ts.db.Plays.query().join('levels', 'plays.code', '=', 'levels.code').where('player', '=', member.name).where('completed', '=', '1').sum('levels.clear_score as score_sum');
+        if(result.length > 0 && result[0].score_sum){
+          await ts.db.Members.query().where('name', member.name).update({
+            clear_score_sum: result[0].score_sum
+          });
+        }
       }
-    }
 
-    members = await ts.db.Members.query().select().where('levels_cleared', '=', 0);
+      members = await ts.db.Members.query().select().where('levels_cleared', '=', 0);
 
-    for(let member of members){
-      let result = await ts.db.Plays.query().where('player', '=', member.name).where('completed', '=', '1').count('id as clear_count');
-      if(result.length > 0 && result[0].clear_count){
-        await ts.db.Members.query().where('name', member.name).update({
-          levels_cleared: result[0].clear_count
-        });
+      for(let member of members){
+        let result = await ts.db.Plays.query().where('player', '=', member.name).where('completed', '=', '1').count('id as clear_count');
+        if(result.length > 0 && result[0].clear_count){
+          await ts.db.Members.query().where('name', member.name).update({
+            levels_cleared: result[0].clear_count
+          });
+        }
       }
-    }
 
-    members = await ts.db.Members.query().select().where('levels_created', '=', 0);
+      members = await ts.db.Members.query().select().where('levels_created', '=', 0);
 
-    for(let member of members){
-      let result = await ts.db.Levels.query().where('creator', '=', member.name).count('id as level_count');
-      if(result.length > 0 && result[0].level_count){
-        await ts.db.Members.query().where('name', member.name).update({
-          levels_created: result[0].level_count
-        });
+      for(let member of members){
+        let result = await ts.db.Levels.query().where('creator', '=', member.name).count('id as level_count');
+        if(result.length > 0 && result[0].level_count){
+          await ts.db.Members.query().where('name', member.name).update({
+            levels_created: result[0].level_count
+          });
+        }
       }
-    }
+    
   }
 
   this.is_mod=function(player){
@@ -211,8 +334,6 @@ const TS=function(guild_id,config,client){ //loaded after gs
     }
     throw `"${type}" message string was not found in ts.message`;
   }
-
-
 
   this.getGuild=function(){
     return client.guilds.get(guild_id)
@@ -421,7 +542,6 @@ const TS=function(guild_id,config,client){ //loaded after gs
           updated.difficulty=1
         }
         await ts.db.Plays.query().findById(existing_play.id).patch(updated_row);
-
       } else {
         await ts.db.Plays.query().insert({
           code:args.code,
@@ -443,12 +563,13 @@ const TS=function(guild_id,config,client){ //loaded after gs
             msg.push(ts.message("clear.addClear",{level}))
             if(level.status===ts.LEVEL_STATUS.APPROVED){
               msg.push(ts.message("clear.earnedPoints",{
-                earned_points:this.pointMap[parseFloat(level.difficulty)],
+                earned_points:ts.getPoints(level.difficulty),
               }))
             } else {
               msg.push(ts.message("clear.pendingLevel"))
             }
           }
+          await ts.recalculateAfterUpdate({name:player.name})
         } else if(args.completed || args.completed==='0'){
           msg.push(args.completed==='0'?
             ts.message("clear.alreadyUncleared"):
@@ -1036,6 +1157,8 @@ const TS=function(guild_id,config,client){ //loaded after gs
           })
           .where({code:code})
 
+        await ts.recalculateAfterUpdate({code})
+
         //Update author to set cult_member if they're not already. send initiate message and assign cult role
         if(author.is_member != 1){
           await ts.db.Members.query()
@@ -1270,8 +1393,11 @@ const TS=function(guild_id,config,client){ //loaded after gs
 
     if(!level) ts.userError(ts.message("error.levelNotFound",{code:old_code}));
 
-    var creator_points=await ts.calculatePoints(level.creator,level.status==ts.LEVEL_STATUS.APPROVED || level.status==ts.LEVEL_STATUS.PENDING)
+    //Reupload means you're going to replace the old one so need to do that for upload check
+    var creator_points=await ts.calculatePoints(level.creator, level.status==ts.LEVEL_STATUS.APPROVED || level.status==ts.LEVEL_STATUS.PENDING || level.status==ts.LEVEL_STATUS.NEED_FIX)
 
+
+    //level.status==ts.LEVEL_STATUS.APPROVED || level.status==ts.LEVEL_STATUS.PENDING
     if(new_level && level.creator!=new_level.creator)
       ts.userError(ts.message("reupload.differentCreator"));
     if( new_level
@@ -1440,7 +1566,18 @@ const TS=function(guild_id,config,client){ //loaded after gs
     return false
   }
 
-  this.calculatePoints= async function(user,if_remove_check){ //delta check is to see if we can add a level if we remove it
+  this.calculatePoints= async function(name,if_remove_check){ //delta check is to see if we can add a level if we remove it
+    let member=await ts.db.Members.query().where({name}).first()
+    let freeSubmissions=await ts.db.Levels.query().where({creator:name}).where({is_free_submission:1})
+    return {
+      clearPoints:member.clear_score_sum.toFixed(1),
+      levelsMade:member.levels_created,
+      freeSubmissions:freeSubmissions.length,
+      available:this.levelsAvailable( member.clear_score_sum,member.levels_created-(if_remove_check?1:0),freeSubmissions.length),
+    }
+  }
+
+  this.calculatePointsOld= async function(user,if_remove_check){ //delta check is to see if we can add a level if we remove it
     let currentLevels = await ts.db.Levels.query().select();
     let levelMap={};
     let ownLevels=[];
@@ -1462,9 +1599,9 @@ const TS=function(guild_id,config,client){ //loaded after gs
           if(level.is_free_submission) freeSubmissions++;
 
           //only most recent levels get tallied up for own levels points
-          ownLevelPoints+=this.pointMap[parseFloat(level.difficulty)];
+          ownLevelPoints+=ts.getPoints(level.difficulty);
         } else {
-            levelMap[level.code]=this.pointMap[parseFloat(level.difficulty)];
+            levelMap[level.code]=ts.getPoints(level.difficulty);
         }
       } else if(level.status=="2") { //reupload
         if(level.creator==user){
@@ -1472,7 +1609,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
         } else {
           if(level.new_code){
             reuploads[level.code]=level.new_code
-            levelMap[level.code]=this.pointMap[parseFloat(level.difficulty)]
+            levelMap[level.code]=ts.getPoints(level.difficulty)
           }
         }
       } else if( level.status==ts.LEVEL_STATUS.PENDING && level.creator==user){

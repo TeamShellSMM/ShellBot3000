@@ -1,7 +1,7 @@
 const TSModel = require('../TSModel.js')
 
-module.exports = (guild_id) => {
-  class PendingVotes extends TSModel(guild_id) {
+module.exports = (guild_id,ts) => {
+  class PendingVotes extends TSModel(guild_id,ts) {
     static get tableName() {
       return 'pending_votes';
     }

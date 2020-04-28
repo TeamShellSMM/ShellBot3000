@@ -27,7 +27,23 @@ class RecalcData extends TSCommand {
 
     async tsexec(ts,message, args){
 
-        await ts.recalc()
+        //await ts.recalc()
+        console.time('recalc')
+        await ts.recalculateAfterUpdate()
+        console.timeEnd('recalc')
+        console.time('liaf')
+        await ts.recalculateAfterUpdate({name: 'Liaf'})
+        console.timeEnd('liaf')
+        console.time('a_unique_id')
+        await ts.recalculateAfterUpdate({name:'a_unique_id'})
+        console.timeEnd('a_unique_id')
+        console.time('codeCalc')
+        await ts.recalculateAfterUpdate({code:'GBW-GFP-G2G'})
+        console.timeEnd('codeCalc')
+        console.time('codeCalc2')
+        await ts.recalculateAfterUpdate({code:'X56-MM6-P8G'})
+        console.timeEnd('codeCalc2')
+        
         return message.reply(`Recalculated data!`);
     }
 }

@@ -50,6 +50,8 @@ class TSRerate extends TSCommand {
       await ts.db.Levels.query()
         .patch({difficulty})
         .where({code})
+
+      await ts.recalculateAfterUpdate({code})
         
 
       var rerateEmbed = ts.levelEmbed(level)

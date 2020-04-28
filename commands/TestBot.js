@@ -68,6 +68,7 @@ class TestBot extends Command {
             await ts.db[i].query().insert(data[i][j])
           }
         }
+        ts.recalculateAfterUpdate()
       }
 
       const defaultChannel=ts.channels.modChannel
@@ -676,6 +677,7 @@ class TestBot extends Command {
           type:'registeredSuccess',
           setup(){
             ts.teamVariables.includeOwnPoints='yes'
+            ts.recalculateAfterUpdate()
           },
           discord_id:bot_id,
           expected:
