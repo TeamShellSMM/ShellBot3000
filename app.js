@@ -450,7 +450,7 @@ async function generateMakersJson(ts,isShellder, data){
         AND levels.created_at >= datetime(:from_season:, 'unixepoch')
         AND levels.created_at < datetime(:to_season:, 'unixepoch')
         AND members.id in (:member_ids:)
-        AND members.guild_id = :guild_id:
+        AND members.guild_id = :guild_id
     GROUP BY members.name
         ,levels.code
     )
