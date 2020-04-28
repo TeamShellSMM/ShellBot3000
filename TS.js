@@ -28,13 +28,13 @@ const TS=function(guild_id,config,client){ //loaded after gs
   };
 
   this.load=async function(){
-    
+
     ts.gs.clearCache();
     let guild=await ts.getGuild()
 
     await guild.fetchMembers(); //just load up all members
 
-    
+
     const defaultVars = {
       customStrings:{ //defaults
         "levelInfo":"@@LEVEL_PLACEHOLDER@@",
@@ -83,14 +83,14 @@ const TS=function(guild_id,config,client){ //loaded after gs
       });
 
       for(var i in DEFAULTMESSAGES){
-        if(this.messages[i] === undefined){ 
+        if(this.messages[i] === undefined){
           this.messages[i]=_makeTemplate(DEFAULTMESSAGES[i])
         }
       }
 
       //should verify that the discord roles id exist in server
       this.ranks=ts.gs.select("Ranks");
-      this.rank_ids=this.ranks.map((r)=>r.discord_roles) 
+      this.rank_ids=this.ranks.map((r)=>r.discord_roles)
 
       if(this.teamVariables.ModName){
         this.mods=guild.members
@@ -100,14 +100,14 @@ const TS=function(guild_id,config,client){ //loaded after gs
         this.mods=[guild.owner.user.id]
       }
 
-      
+
       console.log(`Data loaded for ${this.teamVariables.TeamName}`)
   }
 
   this.is_mod=function(player){
     return player && ts.mods.indexOf(player.discord_id)!==-1;
-    
-    
+
+
   }
 
   this.getDiscordMember=function(discord_id){
@@ -117,7 +117,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
 
   this.removeRankRoles=async function(discord_id){
     const member=ts.getDiscordMember(discord_id);
-    //if has role 
+    //if has role
     await member.removeRoles(this.ranks_ids)
   }
 
@@ -227,7 +227,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
 
   this.levelRemoved=function(level){
     return !level || (
-      level 
+      level
       && level.status!=ts.LEVEL_STATUS.PENDING
       && level.status!=ts.LEVEL_STATUS.APPROVED
     )
@@ -305,11 +305,11 @@ const TS=function(guild_id,config,client){ //loaded after gs
         args.difficulty=''
         args.like='0'
       }
-      
+
       if(args.difficulty!=='0' && args.difficulty && !ts.valid_difficulty(args.difficulty)){
         ts.userError(ts.message("clear.invalidDifficulty"));
       }
-      
+
       if(!args.discord_id) ts.userError(ts.message("error.noDiscordId"));
 
       const player=await ts.get_user(args.discord_id);
@@ -462,7 +462,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
         }
       }
 
-      
+
       ts.userError(ts.message("error.levelNotFound", { code })+matchStr);
     }
     if(!includeRemoved && !(level.status==ts.LEVEL_STATUS.PENDING || level.status==ts.LEVEL_STATUS.APPROVED)){ //level is removed. not pending/accepted
@@ -535,7 +535,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
     return Math.floor(Math.random() * (max - min)) + min; //The maximum is exclusive and the minimum is inclusive
   }
 
-  
+
   this.randomLevel=async function(args){
     if(args.minDifficulty && !ts.valid_difficulty(args.minDifficulty)){
       ts.userError(args.maxDifficulty? ts.message("random.noMinDifficulty") : ts.message("random.noDifficulty"))
@@ -564,7 +564,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
       rawPlayers.forEach( p => {
         if(players.indexOf(p.name) === -1){
           ts.userError(ts.message("random.playerNotFound",{player:p.name}));
-        } 
+        }
       })
     } else {
       players=[player.name]
@@ -639,7 +639,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
         var currDifficulty=parseFloat(level.difficulty)
         level.tags=level.tags||""
         return level.status==ts.LEVEL_STATUS.APPROVED
-          && currDifficulty>=min 
+          && currDifficulty>=min
           && currDifficulty<=max
           && played.indexOf(level.code)==-1
           && level.tags.indexOf("Consistency") === -1
@@ -905,7 +905,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
 
     let fixMode = false;
 
-    if(rejectVoteCount >= ts.get_variable("VotesNeeded") && rejectVoteCount>approvalVoteCount){
+    if(rejectVoteCount >= ts.get_variable("ApprovalVotesNeeded") && rejectVoteCount>approvalVoteCount){
       //Reject level
       await ts.db.Levels.query()
         .patch({status:ts.LEVEL_STATUS.REMOVED})
@@ -913,7 +913,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
 
       //Build embed
       var color="#dc3545",title;
-      if(level.status===ts.LEVEL_STATUS.PENDING){
+      if(level.status===ts.LEVEL_STATUS.PENDING){|
         title=ts.message("judge.levelRejected")
       } else {
         title=ts.message("judge.levelRemoved")
@@ -922,7 +922,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
         var image=this.getEmoteUrl(this.emotes.axemuncher);
       }
 
-    } else if (approvalVoteCount >= ts.get_variable("VotesNeeded")  && approvalVoteCount>rejectVoteCount && fixVoteCount > 0 && level.status !== ts.LEVEL_STATUS.NEED_FIX) {
+    } else if (approvalVoteCount >= ts.get_variable("RejectVotesNeeded")  && approvalVoteCount>rejectVoteCount && fixVoteCount > 0 && level.status !== ts.LEVEL_STATUS.NEED_FIX) {
       if(level.status !== ts.LEVEL_STATUS.PENDING)
         ts.userError(ts.message("approval.levelNotPending"))
 
@@ -937,7 +937,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
       }
 
       fixMode = true;
-    } else if (approvalVoteCount >= ts.get_variable("VotesNeeded")  && approvalVoteCount>rejectVoteCount ){
+    } else if (approvalVoteCount >= ts.get_variable("ApprovalVotesNeeded")  && approvalVoteCount>rejectVoteCount ){
       if(level.status !== ts.LEVEL_STATUS.PENDING && level.status !== ts.LEVEL_STATUS.NEED_FIX)
         ts.userError(ts.message("approval.levelNotPending"))
         //Get the average difficulty and round to nearest .5, build the message at the same time
@@ -961,7 +961,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
         var finalDiff = Math.round((diffSum/diffCounter)*2)/2;
 
         //Only if the level is pending we approve it and send the message
-        
+
         await ts.db.Levels.query()
           .patch({
             status:ts.LEVEL_STATUS.APPROVED,
@@ -975,8 +975,8 @@ const TS=function(guild_id,config,client){ //loaded after gs
             .patch({is_member:1})
             .where({name:author.name})
 
-          if(author.discord_id){ //!argv.test && 
-            //doesn't work with mocked user method here. 
+          if(author.discord_id){ //!argv.test &&
+            //doesn't work with mocked user method here.
             try{
               var curr_user=await guild.members.get(author.discord_id)
             } catch (error){
@@ -988,7 +988,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
             } else {
               console_error(ts.message("initiation.userNotInDiscord",{name:author.name})) //not a breaking error.
             }
-          } 
+          }
         }
 
         //Build Status Message
@@ -1000,7 +1000,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
       } else if(approvalVoteCount==rejectVoteCount ) {
         ts.userError(ts.message("approval.comboBreaker"));
       } else {
-        ts.userError(ts.message("approval.numVotesNeeded"),{vote_num:ts.get_variable("VotesNeeded")});
+        ts.userError(ts.message("approval.numVotesNeeded"),{vote_num:ts.get_variable("ApprovalVotesNeeded")});
       }
 
       var mention = ts.message("general.heyListen",{discord_id:author.discord_id});
@@ -1199,7 +1199,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
     var level=await ts.getExistingLevel(old_code,true)
     var new_level=await ts.db.Levels.query().where({code:new_code}).first()
     let oldApproved=level.status;
-  
+
 
     if(!level) ts.userError(ts.message("error.levelNotFound",{code:old_code}));
 
@@ -1207,7 +1207,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
 
     if(new_level && level.creator!=new_level.creator)
       ts.userError(ts.message("reupload.differentCreator"));
-    if( new_level 
+    if( new_level
         && new_level.status != ts.LEVEL_STATUS.PENDING
         && new_level.status != ts.LEVEL_STATUS.APPROVED
         && new_level.status != ts.LEVEL_STATUS.NEED_FIX
@@ -1229,7 +1229,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
     })
     .where({
       code:old_code,
-    })    
+    })
     await ts.db.Levels.query().patch({ new_code }).where({new_code:old_code});
 
     if(!new_level){ //if no new level was found create a new level copying over the old data
@@ -1252,7 +1252,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
       await ts.db.PendingVotes.query()
         .patch({code: new_code})
         .where({code:old_code})
-        
+
 
       await ts.db.Levels.query()
         .patch({status:ts.LEVEL_STATUS.NEED_FIX})
@@ -1389,7 +1389,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
       if(level.status == ts.LEVEL_STATUS.APPROVED){
         if(level.creator == user){
 
-          
+
           ownLevels.push(level.code)
           //count free submissions
           if(level.is_free_submission) freeSubmissions++;
@@ -1418,7 +1418,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
       .where('completed', '=', '1');
 
 
-    // this takes all the played levels and compare with reuploads. 
+    // this takes all the played levels and compare with reuploads.
     // we only take the maximum point from a reupload
     var userCleared={};
     for (var row = 0; playedLevels && row < playedLevels.length; row++){
