@@ -427,10 +427,10 @@ async function generateMakersJson(ts,isShellder, data){
 
   json=await knex.raw(`SELECT name
     ,COUNT(distinct code) as levels_created
-    ,SUM(clears)
-    ,SUM(likes)
-    ,AVG(clear_like_ratio)
-    ,SUM(maker_points)
+    ,SUM(clears) as clears
+    ,SUM(likes) as likes
+    ,AVG(clear_like_ratio) as clear_like_ratio
+    ,SUM(maker_points) as maker_points
   FROM (
     SELECT members.name
         ,levels.code
