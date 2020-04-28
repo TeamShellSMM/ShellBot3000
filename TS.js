@@ -9,6 +9,7 @@ const GS=require("./GS.js");
 const TS=function(guild_id,config,client){ //loaded after gs
   const ts=this;
   this.client=client;
+  this.guild_id = guild_id;
   this.gs=new GS({...server_config,...config});
 
   this.LEVEL_STATUS={
@@ -184,9 +185,9 @@ const TS=function(guild_id,config,client){ //loaded after gs
       ) own_levels ON
           members.guild_id=own_levels.guild_id
           AND members.name=own_levels.creator
-      WHERE members.guild_id=:guild_id ${filter3}`,{ 
-        guild_id, 
-        name, 
+      WHERE members.guild_id=:guild_id ${filter3}`,{
+        guild_id,
+        name,
         code,
         statuses:[ts.LEVEL_STATUS.PENDING,ts.LEVEL_STATUS.APPROVED],
       });
