@@ -423,7 +423,7 @@ async function generateMakersJson(ts,isShellder, data){
 
   let json = [];
 
-  let memberIds = Array.from(members, x => x.id);
+  let member_ids = Array.from(members, x => x.id);
 
   json=await knex.raw(`SELECT name
     ,COUNT(distinct code) as levels_created
