@@ -178,12 +178,18 @@ const TS=function(guild_id,config,client){ //loaded after gs
         INNER JOIN points ON points.difficulty=levels.difficulty AND points.guild_id=levels.guild_id 
         WHERE
           levels.guild_id=:guild_id
+          levels.status in (:statuses:)
           ${filter2}
         GROUP BY creator,levels.guild_id
       ) own_levels ON
           members.guild_id=own_levels.guild_id
           AND members.name=own_levels.creator
-      WHERE members.guild_id=:guild_id ${filter3}`,{ guild_id, name, code });
+      WHERE members.guild_id=:guild_id ${filter3}`,{ 
+        guild_id, 
+        name, 
+        code,
+        statuses:[ts.LEVEL_STATUS.PENDING,ts.LEVEL_STATUS.APPROVED],
+      });
 
     await ts.db.Members.transaction(async (trx)=>{
       for(let j=0;j<calculated_values.length;j++){
