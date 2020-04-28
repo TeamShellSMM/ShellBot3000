@@ -177,7 +177,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
         FROM levels
         INNER JOIN points ON points.difficulty=levels.difficulty AND points.guild_id=levels.guild_id
         WHERE
-          levels.guild_id=:guild_id
+          levels.guild_id=:guild_id and
           levels.status in (:statuses:)
           ${filter2}
         GROUP BY creator,levels.guild_id
