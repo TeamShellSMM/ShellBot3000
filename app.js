@@ -411,19 +411,19 @@ async function generateMakersJson(ts,isShellder, data){
   let members = [];
 
   if(data.membershipStatus == '1'){
-    members = await ts.db.Members.query().select().where("is_member", 1).orderBy("clear_score_sum", "desc");
+    members = await ts.db.Members.query().select().where("is_member", 1);
   } else if(data.membershipStatus == '2'){
-    members = await ts.db.Members.query().select().orderBy("clear_score_sum", "desc");
+    members = await ts.db.Members.query().select();
     members = members.filter(member => ts.is_mod(member));
   } else if(data.membershipStatus == '4'){
-    members = await ts.db.Members.query().select().where("is_member", 0).orWhere("is_member", null).orderBy("clear_score_sum", "desc");
+    members = await ts.db.Members.query().select().where("is_member", 0).orWhere("is_member", null);
   } else {
-    members = await ts.db.Members.query().select().orderBy("clear_score_sum", "desc");
+    members = await ts.db.Members.query().select();
   }
 
   let json = [];
 
-  let memberNames = Array.from(members, x => x.name);
+  let memberIds = Array.from(members, x => x.id);
 
   json=await knex.raw(`SELECT name
     ,COUNT(distinct code) as levels_created
@@ -449,11 +449,12 @@ async function generateMakersJson(ts,isShellder, data){
     WHERE levels.status IN (:statuses:)
         AND levels.created_at >= datetime(:from_season:, 'unixepoch')
         AND levels.created_at < datetime(:to_season:, 'unixepoch')
-        AND members.name in (:memberNames)
+        AND members.id in (:memberIds)
+        AND members.guild_id = :guild_id
     GROUP BY members.name
         ,levels.code
     )
-  GROUP BY name;`,{ statuses:[ts.LEVEL_STATUS.PENDING,ts.LEVEL_STATUS.APPROVED], from_season, to_season, memberNames });
+  GROUP BY name;`,{ statuses:[ts.LEVEL_STATUS.PENDING,ts.LEVEL_STATUS.APPROVED], from_season, to_season, memberIds, guild_id });
 
   return json;
 }
