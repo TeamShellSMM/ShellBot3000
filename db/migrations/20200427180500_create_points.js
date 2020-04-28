@@ -1,5 +1,9 @@
 exports.up = function(knex) {
   return knex.schema.createTable('points', function(t) {
+    t.dateTime('created_at').notNull().defaultTo(knex.raw('CURRENT_TIMESTAMP'));
+    t.dateTime('updated_at').nullable();
+    t.dateTime('deleted_at').nullable();
+
     t.string('guild_id',30).notNull();
     t.float('difficulty').notNull();
     t.float('score').notNull();
