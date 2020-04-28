@@ -913,7 +913,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
 
       //Build embed
       var color="#dc3545",title;
-      if(level.status===ts.LEVEL_STATUS.PENDING){|
+      if(level.status===ts.LEVEL_STATUS.PENDING){
         title=ts.message("judge.levelRejected")
       } else {
         title=ts.message("judge.levelRemoved")
