@@ -489,7 +489,7 @@ async function generateMakersJson(ts,isShellder, data){
     obj.id = memberCounter++;
   }
 
-  return json;
+  return {data: json, seasons: seasons};
 }
 
 /*
