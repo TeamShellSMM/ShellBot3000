@@ -347,6 +347,7 @@ async function generateMembersJson(ts,isShellder, data){
     let cCountResult = await cCountQueryBuilder.groupBy('plays.player').select('plays.player').count('plays.id as count_cleared').sum('points.score as score_sum');
 
     for(let row of cCountResult){
+      console.log(row);
       let memName = row['plays.player'];
       membersObj[memName]["levels_cleared"] = row.count_cleared;
       membersObj[memName]["clear_score_sum"] = row.score_sum;
