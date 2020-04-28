@@ -456,6 +456,35 @@ async function generateMakersJson(ts,isShellder, data){
     )
   GROUP BY name;`,{ statuses:[ts.LEVEL_STATUS.PENDING,ts.LEVEL_STATUS.APPROVED], from_season, to_season, member_ids, guild_id: ts.guild_id });
 
+  for(let mem of json){
+    let comps = [];
+    for(let comp of competiton_winners){
+      if(comp[1] === mem.name){
+        comps.push({
+          name: comp[2],
+          rank: comp[3]
+        })
+      }
+    }
+
+    mem['wonComps'] = comps;
+  }
+
+  let memberCounter = 1;
+  json.sort(function(a,b){
+    if(a.maker_points > b.maker_points){
+      return -1;
+    }
+    if(a.maker_points < b.maker_points){
+      return 1;
+    }
+    return 0;
+  });
+
+  for(let obj of json){
+    obj.id = memberCounter++;
+  }
+
   return json;
 }
 
