@@ -242,16 +242,7 @@ async function generateMembersJson(ts,isShellder, data){
     ])
 
   let competiton_winners = SheetCache["Competition Winners"];
-  let _points = SheetCache["Points"]
-
   competiton_winners.shift();
-
-  _points.unshift();
-  let points = {};
-
-  for(let _point of _points){
-    points[_point[0]] = _point[1];
-  }
 
   let members = [];
 
@@ -389,6 +380,81 @@ async function generateMembersJson(ts,isShellder, data){
   }
 }
 
+async function generateMakersJson(ts,isShellder, data){
+  const SheetCache = ts.gs.getArrayFormat([
+      "Seasons!B",
+      "tags",
+      "Competition Winners",
+      "Points!B"
+    ])
+
+  let competiton_winners = SheetCache["Competition Winners"];
+  competiton_winners.shift();
+  let seasons = SheetCache["Seasons"];
+  seasons.shift();
+
+  let current_season = seasons[data.season - 1];
+  let from_season = current_season[0];
+  let to_season = 9999999999;
+  if(seasons.length >= data.season){
+    let next_season = seasons[data.season];
+    to_season = next_season[0];
+  }
+
+  if(!from_season){
+    from_season = 0;
+  }
+
+  let members = [];
+
+  if(data.membershipStatus == '1'){
+    members = await ts.db.Members.query().select().where("is_member", 1).orderBy("clear_score_sum", "desc");
+  } else if(data.membershipStatus == '2'){
+    members = await ts.db.Members.query().select().orderBy("clear_score_sum", "desc");
+    members = members.filter(member => ts.is_mod(member));
+  } else if(data.membershipStatus == '4'){
+    members = await ts.db.Members.query().select().where("is_member", 0).orWhere("is_member", null).orderBy("clear_score_sum", "desc");
+  } else {
+    members = await ts.db.Members.query().select().orderBy("clear_score_sum", "desc");
+  }
+
+  let json = [];
+
+  let memberNames = Array.from(members, x => x.name);
+
+  json=await this.db.Members.knex().raw(`SELECT name
+    ,COUNT(distinct code) as levels_created
+    ,SUM(clears)
+    ,SUM(likes)
+    ,AVG(clear_like_ratio)
+    ,SUM(maker_points)
+  FROM (
+    SELECT members.name
+        ,levels.code
+        ,points.score
+        ,SUM(plays.completed) AS clears
+        ,SUM(plays.liked) AS likes
+        ,SUM(plays.liked) / SUM(plays.completed) AS clear_like_ratio
+        ,(SUM(plays.liked) * 2 + SUM(plays.completed)) * points.score * (SUM(plays.liked) / SUM(plays.completed)) AS maker_points
+    FROM members
+    INNER JOIN levels ON levels.creator = members.name
+        AND levels.guild_id = members.guild_id
+    INNER JOIN plays ON levels.code = plays.code
+        AND levels.guild_id = plays.guild_id
+    INNER JOIN points ON levels.difficulty = points.difficulty
+        AND levels.guild_id = points.guild_id
+    WHERE levels.status IN (1)
+        AND levels.created_at >= datetime(:from_season, 'unixepoch')
+        AND levels.created_at < datetime(:to_season, 'unixepoch')
+        AND members.name in :members
+    GROUP BY members.name
+        ,levels.code
+    )
+  GROUP BY name;`,{ memberNames, from_season, to_season });
+
+  return json;
+}
+
 /*
 function get_slug(){
   let refer=req.headers.referer.split(req.host)[1].split('/')
@@ -444,6 +510,16 @@ app.post('/json/members',web_ts(async (ts,req)=>{
   }
 
   let json = await generateMembersJson(ts,user && ts.is_mod(user), req.body)
+  return json;
+}))
+
+app.post('/json/makers',web_ts(async (ts,req)=>{
+  if(req.body.token){
+    req.body.discord_id=await ts.checkBearerToken(req.body.token)
+    var user=await ts.get_user(req.body.discord_id)
+  }
+
+  let json = await generateMakersJson(ts,user && ts.is_mod(user), req.body)
   return json;
 }))
 

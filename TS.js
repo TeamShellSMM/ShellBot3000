@@ -134,7 +134,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
       filter3=`and members.name in (${subsql})`;
     }
 
-    
+
 
     let calculated_values=await this.db.Members.knex().raw(`
       SELECT
@@ -152,19 +152,19 @@ const TS=function(guild_id,config,client){ //loaded after gs
           plays.player,
           sum(points.score) total_score,
           count(plays.id) total_cleared from plays
-        INNER JOIN levels ON 
-          levels.code=plays.code 
+        INNER JOIN levels ON
+          levels.code=plays.code
           AND levels.guild_id=plays.guild_id
-        INNER JOIN points ON 
-          levels.difficulty=points.difficulty 
+        INNER JOIN points ON
+          levels.difficulty=points.difficulty
           AND points.guild_id=levels.guild_id
         WHERE
-          levels.status=1 
+          levels.status=1
           AND plays.completed=1
           AND levels.guild_id=:guild_id
           ${filter1}
         GROUP BY plays.player,plays.guild_id
-      ) clear_stats ON 
+      ) clear_stats ON
             members.guild_id=clear_stats.guild_id
             AND members.name=clear_stats.player
       LEFT JOIN (
@@ -173,9 +173,9 @@ const TS=function(guild_id,config,client){ //loaded after gs
           COUNT(levels.id) calculated_levels_created,
           SUM(levels.is_free_submission) free_submissions,
           SUM(points.score) own_score,
-          levels.creator 
-        FROM levels 
-        INNER JOIN points ON points.difficulty=levels.difficulty AND points.guild_id=levels.guild_id 
+          levels.creator
+        FROM levels
+        INNER JOIN points ON points.difficulty=levels.difficulty AND points.guild_id=levels.guild_id
         WHERE
           levels.guild_id=:guild_id
           ${filter2}
@@ -202,7 +202,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
   }
 
   //used to save variables to db?
-  this.saveSheetToDb=async function(){ 
+  this.saveSheetToDb=async function(){
     ts.gs.loadSheets(["Points"]);
     var _points=ts.gs.select("Points");
     for(let i=0;i<_points.length;i++){
@@ -290,7 +290,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
           });
         }
       }
-    
+
   }
 
   this.is_mod=function(player){
@@ -1515,7 +1515,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
     avg(nullif(plays.difficulty_vote,0)) as vote,
     sum(plays.liked) as likes
     FROM levels
-      LEFT JOIN plays ON 
+      LEFT JOIN plays ON
       levels.code=plays.code and
       levels.guild_id=plays.guild_id
       where levels.guild_id=:guild_id
