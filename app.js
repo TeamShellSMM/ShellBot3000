@@ -300,6 +300,16 @@ async function generateMembersJson(ts,isShellder, data){
 
     let memberNames = Array.from(members, x => x.name);
 
+    for(let memName of memberNames){
+      membersObj[memName] = {
+        "name": memName,
+        "levels_created": 0,
+        "levels_cleared": 0,
+        "clear_score_sum": 0.0,
+        "wonComps": []
+      };
+    }
+
     let lCountQueryBuilder = ts.db.Levels.query().whereIn('creator',memberNames);
     if (data.timePeriod == '2') {
       lCountQueryBuilder = lCountQueryBuilder.whereRaw("strftime('%m-%Y', created_at) = strftime('%m-%Y', CURRENT_TIMESTAMP)")
@@ -311,10 +321,7 @@ async function generateMembersJson(ts,isShellder, data){
     let lCountResult = await lCountQueryBuilder.groupBy('creator').select('creator').count('id as count_created');
 
     for(let row of lCountResult){
-      membersObj[row.creator] = {
-        "name": row.creator,
-        "levels_created": row.count_created
-      };
+      membersObj[row.creator]["levels_created"] = row.count_created;
     }
 
     let cCountQueryBuilder = ts.db.Plays.query().join('levels', function() {
