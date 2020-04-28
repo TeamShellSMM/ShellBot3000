@@ -394,6 +394,10 @@ async function generateMakersJson(ts,isShellder, data){
   let seasons = SheetCache["Seasons"];
   seasons.shift();
 
+  if(data.season == -1){
+    data.season = seasons.length;
+  }
+
   let current_season = seasons[data.season - 1];
   let from_season = current_season[0];
   let to_season = 9999999999;
