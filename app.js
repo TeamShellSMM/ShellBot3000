@@ -422,6 +422,8 @@ async function generateMakersJson(ts,isShellder, data){
 
   let memberNames = Array.from(members, x => x.name);
 
+  console.log("doing sql with", { statuses:[ts.LEVEL_STATUS.PENDING,ts.LEVEL_STATUS.APPROVED], from_season, to_season, memberNames });
+
   json=await ts.db.Members.knex().raw(`SELECT name
     ,COUNT(distinct code) as levels_created
     ,SUM(clears)
