@@ -321,7 +321,7 @@ async function generateMembersJson(ts,isShellder, data){
       this.on('plays.code', '=', 'levels.code').on('plays.guild_id', '=', 'levels.guild_id')
     }).join('points', function() {
       this.on('levels.difficulty', '=', 'points.difficulty').on('levels.guild_id', '=', 'points.guild_id')
-    }).where('plays.player', '=', member.name).where('plays.completed', '=', '1');
+    }).whereIn('plays.player', memberNames).where('plays.completed', '=', '1');
 
     if (data.timePeriod == '2') {
       cCountQueryBuilder = cCountQueryBuilder.whereRaw("strftime('%m-%Y', levels.created_at) = strftime('%m-%Y', CURRENT_TIMESTAMP)")
@@ -350,7 +350,7 @@ async function generateMembersJson(ts,isShellder, data){
     for(let mem of memberArr){
       let comps = [];
       for(let comp of competiton_winners){
-        if(comp[1] === member.name){
+        if(comp[1] === mem.name){
           comps.push({
             name: comp[2],
             rank: comp[3]
