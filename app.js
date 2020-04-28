@@ -422,7 +422,7 @@ async function generateMakersJson(ts,isShellder, data){
 
   let memberNames = Array.from(members, x => x.name);
 
-  json=await this.db.Members.knex().raw(`SELECT name
+  json=await ts.db.Members.knex().raw(`SELECT name
     ,COUNT(distinct code) as levels_created
     ,SUM(clears)
     ,SUM(likes)
