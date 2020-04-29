@@ -217,6 +217,17 @@ const TS=function(guild_id,config,client){ //loaded after gs
 
   //used to save variables to db?
   this.saveSheetToDb=async function(){
+    let guild=ts.getGuild();
+    let mods=[guild.owner.user.id];
+    if(this.teamVariables.ModName){
+      mods=guild.members
+        .filter((m)=> m.roles.some(role=> role.name==this.teamVariables.ModName))
+        .map((m)=> m.user.id)
+    }
+
+    await ts.db.Members.query().patch({is_mod:0}).whereNotIn('discord_id',mods).where({is_mod:1});
+    await ts.db.Members.query().patch({is_mod:1}).whereIn('discord_id',mods).where({is_mod:0});
+
     ts.gs.loadSheets(["Points"]);
     var _points=ts.gs.select("Points");
     for(let i=0;i<_points.length;i++){
@@ -234,77 +245,6 @@ const TS=function(guild_id,config,client){ //loaded after gs
         });
       }
     }
-  }
-
-
-  this.recalc=async function(){
-    var _points=ts.gs.select("Points");
-    for(let i=0;i<_points.length;i++){
-      this.pointMap[parseFloat(_points[i].Difficulty)]=parseFloat(_points[i].Points);
-      let dbPoint = await ts.db.Points.query().select().where('difficulty', parseFloat(_points[i].Difficulty));
-      if(dbPoint.length == 0){
-        await ts.db.Points.query().insert({
-          difficulty: _points[i].Difficulty,
-          score: _points[i].Points
-        });
-      } else {
-        await ts.db.Points.query().where('difficulty', parseFloat(_points[i].Difficulty)).update({
-          difficulty: _points[i].Difficulty,
-          score: _points[i].Points
-        });
-      }
-    }
-
-
-
-
-    //This whole thing is highly inefficient but I don't wanna think about it right now, it's alright for now
-    //await ts.db.Levels.transaction(async ()=>{
-      //let =null
-      let levels = await ts.db.Levels.query().select();
-
-      for(let level of levels){
-        let clearScore = this.pointMap[level.difficulty];
-        if(level.clear_score != clearScore){
-          await ts.db.Levels.query().where('code', level.code).update({
-            clear_score: clearScore
-          });
-        }
-      }
-
-      let members = await ts.db.Members.query().select().where('clear_score_sum', '=', 0.0);
-
-      for(let member of members){
-        let result = await ts.db.Plays.query().join('levels', 'plays.code', '=', 'levels.code').where('player', '=', member.name).where('completed', '=', '1').sum('levels.clear_score as score_sum');
-        if(result.length > 0 && result[0].score_sum){
-          await ts.db.Members.query().where('name', member.name).update({
-            clear_score_sum: result[0].score_sum
-          });
-        }
-      }
-
-      members = await ts.db.Members.query().select().where('levels_cleared', '=', 0);
-
-      for(let member of members){
-        let result = await ts.db.Plays.query().where('player', '=', member.name).where('completed', '=', '1').count('id as clear_count');
-        if(result.length > 0 && result[0].clear_count){
-          await ts.db.Members.query().where('name', member.name).update({
-            levels_cleared: result[0].clear_count
-          });
-        }
-      }
-
-      members = await ts.db.Members.query().select().where('levels_created', '=', 0);
-
-      for(let member of members){
-        let result = await ts.db.Levels.query().where('creator', '=', member.name).count('id as level_count');
-        if(result.length > 0 && result[0].level_count){
-          await ts.db.Members.query().where('name', member.name).update({
-            levels_created: result[0].level_count
-          });
-        }
-      }
-
   }
 
   this.is_mod=function(player){
@@ -902,6 +842,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
     if(player.is_banned)
       ts.userError(ts.message("error.userBanned"));
 
+    player.is_mod=ts.is_mod(player.name);
     player.earned_points= await this.calculatePoints(player.name);
     player.rank=this.get_rank(player.earned_points.clearPoints);
     player.user_reply="<@"+discord_id+">" + (player.rank.Pips ? player.rank.Pips : "") + " ";
@@ -1585,80 +1526,6 @@ const TS=function(guild_id,config,client){ //loaded after gs
       levelsMade:member.levels_created,
       freeSubmissions:freeSubmissions.length,
       available:this.levelsAvailable( member.clear_score_sum,member.levels_created-(if_remove_check?1:0),freeSubmissions.length),
-    }
-  }
-
-  this.calculatePointsOld= async function(user,if_remove_check){ //delta check is to see if we can add a level if we remove it
-    let currentLevels = await ts.db.Levels.query().select();
-    let levelMap={};
-    let ownLevels=[];
-    let freeSubmissions=0;
-    let reuploads={};
-    let ownLevelPoints=0;
-
-    //get all the levels the player has played
-    //if can play own level, the levels player has uploaded
-    //get all the levels the player has made, and free submision
-    for (let row = currentLevels.length-1; row >=0 ; row--) {
-      let level=currentLevels[row];
-      if(level.status == ts.LEVEL_STATUS.APPROVED){
-        if(level.creator == user){
-
-
-          ownLevels.push(level.code)
-          //count free submissions
-          if(level.is_free_submission) freeSubmissions++;
-
-          //only most recent levels get tallied up for own levels points
-          ownLevelPoints+=ts.getPoints(level.difficulty);
-        } else {
-            levelMap[level.code]=ts.getPoints(level.difficulty);
-        }
-      } else if(level.status=="2") { //reupload
-        if(level.creator==user){
-          //reuploads don't count for self
-        } else {
-          if(level.new_code){
-            reuploads[level.code]=level.new_code
-            levelMap[level.code]=ts.getPoints(level.difficulty)
-          }
-        }
-      } else if( level.status==ts.LEVEL_STATUS.PENDING && level.creator==user){
-        ownLevels.push(level.code)
-      }
-    }
-
-    var playedLevels = await ts.db.Plays.query()
-      .where('player', '=', user)
-      .where('completed', '=', '1');
-
-
-    // this takes all the played levels and compare with reuploads.
-    // we only take the maximum point from a reupload
-    var userCleared={};
-    for (var row = 0; playedLevels && row < playedLevels.length; row++){
-        var id= reuploads[playedLevels[row].code] ? reuploads[playedLevels[row].code] : playedLevels[row].code
-        userCleared[id]= Math.max( userCleared[id]?userCleared[id]:0, levelMap[playedLevels[row].code] )
-    }
-
-
-    //tally up the points
-    var clearPoints=0;
-    for(var id in userCleared){
-      if(userCleared[id]) clearPoints+=userCleared[id]
-    }
-
-    if(ts.teamVariables.includeOwnPoints){
-      clearPoints+=ownLevelPoints
-    }
-
-
-    var ownLevelNumbers=ownLevels.length + (if_remove_check?-1:0) //check if can upload a level if we removed one. for reuploads
-    return {
-      clearPoints:clearPoints.toFixed(1),
-      levelsMade:ownLevels.length,
-      freeSubmissions:freeSubmissions,
-      available:this.levelsAvailable(clearPoints,ownLevelNumbers,freeSubmissions),
     }
   }
 }

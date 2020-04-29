@@ -88,21 +88,20 @@ client.on("ready", async () => {
  }
 })();
 
-function sqlDateToTimestamp(date){
-  if(!date) return ""
-  return (new Date(date.replace(/-/g,"/"))).getTime()/1000
-}
-
-async function generateSiteJson({ ts, isShellder, code }){
-    const SheetCache = ts.gs.getArrayFormat([
-        "Competition Winners"
-      ])
+async function generateSiteJson({ ts, user , code , name , dashboard }){
+    const SheetCache = ts.gs.getArrayFormat(["Competition Winners"])
 
     let competiton_winners = SheetCache["Competition Winners"];
+    competiton_winners.shift()
     let tags = ts.gs.select("tags");
     let _seasons = ts.gs.select("Seasons")
 
-    const filterSql= code ? 'AND level.code=:code' : '';
+    let filterSql=''
+    if(code){
+      filterSql= 'AND levels.code=:code';
+    } else if(name){
+      filterSql= 'AND levels.creator=:name';
+    }
 
     let newLevels= await ts.knex.raw(`
       SELECT *
@@ -150,6 +149,7 @@ async function generateSiteJson({ ts, isShellder, code }){
       LEfT JOIN pending_votes ON
         levels.guild_id=pending_votes.guild_id
         AND levels.code=pending_votes.code
+        AND levels.status=0
       WHERE 
         levels.status IN (:statuses:)
         AND levels.guild_id=:guild_id
@@ -158,14 +158,18 @@ async function generateSiteJson({ ts, isShellder, code }){
     `, { 
       guild_id:ts.guild_id,
       code,
+      name,
       statuses: [
       ts.LEVEL_STATUS.PENDING,
       ts.LEVEL_STATUS.APPROVED,
       ts.LEVEL_STATUS.NEED_FIX,
     ] })
 
+
+
+
     //remove headers
-    competiton_winners.shift()
+    
     let _tags={}
     let _seperate=[]
     for(let i=0;i<tags.length;i++){
@@ -183,27 +187,82 @@ async function generateSiteJson({ ts, isShellder, code }){
       })
     }
 
-    //let d=new Date()
-    //let day = d.getDay();
-    //let DAY_START=(new Date(d.getFullYear(), d.getMonth(), d.getDate())).getTime()/1000;
-    //let WEEK_START=(new Date(d.getFullYear(), d.getMonth(), d.getDate() + (day == 0?-6:1)-day )).getTime()/1000;
-    //let MONTH_START=(new Date(d.getFullYear(), d.getMonth(), 1)).getTime()/1000;
     let json={
       //"lastUpdated":ts.gs.lastUpdated,
       "seasons":Seasons,
       "comp_winners":competiton_winners,
-      "levels":newLevels,
       "tags":_tags,
       "seperate":_seperate,
     };
 
-    /*
-    console.time('vote');
-    if(isShellder){
-      json["shellder"]=true;
-      json["shellder_comments"]=comments;
+    if(name){
+      json.maker=await ts.knex.raw(`
+        SELECT members.*
+        ,sum(round(((likes*2+clears)*score*likes/clears),1)) maker_points
+        FROM members 
+        LEFT JOIN (
+          SELECT levels.guild_id
+            ,levels.creator
+            ,points.score
+            ,sum(NULLIF(plays.completed,'')) clears
+            ,sum(NULLIF(plays.liked,'')) likes
+            ,round(avg(NULLIF(plays.difficulty_vote,'')),1) vote
+            ,count(NULLIF(plays.difficulty_vote,'')) votetotal
+          FROM
+            levels
+          LEFT JOIN plays ON
+            levels.guild_id=plays.guild_id
+            AND levels.code=plays.code
+            AND levels.creator!=plays.player
+            AND levels.status=1
+          LEFT JOIN points ON
+            levels.guild_id=points.guild_id
+            AND levels.difficulty=points.difficulty
+          WHERE 
+            levels.guild_id=:guild_id
+            AND levels.status = :status
+            AND levels.creator = :name
+          GROUP BY levels.id
+        ) a ON
+        members.guild_id=a.guild_id
+        AND members.name=a.creator
+        WHERE members.name=:name 
+        AND members.guild_id=:guild_id
+      `, { 
+        guild_id:ts.guild_id,
+        name,
+        status:ts.LEVEL_STATUS.APPROVED 
+      })
+      if(json.maker.length>0){
+        json.maker=json.maker[0]
+        delete json.maker.discord_id
+        delete json.maker.guild_id
+      }
     }
-    */
+
+    if(dashboard){
+      json.dashboard={
+        members:await ts.knex.raw(`
+        SELECT sum(members.is_member) official
+          ,count(members.id)-sum(members.is_member) unoffocial
+          ,sum(members.is_mod) mods
+        FROM members
+        where guild_id=:guild_id
+      `, { guild_id:ts.guild_id }),
+      }
+      json.dashboard.members=json.dashboard.members[0]
+    }
+
+    if(code && newLevels[0]){
+      json.level=newLevels[0]
+      json.plays=await ts.db.Plays.query().where({ code })
+      if(user && user.is_mod && json.level.status==ts.LEVEL_STATUS.PENDING){
+        json.pending_comments=await ts.db.PendingVotes.query().where({ code })
+      }
+    } else {
+      json.levels=newLevels;
+    }
+
     return json;
 }
 
@@ -512,7 +571,7 @@ app.post('/json',web_ts(async (ts,req)=>{
     console.timeEnd('user')
 
     console.time('json')
-    let json = await generateSiteJson(ts,user && ts.is_mod(user))
+    let json = await generateSiteJson({ts , user ,...req.body })
     console.timeEnd('json')
     return json;
 }))
