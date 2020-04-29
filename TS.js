@@ -1095,9 +1095,14 @@ const TS=function(guild_id,config,client){ //loaded after gs
     var level = await ts.getExistingLevel(code,fromFix);
     const author = await ts.db.Members.query().where({name:level.creator}).first();
 
+
     if(!author){
       ts.userError(ts.message("approval.creatorNotFound"))
     }
+
+    const approvalVotesNeeded=ts.teamVariables.ApprovalVotesNeeded || ts.teamVariables.VotesNeeded || 1
+    const rejectVotesNeeded=ts.teamVariables.RejectVotesNeeded || ts.teamVariables.VotesNeeded || 1
+    const fixVotesNeeded=ts.teamVariables.FixVotesNeeded || ts.teamVariables.VotesNeeded || 1
 
     //Get all current votes for this level
     var approvalVotes = await ts.db.PendingVotes.query().where({code}).where("type","approve");
@@ -1107,13 +1112,13 @@ const TS=function(guild_id,config,client){ //loaded after gs
     var fixComments = [...fixVotes, ...rejectVotes];
 
     //Count Approval and Rejection Votes
-    var approvalVoteCount = approvalVotes.length + fixVotes.length;
-    var fixVoteCount = fixVotes.length;
+    var approvalVoteCount = approvalVotes.length;
+    var fixVoteCount = fixVotes.length + approvalVotes.length;
     var rejectVoteCount = rejectVotes.length;
 
     let fixMode = false;
 
-    if(rejectVoteCount >= ts.get_variable("VotesNeeded") && rejectVoteCount>approvalVoteCount){
+    if(rejectVoteCount >= rejectVotesNeeded && rejectVoteCount>approvalVoteCount){
       //Reject level
       await ts.db.Levels.query()
         .patch({status:ts.LEVEL_STATUS.REMOVED})
@@ -1130,22 +1135,10 @@ const TS=function(guild_id,config,client){ //loaded after gs
         var image=this.getEmoteUrl(this.emotes.axemuncher);
       }
 
-    } else if (approvalVoteCount >= ts.get_variable("VotesNeeded")  && approvalVoteCount>rejectVoteCount && fixVoteCount > 0 && level.status !== ts.LEVEL_STATUS.NEED_FIX) {
-      if(level.status !== ts.LEVEL_STATUS.PENDING)
-        ts.userError(ts.message("approval.levelNotPending"))
-
-      await ts.db.Levels.query()
-        .patch({status:ts.LEVEL_STATUS.NEED_FIX})
-        .where({code:code})
-
-      var color="#D68100";
-      var title=ts.message("approval.fixPlayerInstructions");
-      if(this.emotes.think){
-        var image=this.getEmoteUrl(this.emotes.think);
-      }
-
-      fixMode = true;
-    } else if (approvalVoteCount >= ts.get_variable("VotesNeeded")  && approvalVoteCount>rejectVoteCount ){
+    }  else if (
+        approvalVoteCount >= approvalVotesNeeded
+        && approvalVoteCount>rejectVoteCount 
+    ){
       if(level.status !== ts.LEVEL_STATUS.PENDING && level.status !== ts.LEVEL_STATUS.NEED_FIX)
         ts.userError(ts.message("approval.levelNotPending"))
         //Get the average difficulty and round to nearest .5, build the message at the same time
@@ -1207,10 +1200,30 @@ const TS=function(guild_id,config,client){ //loaded after gs
         if(this.emotes.bam){
           var image=this.getEmoteUrl(this.emotes.bam);
         }
-      } else if(approvalVoteCount==rejectVoteCount ) {
+      } else if (
+        fixVoteCount >= fixVotesNeeded
+        && approvalVoteCount>rejectVoteCount
+        && fixVoteCount > 0
+        && level.status !== ts.LEVEL_STATUS.NEED_FIX
+      ) {
+      if(level.status !== ts.LEVEL_STATUS.PENDING)
+        ts.userError(ts.message("approval.levelNotPending"))
+
+      await ts.db.Levels.query()
+        .patch({status:ts.LEVEL_STATUS.NEED_FIX})
+        .where({code:code})
+
+      var color="#D68100";
+      var title=ts.message("approval.fixPlayerInstructions");
+      if(this.emotes.think){
+        var image=this.getEmoteUrl(this.emotes.think);
+      }
+
+      fixMode = true;
+    } else if(approvalVoteCount==rejectVoteCount ) {
         ts.userError(ts.message("approval.comboBreaker"));
       } else {
-        ts.userError(ts.message("approval.numVotesNeeded"),{vote_num:ts.get_variable("VotesNeeded")});
+        ts.userError(ts.message("approval.numVotesNeeded"),{vote_num:approvalVotesNeeded});
       }
 
       var mention = ts.message("general.heyListen",{discord_id:author.discord_id});
@@ -1334,11 +1347,14 @@ const TS=function(guild_id,config,client){ //loaded after gs
 
 
   this.levelEmbed=function(level,noLink){
-    var videoStr=[]
+    var vidStr=[]
+
     level.videos.split(",").forEach((vid,i)=>{
-      if(vid) videoStr.push("[ 🎬 ]("+vid+")")
+      if(vid) vidStr.push("[ 🎬 ]("+vid+")")
     })
-    videoStr=videoStr.join(",")
+
+
+    vidStr=vidStr.join(",")
     var tagStr=[]
     level.tags=level.tags?level.tags:""
     level.tags.split(",").forEach((tag)=>{
@@ -1351,9 +1367,10 @@ const TS=function(guild_id,config,client){ //loaded after gs
         .setDescription(
           "made by "+
           (noLink?level.creator:"[" + level.creator + "](" + server_config.page_url + ts.config.url_slug + "/maker/" + encodeURIComponent(level.creator) + ")")+"\n"+
+          (ts.is_smm1(level.code)? `Links: [Bookmark Page](https://supermariomakerbookmark.nintendo.net/courses/${level.code})\n` : '')+
           (level.clears!=undefined ? "Difficulty: "+level.difficulty+", Clears: "+level.clears+", Likes: "+level.likes+"\n":"")+
             (tagStr?"Tags: "+tagStr+"\n":"")+
-            (videoStr?"Clear Video: "+videoStr:"")
+            (vidStr?"Clear Video: "+vidStr:"")
         )
       if(!noLink){
         embed.setURL(server_config.page_url + ts.config.url_slug + "/level/" + level.code)

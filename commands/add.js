@@ -29,12 +29,14 @@ class tsadd extends TSCommand {
       if(player.earned_points.available.toFixed(1)<0)
         ts.userError(ts.message("points.cantUpload",{points_needed:Math.abs(player.earned_points.available).toFixed(1)}));
 
+
       await ts.db.Levels.query().insert({
         code,
         level_name,
         creator:player.name,
         difficulty:0,
-        status:0
+        tags: ts.teamVariables.allowSMM1 && ts.is_smm1(code) ? 'SMM1' : '',
+        status:0,
       })
       await ts.recalculateAfterUpdate({name:player.name})
 
