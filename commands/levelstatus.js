@@ -14,7 +14,8 @@ class TSLevelStatus extends TSCommand {
     }
 
     async tsexec(ts,message,{ code }) {
-        const votes_needed=ts.get_variable("VotesNeeded")
+        const approval_votes_needed=ts.get_variable("ApprovalVotesNeeded")
+        const reject_votes_needed=ts.get_variable("RejectVotesNeeded")
 
         if(!ts.valid_format(code))
             ts.userError("Level code given was not in xxx-xxx-xxx format")
@@ -43,18 +44,18 @@ class TSLevelStatus extends TSCommand {
 
             var text = "";
 
-            if( (approvalVoteCount > votes_needed || rejectVoteCount > votes_needed) && approvalVoteCount!=rejectVoteCount ){
+            if( (approvalVoteCount > approval_votes_needed || rejectVoteCount > reject_votes_needed) && approvalVoteCount!=rejectVoteCount ){
                 text = "This level is ready to be judged: ";
             } else {
                 text = "This level is in judgement right now: ";
             }
 
             if(approvalVoteCount > 0 && rejectVoteCount > 0){
-                text +=  approvalVoteCount + "/votes_needed votes for approval, " + rejectVoteCount + "/votes_needed votes for rejection!";
+                text +=  approvalVoteCount + "/" + approval_votes_needed + " votes for approval, " + rejectVoteCount + "/" + reject_votes_needed + " votes for rejection!";
             } else if(approvalVoteCount > 0){
-                text += approvalVoteCount + "/votes_needed votes for approval!";
+                text += approvalVoteCount + "/" + approval_votes_needed + " votes for approval!";
             } else if(rejectVoteCount > 0){
-                text += rejectVoteCount + "/votes_needed votes for rejection!";
+                text += rejectVoteCount + "/" + reject_votes_needed + " votes for rejection!";
             } else {
                 text = "This level is not in judgement, no mods seem to have gotten to it yet!";
             }

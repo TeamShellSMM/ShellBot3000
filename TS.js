@@ -22,6 +22,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
   };
 
   this.load=async function(){
+<<<<<<< HEAD
     this.db={
       Tokens:require('./models/Tokens'),
       Plays:require('./models/Plays')(guild_id,ts),
@@ -32,6 +33,8 @@ const TS=function(guild_id,config,client){ //loaded after gs
     };
 
     this.knex = this.db.Levels.knex();
+=======
+>>>>>>> master
 
     ts.gs.clearCache();
     let guild=await ts.getGuild()
@@ -104,12 +107,15 @@ const TS=function(guild_id,config,client){ //loaded after gs
         this.mods=[guild.owner.user.id]
       }
 
+<<<<<<< HEAD
       ts.recalculateAfterUpdate()
 
+=======
+>>>>>>> master
 
       console.log(`Data loaded for ${this.teamVariables.TeamName}`)
   }
-  
+
   this.getMakerPoints = function(likes, clears, difficultyPoints){
     if(clears == 0) return 0;
     return ((likes * 2 + clears)*difficultyPoints) * (likes/clears);
@@ -1059,7 +1065,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
 
     let fixMode = false;
 
-    if(rejectVoteCount >= rejectVotesNeeded && rejectVoteCount>approvalVoteCount){
+    if(rejectVoteCount >= ts.get_variable("RejectVotesNeeded") && rejectVoteCount>approvalVoteCount){
       //Reject level
       await ts.db.Levels.query()
         .patch({status:ts.LEVEL_STATUS.REMOVED})
@@ -1075,11 +1081,22 @@ const TS=function(guild_id,config,client){ //loaded after gs
       if(this.emotes.axemuncher){
         var image=this.getEmoteUrl(this.emotes.axemuncher);
       }
+    } else if (approvalVoteCount >= ts.get_variable("ApprovalVotesNeeded")  && approvalVoteCount>rejectVoteCount && fixVoteCount > 0 && level.status !== ts.LEVEL_STATUS.NEED_FIX) {
+      if(level.status !== ts.LEVEL_STATUS.PENDING)
+        ts.userError(ts.message("approval.levelNotPending"))
 
-    }  else if (
-        approvalVoteCount >= approvalVotesNeeded
-        && approvalVoteCount>rejectVoteCount 
-    ){
+      await ts.db.Levels.query()
+        .patch({status:ts.LEVEL_STATUS.NEED_FIX})
+        .where({code:code})
+
+      var color="#D68100";
+      var title=ts.message("approval.fixPlayerInstructions");
+      if(this.emotes.think){
+        var image=this.getEmoteUrl(this.emotes.think);
+      }
+
+      fixMode = true;
+    } else if (approvalVoteCount >= ts.get_variable("ApprovalVotesNeeded")  && approvalVoteCount>rejectVoteCount ){
       if(level.status !== ts.LEVEL_STATUS.PENDING && level.status !== ts.LEVEL_STATUS.NEED_FIX)
         ts.userError(ts.message("approval.levelNotPending"))
         //Get the average difficulty and round to nearest .5, build the message at the same time
@@ -1162,60 +1179,60 @@ const TS=function(guild_id,config,client){ //loaded after gs
 
       fixMode = true;
     } else if(approvalVoteCount==rejectVoteCount ) {
-        ts.userError(ts.message("approval.comboBreaker"));
-      } else {
-        ts.userError(ts.message("approval.numVotesNeeded"),{vote_num:approvalVotesNeeded});
-      }
+      ts.userError(ts.message("approval.comboBreaker"));
+    } else {
+      ts.userError(ts.message("approval.numVotesNeeded"),{vote_num:ts.get_variable("ApprovalVotesNeeded")});
+    }
 
-      var mention = ts.message("general.heyListen",{discord_id:author.discord_id});
-      var judgeEmbed = ts.levelEmbed(level)
-        .setColor(color)
-        .setAuthor(title);
+    var mention = ts.message("general.heyListen",{discord_id:author.discord_id});
+    var judgeEmbed = ts.levelEmbed(level)
+      .setColor(color)
+      .setAuthor(title);
 
-      if(image){
-        judgeEmbed.setThumbnail(image);
-      }
+    if(image){
+      judgeEmbed.setThumbnail(image);
+    }
 
-      if(fixMode){
-        judgeEmbed.setDescription(ts.message("approval.fixInstructionsCreator"));
-      }
+    if(fixMode){
+      judgeEmbed.setDescription(ts.message("approval.fixInstructionsCreator"));
+    }
 
-      if(fixMode){
-        for(let i = 0; i < fixComments.length; i++){
-          let msgString = "";
-          if(fixComments[i].type=="fix"){
-            msgString='judge.votedFix';
-          } else {
-            msgString='judge.votedReject';
-          }
-          let embedHeader=ts.message(msgString,{ ...fixComments[i] })
-          ts.embedAddLongField(judgeEmbed,embedHeader,fixComments[i].reason)
+    if(fixMode){
+      for(let i = 0; i < fixComments.length; i++){
+        let msgString = "";
+        if(fixComments[i].type=="fix"){
+          msgString='judge.votedFix';
+        } else {
+          msgString='judge.votedReject';
         }
-      } else {
-        for(let i = 0; i < allComments.length; i++){
-          let msgString = "";
-          if(allComments[i].type=="fix"){
-            msgString='judge.votedFix'
-          } else if(allComments[i].type=="approve"){
-            msgString='judge.votedApprove'
-          } else {
-            msgString='judge.votedReject'
-          }
-          let embedHeader=ts.message(msgString,{ ...allComments[i] })
-          ts.embedAddLongField(judgeEmbed,embedHeader,allComments[i].reason)
+        let embedHeader=ts.message(msgString,{ ...fixComments[i] })
+        ts.embedAddLongField(judgeEmbed,embedHeader,fixComments[i].reason)
+      }
+    } else {
+      for(let i = 0; i < allComments.length; i++){
+        let msgString = "";
+        if(allComments[i].type=="fix"){
+          msgString='judge.votedFix'
+        } else if(allComments[i].type=="approve"){
+          msgString='judge.votedApprove'
+        } else {
+          msgString='judge.votedReject'
         }
+        let embedHeader=ts.message(msgString,{ ...allComments[i] })
+        ts.embedAddLongField(judgeEmbed,embedHeader,allComments[i].reason)
       }
+    }
 
-      await client.channels.get(ts.channels.levelChangeNotification).send(mention);
-      await client.channels.get(ts.channels.levelChangeNotification).send(judgeEmbed);
+    await client.channels.get(ts.channels.levelChangeNotification).send(mention);
+    await client.channels.get(ts.channels.levelChangeNotification).send(judgeEmbed);
 
 
-      //Remove Discussion Channel
-      if(!fromFix){
-        await ts.deleteDiscussionChannel(level.code,ts.message("approval.channelDeleted"))
-      } else {
-        await ts.deleteReuploadChannel(level.code,ts.message("approval.channelDeleted"))
-      }
+    //Remove Discussion Channel
+    if(!fromFix){
+      await ts.deleteDiscussionChannel(level.code,ts.message("approval.channelDeleted"))
+    } else {
+      await ts.deleteReuploadChannel(level.code,ts.message("approval.channelDeleted"))
+    }
   }
 
   this.rejectLevelWithReason=async function(code, shellder, message){
@@ -1518,9 +1535,78 @@ const TS=function(guild_id,config,client){ //loaded after gs
     return false
   }
 
+<<<<<<< HEAD
   this.calculatePoints= async function(name,if_remove_check){ //delta check is to see if we can add a level if we remove it
     let member=await ts.db.Members.query().where({name}).first()
     let freeSubmissions=await ts.db.Levels.query().where({creator:name}).where({is_free_submission:1})
+=======
+  this.calculatePoints= async function(user,if_remove_check){ //delta check is to see if we can add a level if we remove it
+    let currentLevels = await ts.db.Levels.query().select();
+    let levelMap={};
+    let ownLevels=[];
+    let freeSubmissions=0;
+    let reuploads={};
+    let ownLevelPoints=0;
+
+    //get all the levels the player has played
+    //if can play own level, the levels player has uploaded
+    //get all the levels the player has made, and free submision
+    for (let row = currentLevels.length-1; row >=0 ; row--) {
+      let level=currentLevels[row];
+      if(level.status == ts.LEVEL_STATUS.APPROVED){
+        if(level.creator == user){
+
+
+          ownLevels.push(level.code)
+          //count free submissions
+          if(level.is_free_submission) freeSubmissions++;
+
+          //only most recent levels get tallied up for own levels points
+          ownLevelPoints+=this.pointMap[parseFloat(level.difficulty)];
+        } else {
+            levelMap[level.code]=this.pointMap[parseFloat(level.difficulty)];
+        }
+      } else if(level.status=="2") { //reupload
+        if(level.creator==user){
+          //reuploads don't count for self
+        } else {
+          if(level.new_code){
+            reuploads[level.code]=level.new_code
+            levelMap[level.code]=this.pointMap[parseFloat(level.difficulty)]
+          }
+        }
+      } else if( level.status==ts.LEVEL_STATUS.PENDING && level.creator==user){
+        ownLevels.push(level.code)
+      }
+    }
+
+    var playedLevels = await ts.db.Plays.query()
+      .where('player', '=', user)
+      .where('completed', '=', '1');
+
+
+    // this takes all the played levels and compare with reuploads.
+    // we only take the maximum point from a reupload
+    var userCleared={};
+    for (var row = 0; playedLevels && row < playedLevels.length; row++){
+        var id= reuploads[playedLevels[row].code] ? reuploads[playedLevels[row].code] : playedLevels[row].code
+        userCleared[id]= Math.max( userCleared[id]?userCleared[id]:0, levelMap[playedLevels[row].code] )
+    }
+
+
+    //tally up the points
+    var clearPoints=0;
+    for(var id in userCleared){
+      if(userCleared[id]) clearPoints+=userCleared[id]
+    }
+
+    if(ts.teamVariables.includeOwnPoints){
+      clearPoints+=ownLevelPoints
+    }
+
+
+    var ownLevelNumbers=ownLevels.length + (if_remove_check?-1:0) //check if can upload a level if we removed one. for reuploads
+>>>>>>> master
     return {
       clearPoints:member.clear_score_sum.toFixed(1),
       levelsMade:member.levels_created,
