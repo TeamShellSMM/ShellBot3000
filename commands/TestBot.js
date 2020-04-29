@@ -19,16 +19,16 @@ class TestBot extends Command {
     if(config.devs && config.devs.indexOf(message.author.id)!==-1){
       return true;
     }
-    
+
     //can be called by the bot itself
     if(message.author.id==ts.client.user.id) return true;
-      
+
     return false;
   }
 
 
   async exec(message,args) {
-    
+
     let ts;
     try {
       ts=get_ts(message.guild.id)
@@ -41,7 +41,8 @@ class TestBot extends Command {
       //just setup consistent
       ts.teamVariables['Minimum Point']=0;
       ts.teamVariables['New Level']=0;
-      ts.teamVariables.VotesNeeded=1;
+      ts.teamVariables.ApprovalVotesNeeded=1;
+      ts.teamVariables.RejectionVotesNeeded=1;
       ts.teamVariables.memberRoleId='701487078852001942';
       ts.teamVariables.includeOwnPoints=false;
 
@@ -60,7 +61,7 @@ class TestBot extends Command {
         }
       }
 
-    
+
       async function setupData(data){
         await clearDb()
         for(let i in data){
@@ -306,13 +307,13 @@ class TestBot extends Command {
           }),
         },
         //what to do with fixed?
-        
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
+
         {
           description:'Check !register with banned person',
           cmd:'!register',
@@ -399,7 +400,7 @@ class TestBot extends Command {
 
             return true
           },
-          
+
         },{
           description:'dont at me bot',
           cmd:'!dontatmebot',
@@ -430,7 +431,7 @@ class TestBot extends Command {
             if(memberEntry.atme) return false;
 
             return true
-          }, 
+          },
         },{
           description:'!add without any arguments',
           cmd:'!add',
@@ -618,7 +619,7 @@ class TestBot extends Command {
           discord_id:'123',
           type:'userError',
           expected:ts.message('approval.invalidDifficulty'),
-      
+
         },{
           cmd:'!approve xxx-xxx-xxx 5',
           discord_id:'123',
@@ -630,7 +631,7 @@ class TestBot extends Command {
           async expected({value,guild,ts}){
             const newChannel=await guild.channels.find(c => c.name === 'xxx-xxx-xxx')
             if(!newChannel) return false;
-            
+
             return ts.message('approval.voteAdded',{channel_id:newChannel.id})==value
           },
           slow:true,
@@ -648,7 +649,7 @@ class TestBot extends Command {
             if(level.status!==ts.LEVEL_STATUS.APPROVED) return false;
 
             return true;
-            //currently initation isn't really testable. 
+            //currently initation isn't really testable.
             //there's an error where we're overwriting the member and we can't
             //get a fresh one from server
             //not sure how to test initiation and show approval stuff
@@ -748,7 +749,7 @@ class TestBot extends Command {
             return reply==value
           },
           slow:true,
-      
+
         },{
           description:'Change bot user to mockCreator for next tests',
           cmd:'!mockuser mockCreator',
@@ -849,7 +850,7 @@ class TestBot extends Command {
           type:'userError',
           expected:ts.message('makerid.existing',{name:'Real',code:'XXX-XXX-XXX'}),
         },
-      ];  
+      ];
 
       async function send({ setup, cmd , channel, discord_id , initialData }){
         if(initialData!=null){

@@ -12,7 +12,7 @@ module.exports={
  'login.expiredOTP':'The OTP password given is already expired',
  'login.noOTP':'No OTP provided',
 
- 
+
 
  'error.noDiscordId':'We couldn\'t find your `discord id',
  'clear.invalidDifficulty':'You did not provide a valid difficulty vote', //✅
@@ -59,7 +59,7 @@ module.exports={
  'approval.voteAdded':'Your vote was added to <#{{channel_id}}>!',
  'approval.fixPlayerInstructions':'This level is one step from being approved, we\'d just like to see some fixes!',
  'approval.comboBreaker':'The votes are the same! {{buzzyS}} We need a tiebreaker',
- 'approval.numVotesNeeded':'There must be at least {{vote_num}} {{ModName}} in agreement before this level can be judged!',
+ 'approval.numVotesNeeded':'The necessary amount of reject/approval votes has not been reached yet!',
  'approval.fixInstructionsCreator':'If you want to fix these issues use **!reupload** (to get it approved really quickly) or if you don\'t want to just use **!refusefix** and the mods will decide if it\'s still acceptable.',
  'approval.channelDeleted':'Justice has been met!',
  'approval.rejectAfterRefuse':'We\'re really sorry, but this level was rejected after you refused to reupload.',
@@ -118,7 +118,7 @@ module.exports={
  'error.invalidMakerCode':'`{{code}}` is not a valid maker id',
 
  'points.points':'You have {{player.earned_points.clearPoints}} clear points. You have submitted {{player.earned_points.levelsMade}} level(s) {{#if player.earned_points.freeSubmissions}} ({{player.earned_points.freeSubmissions}} free submission(s)){{/if}}.',  //✅
- 'points.canUpload':'You have enough points to upload a level {{{PigChamp}}}', 
+ 'points.canUpload':'You have enough points to upload a level {{{PigChamp}}}',
  'points.cantUpload':'You need {{points_needed}} points to upload a new level {{{buzzyS}}}. Check how the points are mapped on {{teamurl}}',
  'points.rank':' You have earned the rank **{{player.rank.Rank}}** {{{player.rank.Pips}}}',  //✅
 
@@ -149,11 +149,11 @@ module.exports={
  'atme.alreadyNot':'You already have chosen not to be atted', //✅
  'atme.willBeNot':'You will not be atted by {{BotName}} {{{bam}}}',//✅
 
- 'ammendCode.success':'The level "{{{level.level_name}}}", by {{level.creator}}, has changed code from `{{old_code}}` to `{{new_code}}`', 
+ 'ammendCode.success':'The level "{{{level.level_name}}}", by {{level.creator}}, has changed code from `{{old_code}}` to `{{new_code}}`',
 
 
  'help.basic':'You can find all the commands at <https://makerteams.net/features>',
  'mock.userSuccess':"You're now {{name}}. Identity theft is not a joke, Jim!", //✅
- 
+
 
 }
