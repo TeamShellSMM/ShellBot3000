@@ -94,16 +94,16 @@ class InitChannels extends TSCommand {
                 if(!newChannel) newChannel=await message.guild.createChannel(channelName,channelTemplate)
                 let embed = ts.client.util.embed()
                     .setColor("#007bff")
-                    .setTitle("Channel Help (You can delete this)")
+                    .setTitle("Channel Help")
                 let newChannelHelp;    
                 if(channelTemplate.type=='category'){
                     newChannelHelp=await message.guild.createChannel(channelName+'-help',{
                         parent: newChannel.id
                     })
-                    embed.setDescription('```fix\n'+c.Description+'\n```**You can delete this channel**\n<a:SHELLBOTTED:666097068640829440>')
+                    embed.setDescription('```fix\n'+c.Description+'\n```') // You can delete this channel** \n<a:SHELLBOTTED:666097068640829440>
                 } else {
                     newChannelHelp=newChannel;
-                    embed.setDescription('```fix\n'+c.Description+'\n```**You can move this channel for organization**\n**You can delete this message**\n<a:SHELLBOTTED:666097068640829440>')
+                    embed.setDescription('```fix\n'+c.Description+'\n```') // You can move this channel for organization**\n**You can delete this message**\n<a:SHELLBOTTED:666097068640829440>
                 }
                 await newChannelHelp.send(`<@${message.author.id}>`)
                 await newChannelHelp.send(embed)

@@ -8,6 +8,17 @@
 <h1>ShellBot API tester</h1>
 <div class="container">
 
+<div class="row">
+<div class="col-sm-12">
+<code id="loginOut"></code>
+<form id="teamsJson" method="post">
+  <input type="hidden" name="url_slug" value="teamshell"/>
+  <h3>Teams Info</h3>
+  <input class="form-control btn btn-primary" type="submit" name="action" value="Get Team Info"/>
+</form>
+</div>
+</div>
+
 <label> Team <input id="urlSlugInput" class="form-control" type="text" value="teamshell"/></label>
 <div class="row">
 <div class="col-sm-12">
@@ -112,6 +123,15 @@ $("#urlSlugInput").change(function(){
   $("input[name=url_slug").val($("#urlSlugInput").val())
 })
 
+$("#teamsJson").submit(function(event){
+  event.preventDefault(); //prevent default action 
+  $.ajax({
+    url : "./teams",
+    type: "post",
+  }).done(function(response){ //
+    console.log(response)
+  });
+})
 
 $("#postsJson").submit(function(event){
   event.preventDefault(); //prevent default action 

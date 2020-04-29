@@ -3,6 +3,7 @@ const config = require('./config.json');
 const argv = require('yargs').argv
 const { AkairoClient } = require('discord-akairo');
 const TS=require('./TS.js')
+const Teams=require('./models/Teams');
 const express = require('express');
 const bodyParser = require('body-parser');
 const moment = require('moment');
@@ -89,6 +90,9 @@ client.on("ready", async () => {
 })();
 
 async function generateSiteJson({ ts, user , code , name , dashboard }){
+    console.log(user);
+    console.log(name);
+    console.log(code);
     const SheetCache = ts.gs.getArrayFormat(["Competition Winners"])
 
     let competiton_winners = SheetCache["Competition Winners"];
@@ -103,12 +107,32 @@ async function generateSiteJson({ ts, user , code , name , dashboard }){
       filterSql= 'AND levels.creator=:name';
     }
 
+    let registeredColumns=(user)?`
+    ,registered_plays.completed
+    ,registered_plays.liked
+    ,registered_plays.difficulty_vote
+    `:`
+    ,'-' completed
+    ,'-' liked
+    ,'-' difficulty_vote`;
+
+    let registeredSql=(user)?`
+      LEFT JOIN plays registered_plays ON
+        levels.guild_id=registered_plays.guild_id
+        AND levels.code=registered_plays.code
+        AND registered_plays.player=:player
+    `:``
+
+
     let newLevels= await ts.knex.raw(`
-      SELECT *
+      SELECT ROW_NUMBER () OVER (ORDER BY id) no
+      ,*
       ,round(((likes*2+clears)*score*likes/clears),1) lcd
+      ,vote||','||votetotal votestr
       ,max(row_last_updated,0) loaded_on
       FROM
-      (SELECT levels.code
+      (SELECT levels.id
+        ,levels.code
         ,levels.creator
         ,levels.level_name
         ,levels.status
@@ -125,6 +149,7 @@ async function generateSiteJson({ ts, user , code , name , dashboard }){
         ,sum(CASE WHEN pending_votes.type='approve' THEN 1 ELSE 0 END) approves
         ,sum(CASE WHEN pending_votes.type='reject' THEN 1 ELSE 0 END) rejects
         ,sum(CASE WHEN pending_votes.type='fix' THEN 1 ELSE 0 END) want_fixes
+        ${registeredColumns}
         ,MAX(
           levels.created_at
           ,levels.updated_at
@@ -139,7 +164,6 @@ async function generateSiteJson({ ts, user , code , name , dashboard }){
         levels.guild_id=plays.guild_id
         AND levels.code=plays.code
         AND levels.creator!=plays.player
-        AND levels.status=1
       LEFT JOIN members ON
         levels.guild_id=members.guild_id
         AND levels.creator=members.name
@@ -150,25 +174,21 @@ async function generateSiteJson({ ts, user , code , name , dashboard }){
         levels.guild_id=pending_votes.guild_id
         AND levels.code=pending_votes.code
         AND levels.status=0
+      ${registeredSql}
       WHERE 
         levels.status IN (:statuses:)
         AND levels.guild_id=:guild_id
-        ${filterSql}
       GROUP BY levels.id);
     `, { 
       guild_id:ts.guild_id,
       code,
       name,
+      player:user.name,
       statuses: [
       ts.LEVEL_STATUS.PENDING,
       ts.LEVEL_STATUS.APPROVED,
       ts.LEVEL_STATUS.NEED_FIX,
     ] })
-
-
-
-
-    //remove headers
     
     let _tags={}
     let _seperate=[]
@@ -196,8 +216,7 @@ async function generateSiteJson({ ts, user , code , name , dashboard }){
     };
 
     if(name){
-      json.maker=await ts.knex.raw(`
-        SELECT members.*
+      json.maker=await ts.knex.raw(`members.*
         ,sum(round(((likes*2+clears)*score*likes/clears),1)) maker_points
         FROM members 
         LEFT JOIN (
@@ -530,6 +549,7 @@ function get_slug(){
 }
 */
 
+
 function get_web_ts(url_slug){
   for(var id in global.TS_LIST){
     if(global.TS_LIST[id].config && global.TS_LIST[id].config.url_slug == url_slug){
@@ -547,7 +567,7 @@ function web_ts(callback){
       if(!ts)
         throw `"${req.body.url_slug}" not found`;
     } catch(error){
-      let ret={"error":error.stack,"url_slug":req.body.url_slug}
+      let ret={status:'error',message: error.stack || error,"url_slug":req.body.url_slug}
       console_error(ret)
       res.send(JSON.stringify(ret));
       throw error;
@@ -562,8 +582,23 @@ function web_ts(callback){
   }
 }
 
+app.post('/teams',async (req, res) => {
+  res.setHeader('Content-Type', 'application/json; charset=utf-8');
+  try {
+    let teams=await Teams.query().select('guild_name','url_slug','web_config').where({public:1})
+    console.log(teams)
+    res.send(JSON.stringify(data));
+  } catch(error){
+    let ret={"error":error.stack}
+    console_error(ret)
+    res.send(ts.getWebUserErrorMsg(error))
+    throw error;
+  } 
+})
+
 app.post('/json',web_ts(async (ts,req)=>{
     console.time('user')
+    
     if(req.body.token){
       req.body.discord_id=await ts.checkBearerToken(req.body.token)
       var user=await ts.get_user(req.body.discord_id)
