@@ -31,6 +31,8 @@ const TS=function(guild_id,config,client){ //loaded after gs
       Points:require('./models/Points')(guild_id,ts),
     };
 
+    this.knex = this.db.Levels.knex();
+
     ts.gs.clearCache();
     let guild=await ts.getGuild()
 
@@ -107,6 +109,11 @@ const TS=function(guild_id,config,client){ //loaded after gs
 
       console.log(`Data loaded for ${this.teamVariables.TeamName}`)
   }
+  
+  this.getMakerPoints = function(likes, clears, difficultyPoints){
+    if(clears == 0) return 0;
+    return ((likes * 2 + clears)*difficultyPoints) * (likes/clears);
+}
 
   this.getPoints=function(difficulty){
     return this.pointMap[parseFloat(difficulty)]
@@ -393,10 +400,17 @@ const TS=function(guild_id,config,client){ //loaded after gs
     return token.discord_id
   }
 
+  this.is_smm1=function(code){
+    return /^[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}$/.test(code.toUpperCase());
+  }
+
+  this.is_smm2=function(code){
+    return /^[1234567890QWERTYUPASDFGHJKLXCVBNM]{3}-[1234567890QWERTYUPASDFGHJKLXCVBNM]{3}-[1234567890QWERTYUPASDFGHJKLXCVBNM]{3}$/.test(code.toUpperCase());
+  }
 
   this.valid_code=function(code){
     if(code==null) return false;
-    return /^[1234567890QWERTYUPASDFGHJKLXCVBNM]{3}-[1234567890QWERTYUPASDFGHJKLXCVBNM]{3}-[1234567890QWERTYUPASDFGHJKLXCVBNM]{3}$/.test(code.toUpperCase())
+    return this.is_smm2(code) || ts.teamVariables.allowSMM1 && this.is_smm1(code);
   }
 
   this.getEmoteUrl=function(emote){

@@ -93,69 +93,79 @@ function sqlDateToTimestamp(date){
   return (new Date(date.replace(/-/g,"/"))).getTime()/1000
 }
 
-//to be used until we update web frontend
-function newLevelDataToOld(level){
-  return [
-    level.code,
-    level.creator,
-    level.level_name,
-    level.difficulty,
-    level.status,
-    level.new_code || '',
-    level.videos || '',
-    sqlDateToTimestamp(level.created_at),
-    level.tags || '',
-    level.is_free_submission || '',
-  ];
-}
-
-
-async function generateSiteJson(ts,isShellder){
+async function generateSiteJson({ ts, isShellder, code }){
     const SheetCache = ts.gs.getArrayFormat([
-        "Seasons!B",
-        "tags",
-        "Competition Winners",
-        "Points!B"
+        "Competition Winners"
       ])
 
     let competiton_winners = SheetCache["Competition Winners"];
-    let _points = SheetCache["Points"]
     let tags = ts.gs.select("tags");
     let _seasons = ts.gs.select("Seasons")
 
-    let _members = await ts.db.Members.query().select();
-    let _playedLevels = await ts.db.Plays.query();
+    const filterSql= code ? 'AND level.code=:code' : '';
 
-
-    for(let i=0;i<_playedLevels.length;i++){ //fix old dates
-      _playedLevels[i].created_at=(new Date(_playedLevels[i].created_at.replace(/-/g,"/"))).getTime()/1000;
-    }
-
-    let _rawLevels = await ts.db.Levels.query().select().whereIn('status',[
+    let newLevels= await ts.knex.raw(`
+      SELECT *
+      ,round(((likes*2+clears)*score*likes/clears),1) lcd
+      ,max(row_last_updated,0) loaded_on
+      FROM
+      (SELECT levels.code
+        ,levels.creator
+        ,levels.level_name
+        ,levels.status
+        ,levels.difficulty
+        ,levels.tags
+        ,levels.videos
+        ,levels.created_at
+        ,points.score
+        ,sum(NULLIF(plays.completed,'')) clears
+        ,sum(NULLIF(plays.liked,'')) likes
+        ,round(avg(NULLIF(plays.difficulty_vote,'')),1) vote
+        ,count(NULLIF(plays.difficulty_vote,'')) votetotal
+        ,members.maker_id
+        ,sum(CASE WHEN pending_votes.type='approve' THEN 1 ELSE 0 END) approves
+        ,sum(CASE WHEN pending_votes.type='reject' THEN 1 ELSE 0 END) rejects
+        ,sum(CASE WHEN pending_votes.type='fix' THEN 1 ELSE 0 END) want_fixes
+        ,MAX(
+          levels.created_at
+          ,levels.updated_at
+          ,MAX(plays.created_at)
+          ,MAX(plays.updated_at)
+          ,points.created_at
+          ,points.updated_at
+        ) row_last_updated
+      FROM
+        levels
+      LEFT JOIN plays ON
+        levels.guild_id=plays.guild_id
+        AND levels.code=plays.code
+        AND levels.creator!=plays.player
+        AND levels.status=1
+      LEFT JOIN members ON
+        levels.guild_id=members.guild_id
+        AND levels.creator=members.name
+      LEFT JOIN points ON
+        levels.guild_id=points.guild_id
+        AND levels.difficulty=points.difficulty
+      LEfT JOIN pending_votes ON
+        levels.guild_id=pending_votes.guild_id
+        AND levels.code=pending_votes.code
+      WHERE 
+        levels.status IN (:statuses:)
+        AND levels.guild_id=:guild_id
+        ${filterSql}
+      GROUP BY levels.id);
+    `, { 
+      guild_id:ts.guild_id,
+      code,
+      statuses: [
       ts.LEVEL_STATUS.PENDING,
       ts.LEVEL_STATUS.APPROVED,
-      ts.LEVEL_STATUS.REUPLOADED,
       ts.LEVEL_STATUS.NEED_FIX,
-    ])
-
-    let rawLevels=[];
-    let reuploaded=[]
-    let pending=[]
-    for(let i=0;i<_rawLevels.length;i++){
-      if(_rawLevels[i].status==ts.LEVEL_STATUS.PENDING){
-        pending.push(_rawLevels[i].code)
-      }
-      if(_rawLevels[i].status==ts.LEVEL_STATUS.PENDING || _rawLevels[i].status==ts.LEVEL_STATUS.APPROVED){
-        rawLevels.push(newLevelDataToOld(_rawLevels[i]))
-      }
-      if(_rawLevels[i].status==ts.LEVEL_STATUS.REUPLOADED && _rawLevels[i].new_code){
-        reuploaded.push(newLevelDataToOld(_rawLevels[i]))
-      }
-    }
+    ] })
 
     //remove headers
     competiton_winners.shift()
-
     let _tags={}
     let _seperate=[]
     for(let i=0;i<tags.length;i++){
@@ -173,64 +183,27 @@ async function generateSiteJson(ts,isShellder){
       })
     }
 
-    _members=_members.map( m =>{
-      return [
-        m.name,
-        ts.is_mod(m)?1:'',
-        m.is_member?1:'',
-        m.maker_id||"",
-        m.badges||"",
-      ]
-    })
-
-    let d=new Date()
-    let day = d.getDay();
-    let DAY_START=(new Date(d.getFullYear(), d.getMonth(), d.getDate())).getTime()/1000;
-    let WEEK_START=(new Date(d.getFullYear(), d.getMonth(), d.getDate() + (day == 0?-6:1)-day )).getTime()/1000;
-    let MONTH_START=(new Date(d.getFullYear(), d.getMonth(), 1)).getTime()/1000;
+    //let d=new Date()
+    //let day = d.getDay();
+    //let DAY_START=(new Date(d.getFullYear(), d.getMonth(), d.getDate())).getTime()/1000;
+    //let WEEK_START=(new Date(d.getFullYear(), d.getMonth(), d.getDate() + (day == 0?-6:1)-day )).getTime()/1000;
+    //let MONTH_START=(new Date(d.getFullYear(), d.getMonth(), 1)).getTime()/1000;
     let json={
       //"lastUpdated":ts.gs.lastUpdated,
-      "DAY_START":DAY_START,
-      "WEEK_START":WEEK_START,
-      "MONTH_START":MONTH_START,
       "seasons":Seasons,
       "comp_winners":competiton_winners,
-      "levels":rawLevels,
-      "reuploaded":reuploaded,
-      "played":_playedLevels,
-      "members":_members,
+      "levels":newLevels,
       "tags":_tags,
       "seperate":_seperate,
-      "points":_points,
     };
 
-      let _comments=await ts.db.PendingVotes.query().where("is_shellder",1)
-      let comments={}
-      let voteCounts={}
-      for(let i=0;i<_comments.length;i++){
-        let currCode=_comments[i].code
-        if(pending.indexOf(currCode)!="-1"){
-          if(!comments[currCode]){
-            comments[currCode]=[]
-          }
-          if(!voteCounts[currCode]){
-            voteCounts[currCode]={}
-          }
-          if(!voteCounts[currCode][_comments[i].type]){
-            voteCounts[currCode][_comments[i].type]=1
-          } else {
-            voteCounts[currCode][_comments[i].type]++
-          }
-          let temp=Object.assign({},_comments[i])
-          delete temp.code
-          comments[currCode].push(temp)
-        }
-      }
-    json["vote_counts"]=voteCounts;
+    /*
+    console.time('vote');
     if(isShellder){
       json["shellder"]=true;
       json["shellder_comments"]=comments;
     }
+    */
     return json;
 }
 
@@ -531,12 +504,16 @@ function web_ts(callback){
 }
 
 app.post('/json',web_ts(async (ts,req)=>{
+    console.time('user')
     if(req.body.token){
       req.body.discord_id=await ts.checkBearerToken(req.body.token)
       var user=await ts.get_user(req.body.discord_id)
     }
+    console.timeEnd('user')
 
+    console.time('json')
     let json = await generateSiteJson(ts,user && ts.is_mod(user))
+    console.timeEnd('json')
     return json;
 }))
 
@@ -617,6 +594,12 @@ app.post('/feedback',web_ts(async (ts,req)=>{
   await ts.putFeedback(ip, discordId, ts.config.config.feedback_salt, req.body.message);
   return { status: "successful"}
 
+}))
+
+app.post('/json/level',web_ts(async (ts,req)=>{
+
+
+  
 }))
 
 app.post('/json/login', web_ts(async (ts,req) => {

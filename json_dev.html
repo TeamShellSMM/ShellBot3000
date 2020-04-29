@@ -9,7 +9,6 @@
 <div class="container">
 
 <label> Team <input id="urlSlugInput" class="form-control" type="text" value="teamshell"/></label>
-
 <div class="row">
 <div class="col-sm-12">
 <code id="loginOut"></code>
@@ -77,7 +76,32 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
 <script>
-$("#otp").val(location.search.substring(7))
+if(localStorage.getItem("ts_dev_token")){
+  $("#bearer_token").val(localStorage.getItem("ts_dev_token"))
+} else {
+  $("#otp").val(location.search.substring(7))
+  $.ajax({
+    url : "./json/login",
+    type: "post",
+    data : {
+      otp:location.search.substring(7),
+      url_slug:$("#urlSlugInput").val(),
+    }
+  }).done(function(response){ //
+    console.log(response)
+    if(response.status=="logged_in"){
+      localStorage.setItem("ts_dev_token",response.token)
+      discord_id=response.discord_id;
+      token=response.token
+      $("#discord_id").val(discord_id)
+      $("#bearer_token").val(token)
+      $("#loginOut").html(JSON.stringify(response))
+    } else {
+      $("#loginOut").html(JSON.stringify(response))
+    }
+  });
+}
+
 var discord_id=null;
 var token=null;
 var lastUpdated=null;
@@ -88,26 +112,6 @@ $("#urlSlugInput").change(function(){
   $("input[name=url_slug").val($("#urlSlugInput").val())
 })
 
-$.ajax({
-    url : "./json/login",
-    type: "post",
-    data : {
-      otp:location.search.substring(7),
-      url_slug:$("#urlSlugInput").val(),
-    }
-  }).done(function(response){ //
-    console.log(response)
-    if(response.status=="logged_in"){
-      discord_id=response.discord_id;
-      token=response.token
-      $("#discord_id").val(discord_id)
-      $("#bearer_token").val(token)
-      $("#loginOut").html(JSON.stringify(response))
-    } else {
-      $("#loginOut").html(JSON.stringify(response))
-    }
-    
-  });
 
 $("#postsJson").submit(function(event){
   event.preventDefault(); //prevent default action 
