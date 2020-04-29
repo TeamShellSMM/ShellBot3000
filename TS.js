@@ -5,13 +5,17 @@ const Handlebars = require("handlebars");
 const crypto=require('crypto')
 const moment=require('moment')
 const server_config = require('./config.json');
-const GS=require("./GS.js");
-const TS=function(guild_id,config,client){ //loaded after gs
-  const ts=this;
-  this.client=client;
-  this.guild_id = guild_id;
-  this.gs=new GS({...server_config,...config});
+const DEFAULTMESSAGES=require("./DefaultStrings.js");
+const DiscordLog = require('./DiscordLog');
 
+const GS=require("./GS.js");
+const TS=function(guild_id,team_config,client){ //loaded after gs
+  const ts=this;
+  this.config=team_config.config?JSON.parse(team_config.config):{}
+  this.web_config=team_config.web_config?JSON.parse(team_config.web_config):{}
+  this.client=client;
+  this.guild_id=guild_id;
+  this.gs=new GS({...server_config,...this.config});
   this.LEVEL_STATUS={
     PENDING:0,
     APPROVED:1,
@@ -20,29 +24,26 @@ const TS=function(guild_id,config,client){ //loaded after gs
     REUPLOADED:2,
     REMOVED:-2,
   };
+  
+  this.db={
+    Teams:require('./models/Teams.js')(guild_id),
+    Tokens:require('./models/Tokens'),
+    Plays:require('./models/Plays')(guild_id,ts),
+    PendingVotes:require('./models/PendingVotes')(guild_id,ts),
+    Members:require('./models/Members')(guild_id,ts),
+    Levels:require('./models/Levels')(guild_id,ts),
+    Points:require('./models/Points')(guild_id,ts),
+  };
 
   this.load=async function(){
-    this.db={
-      Tokens:require('./models/Tokens'),
-      Plays:require('./models/Plays')(guild_id,ts),
-      PendingVotes:require('./models/PendingVotes')(guild_id,ts),
-      Members:require('./models/Members')(guild_id,ts),
-      Levels:require('./models/Levels')(guild_id,ts),
-      Points:require('./models/Points')(guild_id,ts),
-    };
-
     this.knex = this.db.Levels.knex();
-
     ts.gs.clearCache();
     let guild=await ts.getGuild()
-
     await guild.fetchMembers(); //just load up all members
-
-
     const defaultVars = {
       customStrings:{ //defaults
         "levelInfo":"@@LEVEL_PLACEHOLDER@@",
-        "teamurl": server_config.page_url+"/"+config.url_slug,
+        "teamurl": server_config.page_url+"/"+this.config.url_slug,
         "BotName":"ShellBot3000",
       },
       emotes:{},
@@ -105,7 +106,13 @@ const TS=function(guild_id,config,client){ //loaded after gs
       }
       ts.recalculateAfterUpdate()
 
-      console.log(`Data loaded for ${this.teamVariables.TeamName}`)
+      
+      if(server_config.AutomatedTest == guild_id && argv.test){
+        await DiscordLog.log(`Data loaded for ${this.teamVariables.TeamName}. Starting Test`,this.client)
+        guild.channels.get(TS.TS_LIST[guild.id].channels.modChannel).send('?test')
+      } else {
+        await DiscordLog.log(`Data loaded for ${this.teamVariables.TeamName}`,this.client)
+      }
   }
 
   this.getMakerPoints = function(likes, clears, difficultyPoints){
@@ -658,7 +665,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
     if(typeof obj=="object" && obj.errorType=="user"){
       return obj.msg+ts.message("error.afterUserDiscord")
     } else {
-      console_error(ts.makeErrorObj(obj,message))
+      DiscordLog.error(ts.makeErrorObj(obj,message),ts.client)
       return ts.message("error.unknownError")
     }
   }
@@ -667,10 +674,10 @@ const TS=function(guild_id,config,client){ //loaded after gs
     if(typeof obj=="object" && obj.errorType=="user"){
       return { status:"error", message:obj.msg+ts.message("error.afterUserWeb") }
     } else {
-      console_error({
+      DiscordLog.error({
         error:obj.stack?obj.stack:obj,
         url_slug:this.config.url_slug
-      })
+      },ts.client)
       return { status:"error", message:ts.message("error.unknownError")}
     }
   }
@@ -1120,14 +1127,14 @@ const TS=function(guild_id,config,client){ //loaded after gs
             //doesn't work with mocked user method here.
             try{
               var curr_user=await guild.members.get(author.discord_id)
-            } catch (error){
-              throw `Can't find ${author.discord_id} in guild`
-            }
-            if(curr_user){ //assign role
+              if(curr_user){ //assign role
                 await curr_user.addRole(ts.teamVariables.memberRoleId)
                 await client.channels.get(ts.channels.initiateChannel).send(ts.message("initiation.message",{discord_id:author.discord_id}))
-            } else {
-              console_error(ts.message("initiation.userNotInDiscord",{name:author.name})) //not a breaking error.
+              } else {
+                DiscordLog.error(ts.message("initiation.userNotInDiscord",{name:author.name}),ts.client) //not a breaking error.
+              }
+            } catch (error){
+              DiscordLog.error(ts.message("initiation.userNotInDiscord",{name:author.name}),ts.client) //not a breaking error.
             }
           }
         }
@@ -1314,7 +1321,6 @@ const TS=function(guild_id,config,client){ //loaded after gs
         embed.setURL(server_config.page_url + ts.config.url_slug + "/level/" + level.code)
       }
 
-    //randomEmbed.addField(,);
     embed = embed.setTimestamp();
     return embed
   }
@@ -1497,7 +1503,6 @@ const TS=function(guild_id,config,client){ //loaded after gs
       where levels.guild_id=:guild_id
     group by levels.id
     `,{guild_id});
-    console.log(levels)
     return levels
   }
 
@@ -1526,5 +1531,21 @@ const TS=function(guild_id,config,client){ //loaded after gs
     }
   }
 }
+TS.TS_LIST={}
+
+TS.add=async (guild_id,team_config,client)=>{
+  TS.TS_LIST[guild_id]=new TS(guild_id,team_config,client)
+  await TS.TS_LIST[guild_id].load()
+}
+
+TS.teams=(()=>{
+  return (guild_id)=>{
+    if(TS.TS_LIST[guild_id]){
+      return TS.TS_LIST[guild_id];
+    } else {
+      throw `This team, with guild id ${guild_id} has not yet setup it's config, buzzyS`;
+    }
+  }
+})();
 
 module.exports=TS

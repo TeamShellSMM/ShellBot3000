@@ -1,0 +1,29 @@
+'use strict'
+//This will send errors to a configured error channel to alert the devs
+const argv = require('yargs').argv
+const config = require('./config.json');
+module.exports={
+  clientCache:null,
+  async log(info,discord_client){
+    if(!this.clientCache) this.clientCache=discord_client
+    if(!discord_client && this.clientCache) discord_client=this.clientCache
+    console.log(info)
+    if(discord_client && !argv.test){
+      let channel=await discord_client.channels.get(config.error_channel)
+      let dev=info.channel?" at "+info.channel:""
+      info=JSON.stringify(info,null,2).replace(/\\n/g,"\n")
+      await channel.send("```bash\n"+info+"```")
+    }
+  },
+  async error(error,discord_client){
+    if(!this.clientCache) this.clientCache=discord_client
+    if(!discord_client && this.clientCache) discord_client=this.clientCache
+    console.error(error)
+    if(discord_client && !argv.test){
+      let channel=await discord_client.channels.get(config.error_channel)
+      let dev="<@"+config.devs.join(">,<@")+"> "+(error.channel?" at "+error.channel:"")
+      error=JSON.stringify(error,null,2).replace(/\\n/g,"\n")
+      channel.send(dev+"```fix\n"+error+"```")
+    }
+  },
+}

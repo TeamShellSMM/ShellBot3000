@@ -1,6 +1,7 @@
 const config = require('../config.json');
 const argv = require('yargs').argv
 const { Command } = require('discord-akairo');
+const TS = require('../TS');
 class TestBot extends Command {
   constructor() {
     super('test', {
@@ -31,7 +32,7 @@ class TestBot extends Command {
 
     let ts;
     try {
-      ts=get_ts(message.guild.id)
+      ts=TS.teams(message.guild.id)
     } catch(error){
       message.reply(error)
       throw error;
