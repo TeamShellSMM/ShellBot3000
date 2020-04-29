@@ -103,13 +103,11 @@ const TS=function(guild_id,config,client){ //loaded after gs
       } else {
         this.mods=[guild.owner.user.id]
       }
-
       ts.recalculateAfterUpdate()
-
 
       console.log(`Data loaded for ${this.teamVariables.TeamName}`)
   }
-  
+
   this.getMakerPoints = function(likes, clears, difficultyPoints){
     if(clears == 0) return 0;
     return ((likes * 2 + clears)*difficultyPoints) * (likes/clears);
@@ -1075,7 +1073,6 @@ const TS=function(guild_id,config,client){ //loaded after gs
       if(this.emotes.axemuncher){
         var image=this.getEmoteUrl(this.emotes.axemuncher);
       }
-
     }  else if (
         approvalVoteCount >= approvalVotesNeeded
         && approvalVoteCount>rejectVoteCount 
@@ -1162,60 +1159,60 @@ const TS=function(guild_id,config,client){ //loaded after gs
 
       fixMode = true;
     } else if(approvalVoteCount==rejectVoteCount ) {
-        ts.userError(ts.message("approval.comboBreaker"));
-      } else {
-        ts.userError(ts.message("approval.numVotesNeeded"),{vote_num:approvalVotesNeeded});
-      }
+      ts.userError(ts.message("approval.comboBreaker"));
+    } else {
+      ts.userError(ts.message("approval.numVotesNeeded"),{vote_num:approvalVotesNeeded});
+    }
 
-      var mention = ts.message("general.heyListen",{discord_id:author.discord_id});
-      var judgeEmbed = ts.levelEmbed(level)
-        .setColor(color)
-        .setAuthor(title);
+    var mention = ts.message("general.heyListen",{discord_id:author.discord_id});
+    var judgeEmbed = ts.levelEmbed(level)
+      .setColor(color)
+      .setAuthor(title);
 
-      if(image){
-        judgeEmbed.setThumbnail(image);
-      }
+    if(image){
+      judgeEmbed.setThumbnail(image);
+    }
 
-      if(fixMode){
-        judgeEmbed.setDescription(ts.message("approval.fixInstructionsCreator"));
-      }
+    if(fixMode){
+      judgeEmbed.setDescription(ts.message("approval.fixInstructionsCreator"));
+    }
 
-      if(fixMode){
-        for(let i = 0; i < fixComments.length; i++){
-          let msgString = "";
-          if(fixComments[i].type=="fix"){
-            msgString='judge.votedFix';
-          } else {
-            msgString='judge.votedReject';
-          }
-          let embedHeader=ts.message(msgString,{ ...fixComments[i] })
-          ts.embedAddLongField(judgeEmbed,embedHeader,fixComments[i].reason)
+    if(fixMode){
+      for(let i = 0; i < fixComments.length; i++){
+        let msgString = "";
+        if(fixComments[i].type=="fix"){
+          msgString='judge.votedFix';
+        } else {
+          msgString='judge.votedReject';
         }
-      } else {
-        for(let i = 0; i < allComments.length; i++){
-          let msgString = "";
-          if(allComments[i].type=="fix"){
-            msgString='judge.votedFix'
-          } else if(allComments[i].type=="approve"){
-            msgString='judge.votedApprove'
-          } else {
-            msgString='judge.votedReject'
-          }
-          let embedHeader=ts.message(msgString,{ ...allComments[i] })
-          ts.embedAddLongField(judgeEmbed,embedHeader,allComments[i].reason)
+        let embedHeader=ts.message(msgString,{ ...fixComments[i] })
+        ts.embedAddLongField(judgeEmbed,embedHeader,fixComments[i].reason)
+      }
+    } else {
+      for(let i = 0; i < allComments.length; i++){
+        let msgString = "";
+        if(allComments[i].type=="fix"){
+          msgString='judge.votedFix'
+        } else if(allComments[i].type=="approve"){
+          msgString='judge.votedApprove'
+        } else {
+          msgString='judge.votedReject'
         }
+        let embedHeader=ts.message(msgString,{ ...allComments[i] })
+        ts.embedAddLongField(judgeEmbed,embedHeader,allComments[i].reason)
       }
+    }
 
-      await client.channels.get(ts.channels.levelChangeNotification).send(mention);
-      await client.channels.get(ts.channels.levelChangeNotification).send(judgeEmbed);
+    await client.channels.get(ts.channels.levelChangeNotification).send(mention);
+    await client.channels.get(ts.channels.levelChangeNotification).send(judgeEmbed);
 
 
-      //Remove Discussion Channel
-      if(!fromFix){
-        await ts.deleteDiscussionChannel(level.code,ts.message("approval.channelDeleted"))
-      } else {
-        await ts.deleteReuploadChannel(level.code,ts.message("approval.channelDeleted"))
-      }
+    //Remove Discussion Channel
+    if(!fromFix){
+      await ts.deleteDiscussionChannel(level.code,ts.message("approval.channelDeleted"))
+    } else {
+      await ts.deleteReuploadChannel(level.code,ts.message("approval.channelDeleted"))
+    }
   }
 
   this.rejectLevelWithReason=async function(code, shellder, message){
