@@ -28,7 +28,7 @@ class RecalcData extends TSCommand {
     async tsexec(ts,message, args){
         await ts.saveSheetToDb()
         await ts.recalculateAfterUpdate()
-        return message.reply(`Recalculated data!`);
+        return await message.reply(`Recalculated data!`);
     }
 }
 

@@ -13,7 +13,7 @@ class TSHelp extends TSCommand {
     }
 
     async tsexec(ts,message) {
-      message.reply(ts.message('help.basic'))
+      await message.reply(ts.message('help.basic'))
     }
 }
 module.exports = TSHelp;

@@ -11,7 +11,11 @@ const DiscordLog = require('./DiscordLog');
 const GS=require("./GS.js");
 const TS=function(guild_id,team_config,client){ //loaded after gs
   const ts=this;
-  this.config=team_config.config?JSON.parse(team_config.config):{}
+  this.team=team_config;
+  this.url_slug=team_config.url_slug;
+  this.config=team_config.config?
+    (typeof team_config.config==="string"?JSON.parse(team_config.config):team_config.config)
+    :{}
   this.web_config=team_config.web_config?JSON.parse(team_config.web_config):{}
   this.client=client;
   this.guild_id=guild_id;
@@ -43,7 +47,7 @@ const TS=function(guild_id,team_config,client){ //loaded after gs
     const defaultVars = {
       customStrings:{ //defaults
         "levelInfo":"@@LEVEL_PLACEHOLDER@@",
-        "teamurl": server_config.page_url+"/"+this.config.url_slug,
+        "teamurl": server_config.page_url+"/"+this.url_slug,
         "BotName":"ShellBot3000",
       },
       emotes:{},
@@ -87,8 +91,10 @@ const TS=function(guild_id,team_config,client){ //loaded after gs
         this.messages[v.Name]=_makeTemplate(v.value||'')
       });
 
+      TS.defaultMessages={}
       for(var i in DEFAULTMESSAGES){
         if(this.messages[i] === undefined){
+          TS.defaultMessages[i]=_makeTemplate(DEFAULTMESSAGES[i])
           this.messages[i]=_makeTemplate(DEFAULTMESSAGES[i])
         }
       }
@@ -301,6 +307,10 @@ const TS=function(guild_id,team_config,client){ //loaded after gs
     return /^[0-9A-Z]{3}-[0-9A-Z]{3}-[0-9A-Z]{3}$/.test(code.toUpperCase())
   }
 
+
+  this.generateLoginLink=function(otp){
+    return config.page_url + ts.url_slug + "/login/"+otp
+  }
   this.generateOtp=async function(discord_id){
     let newOtp=crypto.randomBytes(8).toString('hex').toUpperCase()
     let existing=await ts.db.Tokens.query().where({token:newOtp}) //need to add check for only within expiry time (30 minutes)
@@ -328,8 +338,13 @@ const TS=function(guild_id,team_config,client){ //loaded after gs
       token: bearer,
       authenticated:1
     });
-    await client.guilds.get(guild_id).members.get(discord_id).send(ts.message("website.loggedin"))
+    
+    this.sendDM(discord_id,ts.message("website.loggedin"))
     return bearer
+  }
+
+  this.sendDM=async function(discord_id,message){
+    await client.guilds.get(guild_id).members.get(discord_id).send(message)
   }
 
   this.checkBearerToken=async function(token){
@@ -611,7 +626,7 @@ const TS=function(guild_id,team_config,client){ //loaded after gs
       if(listUsed.length>0){
         const match=stringSimilarity.findBestMatch(code,listUsed)
         if(match.bestMatch && match.bestMatch.rating>=0.6){
-          matchStr='Did you mean:```\n'+allLevels[match.bestMatch.target]+'```'
+          matchStr=ts.message('level.didYouMean',{level_info:allLevels[match.bestMatch.target]})
         }
       }
 
@@ -654,7 +669,7 @@ const TS=function(guild_id,team_config,client){ //loaded after gs
   this.makeErrorObj=function(obj,message){
     return {
       error:obj.stack?obj.stack:obj,
-      url_slug:this.config.url_slug,
+      url_slug:this.team.url_slug,
       content:message.content,
       user:message.author.username,
       channel:"<#"+message.channel.id+">"
@@ -676,7 +691,7 @@ const TS=function(guild_id,team_config,client){ //loaded after gs
     } else {
       DiscordLog.error({
         error:obj.stack?obj.stack:obj,
-        url_slug:this.config.url_slug
+        url_slug:this.url_slug
       },ts.client)
       return { status:"error", message:ts.message("error.unknownError")}
     }
@@ -1303,7 +1318,7 @@ const TS=function(guild_id,team_config,client){ //loaded after gs
     var tagStr=[]
     level.tags=level.tags?level.tags:""
     level.tags.split(",").forEach((tag)=>{
-      if(tag) tagStr.push("["+tag+"](" + server_config.page_url + ts.config.url_slug + "/levels/"+encodeURIComponent(tag)+")")
+      if(tag) tagStr.push("["+tag+"](" + server_config.page_url + ts.url_slug + "/levels/"+encodeURIComponent(tag)+")")
     })
     tagStr=tagStr.join(",")
     var embed = client.util.embed()
@@ -1311,14 +1326,14 @@ const TS=function(guild_id,team_config,client){ //loaded after gs
         .setTitle(level.level_name + " (" + level.code + ")")
         .setDescription(
           "made by "+
-          (noLink?level.creator:"[" + level.creator + "](" + server_config.page_url + ts.config.url_slug + "/maker/" + encodeURIComponent(level.creator) + ")")+"\n"+
+          (noLink?level.creator:"[" + level.creator + "](" + server_config.page_url + ts.url_slug + "/maker/" + encodeURIComponent(level.creator) + ")")+"\n"+
           (ts.is_smm1(level.code)? `Links: [Bookmark Page](https://supermariomakerbookmark.nintendo.net/courses/${level.code})\n` : '')+
           (level.clears!=undefined ? "Difficulty: "+level.difficulty+", Clears: "+level.clears+", Likes: "+level.likes+"\n":"")+
             (tagStr?"Tags: "+tagStr+"\n":"")+
             (vidStr?"Clear Video: "+vidStr:"")
         )
       if(!noLink){
-        embed.setURL(server_config.page_url + ts.config.url_slug + "/level/" + level.code)
+        embed.setURL(server_config.page_url + ts.url_slug + "/level/" + level.code)
       }
 
     embed = embed.setTimestamp();
@@ -1536,16 +1551,32 @@ TS.TS_LIST={}
 TS.add=async (guild_id,team_config,client)=>{
   TS.TS_LIST[guild_id]=new TS(guild_id,team_config,client)
   await TS.TS_LIST[guild_id].load()
+  return TS.TS_LIST[guild_id];
 }
 
-TS.teams=(()=>{
-  return (guild_id)=>{
-    if(TS.TS_LIST[guild_id]){
-      return TS.TS_LIST[guild_id];
-    } else {
-      throw `This team, with guild id ${guild_id} has not yet setup it's config, buzzyS`;
+TS.teamFromUrl=(url_slug)=>{
+  for(let i in TS.TS_LIST){
+    let team=TS.TS_LIST[i]
+    if(team.config && team.url_slug == url_slug){
+      return team;
     }
   }
-})();
+  return false
+}
+
+TS.message=function(type,args){
+  if(TS.defaultMessages[type]){
+    return TS.defaultMessages[type](args)
+  }
+  throw `"${type}" message string was not found in ts.message`;
+}
+
+TS.teams=(guild_id)=>{
+  if(TS.TS_LIST[guild_id]){
+    return TS.TS_LIST[guild_id];
+  } else {
+    throw `This team, with guild id ${guild_id} has not yet setup it's config, buzzyS`;
+  }
+}
 
 module.exports=TS

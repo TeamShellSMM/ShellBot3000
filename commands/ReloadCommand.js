@@ -25,7 +25,7 @@ class ReloadCommand extends Command {
         }
 
         await this.handler.reloadAll();
-        return message.reply(`Reloaded commands`);
+        return await message.reply(`Reloaded commands`);
     }
 }
 

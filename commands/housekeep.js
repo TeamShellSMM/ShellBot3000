@@ -33,7 +33,7 @@ class housekeep extends TSCommand {
                 }
             }
         };
-        message.reply("Housekeeping done")
+        await message.reply("Housekeeping done")
     }
 }
 

@@ -91,7 +91,7 @@ class TSApprove extends TSCommand {
 
       args.discord_id=message.author.id
       var replyMessage=await ts.approve(args)
-      message.reply(replyMessage);
+      await message.reply(replyMessage);
 
       //clear
       if(clearCommands.indexOf(command.command) !== -1){
@@ -99,7 +99,7 @@ class TSApprove extends TSCommand {
         if(likeCommands.indexOf(command.command) !==-1)
           args.like=1;
         var clearMessage=await ts.clear(args)
-        this.client.channels.get(ts.channels.commandFeed).send(clearMessage)
+        await this.client.channels.get(ts.channels.commandFeed).send(clearMessage)
       }
     }
 }

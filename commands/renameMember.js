@@ -79,7 +79,7 @@ class RenameMember extends TSCommand {
             await ts.load()
         }
 
-        return message.reply('"'+old_name+'" has been renamed to "'+new_name+'"');
+        return await message.reply('"'+old_name+'" has been renamed to "'+new_name+'"');
     }
 }
 

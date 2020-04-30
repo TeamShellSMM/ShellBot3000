@@ -35,7 +35,7 @@ class points extends TSCommand {
            })
         }
         msg+=ts.message("points.rank",{ player })
-        message.channel.send(player.user_reply+msg)
+        await message.channel.send(player.user_reply+msg)
     }
 }
 module.exports = points;

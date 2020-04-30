@@ -30,9 +30,9 @@ class TSLevelStatus extends TSCommand {
             ts.userError("Level Code was not found!");
 
         if(level.status === ts.LEVEL_STATUS.APPROVED){
-            message.reply("This level has already been approved! " + ts.emotes.bam);
+            await message.reply("This level has already been approved! " + ts.emotes.bam);
         } else if(level.status.startsWith("del")){
-            message.reply("This level has already been removed/rejected!");
+            await message.reply("This level has already been removed/rejected!");
         } else if(level.status == ts.LEVEL_STATUS.PENDING){
             var approvalVotes = await ts.db.PendingVotes.query().where("code",code).where("type","approve");
             var fixVotes = await ts.db.PendingVotes.query().where("code",code).where("type","fix");
@@ -60,9 +60,9 @@ class TSLevelStatus extends TSCommand {
                 text = "This level is not in judgement, no mods seem to have gotten to it yet!";
             }
 
-            message.reply(text);
+            await message.reply(text);
         } else {
-            message.reply("This level has probably already been approved or something!");
+            await message.reply("This level has probably already been approved or something!");
         }
     }
 }

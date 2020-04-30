@@ -5,6 +5,9 @@ module.exports={
  'website.authError':'Authentication error',
  'website.noToken':'No token sent',
 
+ 'api.noslug':'No url_slug found',
+ 'api.slugNotFound':'url slug provided was not found',
+
  'feedback.noMessage':'No message was sent!',
  'feedback.tooLong':'The supplied message is too long, please keep it lower than 1000 characters!',
 
@@ -12,7 +15,7 @@ module.exports={
  'login.expiredOTP':'The OTP password given is already expired',
  'login.noOTP':'No OTP provided',
 
-
+ 'level.didYouMean':' Did you mean:```\n{{{level_info}}}```', //✅
 
  'error.noDiscordId':'We couldn\'t find your `discord id',
  'clear.invalidDifficulty':'You did not provide a valid difficulty vote', //✅

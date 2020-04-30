@@ -20,7 +20,7 @@ class TSCommand extends Command {
         try {
             ts=TS.teams(message.guild.id)
         } catch(error){
-            message.reply(error)
+            await message.reply(error)
             throw error;
         }
         
@@ -33,9 +33,10 @@ class TSCommand extends Command {
             args.command=ts.parse_command(message)
             await this.tsexec(ts,message,args)
         } catch(error){
-            message.reply(ts.getUserErrorMsg(error,message))
+            await message.reply(ts.getUserErrorMsg(error,message))
         }
-        
+        //testing
+        if(typeof ts.promisedCallback==="function") ts.promisedCallback(); 
     }
 }
 module.exports = TSCommand;

@@ -5,9 +5,9 @@ const config = require('./config.json');
 module.exports={
   clientCache:null,
   async log(info,discord_client){
+    console.log(info)
     if(!this.clientCache) this.clientCache=discord_client
     if(!discord_client && this.clientCache) discord_client=this.clientCache
-    console.log(info)
     if(discord_client && !argv.test){
       let channel=await discord_client.channels.get(config.error_channel)
       let dev=info.channel?" at "+info.channel:""
@@ -16,9 +16,9 @@ module.exports={
     }
   },
   async error(error,discord_client){
+    console.error(error)
     if(!this.clientCache) this.clientCache=discord_client
     if(!discord_client && this.clientCache) discord_client=this.clientCache
-    console.error(error)
     if(discord_client && !argv.test){
       let channel=await discord_client.channels.get(config.error_channel)
       let dev="<@"+config.devs.join(">,<@")+"> "+(error.channel?" at "+error.channel:"")

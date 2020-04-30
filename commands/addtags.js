@@ -107,7 +107,7 @@ class TSAddtags extends TSCommand {
           .patch({tags:old_tags.join(',')})
           .where({code})
 
-        message.channel.send(player.user_reply+reply)
+        await message.channel.send(player.user_reply+reply)
     }
 }
 module.exports = TSAddtags;

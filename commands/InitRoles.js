@@ -1,5 +1,4 @@
 const TSCommand = require('../TSCommand.js');
-
 class InitRoles extends TSCommand {
     constructor() {
         super('initroles', {
@@ -131,7 +130,7 @@ class InitRoles extends TSCommand {
         if(sheet_updates.length>0) await ts.gs.batchUpdate(sheet_updates);
 */
         await ts.load()
-        message.reply('reloaded');
+        await message.reply('reloaded');
     }
 }
 

@@ -33,7 +33,7 @@ class atmebot extends TSCommand {
         .patch({atme:atmeVal})
         .where({discord_id:message.author.id})
 
-      message.channel.send(player.user_reply+msg)
+      await message.channel.send(player.user_reply+msg)
     }
 }
 module.exports = atmebot;

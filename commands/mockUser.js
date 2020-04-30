@@ -54,7 +54,7 @@ class mockUser extends TSCommand {
           .where({name:target.name})
 
         let p=await ts.get_user(message)
-        message.channel.send(ts.message('mock.userSuccess',{name:p.name}))
+        await message.channel.send(ts.message('mock.userSuccess',{name:p.name}))
     }
 }
 module.exports = mockUser;

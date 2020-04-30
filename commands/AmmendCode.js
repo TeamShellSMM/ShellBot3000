@@ -88,7 +88,7 @@ class AmmendCode extends TSCommand {
     await existingChannel.setName(new_code.toLowerCase())
   }
   
-  return message.reply(ts.message('ammendCode.success',{ level:existing_level, old_code,new_code}));
+  return await message.reply(ts.message('ammendCode.success',{ level:existing_level, old_code,new_code}));
   }
 }
 

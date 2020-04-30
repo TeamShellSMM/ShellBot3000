@@ -62,7 +62,7 @@ class TSRefuseFix extends TSCommand {
 
         var replyMessage = "Your level was put in the reupload queue, we'll get back to you in a bit!";
 
-        message.reply(replyMessage);
+        await message.reply(replyMessage);
     }
 }
 module.exports = TSRefuseFix;

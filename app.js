@@ -3,16 +3,19 @@ const config = require('./config.json');
 const argv = require('yargs').argv
 const { AkairoClient } = require('discord-akairo');
 const TS=require('./TS.js')
-const app = require('./WebApi')(config);
 const DiscordLog = require('./DiscordLog');
+const WebApi=require('./WebApi');
+if(argv.test) config.defaultCooldown=0;
+
 
 const client = new AkairoClient(config, {
     disableEveryone: true
-});
+}); 
 
 client.on("guildCreate", async guild => {
   DiscordLog.log(`Joined a new guild: ${guild.name}`,client);
 });
+
 
 
 client.on("ready", async () => {
@@ -40,10 +43,12 @@ client.on("ready", async () => {
 });
 
 (async () => { //main thread
+  let app;
   try {
     await client.login(config.discord_access_token);
+    app = await WebApi(config,client);
     await app.listen(config.webPort, () => DiscordLog.log(config.botName+':WebApi now listening on '+config.webPort,client));
- } catch(error){
+ } catch(error) {
    DiscordLog.error(error.stack,client)
  }
 })();

@@ -120,7 +120,7 @@ class InitChannels extends TSCommand {
         if(sheet_updates.length>0) await ts.gs.batchUpdate(sheet_updates);
 
         await ts.load()
-        message.reply(change?'Commands done':'Nothing was done');
+        await message.reply(change?'Commands done':'Nothing was done');
     }
 }
 

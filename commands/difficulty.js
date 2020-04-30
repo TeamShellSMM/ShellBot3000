@@ -19,7 +19,7 @@ class tsdifficulty extends TSCommand {
     async tsexec(ts,message,args) {
       args.discord_id=message.author.id
       let msg=await ts.clear(args)
-      message.channel.send(msg)
+      await message.channel.send(msg)
     }
 }
 module.exports = tsdifficulty;

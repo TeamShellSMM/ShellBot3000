@@ -19,7 +19,7 @@ class tslike extends TSCommand {
       args.discord_id=message.author.id
       args.like=likeCommands.indexOf(command.command)!=-1?1:0
       let msg=await ts.clear(args)
-      message.channel.send(msg)
+      await message.channel.send(msg)
     }
 }
 module.exports = tslike;

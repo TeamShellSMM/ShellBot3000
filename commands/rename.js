@@ -35,7 +35,7 @@ class TSRename extends TSCommand {
         .where({code})
 
       var reply="The level \""+level.level_name+"\" ("+code+") has been renamed to \""+level_name+"\" "+(ts.emotes.bam ? ts.emotes.bam : "")
-      message.channel.send(player.user_reply+reply)
+      await message.channel.send(player.user_reply+reply)
     }
 }
 module.exports = TSRename;

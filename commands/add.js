@@ -40,7 +40,7 @@ class tsadd extends TSCommand {
       })
       await ts.recalculateAfterUpdate({name:player.name})
 
-      message.channel.send(player.user_reply+ts.message("add.success",{level_name,code}))
+      await message.channel.send(player.user_reply+ts.message("add.success",{level_name,code}))
     }
 }
 module.exports = tsadd;

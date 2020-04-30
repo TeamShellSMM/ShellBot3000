@@ -18,7 +18,7 @@ class PendingStatus extends TSCommand {
             });
 
         if(levels.length===0){
-            message.reply(player.user_reply+"\nYou have no levels pending");
+            await message.reply(player.user_reply+"\nYou have no levels pending");
             return false;
         }
 
@@ -37,7 +37,7 @@ class PendingStatus extends TSCommand {
             return level.code+' - "'+level.level_name+'":\n -'+statusStr+'\n';
         })
         let levelStr=await Promise.all(levelStrPromises)
-        message.channel.send(player.user_reply+"\nYour Pending Levels:```"+levelStr.join("\n")+"\n```");
+        await message.channel.send(player.user_reply+"\nYour Pending Levels:```"+levelStr.join("\n")+"\n```");
     }
 }
 module.exports = PendingStatus;

@@ -63,7 +63,7 @@ class TSFixApprove extends TSCommand {
         }
       }
 
-      message.reply(replyMessage);
+      await message.reply(replyMessage);
     }
 }
 module.exports = TSFixApprove;

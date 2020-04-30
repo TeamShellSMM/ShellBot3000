@@ -41,7 +41,7 @@ class MakerId extends TSCommand {
         .where({discord_id:message.author.id})
       
       
-      message.channel.send(player.user_reply+ts.message("makerid.success",{ code }))
+      await message.channel.send(player.user_reply+ts.message("makerid.success",{ code }))
     }
 }
 module.exports = MakerId;

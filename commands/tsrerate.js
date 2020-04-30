@@ -69,7 +69,7 @@ class TSRerate extends TSCommand {
         await levelChangeChannel.send(mention);
       }
       await levelChangeChannel.send(rerateEmbed);
-      message.reply(ts.message('difficulty.success'));
+      await message.reply(ts.message('difficulty.success'));
   }
 }
 module.exports = TSRerate;

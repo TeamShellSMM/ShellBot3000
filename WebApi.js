@@ -1,3 +1,4 @@
+'use strict'
 const bodyParser = require('body-parser');
 const compression = require('compression');
 const Teams=require('./models/Teams');
@@ -5,14 +6,19 @@ const moment = require('moment');
 const knex = require('./db/knex');
 const express=require('express');
 const DiscordLog = require('./DiscordLog');
+const TS=require('./TS');
 
-module.exports = function(config){
+module.exports = async function(config,client){
   const app = express();
+  app.use(bodyParser.json());
+  app.use(bodyParser.urlencoded({ extended: true }));
+  app.use(compression())
+  if(config.json_dev){
+    app.use("/dev", express.static(__dirname + '/json_dev.html'));
+  }
 
   async function generateSiteJson({ ts, user , code , name , dashboard }){
-    console.log(user);
-    console.log(name);
-    console.log(code);
+    if(!ts) throw `TS not loaded buzzyS`;
     const SheetCache = ts.gs.getArrayFormat(["Competition Winners"])
 
     let competiton_winners = SheetCache["Competition Winners"];
@@ -470,33 +476,30 @@ module.exports = function(config){
   */
 
 
-  function get_web_ts(url_slug){
-    for(var id in TS.TS_LIST){
-      if(TS.TS_LIST[id].config && TS.TS_LIST[id].config.url_slug == url_slug){
-        return TS.TS_LIST[id];
-      }
-    }
-    return false
-  }
-
   function web_ts(callback){
     return async (req, res) => {
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
-      try {
-        var ts=get_web_ts(req.body.url_slug)
-        if(!ts) throw `"${req.body.url_slug}" not found`;
-      } catch(error){
-        let ret={status:'error',message: error.stack || error,"url_slug":req.body.url_slug}
-        DiscordLog.error(ret)
-        res.send(JSON.stringify(ret));
-        throw error;
-      }
+      let ts;
+      if(req.body && req.body.url_slug ){
+        try {
+          ts=TS.teamFromUrl(req.body.url_slug)
+          if(!ts) throw `"${req.body.url_slug}" not found`; 
 
-      try{
-        let data=await callback(ts,req,res)
-        res.send(JSON.stringify(data));
-      } catch(error) {
-        res.send(ts.getWebUserErrorMsg(error))
+          let data=await callback(ts,req,res)
+          res.send(JSON.stringify(data));
+
+        } catch(error){
+          if(ts){
+            res.send(ts.getWebUserErrorMsg(error))
+          } else {
+            DiscordLog.error(error)
+            console.error(error)
+            res.send(JSON.stringify({status:'error','message':error}))
+            //throw error;
+          }
+        }
+      } else {
+        res.send(JSON.stringify({status:'error',message: TS.message('api.noslug')}))
       }
     }
   }
@@ -518,7 +521,7 @@ module.exports = function(config){
   app.post('/json',web_ts(async (ts,req)=>{
       console.time('user')
       
-      if(req.body.token){
+      if(req.body && req.body.token){
         req.body.discord_id=await ts.checkBearerToken(req.body.token)
         var user=await ts.get_user(req.body.discord_id)
       }
@@ -531,7 +534,7 @@ module.exports = function(config){
   }))
 
   app.post('/json/members',web_ts(async (ts,req)=>{
-    if(req.body.token){
+    if(req.body && req.body.token){
       req.body.discord_id=await ts.checkBearerToken(req.body.token)
       var user=await ts.get_user(req.body.discord_id)
     }
@@ -541,7 +544,7 @@ module.exports = function(config){
   }))
 
   app.post('/json/makers',web_ts(async (ts,req)=>{
-    if(req.body.token){
+    if(req.body && req.body.token){
       req.body.discord_id=await ts.checkBearerToken(req.body.token)
       var user=await ts.get_user(req.body.discord_id)
     }
@@ -551,7 +554,7 @@ module.exports = function(config){
   }))
 
   app.post('/clear',web_ts(async (ts,req)=>{
-    if(!req.body.token) ts.userError("website.noToken");
+    if(!req.body || !req.body.token) ts.userError("website.noToken");
 
     req.body.discord_id=await ts.checkBearerToken(req.body.token)
     await ts.get_user(req.body.discord_id)
@@ -563,7 +566,7 @@ module.exports = function(config){
   }))
 
   app.post('/approve',web_ts(async (ts,req)=>{
-    if(!req.body.token) ts.userError("website.noToken");
+    if(!req.body || !req.body.token) ts.userError("website.noToken");
 
     req.body.discord_id=await ts.checkBearerToken(req.body.token)
     let user=await ts.get_user(req.body.discord_id)
@@ -581,7 +584,7 @@ module.exports = function(config){
   }))
 
   app.post('/random',web_ts(async (ts,req)=>{
-    if(req.body.token){
+    if(req.body && req.body.token){
       req.body.discord_id=await ts.checkBearerToken(req.body.token)
       var user=await ts.get_user(req.body.discord_id)
     }
@@ -593,7 +596,7 @@ module.exports = function(config){
 
   app.post('/feedback',web_ts(async (ts,req)=>{
 
-    if(!req.body.token)
+    if(!req.body || !req.body.token)
       ts.userError("website.noToken");
 
     req.body.discord_id=await ts.checkBearerToken(req.body.token) //checks if logged in
@@ -638,13 +641,6 @@ module.exports = function(config){
 
       return returnObj
   }));
-
-  app.use(bodyParser.urlencoded({ extended: true }));
-  app.use(compression())
-  if(config.json_dev){
-    app.use("/dev", express.static(__dirname + '/json_dev.html'));
-  }
-
 
   return app
 }

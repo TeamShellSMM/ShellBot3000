@@ -1,5 +1,3 @@
-const config = require('../config.json');
-const argv = require('yargs').argv
 const { Command } = require('discord-akairo');
 const TS = require('../TS');
 class TestBot extends Command {
@@ -10,7 +8,7 @@ class TestBot extends Command {
     });
   }
 
-  async canRun(ts,message){
+  async canRun(ts,message,config){
     //can only be run in with config is setup properly
     if(config.AutomatedTest!==message.guild.id) return false;
 
@@ -37,6 +35,13 @@ class TestBot extends Command {
       message.reply(error)
       throw error;
     }
+    
+
+    const config = require('../config.json');
+
+    if(!this.canRun(ts,message,config)) return false;
+
+    const argv = require('yargs').argv;
 
     try{
       //just setup consistent
@@ -51,9 +56,7 @@ class TestBot extends Command {
       const guild=ts.getGuild()
       message.author.id=bot_id
 
-      function _sleep(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
-      }
+
 
       const testTables=["Members","Levels","Plays","PendingVotes",]
       async function clearDb(){
@@ -74,7 +77,7 @@ class TestBot extends Command {
       }
 
       const defaultChannel=ts.channels.modChannel
-      const TESTOPTIONS=[{
+      const DISCORDTESTS=[{
           description:'rerate:succesful',
           cmd:'!rerate xxx-xxx-xxx 3 "It\'s a doozey"',
           discord_id:bot_id,
@@ -551,8 +554,10 @@ class TestBot extends Command {
           cmd:'!clear xxx-xxx-xx',
           discord_id:bot_id,
           type:'userError',
-          expected:"The code XXX-XXX-XX was not found in TeamJamp's list.Did you mean:```\n" +
-          'XXX-XXX-XXX - "level name is long" by mockCreator```',
+          expected:[
+          ts.message('error.levelNotFound',{code:'XXX-XXX-XX'}),
+          ts.message('level.didYouMean',{level_info:'XXX-XXX-XXX - "level name is long" by mockCreator'}),
+        ].join(''),
         },{
           description:"Can't clear own level",
           cmd:'!clear xxx-xxx-xxx',
@@ -873,7 +878,7 @@ class TestBot extends Command {
       }
 
       async function test(value){
-        let obj=TESTOPTIONS[i]
+        let obj=DISCORDTESTS[i]
         if(obj==null)
           return false
         if(typeof obj.teardown==="function"){
@@ -907,7 +912,6 @@ class TestBot extends Command {
       }
 
       let timeout_id;
-      global.console_error=console.log
       global.TESTREPLY=async function(arg){
         clearTimeout(timeout_id)
         await test(arg)
@@ -929,9 +933,9 @@ class TestBot extends Command {
       let i=(typeof argv.test==="number") ? argv.test-2 : -1;
       global.NEXTTEST=async function(){
         i++
-        await _sleep(TESTOPTIONS[i] && TESTOPTIONS[i].slow?1000:500)
-        if(!has_error && i<TESTOPTIONS.length){
-          send(TESTOPTIONS[i])
+        //if(DISCORDTESTS[i] && DISCORDTESTS[i].slow) await this._sleep(1000)
+        if(!has_error && i<DISCORDTESTS.length){
+          send(DISCORDTESTS[i])
           timeout_id=setTimeout(async function(){
             await test();
             global.NEXTTEST()
