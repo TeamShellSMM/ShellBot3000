@@ -1,8 +1,8 @@
 const TSCommand = require('../TSCommand.js');
-class SetWorld extends TSCommand {
+class UnsetWorld extends TSCommand {
     constructor() {
-        super('setworld', {
-           aliases: ['setworld'],
+        super('unset', {
+           aliases: ['unset'],
             args: [],
            channelRestriction: 'guild'
         });
@@ -19,4 +19,4 @@ class SetWorld extends TSCommand {
       message.channel.send(player.user_reply+ts.message("unsetworld.success",{ code }))
     }
 }
-module.exports = SetWorld;
+module.exports = UnsetWorld;
