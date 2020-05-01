@@ -344,7 +344,7 @@ app.post('/json/worlds',web_ts(async (ts,req)=>{
     var user=await ts.get_user(req.body.discord_id)
   }
 
-  let json = await generateWorldsJson(ts,user && ts.is_mod(user))
+  let json = await generateWorldsJson(ts,user && ts.is_mod(user),req.body)
   return json;
 }))
 
