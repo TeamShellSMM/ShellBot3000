@@ -27,7 +27,7 @@ client.on('shardError', error => {
 
 global.console_error=async function(error){
   console.error(error)
-  if(argv.test){ 
+  if(argv.test){
     let channel=await client.channels.get(config.error_channel)
     let dev="<@"+config.devs.join(">,<@")+"> "+(error.channel?" at "+error.channel:"")
     error=JSON.stringify(error,null,2).replace(/\\n/g,"\n")
@@ -56,7 +56,7 @@ client.on("ready", async () => {
         !argv.test
         || argv.test
         && (
-          !  config.AutomatedTest 
+          !  config.AutomatedTest
           || config.AutomatedTest == guild.id
       )){
       let Teams = require('./models/Teams.js')(guild.id);
@@ -101,7 +101,7 @@ function newLevelDataToOld(level){
     level.level_name,
     level.difficulty,
     level.status,
-    level.new_code || '', 
+    level.new_code || '',
     level.videos || '',
     sqlDateToTimestamp(level.created_at),
     level.tags || '',
@@ -119,8 +119,8 @@ async function generateSiteJson(ts,isShellder){
         "Points!B"
       ])
 
-    
-    
+
+
     let competiton_winners = SheetCache["Competition Winners"];
     let _points = SheetCache["Points"]
     let tags = ts.gs.select("tags");
@@ -140,7 +140,7 @@ async function generateSiteJson(ts,isShellder){
       ts.LEVEL_STATUS.REUPLOADED,
       ts.LEVEL_STATUS.NEED_FIX,
     ])
-    
+
     let rawLevels=[];
     let reuploaded=[]
     let pending=[]
@@ -237,6 +237,63 @@ async function generateSiteJson(ts,isShellder){
     return json;
 }
 
+async function generateWorldsJson(ts,isShellder, data){
+  const SheetCache = ts.gs.getArrayFormat([
+      "Seasons!B",
+      "tags",
+      "Competition Winners",
+      "Points!B"
+    ])
+
+  let competiton_winners = SheetCache["Competition Winners"];
+  competiton_winners.shift();
+
+  let members = [];
+
+  if(data.membershipStatus == '1'){
+    members = await ts.db.Members.query().select().where("is_member", 1).where('world_level_count', '>', 0);
+  } else if(data.membershipStatus == '2'){
+    members = await ts.db.Members.query().select().where('world_level_count', '>', 0);
+    members = members.filter(member => ts.is_mod(member));
+  } else if(data.membershipStatus == '4'){
+    members = await ts.db.Members.query().select().where('world_level_count', '>', 0).where(function () {
+      this
+        .where("is_member", 0)
+        .orWhere("is_member", null)
+    });
+  } else {
+    members = await ts.db.Members.query().select().where('world_level_count', '>', 0);
+  }
+
+  let json = [];
+
+  let memberCounter = 1;
+  for(let member of members){
+    let comps = [];
+    for(let comp of competiton_winners){
+      if(comp[1] === member.name){
+        comps.push({
+          name: comp[2],
+          rank: comp[3]
+        })
+      }
+    }
+
+    json.push({
+      'id': memberCounter++,
+      'wonComps': comps,
+      'name': member.name,
+      'maker_id': member.maker_id,
+      'maker_name': member.maker_name,
+      'world_name': member.world_description,
+      'world_world_count': member.world_world_count,
+      'world_level_count': member.world_level_count
+    });
+  }
+
+  return {data: json};
+}
+
 /*
 function get_slug(){
   let refer=req.headers.referer.split(req.host)[1].split('/')
@@ -257,7 +314,7 @@ function web_ts(callback){
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
     try {
       var ts=get_web_ts(req.body.url_slug)
-      if(!ts) 
+      if(!ts)
         throw `"${req.body.url_slug}" not found`;
     } catch(error){
       let ret={"error":error.stack,"url_slug":req.body.url_slug}
@@ -265,13 +322,13 @@ function web_ts(callback){
       res.send(JSON.stringify(ret));
       throw error;
     }
-  
+
     try{
       let data=await callback(ts,req,res)
       res.send(JSON.stringify(data));
     } catch(error) {
       res.send(ts.getWebUserErrorMsg(error))
-    }   
+    }
   }
 }
 
@@ -280,9 +337,19 @@ app.post('/json',web_ts(async (ts,req)=>{
       req.body.discord_id=await ts.checkBearerToken(req.body.token)
       var user=await ts.get_user(req.body.discord_id)
     }
-    
+
     let json = await generateSiteJson(ts,user && ts.is_mod(user))
     return json;
+}))
+
+app.post('/json/worlds',web_ts(async (ts,req)=>{
+  if(req.body.token){
+    req.body.discord_id=await ts.checkBearerToken(req.body.token)
+    var user=await ts.get_user(req.body.discord_id)
+  }
+
+  let json = await generateWorldsJson(ts,user && ts.is_mod(user),req.body)
+  return json;
 }))
 
 app.post('/clear',web_ts(async (ts,req)=>{
@@ -290,7 +357,7 @@ app.post('/clear',web_ts(async (ts,req)=>{
 
   req.body.discord_id=await ts.checkBearerToken(req.body.token)
   await ts.get_user(req.body.discord_id)
-  
+
   let msg=await ts.clear(req.body)
   await client.channels.get(ts.channels.commandFeed).send(msg)
   let json = {status:"sucessful",msg:msg}
@@ -327,7 +394,7 @@ app.post('/random',web_ts(async (ts,req)=>{
 }))
 
 app.post('/feedback',web_ts(async (ts,req)=>{
-    
+
   if(!req.body.token)
     ts.userError("website.noToken");
 
@@ -341,7 +408,7 @@ app.post('/feedback',web_ts(async (ts,req)=>{
   let discordId = req.body.discord_id;
   await ts.putFeedback(ip, discordId, ts.config.config.feedback_salt, req.body.message);
   return { status: "successful"}
-  
+
 }))
 
 app.post('/json/login', web_ts(async (ts,req) => {
