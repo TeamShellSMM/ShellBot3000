@@ -42,7 +42,7 @@ class SetWorld extends TSCommand {
         .where({discord_id:message.author.id})
 
 
-      message.channel.send(player.user_reply+ts.message("setworld.success",{ code }))
+      message.channel.send(player.user_reply+ts.message("setworld.success"))
     }
 }
 module.exports = SetWorld;
