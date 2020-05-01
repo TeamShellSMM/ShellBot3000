@@ -23,6 +23,8 @@ class SetWorld extends TSCommand {
     }
 
     async tsexec(ts,message,args) {
+      args = args.split(" ");
+
       let world_count = parseInt(args.shift());
       let level_count = parseInt(args.shift());
       let world_name = args.join(" ");
