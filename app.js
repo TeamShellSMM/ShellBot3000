@@ -256,7 +256,11 @@ async function generateWorldsJson(ts,isShellder, data){
     members = await ts.db.Members.query().select().where('world_level_count', '>', 0);
     members = members.filter(member => ts.is_mod(member));
   } else if(data.membershipStatus == '4'){
-    members = await ts.db.Members.query().select().where('world_level_count', '>', 0).where("is_member", 0).orWhere("is_member", null);
+    members = await ts.db.Members.query().select().where('world_level_count', '>', 0).where(function () {
+      this
+        .where("is_member", 0)
+        .orWhere("is_member", null)
+    });
   } else {
     members = await ts.db.Members.query().select().where('world_level_count', '>', 0);
   }
