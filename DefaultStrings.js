@@ -141,7 +141,7 @@ module.exports={
 
  'makerid.noCode':'You didn\'t provide any maker code',//✅
  'makerid.noName':'You didn\'t provide your maker name',//✅
- 'makerid.success':'You have updated your maker-id to {{code}} {{{bam}}}',//✅
+ 'makerid.success':'You have updated your maker-id to {{code}} and maker-name to {{name}} {{{bam}}}',//✅
  'makerid.existing':'`{{code}} is already being used by \'{{name}}\' ',//✅
  'makerid.already':'`{{code}}` is already what you have set for your maker-id ',//✅
 

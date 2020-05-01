@@ -33,8 +33,6 @@ class MakerId extends TSCommand {
       if(existing_member){
         if(existing_member.discord_id!=player.discord_id){
             ts.userError(ts.message("makerid.existing",{ code , name:existing_member.name }))
-        } else if(existing_member.maker_id==code) {
-            ts.userError(ts.message("makerid.already",{ code }))
         }
       }
 
@@ -44,7 +42,7 @@ class MakerId extends TSCommand {
         .where({discord_id:message.author.id})
 
 
-      message.channel.send(player.user_reply+ts.message("makerid.success",{ code }))
+      message.channel.send(player.user_reply+ts.message("makerid.success",{ code, name }))
     }
 }
 module.exports = MakerId;
