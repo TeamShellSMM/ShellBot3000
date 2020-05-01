@@ -23,11 +23,11 @@ class SetWorld extends TSCommand {
     }
 
     async tsexec(ts,message,args) {
-      args = args.split(" ");
+      let command=ts.parse_command(message);
 
-      let world_count = parseInt(args.shift());
-      let level_count = parseInt(args.shift());
-      let world_name = args.join(" ");
+      let world_count = parseInt(command.arguments.shift());
+      let level_count = parseInt(command.arguments.shift());
+      let world_name = command.arguments.join(" ");
 
       if(!world_count) ts.userError(ts.message('setworld.invalidWorldCount'));
       if(!level_count) ts.userError(ts.message('setworld.invalidLevelCount'));
