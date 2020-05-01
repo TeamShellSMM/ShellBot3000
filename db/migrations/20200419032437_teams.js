@@ -11,8 +11,8 @@ exports.up = function(knex) {
         t.string('url_slug').notNull();
         t.string('owner_id').notNull(); //owner is head/creator of the team
         t.string('admin_id').nullable(); //admin is the person who may be helping to setup the bot
-        t.json('config').notNull().defaultTo('');
-        t.json('web_config').notNull().defaultTo('')
+        t.json('config').nullable();
+        t.json('web_config').nullable();
         t.boolean('active').notNull().defaultTo(false)
         t.boolean('public').notNull().defaultTo(true)
         t.boolean('banned').notNull().defaultTo(false)

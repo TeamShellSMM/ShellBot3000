@@ -31,7 +31,10 @@ class TSLevelStatus extends TSCommand {
 
         if(level.status === ts.LEVEL_STATUS.APPROVED){
             await message.reply("This level has already been approved! " + ts.emotes.bam);
-        } else if(level.status.startsWith("del")){
+        } else if(
+            level.status === ts.LEVEL_STATUS.REJECTED
+            || level.status === ts.LEVEL_STATUS.REMOVED
+        ){
             await message.reply("This level has already been removed/rejected!");
         } else if(level.status == ts.LEVEL_STATUS.PENDING){
             var approvalVotes = await ts.db.PendingVotes.query().where("code",code).where("type","approve");

@@ -933,7 +933,6 @@ class TestBot extends Command {
       let i=(typeof argv.test==="number") ? argv.test-2 : -1;
       global.NEXTTEST=async function(){
         i++
-        //if(DISCORDTESTS[i] && DISCORDTESTS[i].slow) await this._sleep(1000)
         if(!has_error && i<DISCORDTESTS.length){
           send(DISCORDTESTS[i])
           timeout_id=setTimeout(async function(){

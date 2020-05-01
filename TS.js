@@ -309,7 +309,7 @@ const TS=function(guild_id,team_config,client){ //loaded after gs
 
 
   this.generateLoginLink=function(otp){
-    return config.page_url + ts.url_slug + "/login/"+otp
+    return server_config.page_url + ts.url_slug + "/login/"+otp
   }
   this.generateOtp=async function(discord_id){
     let newOtp=crypto.randomBytes(8).toString('hex').toUpperCase()

@@ -174,18 +174,65 @@ app.post('/json/login', web_ts(async (ts,req) => {
       },"returned login details")
     })
 
-    it('POST /json logged in', async function (){
+    it('POST /json registered', async function (){
       const user=await ts.get_user(discord_id)
       const { body } = await request(app)
         .post('/json')
         .send({ url_slug:ts.url_slug, token })
         .expect('Content-Type', /json/)
         .expect(200)
+      //For now we stop comparing these
+      //TODO: make it work with actual dates
+      assert.lengthOf(body.levels,1,'one levels in db')
+
+      delete body.levels[0].created_at
+      delete body.levels[0].id
+      
       assert.deepEqual(body,{
-        status:"logged_in",
-        type:"bearer",
-        discord_id,
-        token,
-      },"returned login details")
+        "comp_winners": [],
+        "levels": [{
+            "approves": 0,
+            "clears": null,
+            "code": "XXX-XXX-XXX",
+            "completed": null,
+            "creator": "Creator",
+            "difficulty": "1",
+            "difficulty_vote": null,
+            "lcd": null,
+            "level_name": "EZ GG",
+            "liked": null,
+            "likes": null,
+            "loaded_on": null,
+            "maker_id": null,
+            "no": 1,
+            "rejects": 0,
+            "row_last_updated": null,
+            "score": 1,
+            "status": 1,
+            "tags": "",
+            "videos": "",
+            "vote": null,
+            "votestr": null,
+            "votetotal": 0,
+            "want_fixes": 0,
+          }
+        ],
+        "seasons": [,
+          {
+            "name": "Season 1",
+            "startdate": "",
+          }
+        ],
+        "seperate": [],
+        "tags": {
+          "3DW": "success",
+          "NSMBU": "success",
+          "SMB1": "success",
+          "SMB3": "success",
+          "SMW": "success",
+          "all_locked": "success",
+          "remove_lock": "",
+        },
+        },"registered json")
     })
 })
