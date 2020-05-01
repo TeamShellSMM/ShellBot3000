@@ -7,18 +7,22 @@ class MakerId extends TSCommand {
                     id: 'code',
                     type: 'string',
                     default: ''
-                }],
+                },
+                {
+                  id: 'name',
+                  type: 'string',
+                  default: ''
+              }],
            channelRestriction: 'guild'
         });
     }
 
-    async tsexec(ts,message,{ code }) {
+    async tsexec(ts,message,{ code, name }) {
 
       if(!code) ts.userError(ts.message('makerid.noCode'));
+      if(!name) ts.userError(ts.message('makerid.noName'));
 
       const player=await ts.get_user(message);
-
-    
 
       code=code.toUpperCase();
       if(!ts.valid_code(code)){
@@ -34,13 +38,12 @@ class MakerId extends TSCommand {
         }
       }
 
-
       await ts.db.Members
         .query()
-        .patch({maker_id:code})
+        .patch({maker_id:code, maker_name:name})
         .where({discord_id:message.author.id})
-      
-      
+
+
       message.channel.send(player.user_reply+ts.message("makerid.success",{ code }))
     }
 }

@@ -140,9 +140,20 @@ module.exports={
  'login.reply':' You have requested a login token for the website. click the link below to login.:\n <{{login_link}}> {{{bam}}}\n If you\'re on mobile, copy the link and paste it into your preferred browser app. If you open this link in an in-app browser, your login might not be saved properly. {{{buzzyS}}}\n This token will only be valid for 30 minutes',
 
  'makerid.noCode':'You didn\'t provide any maker code',//✅
+ 'makerid.noName':'You didn\'t provide your maker name',//✅
  'makerid.success':'You have updated your maker-id to {{code}} {{{bam}}}',//✅
  'makerid.existing':'`{{code}} is already being used by \'{{name}}\' ',//✅
  'makerid.already':'`{{code}}` is already what you have set for your maker-id ',//✅
+
+ 'setworld.invalidWorldCount':'You didn\'t provide a valid world count',//✅
+ 'setworld.invalidLevelCount':'You didn\'t provide a valid level count',//✅
+ 'setworld.noWorldName':'You didn\'t provide a world name',//✅
+ 'setworld.success':'Your world was successfully set and should now show up on the worlds page',//✅
+ 'setworld.noMakerId':'You need to set your Maker ID and Name first with !makerid XXX-XXX-XXX Name',//✅
+
+
+
+ 'unsetworld.success':'Your world was successfully removed',//✅
 
  'atme.already':'You already have chosen to be atted',//✅
  'atme.willBe':'You will be atted by {{BotName}} {{{bam}}}',//✅
