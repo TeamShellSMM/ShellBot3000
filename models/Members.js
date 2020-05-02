@@ -5,6 +5,9 @@ module.exports = (guild_id,ts) => {
     static get tableName() {
       return 'members';
     }
+    static get idColumn() {
+      return 'id';
+    }
   }
   return Members;
 }

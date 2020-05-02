@@ -611,15 +611,13 @@ class TestBot extends Command {
           cmd:'!removeclear xxx-xxx-xxx',
           discord_id:'256',
           type:'registeredSuccess',
-          expected:'\n' +
-          ts.message('clear.removedClear',{levelInfo:"'level name is long'  by mockCreator"}),
+          expected:'\n'+ts.message('clear.removedClear',{levelInfo:"'level name is long'  by mockCreator"}),
         },{
           description: "Already remove clear",
           cmd:'!removeclear xxx-xxx-xxx',
           discord_id:'256',
           type:'registeredSuccess',
-          expected:'\n' +
-          ts.message('clear.alreadyUncleared',{levelInfo:"'level name is long'  by mockCreator"}),
+          expected:'\n'+ts.message('clear.alreadyUncleared',{levelInfo:"'level name is long'  by mockCreator"}),
         },{
           cmd:'!approve xxx-xxx-xxx',
           discord_id:'123',

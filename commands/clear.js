@@ -11,11 +11,11 @@ class TSClear extends TSCommand {
                 },{
                     id: 'difficulty',
                     type: 'string',
-                    default: ''
+                    default: null,
                 },{
-                    id: 'like',
+                    id: 'liked',
                     type: 'string',
-                    default: ''
+                    default: null
                 }],
            channelRestriction: 'guild'
         });

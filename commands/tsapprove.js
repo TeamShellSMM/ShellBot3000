@@ -97,7 +97,7 @@ class TSApprove extends TSCommand {
       if(clearCommands.indexOf(command.command) !== -1){
           args.completed=1;
         if(likeCommands.indexOf(command.command) !==-1)
-          args.like=1;
+          args.liked=1;
         var clearMessage=await ts.clear(args)
         await this.client.channels.get(ts.channels.commandFeed).send(clearMessage)
       }

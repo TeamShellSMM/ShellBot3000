@@ -22,9 +22,9 @@ module.exports = async function(config,client){
     if(!ts) throw `TS not loaded buzzyS`;
     const SheetCache = ts.gs.getArrayFormat(["Competition Winners"])
 
-    let competiton_winners = SheetCache["Competition Winners"];
-    competiton_winners.shift()
-    let tags = ts.gs.select("tags");
+    let competition_winners = SheetCache["Competition Winners"];
+    competition_winners.shift()
+    let _tags = ts.gs.select("tags");
     let _seasons = ts.gs.select("Seasons")
 
     let filterSql=''
@@ -50,13 +50,11 @@ module.exports = async function(config,client){
         AND registered_plays.player=:player
     `:``
 
-
-    let newLevels= await ts.knex.raw(`
-      SELECT ROW_NUMBER () OVER (ORDER BY id) no
-      ,*
+    let levels= await ts.knex.raw(`
+      SELECT *
+      ,ROW_NUMBER() OVER ( ORDER BY id ) as no
       ,round(((likes*2+clears)*score*likes/clears),1) lcd
-      ,vote||','||votetotal votestr
-      ,max(row_last_updated,0) loaded_on
+      ,concat(vote,',',votetotal) votestr
       FROM
       (SELECT levels.id
         ,levels.code
@@ -77,16 +75,10 @@ module.exports = async function(config,client){
         ,sum(CASE WHEN pending_votes.type='reject' THEN 1 ELSE 0 END) rejects
         ,sum(CASE WHEN pending_votes.type='fix' THEN 1 ELSE 0 END) want_fixes
         ${registeredColumns}
-        ,MAX(
-          levels.created_at
-          ,levels.updated_at
-          ,MAX(plays.created_at)
-          ,MAX(plays.updated_at)
-          ,points.created_at
-          ,points.updated_at
-        ) row_last_updated
       FROM
         levels
+      INNER JOIN teams on
+        levels.guild_id=teams.id
       LEFT JOIN plays ON
         levels.guild_id=plays.guild_id
         AND levels.code=plays.code
@@ -104,8 +96,9 @@ module.exports = async function(config,client){
       ${registeredSql}
       WHERE 
         levels.status IN (:statuses:)
-        AND levels.guild_id=:guild_id
-      GROUP BY levels.id);
+        AND teams.guild_id=:guild_id
+        ${filterSql}
+      GROUP BY levels.id) a
     `, { 
       guild_id:ts.guild_id,
       code,
@@ -116,19 +109,20 @@ module.exports = async function(config,client){
       ts.LEVEL_STATUS.APPROVED,
       ts.LEVEL_STATUS.NEED_FIX,
     ] })
+    levels=levels[0] //mysql
     
-    let _tags={}
-    let _seperate=[]
-    for(let i=0;i<tags.length;i++){
-      if(tags[i].Seperate=='1'){
-        _seperate.push(tags[i].Tag)
+    let tags={}
+    let seperate=[]
+    for(let i=0;i<_tags.length;i++){
+      if(_tags[i].Seperate=='1'){
+        seperate.push(_tags[i].Tag)
       }
-      _tags[tags[i].Tag]=tags[i].Type
+      tags[_tags[i].Tag]=_tags[i].Type
     }
 
-    let Seasons=[]
+    let seasons=[]
     for(let i=0;i<_seasons.length;i++){
-      Seasons.push({
+      seasons.push({
         name:_seasons[i].Name,
         startdate:_seasons[i].StartDate
       })
@@ -136,14 +130,16 @@ module.exports = async function(config,client){
 
     let json={
       //"lastUpdated":ts.gs.lastUpdated,
-      "seasons":Seasons,
-      "comp_winners":competiton_winners,
-      "tags":_tags,
-      "seperate":_seperate,
+      levels,
+      seasons,
+      competition_winners,
+      tags,
+      seperate,
     };
 
     if(name){
-      json.maker=await ts.knex.raw(`members.*
+      json.maker=await ts.knex.raw(`
+      SELECT members.*
         ,sum(round(((likes*2+clears)*score*likes/clears),1)) maker_points
         FROM members 
         LEFT JOIN (
@@ -170,8 +166,8 @@ module.exports = async function(config,client){
             AND levels.creator = :name
           GROUP BY levels.id
         ) a ON
-        members.guild_id=a.guild_id
-        AND members.name=a.creator
+          members.guild_id=a.guild_id
+          AND members.name=a.creator
         WHERE members.name=:name 
         AND members.guild_id=:guild_id
       `, { 
@@ -179,6 +175,7 @@ module.exports = async function(config,client){
         name,
         status:ts.LEVEL_STATUS.APPROVED 
       })
+      json.maker=json.maker[0]
       if(json.maker.length>0){
         json.maker=json.maker[0]
         delete json.maker.discord_id
@@ -199,14 +196,11 @@ module.exports = async function(config,client){
       json.dashboard.members=json.dashboard.members[0]
     }
 
-    if(code && newLevels[0]){
-      json.level=newLevels[0]
+    if(code && levels[0]){
       json.plays=await ts.db.Plays.query().where({ code })
       if(user && user.is_mod && json.level.status==ts.LEVEL_STATUS.PENDING){
         json.pending_comments=await ts.db.PendingVotes.query().where({ code })
       }
-    } else {
-      json.levels=newLevels;
     }
 
     return json;
@@ -220,8 +214,8 @@ module.exports = async function(config,client){
         "Points!B"
       ])
 
-    let competiton_winners = SheetCache["Competition Winners"];
-    competiton_winners.shift();
+    let competition_winners = SheetCache["Competition Winners"];
+    competition_winners.shift();
 
     let members = [];
 
@@ -242,7 +236,7 @@ module.exports = async function(config,client){
       let memberCounter = 1;
       for(let member of members){
         let comps = [];
-        for(let comp of competiton_winners){
+        for(let comp of competition_winners){
           if(comp[1] === member.name){
             comps.push({
               name: comp[2],
@@ -326,7 +320,7 @@ module.exports = async function(config,client){
 
       for(let mem of memberArr){
         let comps = [];
-        for(let comp of competiton_winners){
+        for(let comp of competition_winners){
           if(comp[1] === mem.name){
             comps.push({
               name: comp[2],
@@ -368,8 +362,8 @@ module.exports = async function(config,client){
         "Points!B"
       ])
   
-    let competiton_winners = SheetCache["Competition Winners"];
-    competiton_winners.shift();
+    let competition_winners = SheetCache["Competition Winners"];
+    competition_winners.shift();
   
     let members = [];
   
@@ -393,7 +387,7 @@ module.exports = async function(config,client){
     let memberCounter = 1;
     for(let member of members){
       let comps = [];
-      for(let comp of competiton_winners){
+      for(let comp of competition_winners){
         if(comp[1] === member.name){
           comps.push({
             name: comp[2],
@@ -425,8 +419,8 @@ module.exports = async function(config,client){
         "Points!B"
       ])
 
-    let competiton_winners = SheetCache["Competition Winners"];
-    competiton_winners.shift();
+    let competition_winners = SheetCache["Competition Winners"];
+    competition_winners.shift();
     let seasons = SheetCache["Seasons"];
     seasons.shift();
 
@@ -449,30 +443,28 @@ module.exports = async function(config,client){
     }
 
     let members = [];
-
+    let membersSQL=``;
     if(data.membershipStatus == '1'){
-      members = await ts.db.Members.query().select().where("is_member", 1);
-    } else if(data.membershipStatus == '2'){
-      members = await ts.db.Members.query().select();
-      members = members.filter(member => ts.is_mod(member));
+      membersSQL=`AND members.is_member=1`
+    } else if(data.membershipStatus == '2'){;
+      membersSQL=`AND members.is_mod=1`
     } else if(data.membershipStatus == '4'){
-      members = await ts.db.Members.query().select().where("is_member", 0).orWhere("is_member", null);
-    } else {
-      members = await ts.db.Members.query().select();
+      membersSQL=`AND members.is_member!=1`
     }
 
     let json = [];
 
-    let member_ids = Array.from(members, x => x.id);
+    console.log({ from_season, to_season })
 
     json=await knex.raw(`SELECT name
+	  ,code
       ,COUNT(distinct code) as levels_created
       ,SUM(clears) as clears
       ,SUM(likes) as likes
       ,AVG(clear_like_ratio) as clear_like_ratio
       ,SUM(maker_points) as maker_points
     FROM (
-      SELECT members.name
+           SELECT members.name
           ,levels.code
           ,points.score
           ,SUM(plays.completed) AS clears
@@ -480,25 +472,33 @@ module.exports = async function(config,client){
           ,SUM(plays.liked) / SUM(plays.completed) AS clear_like_ratio
           ,(SUM(plays.liked) * 2 + SUM(plays.completed)) * points.score * (SUM(plays.liked) / SUM(plays.completed)) AS maker_points
       FROM members
-      LEFT JOIN levels ON levels.creator = members.name
+      INNER JOIN teams ON 
+        members.guild_id=teams.id
+      LEFT JOIN levels ON 
+          levels.creator = members.name
           AND levels.guild_id = members.guild_id
-      LEFT JOIN plays ON levels.code = plays.code
+      LEFT JOIN plays ON
+          levels.code = plays.code
           AND levels.guild_id = plays.guild_id
-      LEFT JOIN points ON levels.difficulty = points.difficulty
+      LEFT JOIN points ON
+          levels.difficulty = points.difficulty
           AND levels.guild_id = points.guild_id
-      WHERE levels.status IN (:statuses:)
-          AND levels.created_at >= datetime(:from_season:, 'unixepoch')
-          AND levels.created_at < datetime(:to_season:, 'unixepoch')
-          AND members.id in (:member_ids:)
-          AND members.guild_id = :guild_id
-      GROUP BY members.name
-          ,levels.code
-      )
-    GROUP BY name;`,{ statuses:[ts.LEVEL_STATUS.PENDING,ts.LEVEL_STATUS.APPROVED], from_season, to_season, member_ids, guild_id: ts.guild_id });
+      WHERE levels.status IN (0,1)
+          AND levels.created_at between FROM_UNIXTIME(:from_season) AND FROM_UNIXTIME(:to_season)
+          AND teams.guild_id = :guild_id
+      group by levels.code ) a
+      group by name;`,{ from_season, to_season, guild_id: ts.guild_id });
 
+  
+    if(json) json=json[0]
+/*
+sqlite
+AND levels.created_at >= datetime(:from_season:, 'unixepoch')
+AND levels.created_at < datetime(:to_season:, 'unixepoch')
+*/
     for(let mem of json){
       let comps = [];
-      for(let comp of competiton_winners){
+      for(let comp of competition_winners){
         if(comp[1] === mem.name){
           comps.push({
             name: comp[2],
@@ -571,8 +571,8 @@ module.exports = async function(config,client){
       "Points!B"
     ])
 
-  let competiton_winners = SheetCache["Competition Winners"];
-  competiton_winners.shift();
+  let competition_winners = SheetCache["Competition Winners"];
+  competition_winners.shift();
 
   let members = [];
 
@@ -596,7 +596,7 @@ module.exports = async function(config,client){
   let memberCounter = 1;
   for(let member of members){
     let comps = [];
-    for(let comp of competiton_winners){
+    for(let comp of competition_winners){
       if(comp[1] === member.name){
         comps.push({
           name: comp[2],

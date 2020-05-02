@@ -17,7 +17,6 @@ exports.up = function(knex) {
         t.boolean('public').notNull().defaultTo(true)
         t.boolean('banned').notNull().defaultTo(false)
         t.index('guild_id')
-        t.unique(['guild_id','guild_name','url_slug'])
       });
 };
 

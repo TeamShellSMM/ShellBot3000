@@ -28,15 +28,15 @@ const TS=function(guild_id,team_config,client){ //loaded after gs
     REUPLOADED:2,
     REMOVED:-2,
   };
-  
+  console.log(team_config)
   this.db={
     Teams:require('./models/Teams.js')(guild_id),
     Tokens:require('./models/Tokens'),
-    Plays:require('./models/Plays')(guild_id,ts),
-    PendingVotes:require('./models/PendingVotes')(guild_id,ts),
-    Members:require('./models/Members')(guild_id,ts),
-    Levels:require('./models/Levels')(guild_id,ts),
-    Points:require('./models/Points')(guild_id,ts),
+    Plays:require('./models/Plays')(team_config.id,ts),
+    PendingVotes:require('./models/PendingVotes')(team_config.id,ts),
+    Members:require('./models/Members')(team_config.id,ts),
+    Levels:require('./models/Levels')(team_config.id,ts),
+    Points:require('./models/Points')(team_config.id,ts),
   };
 
   this.load=async function(){
@@ -110,7 +110,8 @@ const TS=function(guild_id,team_config,client){ //loaded after gs
       } else {
         this.mods=[guild.owner.user.id]
       }
-      ts.recalculateAfterUpdate()
+
+      await ts.recalculateAfterUpdate();
 
       
       if(server_config.AutomatedTest == guild_id && argv.test){
@@ -209,6 +210,8 @@ const TS=function(guild_id,team_config,client){ //loaded after gs
         code,
         statuses:[ts.LEVEL_STATUS.PENDING,ts.LEVEL_STATUS.APPROVED],
       });
+
+    calculated_values=calculated_values[0] //mysql
 
     await ts.db.Members.transaction(async (trx)=>{
       for(let j=0;j<calculated_values.length;j++){
@@ -450,27 +453,38 @@ const TS=function(guild_id,team_config,client){ //loaded after gs
 
   //TODO: fix boolean
   this.clear=async function(args,strOnly){
+
+     if(args.completed==null && args.liked==null && args.difficulty==null) ts.userError('clear.noArgs')
+
       args.code=args.code.toUpperCase();
 
-      if(args.like=="unlike"){
-        args.like=false
+      console.log(args)
+      if(args.liked!==null){
+        if(['like','1',1,true].indexOf(args.liked)!==-1) args.liked=true;
+        if(['unlike','0',0,false].indexOf(args.liked)!==-1) args.liked=false;
       }
+      console.log(args)
 
 
-      args.like=['like','1',1,true].indexOf(args.completed)!==-1?true:false;
+      console.log(args)
+      if(args.completed!==null){  
+        if(['1',1,true].indexOf(args.completed)!==-1) args.completed=true;
+        if(['0',0,false].indexOf(args.completed)!==-1) args.completed=false;
+      }
+      console.log(args)
+      
       args.difficulty=argToStr(args.difficulty)
-      args.completed=['1',1,true].indexOf(args.completed)!==-1?true:false;
-
+      
 
 
       if(args.difficulty=="like"){
         args.difficulty=null
-        args.like=true
+        args.liked=true
       }
 
       if(args.difficulty=="unlike"){
         args.difficulty=null
-        args.like=false
+        args.liked=false
       }
 
       if(args.difficulty!='0' && args.difficulty && !ts.valid_difficulty(args.difficulty)){
@@ -496,6 +510,8 @@ const TS=function(guild_id,team_config,client){ //loaded after gs
       var creator_str=level.creator
       }
 
+      console.log(args)
+
       var msg=[],updated={}
       if(existing_play){
         var updated_row={}
@@ -507,10 +523,10 @@ const TS=function(guild_id,team_config,client){ //loaded after gs
           updated.completed=true
         }
         if(
-          [true,false].includes(args.like) &&
-          (""+existing_play.liked)!==args.like
+          [true,false].includes(args.liked) &&
+          (""+existing_play.liked)!==args.liked
         ){ //like updated
-          updated_row.liked=args.like;
+          updated_row.liked=args.liked;
           updated.liked=true
         }
         if(
@@ -525,20 +541,20 @@ const TS=function(guild_id,team_config,client){ //loaded after gs
         await ts.db.Plays.query().insert({
           code:args.code,
           player:player.name,
-          completed: args.completed,
-          liked:args.like,
+          completed: args.completed||0,
+          liked:args.liked||0,
           difficulty_vote:args.difficulty==='0' ? null:args.difficulty
         });
         if(args.completed!=null && args.completed!=='' ) updated.completed=true;
-        if(args.like!=null && args.like!=='') updated.liked=true;
+        if(args.liked!=null && args.liked!=='') updated.liked=true;
         if(args.difficulty!=null && args.difficulty!=='') updated.difficulty=true;
       }
 
 
+
         if(updated.completed){
+          if(args.completed===false) msg.push(ts.message("clear.removedClear",{level}));
           if(args.completed===true){
-            msg.push(ts.message("clear.removedClear",{level}))
-          } else {
             msg.push(ts.message("clear.addClear",{level}))
             if(level.status===ts.LEVEL_STATUS.APPROVED){
               msg.push(ts.message("clear.earnedPoints",{
@@ -549,12 +565,11 @@ const TS=function(guild_id,team_config,client){ //loaded after gs
             }
           }
           await ts.recalculateAfterUpdate({name:player.name})
-        } else if(args.completed || args.completed==='0'){
-          msg.push(args.completed==='0'?
-            ts.message("clear.alreadyUncleared"):
-            ts.message("clear.alreadyCleared")
-          )
+        } else {
+          if(args.completed===false) ts.message("clear.alreadyUncleared");
+          if(args.completed===true)  ts.message("clear.alreadyCleared");
         }
+
 
         if(updated.difficulty){
           msg.push(args.difficulty==='0'?
@@ -575,15 +590,11 @@ const TS=function(guild_id,team_config,client){ //loaded after gs
         }
 
         if(updated.liked){
-          msg.push(args.like===false?
-          ts.message("clear.removeLike",{ level }):
-          ts.message("clear.addLike",{ level })
-          )
+          if(args.liked===false) msg.push(ts.message("clear.removeLike",{ level }))
+          if(args.liked===true) msg.push(ts.message("clear.addLike",{ level }))
         } else {
-          msg.push(args.like===false?
-            ts.message("clear.alreadyLiked",{ level }):
-            ts.message("clear.alreadyUnliked",{ level })
-          )
+          if(args.liked===false) msg.push(ts.message("clear.alreadyLiked",{ level }))
+          if(args.liked===true) msg.push(ts.message("clear.alreadyLiked",{ level }))
         }
 
 
