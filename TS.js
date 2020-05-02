@@ -236,8 +236,8 @@ const TS=function(guild_id,team_config,client){ //loaded after gs
         .map((m)=> m.user.id)
     }
 
-    await ts.db.Members.query().patch({is_mod:0}).whereNotIn('discord_id',mods).where({is_mod:1});
-    await ts.db.Members.query().patch({is_mod:1}).whereIn('discord_id',mods).where({is_mod:0});
+    await ts.db.Members.query().patch({is_mod:false}).whereNotIn('discord_id',mods).where({is_mod:true});
+    await ts.db.Members.query().patch({is_mod:true}).whereIn('discord_id',mods).where({is_mod:false});
 
     ts.gs.loadSheets(["Points"]);
     var _points=ts.gs.select("Points");
@@ -448,33 +448,32 @@ const TS=function(guild_id,team_config,client){ //loaded after gs
 
   }
 
+  //TODO: fix boolean
   this.clear=async function(args,strOnly){
       args.code=args.code.toUpperCase();
 
-      args.like=argToStr(args.like)
-      args.difficulty=argToStr(args.difficulty)
-      args.completed=argToStr(args.completed)
-
-
-      if(args.like==="like"){
-        args.like='1'
-      }
-
       if(args.like=="unlike"){
-        args.like='0'
+        args.like=false
       }
+
+
+      args.like=['like','1',1,true].indexOf(args.completed)!==-1?true:false;
+      args.difficulty=argToStr(args.difficulty)
+      args.completed=['1',1,true].indexOf(args.completed)!==-1?true:false;
+
+
 
       if(args.difficulty=="like"){
-        args.difficulty=''
-        args.like='1'
+        args.difficulty=null
+        args.like=true
       }
 
       if(args.difficulty=="unlike"){
-        args.difficulty=''
-        args.like='0'
+        args.difficulty=null
+        args.like=false
       }
 
-      if(args.difficulty!=='0' && args.difficulty && !ts.valid_difficulty(args.difficulty)){
+      if(args.difficulty!='0' && args.difficulty && !ts.valid_difficulty(args.difficulty)){
         ts.userError(ts.message("clear.invalidDifficulty"));
       }
 
@@ -491,7 +490,7 @@ const TS=function(guild_id,team_config,client){ //loaded after gs
         .first();
 
       var creator=await ts.db.Members.query().where({ name:level.creator }).first(); //oddface/taika is only non registered member with a level
-      if(creator && creator.atme=='1' && creator.discord_id && !strOnly){
+      if(creator && creator.atme && creator.discord_id && !strOnly){
       var creator_str="<@"+creator.discord_id+">"
       } else {
       var creator_str=level.creator
@@ -501,43 +500,43 @@ const TS=function(guild_id,team_config,client){ //loaded after gs
       if(existing_play){
         var updated_row={}
         if(
-            ['1','0'].includes(args.completed) &&
-            (""+existing_play.completed)!==args.completed
+            [true,false].includes(args.completed) &&
+            existing_play.completed!==args.completed
           ){ //update completed
           updated_row.completed=args.completed;
-          updated.completed=1
+          updated.completed=true
         }
         if(
-          ['1','0'].includes(args.like) &&
+          [true,false].includes(args.like) &&
           (""+existing_play.liked)!==args.like
         ){ //like updated
           updated_row.liked=args.like;
-          updated.liked=1
+          updated.liked=true
         }
         if(
           (args.difficulty || args.difficulty==='0' ) &&
           ( (""+existing_play.difficulty_vote)!==args.difficulty )
         ){ //difficulty update
           updated_row.difficulty_vote=args.difficulty==='0'?null:args.difficulty; //0 difficulty will remove your vote
-          updated.difficulty=1
+          updated.difficulty=true
         }
         await ts.db.Plays.query().findById(existing_play.id).patch(updated_row);
       } else {
         await ts.db.Plays.query().insert({
           code:args.code,
           player:player.name,
-          completed: args.completed?1:0,
-          liked:args.like?1:0,
+          completed: args.completed,
+          liked:args.like,
           difficulty_vote:args.difficulty==='0' ? null:args.difficulty
         });
-        if(args.completed!=='') updated.completed=1;
-        if(args.like!=='') updated.liked=1;
-        if(args.difficulty!=='') updated.difficulty=1;
+        if(args.completed!=null && args.completed!=='' ) updated.completed=true;
+        if(args.like!=null && args.like!=='') updated.liked=true;
+        if(args.difficulty!=null && args.difficulty!=='') updated.difficulty=true;
       }
 
 
         if(updated.completed){
-          if(args.completed==='0'){
+          if(args.completed===true){
             msg.push(ts.message("clear.removedClear",{level}))
           } else {
             msg.push(ts.message("clear.addClear",{level}))
@@ -576,12 +575,12 @@ const TS=function(guild_id,team_config,client){ //loaded after gs
         }
 
         if(updated.liked){
-          msg.push(args.like==='0'?
+          msg.push(args.like===false?
           ts.message("clear.removeLike",{ level }):
           ts.message("clear.addLike",{ level })
           )
-        } else if(args.like || args.like==='0' ){
-          msg.push(args.like==='0'?
+        } else {
+          msg.push(args.like===false?
             ts.message("clear.alreadyLiked",{ level }):
             ts.message("clear.alreadyUnliked",{ level })
           )
@@ -985,27 +984,25 @@ const TS=function(guild_id,team_config,client){ //loaded after gs
       }
 
 
-      //Add/Update Approval/Rejection to new sheet 'shellder votes?' + difficulty + reason
       var updating = false;
       if(!vote){
         await ts.db.PendingVotes.query().insert({
           code: level.code,
-          is_shellder: 1, //to be changed to member value?
           player: shellder.name,
           type: args.type,
-          difficulty_vote: (args.type=== "approve" || args.type == "fix") ? args.difficulty : "",
+          difficulty_vote: (args.type=== "approve" || args.type == "fix") ? args.difficulty : null,
           reason: args.reason
         });
       } else {
         updating = true;
         var updateJson = {
-          "type": args.type
+          type: args.type
         }
         if(args.reason){
           updateJson.reason = args.reason;
         }
         if(args.difficulty){
-          updateJson.difficulty_vote = args.difficulty;
+          updateJson.difficulty_vote = args.difficulty || null;
         }
         var updateVote = await ts.db.PendingVotes.query().findById(vote.id).patch(updateJson);
       }
@@ -1135,7 +1132,7 @@ const TS=function(guild_id,team_config,client){ //loaded after gs
         //Update author to set cult_member if they're not already. send initiate message and assign cult role
         if(author.is_member != 1){
           await ts.db.Members.query()
-            .patch({is_member:1})
+            .patch({is_member:true})
             .where({name:author.name})
 
           if(author.discord_id){ //!argv.test &&
@@ -1426,7 +1423,7 @@ const TS=function(guild_id,team_config,client){ //loaded after gs
         code:new_code,
         level_name:level.level_name,
         creator:level.creator,
-        difficulty:0,
+        difficulty:false,
         status:0,
         tags:level.tags,
       });

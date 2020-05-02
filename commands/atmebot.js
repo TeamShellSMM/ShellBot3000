@@ -18,7 +18,7 @@ class atmebot extends TSCommand {
       const player=await ts.get_user(message);
 
       if(atmeCommands.indexOf(command.command)!=-1){
-        var atmeVal=1
+        var atmeVal=true
         var alreadyError=ts.message("atme.already")
         var msg=ts.message("atme.willBe")
       } else {

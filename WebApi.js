@@ -8,6 +8,7 @@ const express=require('express');
 const DiscordLog = require('./DiscordLog');
 const TS=require('./TS');
 
+
 module.exports = async function(config,client){
   const app = express();
   app.use(bodyParser.json());
@@ -358,6 +359,64 @@ module.exports = async function(config,client){
     }
   }
 
+
+  async function generateWorldsJson(ts,isShellder, data){
+    const SheetCache = ts.gs.getArrayFormat([
+        "Seasons!B",
+        "tags",
+        "Competition Winners",
+        "Points!B"
+      ])
+  
+    let competiton_winners = SheetCache["Competition Winners"];
+    competiton_winners.shift();
+  
+    let members = [];
+  
+    if(data.membershipStatus == '1'){
+      members = await ts.db.Members.query().select().where("is_member", 1).where('world_level_count', '>', 0);
+    } else if(data.membershipStatus == '2'){
+      members = await ts.db.Members.query().select().where('world_level_count', '>', 0);
+      members = members.filter(member => ts.is_mod(member));
+    } else if(data.membershipStatus == '4'){
+      members = await ts.db.Members.query().select().where('world_level_count', '>', 0).where(function () {
+        this
+          .where("is_member", 0)
+          .orWhere("is_member", null)
+      });
+    } else {
+      members = await ts.db.Members.query().select().where('world_level_count', '>', 0);
+    }
+  
+    let json = [];
+  
+    let memberCounter = 1;
+    for(let member of members){
+      let comps = [];
+      for(let comp of competiton_winners){
+        if(comp[1] === member.name){
+          comps.push({
+            name: comp[2],
+            rank: comp[3]
+          })
+        }
+      }
+  
+      json.push({
+        'id': memberCounter++,
+        'wonComps': comps,
+        'name': member.name,
+        'maker_id': member.maker_id,
+        'maker_name': member.maker_name,
+        'world_name': member.world_description,
+        'world_world_count': member.world_world_count,
+        'world_level_count': member.world_level_count
+      });
+    }
+  
+    return {data: json};
+  }
+
   async function generateMakersJson(ts,isShellder, data){
     const SheetCache = ts.gs.getArrayFormat([
         "Seasons!B",
@@ -503,6 +562,74 @@ module.exports = async function(config,client){
       }
     }
   }
+
+  async function generateWorldsJson(ts,isShellder, data){
+  const SheetCache = ts.gs.getArrayFormat([
+      "Seasons!B",
+      "tags",
+      "Competition Winners",
+      "Points!B"
+    ])
+
+  let competiton_winners = SheetCache["Competition Winners"];
+  competiton_winners.shift();
+
+  let members = [];
+
+  if(data.membershipStatus == '1'){
+    members = await ts.db.Members.query().select().where("is_member", 1).where('world_level_count', '>', 0);
+  } else if(data.membershipStatus == '2'){
+    members = await ts.db.Members.query().select().where('world_level_count', '>', 0);
+    members = members.filter(member => ts.is_mod(member));
+  } else if(data.membershipStatus == '4'){
+    members = await ts.db.Members.query().select().where('world_level_count', '>', 0).where(function () {
+      this
+        .where("is_member", 0)
+        .orWhere("is_member", null)
+    });
+  } else {
+    members = await ts.db.Members.query().select().where('world_level_count', '>', 0);
+  }
+
+  let json = [];
+
+  let memberCounter = 1;
+  for(let member of members){
+    let comps = [];
+    for(let comp of competiton_winners){
+      if(comp[1] === member.name){
+        comps.push({
+          name: comp[2],
+          rank: comp[3]
+        })
+      }
+    }
+
+    json.push({
+      'id': memberCounter++,
+      'wonComps': comps,
+      'name': member.name,
+      'maker_id': member.maker_id,
+      'maker_name': member.maker_name,
+      'world_name': member.world_description,
+      'world_world_count': member.world_world_count,
+      'world_level_count': member.world_level_count
+    });
+  }
+
+  return {data: json};
+}
+
+
+app.post('/json/worlds',web_ts(async (ts,req)=>{
+  if(req.body.token){
+    req.body.discord_id=await ts.checkBearerToken(req.body.token)
+    var user=await ts.get_user(req.body.discord_id)
+  }
+
+  let json = await generateWorldsJson(ts,user && ts.is_mod(user),req.body)
+  return json;
+}))
 
   app.post('/teams',async (req, res) => {
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
