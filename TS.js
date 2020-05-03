@@ -5,7 +5,7 @@ const Handlebars = require("handlebars");
 const crypto=require('crypto')
 const moment=require('moment')
 const knex = require('./db/knex');
-const server_config = require('./config.json');
+const server_config = require('./config.json')[process.env.NODE_ENV || 'development']
 const DEFAULTMESSAGES=require("./DefaultStrings.js");
 const DiscordLog = require('./DiscordLog');
 
@@ -130,53 +130,10 @@ const TS=function(guild_id,team_config,client){ //loaded after gs
   
   //to be called whenever there are any updates to level difficulty and clears
   this.recalculateAfterUpdate=async function(){
-    await knex.raw(`
-    UPDATE members LEFT JOIN (
-      SELECT
-        plays.guild_id,
-        plays.player,
-        sum(points.score) total_score,
-        count(plays.id) total_cleared from plays
-      INNER JOIN levels ON
-        levels.id=plays.code
-        AND levels.guild_id=plays.guild_id
-      INNER JOIN points ON
-        levels.difficulty=points.difficulty
-        AND points.guild_id=levels.guild_id
-      WHERE
-        levels.status=1
-        AND plays.completed=1
-        AND levels.guild_id=:guild_id
-      GROUP BY plays.player,plays.guild_id
-    ) clear_stats ON
-          members.guild_id=clear_stats.guild_id
-          AND members.id=clear_stats.player
-    LEFT JOIN (
-      SELECT
-        levels.guild_id,
-        COUNT(levels.id) calculated_levels_created,
-        SUM(levels.is_free_submission) free_submissions,
-        SUM(points.score) own_score,
-        levels.creator
-      FROM levels
-      INNER JOIN points ON points.difficulty=levels.difficulty AND points.guild_id=levels.guild_id
-      WHERE
-        levels.guild_id=:guild_id and
-        levels.status in (0,1)
-      GROUP BY creator,levels.guild_id
-    ) own_levels ON
-        members.guild_id=own_levels.guild_id
-        AND members.id=own_levels.creator
-    SET
-      members.clear_score_sum=COALESCE(total_score,0),
-      members.levels_cleared=COALESCE(total_cleared,0),
-      members.levels_created=COALESCE(calculated_levels_created,0)
-    WHERE members.guild_id=:guild_id;
-    `,{ guild_id:team_config.id });
-
     await knex.raw(`UPDATE levels 
     inner join (SELECT *
-   ,round(((likes*2+clears)*score*likes/clears),1) lcd
+   ,round(((likes*2+clears)*score*likes/clears),1) maker_points
+   ,round(likes/clears*100,1) clear_like_ratio
    ,concat(vote,',',votetotal) votestr
    FROM
    (SELECT 
@@ -210,7 +167,7 @@ const TS=function(guild_id,team_config,client){ //loaded after gs
     ,sum(CASE WHEN pending_votes.type='fix' THEN 1 ELSE 0 END) want_fixes from pending_votes group by pending_votes.code) pending on
     levels.id=pending.code
    WHERE 
-     levels.status IN (0,1)
+     levels.status IN (0,1,-10)
      AND teams.id=:guild_id
    GROUP BY levels.id) a) b on
    levels.id=b.id
@@ -220,11 +177,61 @@ const TS=function(guild_id,team_config,client){ //loaded after gs
     levels.likes=COALESCE(b.likes,0),
     levels.average_votes=COALESCE(b.vote,0),
     levels.num_votes=COALESCE(b.votetotal,0),
-    levels.lcd=COALESCE(b.lcd,0),
+    levels.maker_points=COALESCE(b.maker_points,0),
     levels.approves=COALESCE(b.approves,0),
     levels.rejects=COALESCE(b.rejects,0),
-    levels.want_fixes=COALESCE(b.want_fixes,0);
+    levels.want_fixes=COALESCE(b.want_fixes,0),
+    levels.clear_like_ratio=COALESCE(b.clear_like_ratio,0);
   `,{ guild_id:team_config.id });
+
+    await knex.raw(`
+    UPDATE members LEFT JOIN (
+      SELECT
+        plays.guild_id,
+        plays.player,
+        sum(points.score) total_score,
+        count(distinct plays.id) total_cleared from plays
+      INNER JOIN levels ON
+        levels.id=plays.code
+        AND levels.guild_id=plays.guild_id
+      INNER JOIN points ON
+        levels.difficulty=points.difficulty
+        AND points.guild_id=levels.guild_id
+      WHERE
+        levels.status=1
+        AND plays.completed=1
+        AND levels.guild_id=:guild_id
+      GROUP BY plays.player,plays.guild_id
+    ) clear_stats ON
+          members.guild_id=clear_stats.guild_id
+          AND members.id=clear_stats.player
+    LEFT JOIN (
+      SELECT
+        levels.guild_id,
+        COUNT(levels.id) calculated_levels_created,
+        SUM(levels.maker_points) maker_points,
+        SUM(levels.is_free_submission) free_submissions,
+        SUM(points.score) own_score,
+        levels.creator
+      FROM levels
+      INNER JOIN points ON points.difficulty=levels.difficulty AND points.guild_id=levels.guild_id
+      WHERE
+        levels.guild_id=:guild_id and
+        levels.status in (0,1)
+      GROUP BY creator,levels.guild_id
+    ) own_levels ON
+        members.guild_id=own_levels.guild_id
+        AND members.id=own_levels.creator
+    SET
+      members.clear_score_sum=COALESCE(total_score,0),
+      members.levels_cleared=COALESCE(total_cleared,0),
+      members.levels_created=COALESCE(calculated_levels_created,0),
+      members.own_score=COALESCE(own_levels.own_score,0),
+      members.free_submissions=COALESCE(own_levels.free_submissions,0),
+      members.maker_points=COALESCE(own_levels.maker_points,0)
+    WHERE members.guild_id=:guild_id;
+    `,{ guild_id:team_config.id });
+
   }
 
   //used to save variables to db?
@@ -360,10 +367,12 @@ const TS=function(guild_id,team_config,client){ //loaded after gs
   }
 
   this.is_smm1=function(code){
+    if(!code) return false;
     return /^[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}$/.test(code.toUpperCase());
   }
 
   this.is_smm2=function(code){
+    if(!code) return false;
     return /^[1234567890QWERTYUPASDFGHJKLXCVBNM]{3}-[1234567890QWERTYUPASDFGHJKLXCVBNM]{3}-[1234567890QWERTYUPASDFGHJKLXCVBNM]{3}$/.test(code.toUpperCase());
   }
 
@@ -731,15 +740,18 @@ const TS=function(guild_id,team_config,client){ //loaded after gs
       args.minDifficulty=temp
     }
 
+    let min=parseFloat(args.minDifficulty) || 1
+    let max=parseFloat(args.maxDifficulty) || min
+
     const player=args.discord_id!=null? await ts.get_user(args.discord_id) : null
     let players=null;
     if(args.players){
-      let playerNames=args.players.split(",")
-      let rawPlayers=await ts.db.Members.query().whereIn('name',playerNames)
+      let playerNames=args.players.split(",");
+      let rawPlayers=await ts.db.Members.query().whereIn('name',playerNames);
       players=[]
       rawPlayers.forEach( p => {
         players.push(p.id)
-        if(players.indexOf(p.name) === -1){
+        if(playerNames.indexOf(p.name) === -1){
           ts.userError(ts.message("random.playerNotFound",{player:p.name}));
         }
       })
@@ -747,11 +759,11 @@ const TS=function(guild_id,team_config,client){ //loaded after gs
       players=[player.id]
     }
 
-    console.log(players)
 
     //console.time("get levels")
-    var [ allLevels , fields ]=await knex.raw(`
-    SELECT *,members.name creator from levels
+    var [ filtered_levels , fields ]=await knex.raw(`
+    SELECT levels.*,members.name creator from 
+    levels
     inner join members on levels.creator=members.id
     left join plays on
     levels.id=plays.code
@@ -760,91 +772,23 @@ const TS=function(guild_id,team_config,client){ //loaded after gs
     where status=1 
     and creator not in (:players:)
     and levels.guild_id=:team_id
+    and ( levels.not_default is null or levels.not_default!=1 )
+    and levels.difficulty between :min and :max
     and plays.id is null
     group by levels.id
-    order by levels.id;`,{
+    order by likes;`,{
       team_id:ts.team.id,
+      min, max,
       players:players||-1
     })
-
-
-    var difficulties=[]
-    var played=[];
-    if(player){
-      var plays = await ts.db.Plays.query()
-        .whereIn('player', players)
-        .where('completed', 1);
-      //console.timeEnd("get plays")
-
-
-      //console.time("process plays")
-      plays.forEach((clear)=>{
-        const level=levels[clear.code]
-        if(level && level.status== ts.LEVEL_STATUS.APPROVED && level.creator!=player.name){
-          played.push(level.code)
-          difficulties.push(level.difficulty)
-        }
-        if(level && players.indexOf(level.creator)!==-1){
-          played.push(level.code)
-        }
-      })
-    }
-    //console.timeEnd("process plays")
-
-
-    //console.time("process difficulties")
-    if(args.minDifficulty){
-      var min=args.minDifficulty
-      var max=args.maxDifficulty
-    } else {
-      if(difficulties.length>0){
-        var middle=(difficulties.length-1)/2
-        difficulties.sort(function(a,b){
-          return parseFloat(a)-parseFloat(b)
-        })
-        var min=difficulties[Math.floor(middle)]
-        var max=difficulties[difficulties.length-1]
-      } else {
-        var min=0.5
-        var max=1
-      }
-    }
-    //console.timeEnd("process difficulties")
-
-    min=parseFloat(min)
-    max=parseFloat(max)
-
-    //console.time("getting the range of levels")
-
     //var filtered_levels=[]
-    if(allLevels){
-    var filtered_levels=allLevels.filter((level)=>{
-        var currDifficulty=parseFloat(level.difficulty)
-        level.tags=level.tags||""
-        return level.status==ts.LEVEL_STATUS.APPROVED
-          && currDifficulty>=min
-          && currDifficulty<=max
-          && played.indexOf(level.code)==-1
-          && level.tags.indexOf("Consistency") === -1
-          && level.tags.indexOf("Practice") === -1
-      })
-    } else {
-      throw ts.message("error.emptyLevelList")
-    }
-    //console.timeEnd("getting the range of levels")
 
-    //console.time("sorting levels")
-    filtered_levels.sort(function(a,b){
-      return parseFloat(a.likes)-parseFloat(b.likes)
-    })
-    //console.timeEnd("sorting levels")
     if(filtered_levels.length==0){
       ts.userError(ts.message("random.outOfLevels",{
         range:(min==max?min:min+"-"+max)
       }))
     }
-
-    //console.time("rolling dice")
+//console.time("rolling dice")
     var borderLine=Math.floor(filtered_levels.length*0.6)
     if(Math.random()<0.2){
       var randNum=getRandomInt(0,borderLine)

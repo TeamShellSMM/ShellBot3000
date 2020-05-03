@@ -4,6 +4,9 @@ exports.up = function(knex) {
   return knex.schema
   .alterTable('members', function(t) {
     t.integer('guild_id').notNull().alter()
+    t.decimal('maker_points',8,1).notNull().default(0)
+    t.decimal('own_score',6,1).notNull().default(0)
+    t.integer('free_submissions').notNull().default(0)
 
     t.foreign('guild_id').references('id').inTable('teams');
   })
@@ -16,8 +19,10 @@ exports.up = function(knex) {
     t.integer('clears').notNull().default(0)
     t.integer('num_votes').notNull().default(0)
     t.decimal('average_votes',4,1).notNull().default(0)
-    t.decimal('lcd',8,1).notNull().default(0)
+    t.decimal('maker_points',8,1).notNull().default(0)
     t.integer('row_num').nullable()
+    t.decimal('clear_like_ratio',4,1).notNull().default(0)
+    t.boolean('not_default').nullable()
 
     t.integer('rejects').notNull().default(0)
     t.integer('approves').notNull().default(0)
@@ -82,8 +87,10 @@ exports.down = function(knex) {
     t.dropColumn('clears')
     t.dropColumn('num_votes')
     t.dropColumn('average_votes')
-    t.dropColumn('lcd')
+    t.dropColumn('maker_points')
     t.dropColumn('row_num')
+    t.dropColumn('clear_like_ratio')
+    t.dropColumn('not_default')
 
 
     t.dropColumn('rejects')
@@ -92,6 +99,9 @@ exports.down = function(knex) {
   })
   .alterTable('members', function(t) {
     t.dropForeign('guild_id');
-    t.string('guild_id',30).alter()
+    t.dropColumn('free_submission');
+    t.dropColumn('own_score');
+    t.dropColumn('maker_points');
+    t.string('guild_id',30).alter();
   })
 };

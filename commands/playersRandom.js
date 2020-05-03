@@ -9,10 +9,10 @@ class playersRandom extends TSCommand {
                     id: 'players',
                     type: 'string',
                     default: ''
-                    },{
+                },{
                     id: 'minDifficulty',
                     type: 'string',
-                    default: ''
+                    default: '1',
                 },{
                     id: 'maxDifficulty',
                     type: 'string',

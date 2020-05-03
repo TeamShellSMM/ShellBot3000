@@ -51,59 +51,43 @@ module.exports = async function(config,client){
     `:``
 
     let [ levels, fields ]= await knex.raw(`
-      SELECT *
-      ,ROW_NUMBER() OVER ( ORDER BY id ) as no
-      ,round(((likes*2+clears)*score*likes/clears),1) lcd
-      ,concat(vote,',',votetotal) votestr
-      FROM
-      (SELECT levels.id
+      SELECT 
+        levels.row_num no
+        ,levels.id
         ,levels.code
-        ,levels.creator
+        ,members.name creator
         ,levels.level_name
         ,levels.status
         ,levels.difficulty
         ,levels.tags
         ,levels.videos
         ,levels.created_at
-        ,points.score
-        ,sum(NULLIF(plays.completed,'')) clears
-        ,sum(NULLIF(plays.liked,'')) likes
-        ,round(avg(NULLIF(plays.difficulty_vote,'')),1) vote
-        ,count(NULLIF(plays.difficulty_vote,'')) votetotal
+        ,levels.clears
+        ,levels.likes
+        ,concat(average_votes,',',num_votes) votestr
         ,members.maker_id
-        ,sum(CASE WHEN pending_votes.type='approve' THEN 1 ELSE 0 END) approves
-        ,sum(CASE WHEN pending_votes.type='reject' THEN 1 ELSE 0 END) rejects
-        ,sum(CASE WHEN pending_votes.type='fix' THEN 1 ELSE 0 END) want_fixes
+        ,levels.approves
+        ,levels.rejects
+        ,levels.want_fixes
         ${registeredColumns}
       FROM
         levels
       INNER JOIN teams on
         levels.guild_id=teams.id
-      LEFT JOIN plays ON
-        levels.guild_id=plays.guild_id
-        AND levels.id=plays.code
-        AND levels.creator!=plays.player
-      LEFT JOIN members ON
-        levels.guild_id=members.guild_id
-        AND levels.creator=members.id
-      LEFT JOIN points ON
-        levels.guild_id=points.guild_id
-        AND levels.difficulty=points.difficulty
-      LEfT JOIN pending_votes ON
-        levels.guild_id=pending_votes.guild_id
-        AND levels.id=pending_votes.code
-        AND levels.status=0
+      INNER JOIN members on
+        levels.creator=members.id
       ${registeredSql}
       WHERE 
         levels.status IN (:statuses:)
         AND teams.guild_id=:guild_id
         ${filterSql}
-      GROUP BY levels.id) a
+      GROUP BY levels.id
+      order by levels.id
     `, { 
       guild_id:ts.guild_id,
       code,
       name,
-      player_id: user ? user.id : null,
+      player_id: user ? user.id : -1,
       statuses: [
       ts.LEVEL_STATUS.PENDING,
       ts.LEVEL_STATUS.APPROVED,
@@ -128,7 +112,6 @@ module.exports = async function(config,client){
     }
 
     let json={
-      //"lastUpdated":ts.gs.lastUpdated,
       levels,
       seasons,
       competition_winners,
@@ -183,19 +166,19 @@ module.exports = async function(config,client){
     }
 
     if(dashboard){
-      json.dashboard={
-        members:await knex.raw(`
+        const [ memberStats , fields ]=await knex.raw(`
         SELECT sum(members.is_member) official
           ,count(members.id)-sum(members.is_member) unoffocial
           ,sum(members.is_mod) mods
         FROM members
         where guild_id=:guild_id
-      `, { guild_id:ts.guild_id }),
+      `, { guild_id:ts.guild_id });
+      json.dashboard={
+        members:memerStats,
       }
-      json.dashboard.members=json.dashboard.members[0]
     }
 
-    if(code && levels[0]){
+    if(code && levels){
       json.plays=await ts.db.Plays.query().where({ code })
       if(user && user.is_mod && json.level.status==ts.LEVEL_STATUS.PENDING){
         json.pending_comments=await ts.db.PendingVotes.query().where({ code })
@@ -429,7 +412,7 @@ module.exports = async function(config,client){
 
     let current_season = seasons[data.season - 1];
     let from_season = current_season[0];
-    let to_season = 9999999999;
+    let to_season = 2147483647;
     if(seasons.length > data.season){
       let next_season = seasons[data.season];
       to_season = parseInt(next_season[0]);
@@ -451,44 +434,35 @@ module.exports = async function(config,client){
       membersSQL=`AND members.is_member!=1`
     }
 
-    let json = [];
-
-    console.log({ from_season, to_season })
-
-    json=await knex.raw(`SELECT name
-	  ,code
-      ,COUNT(distinct code) as levels_created
-      ,SUM(clears) as clears
-      ,SUM(likes) as likes
+    let [json,fields]=await knex.raw(`SELECT 
+    row_number() over ( order by sum(maker_points)) id
+      ,name
+	    ,code
+      ,levels_created
+      ,sum(clears) clears
+      ,sum(likes) likes
       ,AVG(clear_like_ratio) as clear_like_ratio
       ,SUM(maker_points) as maker_points
     FROM (
            SELECT members.name
+          ,members.levels_created
           ,levels.code
-          ,points.score
-          ,SUM(plays.completed) AS clears
-          ,SUM(plays.liked) AS likes
-          ,SUM(plays.liked) / SUM(plays.completed) AS clear_like_ratio
-          ,(SUM(plays.liked) * 2 + SUM(plays.completed)) * points.score * (SUM(plays.liked) / SUM(plays.completed)) AS maker_points
+          ,levels.clears
+          ,levels.likes
+          ,levels.clear_like_ratio
+          ,levels.maker_points
       FROM members
       INNER JOIN teams ON 
         members.guild_id=teams.id
       LEFT JOIN levels ON 
           levels.creator = members.id
-          AND levels.guild_id = members.guild_id
-      LEFT JOIN plays ON
-          levels.id = plays.code
-          AND levels.guild_id = plays.guild_id
-      LEFT JOIN points ON
-          levels.difficulty = points.difficulty
-          AND levels.guild_id = points.guild_id
       WHERE levels.status IN (0,1)
           AND levels.created_at between FROM_UNIXTIME(:from_season) AND FROM_UNIXTIME(:to_season)
           AND teams.guild_id = :guild_id
-      group by levels.code ) a
-      group by name;`,{ from_season, to_season, guild_id: ts.guild_id });
+      group by levels.code) a
+      group by name
+      order by maker_points desc`,{ from_season, to_season, guild_id: ts.guild_id });
 
-    json=json?json[0]:[]
 
     for(let mem of json){
       let comps = [];
@@ -502,21 +476,6 @@ module.exports = async function(config,client){
       }
 
       mem['wonComps'] = comps;
-    }
-
-    let memberCounter = 1;
-    json.sort(function(a,b){
-      if(a.maker_points > b.maker_points){
-        return -1;
-      }
-      if(a.maker_points < b.maker_points){
-        return 1;
-      }
-      return 0;
-    });
-
-    for(let obj of json){
-      obj.id = memberCounter++;
     }
 
     return {data: json, seasons: seasons};

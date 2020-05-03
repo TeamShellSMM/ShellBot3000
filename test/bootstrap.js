@@ -5,7 +5,7 @@ const WebApi=require('../WebApi');
 
 global.assert = chai.assert;
 global.request = require('supertest');
-global.config = require('../config.json');
+global.config = require('../config.json')['testing']; //force testing config
 global.config.defaultCooldown=0;
 global.TS=require('../TS.js')
 let DiscordLog=require('../DiscordLog');

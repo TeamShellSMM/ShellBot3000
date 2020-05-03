@@ -1,12 +1,11 @@
 'use strict'
-const config = require('./config.json');
+const config = require('./config.json')[process.env.NODE_ENV || 'development']
 const argv = require('yargs').argv
 const { AkairoClient } = require('discord-akairo');
 const TS=require('./TS.js')
 const DiscordLog = require('./DiscordLog');
 const WebApi=require('./WebApi');
 if(argv.test) config.defaultCooldown=0;
-
 
 const client = new AkairoClient(config, {
     disableEveryone: true
@@ -40,6 +39,9 @@ client.on("ready", async () => {
         }
       }
     }
+  }
+  if(config.initTestChannel && config.initCommand){
+    await client.channels.get(config.initTestChannel).send(config.initCommand);
   }
 });
 
