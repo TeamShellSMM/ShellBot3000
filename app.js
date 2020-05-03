@@ -27,17 +27,17 @@ client.on("ready", async () => {
 
   for(let team of teams){
       let guild=await client.guilds.find((guild)=> guild.id==team.guild_id)
-      if(
-        !argv.test
-        || argv.test
-        && (
-          !  config.AutomatedTest
-          || config.AutomatedTest == guild.id
-      )){
-      if(team==null){
-
-      } else {
-        await TS.add(guild.id,team,client)
+      if(guild){
+        if(
+          !argv.test
+          || argv.test
+          && (
+            !  config.AutomatedTest
+            || config.AutomatedTest == guild.id
+        )){
+        if(team!=null){
+          if(team.id) await TS.add(guild.id,team,client)
+        }
       }
     }
   }

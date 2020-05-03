@@ -31,7 +31,7 @@ module.exports = async function(config,client){
     if(code){
       filterSql= 'AND levels.code=:code';
     } else if(name){
-      filterSql= 'AND levels.creator=:name';
+      filterSql= 'AND members.name=:name';
     }
 
     let registeredColumns=(!dashboard && user)?`
@@ -46,11 +46,11 @@ module.exports = async function(config,client){
     let registeredSql=(!dashboard && user)?`
       LEFT JOIN plays registered_plays ON
         levels.guild_id=registered_plays.guild_id
-        AND levels.code=registered_plays.code
-        AND registered_plays.player=:player
+        AND levels.id=registered_plays.code
+        AND registered_plays.player=:player_id
     `:``
 
-    let levels= await ts.knex.raw(`
+    let [ levels, fields ]= await knex.raw(`
       SELECT *
       ,ROW_NUMBER() OVER ( ORDER BY id ) as no
       ,round(((likes*2+clears)*score*likes/clears),1) lcd
@@ -81,17 +81,17 @@ module.exports = async function(config,client){
         levels.guild_id=teams.id
       LEFT JOIN plays ON
         levels.guild_id=plays.guild_id
-        AND levels.code=plays.code
+        AND levels.id=plays.code
         AND levels.creator!=plays.player
       LEFT JOIN members ON
         levels.guild_id=members.guild_id
-        AND levels.creator=members.name
+        AND levels.creator=members.id
       LEFT JOIN points ON
         levels.guild_id=points.guild_id
         AND levels.difficulty=points.difficulty
       LEfT JOIN pending_votes ON
         levels.guild_id=pending_votes.guild_id
-        AND levels.code=pending_votes.code
+        AND levels.id=pending_votes.code
         AND levels.status=0
       ${registeredSql}
       WHERE 
@@ -103,13 +103,12 @@ module.exports = async function(config,client){
       guild_id:ts.guild_id,
       code,
       name,
-      player: user ? user.name : null,
+      player_id: user ? user.id : null,
       statuses: [
       ts.LEVEL_STATUS.PENDING,
       ts.LEVEL_STATUS.APPROVED,
       ts.LEVEL_STATUS.NEED_FIX,
     ] })
-    levels=levels[0] //mysql
     
     let tags={}
     let seperate=[]
@@ -138,7 +137,7 @@ module.exports = async function(config,client){
     };
 
     if(name){
-      json.maker=await ts.knex.raw(`
+      json.maker=await knex.raw(`
       SELECT members.*
         ,sum(round(((likes*2+clears)*score*likes/clears),1)) maker_points
         FROM members 
@@ -185,7 +184,7 @@ module.exports = async function(config,client){
 
     if(dashboard){
       json.dashboard={
-        members:await ts.knex.raw(`
+        members:await knex.raw(`
         SELECT sum(members.is_member) official
           ,count(members.id)-sum(members.is_member) unoffocial
           ,sum(members.is_mod) mods
@@ -475,10 +474,10 @@ module.exports = async function(config,client){
       INNER JOIN teams ON 
         members.guild_id=teams.id
       LEFT JOIN levels ON 
-          levels.creator = members.name
+          levels.creator = members.id
           AND levels.guild_id = members.guild_id
       LEFT JOIN plays ON
-          levels.code = plays.code
+          levels.id = plays.code
           AND levels.guild_id = plays.guild_id
       LEFT JOIN points ON
           levels.difficulty = points.difficulty
@@ -489,13 +488,8 @@ module.exports = async function(config,client){
       group by levels.code ) a
       group by name;`,{ from_season, to_season, guild_id: ts.guild_id });
 
-  
-    if(json) json=json[0]
-/*
-sqlite
-AND levels.created_at >= datetime(:from_season:, 'unixepoch')
-AND levels.created_at < datetime(:to_season:, 'unixepoch')
-*/
+    json=json?json[0]:[]
+
     for(let mem of json){
       let comps = [];
       for(let comp of competition_winners){

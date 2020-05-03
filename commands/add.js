@@ -33,7 +33,7 @@ class tsadd extends TSCommand {
       await ts.db.Levels.query().insert({
         code,
         level_name,
-        creator:player.name,
+        creator:player.id,
         difficulty:0,
         tags: ts.teamVariables.allowSMM1 && ts.is_smm1(code) ? 'SMM1' : '',
         status:0,

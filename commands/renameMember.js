@@ -48,17 +48,6 @@ class RenameMember extends TSCommand {
           .patch({name:new_name})
           .where({discord_id})
 
-        await ts.db.Levels.query()
-          .patch({creator:new_name})
-          .where({creator:old_name})
-
-        await ts.db.Plays.query()
-          .patch({player:new_name})
-          .where({player:old_name})
-
-        await ts.db.PendingVotes.query()
-          .patch({player:new_name})
-          .where({player:old_name})
 
         let updates=[]
         let winners=ts.gs.query("Competition Winners", {

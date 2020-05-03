@@ -4,6 +4,7 @@ const argv = require('yargs').argv
 const Handlebars = require("handlebars");
 const crypto=require('crypto')
 const moment=require('moment')
+const knex = require('./db/knex');
 const server_config = require('./config.json');
 const DEFAULTMESSAGES=require("./DefaultStrings.js");
 const DiscordLog = require('./DiscordLog');
@@ -28,7 +29,6 @@ const TS=function(guild_id,team_config,client){ //loaded after gs
     REUPLOADED:2,
     REMOVED:-2,
   };
-  console.log(team_config)
   this.db={
     Teams:require('./models/Teams.js')(guild_id),
     Tokens:require('./models/Tokens'),
@@ -40,7 +40,6 @@ const TS=function(guild_id,team_config,client){ //loaded after gs
   };
 
   this.load=async function(){
-    this.knex = this.db.Levels.knex();
     ts.gs.clearCache();
     let guild=await ts.getGuild()
     await guild.fetchMembers(); //just load up all members
@@ -111,6 +110,8 @@ const TS=function(guild_id,team_config,client){ //loaded after gs
         this.mods=[guild.owner.user.id]
       }
 
+      
+      await ts.saveSheetToDb();
       await ts.recalculateAfterUpdate();
 
       
@@ -122,111 +123,108 @@ const TS=function(guild_id,team_config,client){ //loaded after gs
       }
   }
 
-  this.getMakerPoints = function(likes, clears, difficultyPoints){
-    if(clears == 0) return 0;
-    return ((likes * 2 + clears)*difficultyPoints) * (likes/clears);
-}
-
   this.getPoints=function(difficulty){
     return this.pointMap[parseFloat(difficulty)]
   }
 
+  
   //to be called whenever there are any updates to level difficulty and clears
-  this.recalculateAfterUpdate=async function(args){
-    //const wheres=
-    let code,name;
-    if(args){
-      code=args.code;
-      name=args.name;
-    }
-
-    let filter1='';
-    let filter2='';
-    let filter3='';
-    if(name){
-      filter1='and plays.player=:name';
-      filter2='and levels.creator=:name';
-      filter3='and members.name=:name';
-    } else if(code) {
-      let subsql='select player from plays where guild_id=:guild_id and code=:code and completed=1'
-      filter1=`and plays.player in (${subsql})`;
-      filter2=`and levels.creator in (${subsql})`;
-      filter3=`and members.name in (${subsql})`;
-    }
-
-
-
-    let calculated_values=await this.db.Members.knex().raw(`
+  this.recalculateAfterUpdate=async function(){
+    await knex.raw(`
+    UPDATE members LEFT JOIN (
       SELECT
-        members.id,
-        members.guild_id,
-        members.name,
-        total_score,
-        total_cleared,
-        calculated_levels_created,
-        own_score,
-        free_submissions
-      FROM members LEFT JOIN (
-        SELECT
-          plays.guild_id,
-          plays.player,
-          sum(points.score) total_score,
-          count(plays.id) total_cleared from plays
-        INNER JOIN levels ON
-          levels.code=plays.code
-          AND levels.guild_id=plays.guild_id
-        INNER JOIN points ON
-          levels.difficulty=points.difficulty
-          AND points.guild_id=levels.guild_id
-        WHERE
-          levels.status=1
-          AND plays.completed=1
-          AND levels.guild_id=:guild_id
-          ${filter1}
-        GROUP BY plays.player,plays.guild_id
-      ) clear_stats ON
-            members.guild_id=clear_stats.guild_id
-            AND members.name=clear_stats.player
-      LEFT JOIN (
-        SELECT
-          levels.guild_id,
-          COUNT(levels.id) calculated_levels_created,
-          SUM(levels.is_free_submission) free_submissions,
-          SUM(points.score) own_score,
-          levels.creator
-        FROM levels
-        INNER JOIN points ON points.difficulty=levels.difficulty AND points.guild_id=levels.guild_id
-        WHERE
-          levels.guild_id=:guild_id and
-          levels.status in (:statuses:)
-          ${filter2}
-        GROUP BY creator,levels.guild_id
-      ) own_levels ON
-          members.guild_id=own_levels.guild_id
-          AND members.name=own_levels.creator
-      WHERE members.guild_id=:guild_id ${filter3}`,{
-        guild_id,
-        name,
-        code,
-        statuses:[ts.LEVEL_STATUS.PENDING,ts.LEVEL_STATUS.APPROVED],
-      });
+        plays.guild_id,
+        plays.player,
+        sum(points.score) total_score,
+        count(plays.id) total_cleared from plays
+      INNER JOIN levels ON
+        levels.id=plays.code
+        AND levels.guild_id=plays.guild_id
+      INNER JOIN points ON
+        levels.difficulty=points.difficulty
+        AND points.guild_id=levels.guild_id
+      WHERE
+        levels.status=1
+        AND plays.completed=1
+        AND levels.guild_id=:guild_id
+      GROUP BY plays.player,plays.guild_id
+    ) clear_stats ON
+          members.guild_id=clear_stats.guild_id
+          AND members.id=clear_stats.player
+    LEFT JOIN (
+      SELECT
+        levels.guild_id,
+        COUNT(levels.id) calculated_levels_created,
+        SUM(levels.is_free_submission) free_submissions,
+        SUM(points.score) own_score,
+        levels.creator
+      FROM levels
+      INNER JOIN points ON points.difficulty=levels.difficulty AND points.guild_id=levels.guild_id
+      WHERE
+        levels.guild_id=:guild_id and
+        levels.status in (0,1)
+      GROUP BY creator,levels.guild_id
+    ) own_levels ON
+        members.guild_id=own_levels.guild_id
+        AND members.id=own_levels.creator
+    SET
+      members.clear_score_sum=COALESCE(total_score,0),
+      members.levels_cleared=COALESCE(total_cleared,0),
+      members.levels_created=COALESCE(calculated_levels_created,0)
+    WHERE members.guild_id=:guild_id;
+    `,{ guild_id:team_config.id });
 
-    calculated_values=calculated_values[0] //mysql
-
-    await ts.db.Members.transaction(async (trx)=>{
-      for(let j=0;j<calculated_values.length;j++){
-        if(ts.teamVariables.includeOwnPoints){
-          calculated_values[j].total_score+=calculated_values[j].own_score;
-        }
-        await ts.db.Members.query(trx)
-        .patch({
-          clear_score_sum:calculated_values[j].total_score||0,
-          levels_cleared:calculated_values[j].total_cleared||0,
-          levels_created:calculated_values[j].calculated_levels_created||0,
-        })
-        .findById(calculated_values[j].id)
-      }
-    })
+    await knex.raw(`UPDATE levels 
+    inner join (SELECT *
+   ,round(((likes*2+clears)*score*likes/clears),1) lcd
+   ,concat(vote,',',votetotal) votestr
+   FROM
+   (SELECT 
+   ROW_NUMBER() OVER ( ORDER BY id ) as no
+     ,levels.id
+     ,points.score
+     ,sum(plays.completed) clears
+     ,sum(plays.liked) likes
+     ,round(avg(plays.difficulty_vote),1) vote
+     ,count(plays.difficulty_vote) votetotal
+     ,pending.approves
+     ,pending.rejects
+     ,pending.want_fixes
+   FROM
+     levels
+    INNER JOIN teams on
+      levels.guild_id=teams.id
+    LEFT JOIN plays ON
+      levels.guild_id=plays.guild_id
+      AND levels.id=plays.code
+      AND levels.creator!=plays.player
+   LEFT JOIN members ON
+      levels.guild_id=members.guild_id
+      AND levels.creator=members.id
+    LEFT JOIN points ON
+      levels.guild_id=points.guild_id
+      AND levels.difficulty=points.difficulty
+    LEFT JOIN (
+      select code,sum(CASE WHEN pending_votes.type='approve' THEN 1 ELSE 0 END) approves
+    ,sum(CASE WHEN pending_votes.type='reject' THEN 1 ELSE 0 END) rejects
+    ,sum(CASE WHEN pending_votes.type='fix' THEN 1 ELSE 0 END) want_fixes from pending_votes group by pending_votes.code) pending on
+    levels.id=pending.code
+   WHERE 
+     levels.status IN (0,1)
+     AND teams.id=:guild_id
+   GROUP BY levels.id) a) b on
+   levels.id=b.id
+   set 
+    levels.row_num=b.no,
+    levels.clears=COALESCE(b.clears,0),
+    levels.likes=COALESCE(b.likes,0),
+    levels.average_votes=COALESCE(b.vote,0),
+    levels.num_votes=COALESCE(b.votetotal,0),
+    levels.lcd=COALESCE(b.lcd,0),
+    levels.approves=COALESCE(b.approves,0),
+    levels.rejects=COALESCE(b.rejects,0),
+    levels.want_fixes=COALESCE(b.want_fixes,0);
+  `,{ guild_id:team_config.id });
   }
 
   //used to save variables to db?
@@ -263,8 +261,6 @@ const TS=function(guild_id,team_config,client){ //loaded after gs
 
   this.is_mod=function(player){
     return player && ts.mods.indexOf(player.discord_id)!==-1;
-
-
   }
 
   this.getDiscordMember=function(discord_id){
@@ -458,24 +454,25 @@ const TS=function(guild_id,team_config,client){ //loaded after gs
 
       args.code=args.code.toUpperCase();
 
-      console.log(args)
       if(args.liked!==null){
         if(['like','1',1,true].indexOf(args.liked)!==-1) args.liked=true;
         if(['unlike','0',0,false].indexOf(args.liked)!==-1) args.liked=false;
       }
-      console.log(args)
 
 
-      console.log(args)
       if(args.completed!==null){  
         if(['1',1,true].indexOf(args.completed)!==-1) args.completed=true;
         if(['0',0,false].indexOf(args.completed)!==-1) args.completed=false;
       }
+
       console.log(args)
       
       args.difficulty=argToStr(args.difficulty)
       
 
+      if(args.difficulty===''){
+        args.difficulty=null;
+      }
 
       if(args.difficulty=="like"){
         args.difficulty=null
@@ -495,22 +492,22 @@ const TS=function(guild_id,team_config,client){ //loaded after gs
 
       const player=await ts.get_user(args.discord_id);
       var level=await ts.getExistingLevel(args.code);
-      if(level.creator==player.name)
+      if(level.creator==player.id)
         ts.userError(ts.message("clear.ownLevel"));
 
       var existing_play = await ts.db.Plays.query()
-        .where('code','=',args.code)
-        .where('player','=',player.name)
+        .where('code','=',level.id)
+        .where('player','=',player.id)
         .first();
+      
+      console.log(existing_play)
 
-      var creator=await ts.db.Members.query().where({ name:level.creator }).first(); //oddface/taika is only non registered member with a level
+      var creator=await ts.db.Members.query().where({ id:level.creator }).first(); //oddface/taika is only non registered member with a level
       if(creator && creator.atme && creator.discord_id && !strOnly){
-      var creator_str="<@"+creator.discord_id+">"
+        var creator_str="<@"+creator.discord_id+">"
       } else {
-      var creator_str=level.creator
+        var creator_str=creator.name
       }
-
-      console.log(args)
 
       var msg=[],updated={}
       if(existing_play){
@@ -539,8 +536,8 @@ const TS=function(guild_id,team_config,client){ //loaded after gs
         await ts.db.Plays.query().findById(existing_play.id).patch(updated_row);
       } else {
         await ts.db.Plays.query().insert({
-          code:args.code,
-          player:player.name,
+          code:level.id,
+          player:player.id,
           completed: args.completed||0,
           liked:args.liked||0,
           difficulty_vote:args.difficulty==='0' ? null:args.difficulty
@@ -713,7 +710,7 @@ const TS=function(guild_id,team_config,client){ //loaded after gs
     return Math.floor(Math.random() * (max - min)) + min; //The maximum is exclusive and the minimum is inclusive
   }
 
-
+//TODO. Fix random
   this.randomLevel=async function(args){
     if(args.minDifficulty && !ts.valid_difficulty(args.minDifficulty)){
       ts.userError(args.maxDifficulty? ts.message("random.noMinDifficulty") : ts.message("random.noDifficulty"))
@@ -737,34 +734,42 @@ const TS=function(guild_id,team_config,client){ //loaded after gs
     const player=args.discord_id!=null? await ts.get_user(args.discord_id) : null
     let players=null;
     if(args.players){
-      players=args.players.split(",")
-      let rawPlayers=await ts.db.Members.query().whereIn('name',players)
+      let playerNames=args.players.split(",")
+      let rawPlayers=await ts.db.Members.query().whereIn('name',playerNames)
+      players=[]
       rawPlayers.forEach( p => {
+        players.push(p.id)
         if(players.indexOf(p.name) === -1){
           ts.userError(ts.message("random.playerNotFound",{player:p.name}));
         }
       })
     } else {
-      players=[player.name]
+      players=[player.id]
     }
+
+    console.log(players)
 
     //console.time("get levels")
-    var allLevels=await ts.get_levels()
-    let levels={}
-    if(player){
-      allLevels=allLevels.filter((l)=>{
-        return players.indexOf(l.creator)===-1
-      })
-    }
-    allLevels.forEach(o=>{
-      levels[o.code]=o
+    var [ allLevels , fields ]=await knex.raw(`
+    SELECT *,members.name creator from levels
+    inner join members on levels.creator=members.id
+    left join plays on
+    levels.id=plays.code
+    and plays.player in (:players:)
+    and completed=1
+    where status=1 
+    and creator not in (:players:)
+    and levels.guild_id=:team_id
+    and plays.id is null
+    group by levels.id
+    order by levels.id;`,{
+      team_id:ts.team.id,
+      players:players||-1
     })
-    //const levels=await ts.get_levels(true) //get levels with aggregates and stats
+
+
     var difficulties=[]
     var played=[];
-
-
-    //console.time("get plays")
     if(player){
       var plays = await ts.db.Plays.query()
         .whereIn('player', players)
@@ -998,8 +1003,8 @@ const TS=function(guild_id,team_config,client){ //loaded after gs
       var updating = false;
       if(!vote){
         await ts.db.PendingVotes.query().insert({
-          code: level.code,
-          player: shellder.name,
+          code: level.id,
+          player: shellder.id,
           type: args.type,
           difficulty_vote: (args.type=== "approve" || args.type == "fix") ? args.difficulty : null,
           reason: args.reason
@@ -1336,7 +1341,7 @@ const TS=function(guild_id,team_config,client){ //loaded after gs
           "made by "+
           (noLink?level.creator:"[" + level.creator + "](" + server_config.page_url + ts.url_slug + "/maker/" + encodeURIComponent(level.creator) + ")")+"\n"+
           (ts.is_smm1(level.code)? `Links: [Bookmark Page](https://supermariomakerbookmark.nintendo.net/courses/${level.code})\n` : '')+
-          (level.clears!=undefined ? "Difficulty: "+level.difficulty+", Clears: "+level.clears+", Likes: "+level.likes+"\n":"")+
+          ("Difficulty: "+level.difficulty+", Clears: "+level.clears+", Likes: "+level.likes+"\n")+
             (tagStr?"Tags: "+tagStr+"\n":"")+
             (vidStr?"Clear Video: "+vidStr:"")
         )
@@ -1510,23 +1515,6 @@ const TS=function(guild_id,team_config,client){ //loaded after gs
     }
 
     return user_reply+reply;
-  }
-
-  this.get_levels=async function(isMap){ //get the aggregates
-    const levels=await ts.db.Levels.knex().raw(`
-    SELECT levels.*,levels.level_name,
-    sum(nullif(plays.completed,0)) as clears,
-    count(nullif(plays.difficulty_vote,0)) as votetotal,
-    avg(nullif(plays.difficulty_vote,0)) as vote,
-    sum(plays.liked) as likes
-    FROM levels
-      LEFT JOIN plays ON
-      levels.code=plays.code and
-      levels.guild_id=plays.guild_id
-      where levels.guild_id=:guild_id
-    group by levels.id
-    `,{guild_id});
-    return levels
   }
 
   this.get_rank=function(points){

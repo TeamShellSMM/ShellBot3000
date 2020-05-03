@@ -1,4 +1,5 @@
 const { Command } = require('discord-akairo');
+const knex = require('../db/knex');
 const TS = require('../TS');
 class TestBot extends Command {
   constructor() {
@@ -57,12 +58,15 @@ class TestBot extends Command {
       message.author.id=bot_id
 
 
-
-      const testTables=["Members","Levels","Plays","PendingVotes",]
       async function clearDb(){
-        for(let i=0;i<testTables.length;i++){
-          await ts.db[testTables[i]].query().select().del()
-        }
+        await knex.raw(`
+          SET FOREIGN_KEY_CHECKS = 0; 
+          TRUNCATE table plays;
+          TRUNCATE table pending_votes;
+          TRUNCATE table levels;
+          TRUNCATE table members;
+          SET FOREIGN_KEY_CHECKS = 1;
+        `)
       }
 
 
@@ -91,7 +95,7 @@ class TestBot extends Command {
             }],
             Levels:[{
               level_name:'EZ GG',
-              creator:'Creator',
+              creator:2,
               code:'XXX-XXX-XXX',
               status:1,
               difficulty:1,
@@ -113,7 +117,7 @@ class TestBot extends Command {
             }],
             Levels:[{
               level_name:'EZ GG',
-              creator:'Creator',
+              creator:2,
               code:'XXX-XXX-XXX',
               status:1,
               difficulty:1,
@@ -135,7 +139,7 @@ class TestBot extends Command {
             }],
             Levels:[{
               level_name:'EZ GG',
-              creator:'Creator',
+              creator:2,
               code:'XXX-XXX-XXX',
               status:1,
               difficulty:1,
@@ -157,7 +161,7 @@ class TestBot extends Command {
             }],
             Levels:[{
               level_name:'EZ GG',
-              creator:'Creator',
+              creator:2,
               code:'XXX-XXX-XXX',
               status:1,
               difficulty:1,
@@ -178,7 +182,7 @@ class TestBot extends Command {
             }],
             Levels:[{
               level_name:'Dont remove me bro',
-              creator:'Creator',
+              creator:2,
               code:'XXX-XXX-XXX',
               status:1,
               difficulty:1,
@@ -203,7 +207,7 @@ class TestBot extends Command {
             }],
             Levels:[{
               level_name:'Dont remove me bro',
-              creator:'Creator',
+              creator:1,
               code:'XXX-XXX-XXX',
               status:1,
               difficulty:1,
@@ -231,7 +235,7 @@ class TestBot extends Command {
             }],
             Levels:[{
               level_name:'Dont remove me bro',
-              creator:'Creator',
+              creator:1,
               code:'XXX-XXX-XXX',
               status:1,
               difficulty:1,
@@ -259,7 +263,7 @@ class TestBot extends Command {
             }],
             Levels:[{
               level_name:'Dont remove me bro',
-              creator:'Creator',
+              creator:1,
               code:'XXX-XXX-XXX',
               status:1,
               difficulty:1,
@@ -278,7 +282,7 @@ class TestBot extends Command {
             }],
             Levels:[{
               level_name:'Dont remove me bro',
-              creator:'Creator',
+              creator:1,
               code:'XXX-XXX-XXX',
               status:1,
               difficulty:1,
