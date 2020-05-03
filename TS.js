@@ -459,22 +459,24 @@ const TS=function(guild_id,team_config,client){ //loaded after gs
   //TODO: fix boolean
   this.clear=async function(args,strOnly){
 
+
+    if(args.liked==='') args.liked=null;
+    if(args.completed==='') args.completed=null;
+
      if(args.completed==null && args.liked==null && args.difficulty==null) ts.userError('clear.noArgs')
 
       args.code=args.code.toUpperCase();
 
       if(args.liked!==null){
-        if(['like','1',1,true].indexOf(args.liked)!==-1) args.liked=true;
-        if(['unlike','0',0,false].indexOf(args.liked)!==-1) args.liked=false;
+        if(['like','1',1,true].indexOf(args.liked)!==-1) args.liked=1;
+        if(['unlike','0',0,false].indexOf(args.liked)!==-1) args.liked=0;
       }
 
 
       if(args.completed!==null){  
-        if(['1',1,true].indexOf(args.completed)!==-1) args.completed=true;
-        if(['0',0,false].indexOf(args.completed)!==-1) args.completed=false;
+        if(['1',1,true].indexOf(args.completed)!==-1) args.completed=1;
+        if(['0',0,false].indexOf(args.completed)!==-1) args.completed=0;
       }
-
-      console.log(args)
       
       args.difficulty=argToStr(args.difficulty)
       
@@ -485,12 +487,12 @@ const TS=function(guild_id,team_config,client){ //loaded after gs
 
       if(args.difficulty=="like"){
         args.difficulty=null
-        args.liked=true
+        args.liked=1
       }
 
       if(args.difficulty=="unlike"){
         args.difficulty=null
-        args.liked=false
+        args.liked=0
       }
 
       if(args.difficulty!='0' && args.difficulty && !ts.valid_difficulty(args.difficulty)){
@@ -508,8 +510,6 @@ const TS=function(guild_id,team_config,client){ //loaded after gs
         .where('code','=',level.id)
         .where('player','=',player.id)
         .first();
-      
-      console.log(existing_play)
 
       var creator=await ts.db.Members.query().where({ id:level.creator }).first(); //oddface/taika is only non registered member with a level
       if(creator && creator.atme && creator.discord_id && !strOnly){
@@ -522,26 +522,27 @@ const TS=function(guild_id,team_config,client){ //loaded after gs
       if(existing_play){
         var updated_row={}
         if(
-            [true,false].includes(args.completed) &&
+            [1,0].includes(args.completed) &&
             existing_play.completed!==args.completed
           ){ //update completed
-          updated_row.completed=args.completed;
+          updated_row.completed=args.completed?1:0;
           updated.completed=true
         }
         if(
-          [true,false].includes(args.liked) &&
-          (""+existing_play.liked)!==args.liked
+          [1,0].includes(args.liked) &&
+          existing_play.liked!==args.liked
         ){ //like updated
           updated_row.liked=args.liked;
           updated.liked=true
         }
         if(
           (args.difficulty || args.difficulty==='0' ) &&
-          ( (""+existing_play.difficulty_vote)!==args.difficulty )
+          existing_play.difficulty_vote!=args.difficulty 
         ){ //difficulty update
           updated_row.difficulty_vote=args.difficulty==='0'?null:args.difficulty; //0 difficulty will remove your vote
           updated.difficulty=true
         }
+        console.log(updated_row)
         await ts.db.Plays.query().findById(existing_play.id).patch(updated_row);
       } else {
         await ts.db.Plays.query().insert({
@@ -557,10 +558,12 @@ const TS=function(guild_id,team_config,client){ //loaded after gs
       }
 
 
+        console.log(args)
+        console.log(updated)
 
         if(updated.completed){
-          if(args.completed===false) msg.push(ts.message("clear.removedClear",{level}));
-          if(args.completed===true){
+          if(args.completed===0) msg.push(ts.message("clear.removedClear",{level}));
+          if(args.completed===1){
             msg.push(ts.message("clear.addClear",{level}))
             if(level.status===ts.LEVEL_STATUS.APPROVED){
               msg.push(ts.message("clear.earnedPoints",{
@@ -572,8 +575,8 @@ const TS=function(guild_id,team_config,client){ //loaded after gs
           }
           await ts.recalculateAfterUpdate({name:player.name})
         } else {
-          if(args.completed===false) ts.message("clear.alreadyUncleared");
-          if(args.completed===true)  ts.message("clear.alreadyCleared");
+          if(args.completed===0) msg.push(ts.message("clear.alreadyUncleared"));
+          if(args.completed===1) msg.push(ts.message("clear.alreadyCleared"));
         }
 
 
@@ -596,11 +599,12 @@ const TS=function(guild_id,team_config,client){ //loaded after gs
         }
 
         if(updated.liked){
-          if(args.liked===false) msg.push(ts.message("clear.removeLike",{ level }))
-          if(args.liked===true) msg.push(ts.message("clear.addLike",{ level }))
+          if(args.liked===0) msg.push(ts.message("clear.removeLike",{ level }))
+          if(args.liked===1) msg.push(ts.message("clear.addLike",{ level }))
         } else {
-          if(args.liked===false) msg.push(ts.message("clear.alreadyLiked",{ level }))
-          if(args.liked===true) msg.push(ts.message("clear.alreadyLiked",{ level }))
+          console.log({liked:args.liked})
+          if(args.liked===0) msg.push(ts.message("clear.alreadyUnliked",{ level }))
+          if(args.liked===1) msg.push(ts.message("clear.alreadyLiked",{ level }))
         }
 
 
