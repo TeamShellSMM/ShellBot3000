@@ -23,9 +23,9 @@ class PendingStatus extends TSCommand {
         }
 
         let levelStrPromises=levels.map(async (level)=>{
-            let approvalVotes = await ts.getPendingVotes().where({code:level.id}).where("type","approve");
-            let rejectVotes = await ts.getPendingVotes().where({code:level.id}).where("type","reject");
-            let fixVotes = await ts.getPendingVotes().where({code:level.id}).where("type","fix");
+            let approvalVotes = await ts.getPendingVotes().where('levels.id',level.id).where("type","approve");
+            let rejectVotes = await ts.getPendingVotes().where('levels.id',level.id).where("type","reject");
+            let fixVotes = await ts.getPendingVotes().where('levels.id',level.id).where("type","fix");
             let statusStr=[]
             if(approvalVotes && approvalVotes.length>0){
                 statusStr.push(approvalVotes.length+" approval(s)");

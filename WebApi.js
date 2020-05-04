@@ -56,6 +56,7 @@ module.exports = async function(config,client){
       SELECT 
         levels.row_num no
         ,levels.id
+        ,levels.id DR_RowId
         ,levels.code
         ,members.name creator
         ,levels.level_name
@@ -189,7 +190,8 @@ module.exports = async function(config,client){
     if(code && levels){
       json.plays=await ts.getPlays().where('levels.id',levels[0].id)
       console.log(user)
-      if(user && user.is_mod && levels[0].status==ts.LEVEL_STATUS.PENDING){
+      console.log(levels[0].status)
+      if(user && user.is_mod && [ts.LEVEL_STATUS.PENDING,ts.LEVEL_STATUS.NEED_FIX].includes(levels[0].status)){
         json.pending_comments=await ts.getPendingVotes().where('levels.id',levels[0].id)
       }
     }

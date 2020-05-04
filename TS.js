@@ -859,9 +859,9 @@ const TS=function(guild_id,team,client){ //loaded after gs
   }
 
   this.makeVoteEmbed=async function(level){
-    var approveVotes = await ts.getPendingVotes().where("code",level.id).where({type:'approve'});
-    var fixVotes = await ts.getPendingVotes().where("code",level.id).where({type:'fix'});
-    var rejectVotes = await ts.getPendingVotes().where("code",level.id).where({type:'reject'});
+    var approveVotes = await ts.getPendingVotes().where("levels.id",level.id).where({type:'approve'});
+    var fixVotes = await ts.getPendingVotes().where("levels.id",level.id).where({type:'fix'});
+    var rejectVotes = await ts.getPendingVotes().where("levels.id",level.id).where({type:'reject'});
 
     var voteEmbed=ts.levelEmbed(level)
         .setAuthor(ts.message("approval.judgementBegin"));
@@ -906,7 +906,7 @@ const TS=function(guild_id,team,client){ //loaded after gs
   }
 
   this.makePendingReuploadEmbed=async function(level, author, refuse, alreadyApprovedMessage){
-    var fixVotes = await ts.getPendingVotes().where("code",level.id).where("type","fix");
+    var fixVotes = await ts.getPendingVotes().where("levels.id",level.id).where("type","fix");
     var voteEmbed=ts.levelEmbed(level);
 
     if(alreadyApprovedMessage){
@@ -948,7 +948,7 @@ const TS=function(guild_id,team,client){ //loaded after gs
 
       const level=await ts.getExistingLevel(args.code);
       const author = await ts.db.Members.query().where({id:level.creator_id}).first();
-      var vote=await ts.getPendingVotes().where("code",level.id).where("player",shellder.id).first();
+      var vote=await ts.getPendingVotes().where("levels.id",level.id).where("player",shellder.id).first();
 
       if(!vote){
         //We only check reason if we have no vote yet
@@ -1052,9 +1052,9 @@ const TS=function(guild_id,team,client){ //loaded after gs
     const fixVotesNeeded=ts.teamVariables.FixVotesNeeded || ts.teamVariables.VotesNeeded || 1
 
     //Get all current votes for this level
-    var approvalVotes = await ts.getPendingVotes().where({code:level.id}).where("type","approve");
-    var fixVotes = await ts.getPendingVotes().where({code:level.id}).where("type","fix");
-    var rejectVotes = await ts.getPendingVotes().where({code:level.id}).where("type","reject");
+    var approvalVotes = await ts.getPendingVotes().where('levels.id',level.id).where("type","approve");
+    var fixVotes = await ts.getPendingVotes().where('levels.id',level.id).where("type","fix");
+    var rejectVotes = await ts.getPendingVotes().where('levels.id',level.id).where("type","reject");
     var allComments = [...approvalVotes, ...fixVotes, ...rejectVotes];
     var fixComments = [...fixVotes, ...rejectVotes];
 
@@ -1223,9 +1223,9 @@ const TS=function(guild_id,team,client){ //loaded after gs
   this.rejectLevelWithReason=async function(code, shellder, message){
     let level=ts.getLevels().where({code})
     
-    var approvalVotes = await ts.getPendingVotes().where({code:level.id}).where("type","approve");
-    var fixVotes = await ts.getPendingVotes().where({code:level.id}).where("type","fix");
-    var rejectVotes = await ts.getPendingVotes().where({code:level.id}).where("type","reject");
+    var approvalVotes = await ts.getPendingVotes().where('levels.id',level.id).where("type","approve");
+    var fixVotes = await ts.getPendingVotes().where('levels.id',level.id).where("type","fix");
+    var rejectVotes = await ts.getPendingVotes().where('levels.id',level.id).where("type","reject");
     var allComments = [...approvalVotes, ...fixVotes, ...rejectVotes];
 
     await ts.db.Levels.query().patch({status:ts.LEVEL_STATUS.REMOVED})
