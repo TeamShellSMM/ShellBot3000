@@ -47,9 +47,7 @@ class TSRerate extends TSCommand {
 
       if(level.difficulty==difficulty) ts.userError("\""+level.level_name+"\" is already rated "+difficulty);
 
-      await ts.db.Levels.query()
-        .patch({difficulty})
-        .where({code})
+      await ts.db.Levels.query().patch({difficulty}).where({code})
 
       await ts.recalculateAfterUpdate({code})
         

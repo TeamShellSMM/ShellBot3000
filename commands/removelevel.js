@@ -25,15 +25,14 @@ class tsremove extends TSCommand {
           ts.userError(ts.message('removeLevel.alreadyRemoved',level));
 
         //only creator and shellder can reupload a level
-        if(!(level.creator==player.name || ts.is_mod(player)))
+        if(!(level.creator==player.name || player.is_mod))
           ts.userError(ts.message('removeLevel.cant',level))
 
         //tsremove run by shellders and not their own levels get -2
         const approvedStr=level.status= ts.LEVEL_STATUS.APPROVED? ts.LEVEL_STATUS.REUPLOADED: (
-          level.creator!=player.name && ts.is_mod(player)? ts.LEVEL_STATUS.REMOVED : ts.LEVEL_STATUS.REJECTED); 
+          level.creator!=player.name && player.is_mod? ts.LEVEL_STATUS.REMOVED : ts.LEVEL_STATUS.REJECTED); 
         
-        await ts.db.Levels.query()
-          .patch({status:approvedStr})
+        await ts.db.Levels.query().patch({status:approvedStr})
           .where({code})
 
         await ts.recalculateAfterUpdate({code})

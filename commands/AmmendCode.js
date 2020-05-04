@@ -23,7 +23,8 @@ class AmmendCode extends TSCommand {
     if(config.devs && config.devs.indexOf(message.author.id)!==-1){
       return true;
     }
-    if(ts.is_mod({discord_id:message.author.id})){
+    const member=await ts.db.Member.query().where({discord_id:message.author.id}).first()
+    if(member && member.is_mod){
         return true
     }
     
@@ -47,21 +48,13 @@ class AmmendCode extends TSCommand {
   await ts.gs.loadSheets(["Competition Winners"]);
 
   const existing_level=await ts.getExistingLevel(old_code,true)
-  const new_code_check=await ts.db.Levels.query().where({code:new_code}).first();
+  const new_code_check=await ts.getLevels().where({code:new_code}).first();
   if(new_code_check){
     ts.userError(ts.message('add.levelExisting',{ level: new_code_check}))
   }
   
-  await ts.db.Levels.query()
-    .patch({code:new_code})
+  await ts.db.Levels.query().patch({code:new_code})
     .where({code:old_code});
-  
-  await ts.db.Plays.query()
-    .patch({code:new_code})
-    .where({code:old_code});
-  await ts.db.PendingVotes.query()
-    .patch({code:new_code})
-    .where({code,old_code});
 
   let updates=[]
   let winners=ts.gs.query("Competition Winners", {

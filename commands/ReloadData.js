@@ -17,10 +17,10 @@ class ReloadData extends TSCommand {
             return true;
         }
         
-        if(ts.is_mod({discord_id:message.author.id})){
+        const member=await ts.db.Member.query().where({discord_id:message.author.id}).first()
+        if(member && member.is_mod){
             return true
         }
-        
         return false;
     }
     

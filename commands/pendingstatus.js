@@ -11,9 +11,9 @@ class PendingStatus extends TSCommand {
     async tsexec(ts,message,args) {
         const player=await ts.get_user(message);
 
-        const levels=await ts.db.Levels.query()
+        const levels=await ts.getLevels()
             .where({
-                creator:player.name,
+                creator:player.id,
                 status:ts.LEVEL_STATUS.PENDING,
             });
 
@@ -23,14 +23,18 @@ class PendingStatus extends TSCommand {
         }
 
         let levelStrPromises=levels.map(async (level)=>{
-            let approvalVotes = await ts.db.PendingVotes.query().where("code",level.code).where("type","approve");
-            let rejectVotes = await ts.db.PendingVotes.query().where("code",level.code).where("type","reject");
+            let approvalVotes = await ts.getPendingVotes().where({code:level.id}).where("type","approve");
+            let rejectVotes = await ts.getPendingVotes().where({code:level.id}).where("type","reject");
+            let fixVotes = await ts.getPendingVotes().where({code:level.id}).where("type","fix");
             let statusStr=[]
             if(approvalVotes && approvalVotes.length>0){
                 statusStr.push(approvalVotes.length+" approval(s)");
             }
             if(rejectVotes && rejectVotes.length>0){
                 statusStr.push(rejectVotes.length+" rejection(s)");
+            }
+            if(fixVotes && fixVotes.length>0){
+                statusStr.push(fixVotes.length+" rejection(s)");
             }
             statusStr=statusStr.length>0?statusStr.join(","):"No votes has been cast yet"
 

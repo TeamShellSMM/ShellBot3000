@@ -10,6 +10,7 @@ const TS=require('./TS');
 
 
 module.exports = async function(config,client){
+  if(!client) throw new Error(`DiscordClient is not defined`);
   const app = express();
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({ extended: true }));
@@ -18,7 +19,8 @@ module.exports = async function(config,client){
     app.use("/dev", express.static(__dirname + '/json_dev.html'));
   }
 
-  async function generateSiteJson({ ts, user , code , name , dashboard }){
+  async function generateSiteJson(args={}){
+    const { ts, user , code , name , dashboard } = args;
     if(!ts) throw `TS not loaded buzzyS`;
     const SheetCache = ts.gs.getArrayFormat(["Competition Winners"])
 
@@ -64,7 +66,10 @@ module.exports = async function(config,client){
         ,levels.created_at
         ,levels.clears
         ,levels.likes
+        ,levels.maker_points lcd
         ,concat(average_votes,',',num_votes) votestr
+        ,levels.num_votes
+        ,points.score
         ,members.maker_id
         ,levels.approves
         ,levels.rejects
@@ -74,6 +79,9 @@ module.exports = async function(config,client){
         levels
       INNER JOIN teams on
         levels.guild_id=teams.id
+      INNER JOIN points on
+        levels.guild_id=teams.id
+        AND points.difficulty=levels.difficulty
       INNER JOIN members on
         levels.creator=members.id
       ${registeredSql}
@@ -172,16 +180,17 @@ module.exports = async function(config,client){
           ,sum(members.is_mod) mods
         FROM members
         where guild_id=:guild_id
-      `, { guild_id:ts.guild_id });
+      `, { guild_id:ts.team.id});
       json.dashboard={
-        members:memerStats,
+        members:memberStats[0],
       }
     }
 
     if(code && levels){
-      json.plays=await ts.db.Plays.query().where({ code })
-      if(user && user.is_mod && json.level.status==ts.LEVEL_STATUS.PENDING){
-        json.pending_comments=await ts.db.PendingVotes.query().where({ code })
+      json.plays=await ts.getPlays().where('levels.id',levels[0].id)
+      console.log(user)
+      if(user && user.is_mod && levels[0].status==ts.LEVEL_STATUS.PENDING){
+        json.pending_comments=await ts.getPendingVotes().where('levels.id',levels[0].id)
       }
     }
 
@@ -205,7 +214,7 @@ module.exports = async function(config,client){
       members = await ts.db.Members.query().select().where("is_member", 1).orderBy("clear_score_sum", "desc");
     } else if(data.membershipStatus == '2'){
       members = await ts.db.Members.query().select().orderBy("clear_score_sum", "desc");
-      members = members.filter(member => ts.is_mod(member));
+      members = members.filter(member => member.is_mod);
     } else if(data.membershipStatus == '4'){
       members = await ts.db.Members.query().select().where("is_member", 0).orWhere("is_member", null).orderBy("clear_score_sum", "desc");
     } else {
@@ -353,7 +362,7 @@ module.exports = async function(config,client){
       members = await ts.db.Members.query().select().where("is_member", 1).where('world_level_count', '>', 0);
     } else if(data.membershipStatus == '2'){
       members = await ts.db.Members.query().select().where('world_level_count', '>', 0);
-      members = members.filter(member => ts.is_mod(member));
+      members = members.filter(member => member.is_mod);
     } else if(data.membershipStatus == '4'){
       members = await ts.db.Members.query().select().where('world_level_count', '>', 0).where(function () {
         this
@@ -495,11 +504,13 @@ module.exports = async function(config,client){
       if(req.body && req.body.url_slug ){
         try {
           ts=TS.teamFromUrl(req.body.url_slug)
-          if(!ts) throw `"${req.body.url_slug}" not found`; 
-
-          let data=await callback(ts,req,res)
-          res.send(JSON.stringify(data));
-
+          if(!ts){
+            res.status(404).send('Not found');
+            DiscordLog.error(`"${req.body.url_slug}" not found`);
+          } else {
+            let data=await callback(ts,req,res)
+            res.send(JSON.stringify(data));
+          }
         } catch(error){
           if(ts){
             res.send(ts.getWebUserErrorMsg(error))
@@ -533,7 +544,7 @@ module.exports = async function(config,client){
     members = await ts.db.Members.query().select().where("is_member", 1).where('world_level_count', '>', 0);
   } else if(data.membershipStatus == '2'){
     members = await ts.db.Members.query().select().where('world_level_count', '>', 0);
-    members = members.filter(member => ts.is_mod(member));
+    members = members.filter(member => member.is_mod);
   } else if(data.membershipStatus == '4'){
     members = await ts.db.Members.query().select().where('world_level_count', '>', 0).where(function () {
       this
@@ -580,7 +591,7 @@ app.post('/json/worlds',web_ts(async (ts,req)=>{
     var user=await ts.get_user(req.body.discord_id)
   }
 
-  let json = await generateWorldsJson(ts,user && ts.is_mod(user),req.body)
+  let json = await generateWorldsJson(ts,user && user.is_mod,req.body)
   return json;
 }))
 
@@ -588,7 +599,6 @@ app.post('/json/worlds',web_ts(async (ts,req)=>{
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
     try {
       let teams=await Teams.query().select('guild_name','url_slug','web_config').where({public:1})
-      console.log(teams)
       res.send(JSON.stringify(data));
     } catch(error){
       let ret={"error":error.stack}
@@ -619,7 +629,7 @@ app.post('/json/worlds',web_ts(async (ts,req)=>{
       var user=await ts.get_user(req.body.discord_id)
     }
 
-    let json = await generateMembersJson(ts,user && ts.is_mod(user), req.body)
+    let json = await generateMembersJson(ts,user && user.is_mod, req.body)
     return json;
   }))
 
@@ -629,7 +639,7 @@ app.post('/json/worlds',web_ts(async (ts,req)=>{
       var user=await ts.get_user(req.body.discord_id)
     }
 
-    let json = await generateMakersJson(ts,user && ts.is_mod(user), req.body)
+    let json = await generateMakersJson(ts,user && user.is_mod, req.body)
     return json;
   }))
 
@@ -651,7 +661,7 @@ app.post('/json/worlds',web_ts(async (ts,req)=>{
     req.body.discord_id=await ts.checkBearerToken(req.body.token)
     let user=await ts.get_user(req.body.discord_id)
 
-    if(ts.is_mod(user)) ts.userError("Forbidden");
+    if(user.is_mod) ts.userError("Forbidden");
 
     req.body.reason=req.body.comment
 

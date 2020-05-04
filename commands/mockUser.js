@@ -4,6 +4,7 @@ class mockUser extends TSCommand {
     constructor() {
         super('mockUser', {
           aliases: ['mockUser'],
+          split: 'quoted',
           args: [{
             id: 'user',
             type: 'string',

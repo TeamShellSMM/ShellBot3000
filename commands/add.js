@@ -22,7 +22,7 @@ class tsadd extends TSCommand {
         ts.userError(ts.message("add.noName"))
 
       const player=await ts.get_user(message);
-      var existing_level=await ts.db.Levels.query().where({ code }).first()
+      var existing_level=await ts.getLevels().where({ code }).first()
 
       if(existing_level) ts.userError(ts.message("add.levelExisting",{level:existing_level}));
 

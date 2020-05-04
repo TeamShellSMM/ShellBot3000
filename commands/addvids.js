@@ -79,8 +79,7 @@ class TSAddvids extends TSCommand {
 
 
   
-      await ts.db.Levels.query()
-        .patch({videos:old_vids.join(',')})
+      await ts.db.Levels.query().patch({videos:old_vids.join(',')})
         .where({code})
 
       await message.channel.send(player.user_reply+reply)

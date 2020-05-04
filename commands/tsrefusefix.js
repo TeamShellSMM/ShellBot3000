@@ -23,7 +23,7 @@ class TSRefuseFix extends TSCommand {
         }
         
         const player=await ts.get_user(message);
-        var level=await ts.db.Levels.query().where({code}).first();
+        var level=await ts.getLevels().where({code}).first();
         const author = await ts.db.Members.query().where({name:level.creator}).first();
 
         if(level.status!=ts.LEVEL_STATUS.NEED_FIX)

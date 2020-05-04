@@ -6,7 +6,7 @@ exports.up = function(knex) {
         t.dateTime('updated_at').nullable();
         t.dateTime('deleted_at').nullable();
 
-        t.string('guild_id',30).notNull();
+        t.string('guild_id',30).notNull().defaultTo(0)
         t.string('guild_name').notNull();
         t.string('url_slug').notNull();
         t.string('owner_id').notNull(); //owner is head/creator of the team

@@ -652,7 +652,7 @@ class TestBot extends Command {
             const newChannel=await guild.channels.find(c => c.name === 'xxx-xxx-xxx')
             if(newChannel) return false;
 
-            let level=await ts.db.Levels.query().where({code:'XXX-XXX-XXX'}).first()
+            let level=await ts.getLevels().where({code:'XXX-XXX-XXX'}).first()
             if(!level) return false;
             if(level.status!==ts.LEVEL_STATUS.APPROVED) return false;
 

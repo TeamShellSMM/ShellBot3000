@@ -24,7 +24,7 @@ class TSLevelStatus extends TSCommand {
 
         code=code.toUpperCase()
 
-        const level=await ts.db.Levels.query().where({ code });
+        const level=await ts.getLevels().where({ code });
 
         if(!level)
             ts.userError("Level Code was not found!");
@@ -37,9 +37,9 @@ class TSLevelStatus extends TSCommand {
         ){
             await message.reply("This level has already been removed/rejected!");
         } else if(level.status == ts.LEVEL_STATUS.PENDING){
-            var approvalVotes = await ts.db.PendingVotes.query().where("code",code).where("type","approve");
-            var fixVotes = await ts.db.PendingVotes.query().where("code",code).where("type","fix");
-            var rejectVotes = await ts.db.PendingVotes.query().where("code",code).where("type","reject");
+            var approvalVotes = await ts.getPendingVotes().where({code:level.id}).where("type","approve");
+            var fixVotes = await ts.getPendingVotes().where({code:level.id}).where("type","fix");
+            var rejectVotes = await ts.db.getPendingVotes().where({code:level.id}).where("type","reject");
 
             //Count Approval and Rejection Votes
             var approvalVoteCount = approvalVotes.length + fixVotes.length;

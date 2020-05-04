@@ -24,14 +24,13 @@ class TSRename extends TSCommand {
       const player=await ts.get_user(message);
       var level=await ts.getExistingLevel(code)
 
-      if(!(level.creator==player.name || ts.is_mod(player)))
+      if(!(level.creator==player.name || player.is_mod))
         ts.userError("You can't rename \""+level.level_name+"\" by "+level.creator);
 
       if(level.level_name==level_name)
         ts.userError("Level name is already \""+level_name+"\"")
 
-      await ts.db.Levels.query()
-        .patch({level_name})
+      await ts.db.Levels.query().patch({level_name})
         .where({code})
 
       var reply="The level \""+level.level_name+"\" ("+code+") has been renamed to \""+level_name+"\" "+(ts.emotes.bam ? ts.emotes.bam : "")

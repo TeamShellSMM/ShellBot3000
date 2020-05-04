@@ -30,7 +30,7 @@ class TSAddtags extends TSCommand {
         var level=await ts.getExistingLevel(code)
         //First we get all available tags
         var all_tags = [];
-        let _levels=await ts.db.Levels.query().select()
+        let _levels=await ts.getLevels()
         
         _levels.forEach((level)=>{
           if(level.tags){
@@ -64,7 +64,7 @@ class TSAddtags extends TSCommand {
 
           new_tags=[]
           filteredTags.forEach((tag)=>{
-            if(locked_tags.indexOf(tag)!=-1 && ts.is_mod(player))
+            if(locked_tags.indexOf(tag)!=-1 && player.is_mod)
               ts.userError(ts.message("tags.cantAdd",{tag}))
             if(old_tags.indexOf(tag)==-1){
               new_tags.push(tag)
@@ -75,7 +75,7 @@ class TSAddtags extends TSCommand {
           old_tags=old_tags.concat(new_tags)
           var reply="Tags added for  \""+level.level_name+"\" ("+code+")"+ts.emotes.bam+"\nCurrent tags:```\n"+old_tags.join("\n")+"```"
         } else { // removing
-          if(!(level.creator==player.name || ts.is_mod(player)))
+          if(!(level.creator==player.name || player.is_mod))
             ts.userError("You can't remove tags from  \""+level.level_name+"\" by "+level.creator);
 
           let locked_tags=[]
@@ -89,7 +89,7 @@ class TSAddtags extends TSCommand {
           new_tags=[]
           let notRemoved=true
           old_tags.forEach((tag)=>{
-            if(locked_tags.indexOf(tag)!=-1 && !ts.is_mod(player))
+            if(locked_tags.indexOf(tag)!=-1 && !player.is_mod)
               ts.userError("You can't remove the tag \""+tag+"\"")
             if(filteredTags.indexOf(tag)==-1){
               new_tags.push(tag)
@@ -103,8 +103,7 @@ class TSAddtags extends TSCommand {
           var reply="Tags removed for  \""+level.level_name+"\" ("+code+")"+(ts.emotes.bam ? ts.emotes.bam : "")+"\nCurrent tags:```\n"+old_tags.join("\n")+"```"
         }
 
-        await ts.db.Levels.query()
-          .patch({tags:old_tags.join(',')})
+        await ts.db.Levels.query().patch({tags:old_tags.join(',')})
           .where({code})
 
         await message.channel.send(player.user_reply+reply)
