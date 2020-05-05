@@ -8,15 +8,15 @@ class playersRandom extends TSCommand {
             args: [{
                     id: 'players',
                     type: 'string',
-                    default: ''
+                    default: null
                 },{
                     id: 'minDifficulty',
-                    type: 'string',
-                    default: '1',
+                    type: 'string', 
+                    default: 1,
                 },{
                     id: 'maxDifficulty',
                     type: 'string',
-                    default: ''
+                    default: null
                 }],
            channelRestriction: 'guild'
         });
@@ -26,7 +26,8 @@ class playersRandom extends TSCommand {
       args.discord_id=message.author.id
       let rand=await ts.randomLevel(args)
 
-      let randomEmbed=ts.levelEmbed(rand.level).setAuthor(ts.message("random.embedTitlePlayers",{players:args.players}))
+      let randomEmbed=ts.levelEmbed(rand.level,ts.embedStyle.random)
+        .setAuthor(ts.message("random.embedTitlePlayers",{players:args.players}))
       await message.channel.send(rand.player.user_reply)
       await message.channel.send(randomEmbed)
     }

@@ -42,8 +42,8 @@ describe('clears', function () {
       })
       assert(false,'not here')
     } catch(error){
-      if(!error.errorType) throw error;
-      assert.equal(error.errorType,"user")
+      if(!error.type) throw error;
+      assert.equal(error.type,"user")
       assert.equal(error.msg,ts.message('clear.noArgs'))
       const plays=await ts.db.Plays.query().select()
       assert.lengthOf(plays,0)
@@ -59,8 +59,8 @@ describe('clears', function () {
         completed:1,
       })
     } catch(error){
-      if(!error.errorType) throw new Error(error)
-      assert.equal(error.errorType,"user")
+      if(!error.type) throw new Error(error)
+      assert.equal(error.type,"user")
       assert.equal(error.msg,ts.message('clear.ownLevel'))
     }
     const plays=await ts.db.Plays.query().select()

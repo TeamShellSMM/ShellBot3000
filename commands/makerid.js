@@ -5,13 +5,13 @@ class MakerId extends TSCommand {
            aliases: ['makerid'],
             args: [{
                     id: 'code',
-                    type: 'string',
-                    default: ''
+                    type: 'uppercase',
+                    default: null
                 },
                 {
                   id: 'name',
                   type: 'string',
-                  default: ''
+                  default: null
               }],
            channelRestriction: 'guild'
         });

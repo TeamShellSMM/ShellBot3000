@@ -8,7 +8,7 @@ class mockUser extends TSCommand {
           args: [{
             id: 'user',
             type: 'string',
-            default: ''
+            default: null
           }],
         });
     }

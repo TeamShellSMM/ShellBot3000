@@ -7,7 +7,7 @@ class points extends TSCommand {
             args: [{
                     id: 'role',
                     type: 'string',
-                    default: ''
+                    default: null
                 }],
            channelRestriction: 'guild'
         });

@@ -7,11 +7,11 @@ class RenameMember extends TSCommand {
             args: [{
                 id: 'discord_id',
                 type: 'string',
-                default: ''
+                default: null
             },{
                 id: 'new_name',
                 type: 'string',
-                default: ''
+                default: null
             }],
             split: 'quoted',
         });

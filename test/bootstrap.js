@@ -10,12 +10,8 @@ global.config = require('../config.json')['testing']; //force testing config
 global.config.defaultCooldown=0;
 global.TS=require('../TS.js')
 let DiscordLog=require('../DiscordLog');
-DiscordLog.log=(obj,client)=>{
-  console.log(obj)
-}
-DiscordLog.error=(obj,client)=>{
-  console.log(obj)
-}
+DiscordLog.log=(obj,client)=>{console.log(obj)}
+DiscordLog.error=(obj,client)=>{console.log(obj)}
 
 
 after(async()=>{

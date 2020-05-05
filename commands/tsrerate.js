@@ -6,18 +6,18 @@ class TSRerate extends TSCommand {
            split: 'quoted',
             args: [{
               id: 'code',
-              type: 'string',
-              default: ''
+              type: 'uppercase',
+              default: null,
             },
             {
               id: 'difficulty',
-              type: 'string',
-              default: ''
+              type: 'number',
+              default: null,
             },
             {
               id: 'reason',
               type: 'string',
-              default: ''
+              default: null,
             }],
            channelRestriction: 'guild'
         });
@@ -50,15 +50,12 @@ class TSRerate extends TSCommand {
       await ts.db.Levels.query().patch({difficulty}).where({code})
 
       await ts.recalculateAfterUpdate({code})
-        
 
-      var rerateEmbed = ts.levelEmbed(level)
-            .setColor("#17a2b8")
-            .setAuthor(ts.message('difficulty.updated',{ 
-              old_difficulty:level.difficulty,
-              new_difficulty:difficulty,
-            }))
-            .addField("\u200b","**Reason** :\n```"+reason+"```Rerated by <@" +message.member.id + ">")
+      var rerateEmbed = ts.levelEmbed(level,ts.embedStyle.rerate,{ 
+            old_difficulty:level.difficulty,
+            new_difficulty:difficulty,
+          })
+          .addField("\u200b","**Reason** :\n```"+reason+"```Rerated by <@" +message.member.id + ">")
 
       var levelChangeChannel=await this.client.channels.get(ts.channels.levelChangeNotification)
 

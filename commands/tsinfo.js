@@ -5,8 +5,8 @@ class tsinfo extends TSCommand {
            aliases: ['tsinfo','info','level'],
             args: [{
                     id: 'code',
-                    type: 'string',
-                    default: ''
+                    type: 'uppercase',
+                    default: null
                 }],
            channelRestriction: 'guild'
         });

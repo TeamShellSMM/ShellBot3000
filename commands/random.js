@@ -7,11 +7,11 @@ class tsrandom extends TSCommand {
             args: [{
                     id: 'minDifficulty',
                     type: 'string',
-                    default: ''
+                    default: null
                 },{
                     id: 'maxDifficulty',
                     type: 'string',
-                    default: ''
+                    default: null
                 }],
            channelRestriction: 'guild'
         });

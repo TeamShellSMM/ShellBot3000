@@ -6,35 +6,23 @@ class AmmendCode extends TSCommand {
     aliases: ['ammendcode'],
     args: [{
       id: 'old_code',
-      type: 'string',
-      default: ''
+      type: 'uppercase',
+      default: null
     },{
       id: 'new_code',
-      type: 'string',
-      default: ''
+      type: 'uppercase',
+      default: null
     }],
   });
   }
 
   async canRun(ts,message){
-    if(config.ownerID && config.ownerID.indexOf(message.author.id)!==-1){
-      return true;
-    }
-    if(config.devs && config.devs.indexOf(message.author.id)!==-1){
-      return true;
-    }
-    const member=await ts.db.Member.query().where({discord_id:message.author.id}).first()
-    if(member && member.is_mod){
-        return true
-    }
-    
-    return false;
+    return ts.modOnly(message.author.id)
   }
 
   async tsexec(ts,message, { old_code, new_code }) {
-  old_code=old_code.toUpperCase()
-  new_code=new_code.toUpperCase()
 
+    console.log({ old_code , new_code })
   if(!ts.valid_code(old_code)){
     ts.userError(ts.message("reupload.invalidOldCode"))
   }
@@ -71,7 +59,7 @@ class AmmendCode extends TSCommand {
 
   if(updates){
     await ts.gs.batchUpdate(updates);
-    await ts.load()
+    await ts.gs.loadSheets(["Competition Winners"]);
   }
   
 

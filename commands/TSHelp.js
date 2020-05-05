@@ -6,7 +6,7 @@ class TSHelp extends TSCommand {
            args: [{
             id: 'command',
             type: 'string',
-            default: ''
+            default: null
            }],
            channelRestriction: 'guild'
         });

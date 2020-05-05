@@ -1,116 +1,134 @@
 describe('!approve', function () {
-  before(async () => {
-    await ts.setupData({
-      Members: [ {
-        name: 'Creator',
-        discord_id: '64',
-      },{
-        name: 'Mod1',
-        discord_id: '128',
-      }, {
-        name: 'Mod2',
-        discord_id: '256',
-      }, {
-        name: 'Mod3',
-        discord_id: '512',
-      }],
-      Levels: [{
-        level_name: 'level1',
-        creator: 1,
-        code: 'XXX-XXX-XXX',
-        status: 0,
-        difficulty: 0,
-      }],
-    });
+  const initData={
+    Members: [ {
+      name: 'Creator',
+      discord_id: '64',
+    },{
+      name: 'Mod1',
+      discord_id: '128',
+    }, {
+      name: 'Mod2',
+      discord_id: '256',
+    }, {
+      name: 'Mod3',
+      discord_id: '512',
+    }],
+    Levels: [{
+      level_name: 'level1',
+      creator: 1,
+      code: 'XXX-XXX-XXX',
+      status: 0,
+      difficulty: 0,
+    }],
+  };
+  beforeEach(async () => {
+    await ts.setupData(initData);
   });
 
   it('approve', async function () {
+    this.slow(5000) //create channel and deletes it
     const result = await mockBotSend({
       cmd: '!approve XXX-XXX-XXX 5 "is good level"',
       channel: ts.channels.modChannel,
       discord_id: '256',
     })
-    assert.equal(result,await ts.mockMessage('error.noCode',{type:'userError'},{name:'Creator'}))
-  })
-  it('judge', async function () {
-    const result = await mockBotSend({
+    const result2 = await mockBotSend({
+      cmd: '!approve XXX-XXX-XXX 2 "ya"',
+      channel: ts.channels.modChannel,
+      discord_id: '512',
+    })
+    let channel=await ts.getGuild().channels.find((c)=>c.name==="xxx-xxx-xxx")
+    assert.isOk(channel)
+    assert.equal(result,await ts.mockMessage('approval.voteAdded',{
+      type:'normal',
+      discord_id:'256',
+    },{
+      channel_id:channel.id,
+    }))
+    //TODO: check embed info here: result3[1]
+    const result3 = await mockBotSend({
       cmd: '!judge',
       channel: 'XXX-XXX-XXX',
       discord_id: '256',
     })
-    assert.equal(result,await ts.mockMessage('error.noCode',{type:'userError'},{name:'Creator'}))
-  })
-  /*
-  it('no arguments', async function () {
-    const result = await mockBotSend({
-      cmd: '!add xxx-xxx-xxx',
-      channel: 'general',
-      discord_id: '256',
-    })
-    assert.equal(result,await ts.mockMessage('add.noName',{type:'userError'},{name:'Creator'}))
-  })
-  it('adding existing', async function () {
-    const result = await mockBotSend({
-      cmd: '!add xxx-xxx-xxx long name',
-      channel: 'general',
-      discord_id: '256',
-    })
-    assert.equal(result,await ts.mockMessage('add.levelExisting',{type:'userError'},{level:{
-      level_name:'level1',
-      code:'XXX-XXX-XXX',
-      creator:'Creator',
-    }}))
-  })
-  it('no code', async function () {
-    const result = await mockBotSend({
-      cmd: '!add long name',
-      channel: 'general',
-      discord_id: '256',
-    })
-    assert.equal(result,await ts.mockMessage('error.invalidCode',{type:'userError'},{
-      level_name:'',
-      code:'XXX-XXX-XXX',
-      creator:'Creator',
-    }))
+    assert.notEqual(result3,await ts.mockMessage('approval.comboBreaker',{ type:'userError'}))
+    const level=await ts.db.Levels.query().where({code:'XXX-XXX-XXX'}).first()
+    assert.isOk(level)
+    assert.equal(level.code,'XXX-XXX-XXX')
+    assert.equal(level.status,ts.LEVEL_STATUS.APPROVED)
+    assert.equal(level.difficulty,3.5)
+
   })
 
-  it('successful', async function () {
+  it('reject', async function () {
+    this.slow(5000) //create channel and deletes it
     const result = await mockBotSend({
-      cmd: '!add XXX-XXX-XX4 long name',
-      channel: 'general',
+      cmd: '!reject XXX-XXX-XXX "is not good level"',
+      channel: ts.channels.modChannel,
       discord_id: '256',
     })
-    assert.equal(result,await ts.mockMessage('add.success',{type:'registeredSuccess',discord_id:'256'},{
-      level_name:'long name',
-      code:'XXX-XXX-XX4',
+    const result2 = await mockBotSend({
+      cmd: '!reject XXX-XXX-XXX 2 "no"',
+      channel: ts.channels.modChannel,
+      discord_id: '512',
+    })
+    let channel=await ts.getGuild().channels.find((c)=>c.name==="xxx-xxx-xxx")
+    assert.isOk(channel)
+    assert.equal(result,await ts.mockMessage('approval.voteAdded',{
+      type:'normal',
+      discord_id:'256',
+    },{
+      channel_id:channel.id,
     }))
-    const levels=await ts.getLevels();
-    assert.lengthOf(levels,4)
-    assert.equal(levels[3].code,'XXX-XXX-XX4')
-    assert.equal(levels[3].creator,'Creator')
-    assert.equal(levels[3].status,0)
-    assert.equal(levels[3].difficulty,0)
+    //TODO: check embed info here: result3[1]
+    const result3 = await mockBotSend({
+      cmd: '!judge',
+      channel: 'XXX-XXX-XXX',
+      discord_id: '256',
+    });
+    assert.notEqual(result3,await ts.mockMessage('approval.comboBreaker',{ type:'userError'}))
+    
+    const level=await ts.db.Levels.query().where({code:'XXX-XXX-XXX'}).first()
+    assert.isOk(level)
+    assert.equal(level.code,'XXX-XXX-XXX')
+    assert.equal(level.status,ts.LEVEL_STATUS.REJECTED)
+    assert.equal(level.difficulty,0)
+
   })
 
-  it('no points', async function () {
-    await ts.clearTable('levels');
-    ts.teamVariables['Minimum Point']=10
-    await ts.recalculateAfterUpdate();
+  it('fix', async function () {
+    this.slow(5000) //create channel and deletes it
     const result = await mockBotSend({
-      cmd: '!add XXX-XXX-XX4 long name',
-      channel: 'general',
+      cmd: '!fix XXX-XXX-XXX 4 "Fix your jank"',
+      channel: ts.channels.modChannel,
       discord_id: '256',
     })
-    assert.equal(result,await ts.mockMessage('add.success',{type:'registeredSuccess',discord_id:'256'},{
-      level_name:'long name',
-      code:'XXX-XXX-XX4',
+    const result2 = await mockBotSend({
+      cmd: '!fix XXX-XXX-XXX 2 "no"',
+      channel: ts.channels.modChannel,
+      discord_id: '512',
+    })
+    let channel=await ts.getGuild().channels.find((c)=>c.name==="xxx-xxx-xxx")
+    assert.isOk(channel)
+    assert.equal(result,await ts.mockMessage('approval.voteAdded',{
+      type:'normal',
+      discord_id:'256',
+    },{
+      channel_id:channel.id,
     }))
-    const levels=await ts.getLevels();
-    assert.lengthOf(levels,4)
-    assert.equal(levels[3].code,'XXX-XXX-XX4')
-    assert.equal(levels[3].creator,'Creator')
-    assert.equal(levels[3].status,0)
-    assert.equal(levels[3].difficulty,0)
+    //TODO: check embed info here: result3[1]
+    const result3 = await mockBotSend({
+      cmd: '!judge',
+      channel: 'XXX-XXX-XXX',
+      discord_id: '256',
+    });
+    //TODO:Check result3 title content
+    assert.notEqual(result3,await ts.mockMessage('approval.comboBreaker',{ type:'userError'}))
+    assert.notEqual(result3,await ts.mockMessage('approval.numVotesNeeded',{ type:'normal'}))
+    const level=await ts.db.Levels.query().where({code:'XXX-XXX-XXX'}).first()
+    assert.isOk(level)
+    assert.equal(level.code,'XXX-XXX-XXX')
+    assert.equal(level.status,ts.LEVEL_STATUS.NEED_FIX)
+    assert.equal(level.difficulty,0)
   })
-*/
 })

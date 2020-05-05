@@ -102,16 +102,12 @@ describe('!add', function () {
       channel: 'general',
       discord_id: '256',
     })
-    assert.equal(result,await ts.mockMessage('add.success',{type:'registeredSuccess',discord_id:'256'},{
-      level_name:'long name',
-      code:'XXX-XXX-XX4',
+    const player=await ts.get_user('256')
+    assert.equal(result,await ts.mockMessage('points.cantUpload',{type:'userError',discord_id:'256'},{
+      points_needed:Math.abs(player.earned_points.available).toFixed(1)
     }))
     const levels=await ts.getLevels();
-    assert.lengthOf(levels,4)
-    assert.equal(levels[3].code,'XXX-XXX-XX4')
-    assert.equal(levels[3].creator,'Creator')
-    assert.equal(levels[3].status,0)
-    assert.equal(levels[3].difficulty,0)
+    assert.lengthOf(levels,0)
   })
 
 })

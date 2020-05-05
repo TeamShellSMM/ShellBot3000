@@ -6,8 +6,8 @@ class TSLevelStatus extends TSCommand {
            aliases: ['tslevelstatus','levelstatus'],
             args: [{
                     id: 'code',
-                    type: 'string',
-                    default: ''
+                    type: 'uppercase',
+                    default: null
                 }],
            channelRestriction: 'guild'
         });
@@ -42,23 +42,23 @@ class TSLevelStatus extends TSCommand {
             var rejectVotes = await ts.db.getPendingVotes().where({code:level.id}).where("type","reject");
 
             //Count Approval and Rejection Votes
-            var approvalVoteCount = approvalVotes.length + fixVotes.length;
-            var rejectVoteCount = rejectVotes.length;
+            var approvalVotesCount = approvalVotes.length + fixVotes.length;
+            var rejectVotesCount = rejectVotes.length;
 
             var text = "";
 
-            if( (approvalVoteCount > approval_votes_needed || rejectVoteCount > reject_votes_needed) && approvalVoteCount!=rejectVoteCount ){
+            if( (approvalVotesCount > approval_votes_needed || rejectVotesCount > reject_votes_needed) && approvalVotesCount!=rejectVotesCount ){
                 text = "This level is ready to be judged: ";
             } else {
                 text = "This level is in judgement right now: ";
             }
 
-            if(approvalVoteCount > 0 && rejectVoteCount > 0){
-                text +=  approvalVoteCount + "/" + approval_votes_needed + " votes for approval, " + rejectVoteCount + "/" + reject_votes_needed + " votes for rejection!";
-            } else if(approvalVoteCount > 0){
-                text += approvalVoteCount + "/" + approval_votes_needed + " votes for approval!";
-            } else if(rejectVoteCount > 0){
-                text += rejectVoteCount + "/" + reject_votes_needed + " votes for rejection!";
+            if(approvalVotesCount > 0 && rejectVotesCount > 0){
+                text +=  approvalVotesCount + "/" + approval_votes_needed + " votes for approval, " + rejectVotesCount + "/" + reject_votes_needed + " votes for rejection!";
+            } else if(approvalVotesCount > 0){
+                text += approvalVotesCount + "/" + approval_votes_needed + " votes for approval!";
+            } else if(rejectVotesCount > 0){
+                text += rejectVotesCount + "/" + reject_votes_needed + " votes for rejection!";
             } else {
                 text = "This level is not in judgement, no mods seem to have gotten to it yet!";
             }

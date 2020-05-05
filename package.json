@@ -26,12 +26,14 @@
   "devDependencies": {
     "chai": "^4.2.0",
     "mocha": "^7.1.2",
+    "nyc": "^15.0.1",
     "supertest": "^4.0.2"
   },
   "scripts": {
     "migrate": "node_modules/.bin/knex migrate:latest",
     "start": "node app.js",
-    "test": "env NODE_ENV=testing node_modules/.bin/mocha --recursive --reporter spec --timeout 10000",
+    "test": "env NODE_ENV=testing node_modules/.bin/mocha --full-trace --inline-diffs --recursive --reporter spec --timeout 10000 ",
+    "test-with-coverage": "env NODE_ENV=testing node_modules/.bin/nyc node_modules/.bin/mocha --full-trace --inline-diffs --recursive --reporter spec --timeout 10000 ",
     "testBot": "node app.js --test"
   },
   "keywords": [],

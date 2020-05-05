@@ -6,8 +6,8 @@ class tslike extends TSCommand {
            aliases: ['tslike','like','tsunlike','unlike'],
             args: [{
                     id: 'code',
-                    type: 'string',
-                    default: ''
+                    type: 'uppercase',
+                    default: null
                 }],
            channelRestriction: 'guild'
         });

@@ -74,7 +74,10 @@ module.exports={
  'judge.votedApprove':'{{player}} voted for approval with difficulty {{difficulty_vote}}:',
  'judge.votedReject':'{{player}} voted for rejection:',
  'judge.votedFix':'{{player}} voted for fix with difficulty {{difficulty_vote}}:',
+ 
+ 'fixApprove.noReason':'You have to provide a message to the creator explaining why this was rejected!',
 
+ 'remove.removedBy':'This level has been removed by {{name}}',
  'reupload.invalidOldCode':'You did not provide a valid code for the old level',
  'reupload.invalidNewCode':'You did not provide a valid code for the new level',
  'reupload.sameCode':'The codes given were the same', //✅

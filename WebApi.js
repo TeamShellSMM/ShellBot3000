@@ -611,18 +611,18 @@ app.post('/json/worlds',web_ts(async (ts,req)=>{
   })
 
   app.post('/json',web_ts(async (ts,req)=>{
-      console.time('user')
+    if(process.env.NODE_ENV==="development") console.time('user')
       
       if(req.body && req.body.token){
         req.body.discord_id=await ts.checkBearerToken(req.body.token)
         var user=await ts.get_user(req.body.discord_id)
       }
-      console.timeEnd('user')
+    if(process.env.NODE_ENV==="development") console.timeEnd('user')
 
-      console.time('json')
-      let json = await generateSiteJson({ts , user ,...req.body })
-      console.timeEnd('json')
-      return json;
+    if(process.env.NODE_ENV==="development") console.time('json')
+    let json = await generateSiteJson({ts , user ,...req.body })
+    if(process.env.NODE_ENV==="development") console.timeEnd('json')
+    return json;
   }))
 
   app.post('/json/members',web_ts(async (ts,req)=>{

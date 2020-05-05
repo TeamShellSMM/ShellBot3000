@@ -3,11 +3,6 @@ class atmebot extends TSCommand {
     constructor() {
         super('atmebot', {
            aliases: ['atmebot','atme','dontatmebot','dontatme'],
-            args: [{
-                    id: 'code',
-                    type: 'string',
-                    default: ''
-                }],
            channelRestriction: 'guild'
         });
     }

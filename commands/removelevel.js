@@ -29,8 +29,9 @@ class tsremove extends TSCommand {
           ts.userError(ts.message('removeLevel.cant',level))
 
         //tsremove run by shellders and not their own levels get -2
+        //user removed can readd. readd here just updates the row, or we delete the old code?
         const approvedStr=level.status= ts.LEVEL_STATUS.APPROVED? ts.LEVEL_STATUS.REUPLOADED: (
-          level.creator!=player.name && player.is_mod? ts.LEVEL_STATUS.REMOVED : ts.LEVEL_STATUS.REJECTED); 
+          level.creator!=player.name && player.is_mod? ts.LEVEL_STATUS.REMOVED : ts.LEVEL_STATUS.USER_REMOVED ); 
         
         await ts.db.Levels.query().patch({status:approvedStr})
           .where({code})
@@ -38,16 +39,13 @@ class tsremove extends TSCommand {
         await ts.recalculateAfterUpdate({code})
 
 
-        var removeEmbed=ts.levelEmbed(level,1)
-            .setColor("#dc3545")
-            .setAuthor("This level has been removed by "+player.name);
+        var removeEmbed=ts.levelEmbed(level,this.embedStyle["remove"],{name:player.name})
 
         if(ts.emotes.buzzyS){
-          removeEmbed.setThumbnail(ts.getEmoteUrl(ts.emotes.buzzyS));
+          removeEmbed.setThumbnail(ts.getEmoteUrl());
         }
 
         removeEmbed.addField("\u200b","**Reason for removal** :```"+reason+"```-<@" +player.discord_id + ">");
-        removeEmbed = removeEmbed.setTimestamp();
         //Send updates to to #shellbot-level-update
 
         if(level.creator!=player.name){ //moderation

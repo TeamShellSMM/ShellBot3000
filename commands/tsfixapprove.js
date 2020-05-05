@@ -7,7 +7,7 @@ class TSFixApprove extends TSCommand {
             args: [{
                 id: 'message',
                 type: 'string',
-                default: ''
+                default: null
               },
             ],
            channelRestriction: 'guild'
@@ -59,7 +59,7 @@ class TSFixApprove extends TSCommand {
         if(args.message){
           replyMessage = await ts.rejectLevelWithReason(code, message.author, args.message);
         } else {
-          ts.userError("You have to provide a message to the creator explaining why this was rejected!");
+          ts.userError(ts.message('fixapprove.noReason'));
         }
       }
 

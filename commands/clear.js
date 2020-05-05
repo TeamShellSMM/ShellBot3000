@@ -6,15 +6,15 @@ class TSClear extends TSCommand {
            aliases: ['tsclear','clear'],
             args: [{
                     id: 'code',
-                    type: 'string',
-                    default: ''
+                    type: 'uppercase',
+                    default: null
                 },{
                     id: 'difficulty',
                     type: 'string',
                     default: null,
                 },{
                     id: 'liked',
-                    type: 'string',
+                    type: 'integer',
                     default: null
                 }],
            channelRestriction: 'guild'

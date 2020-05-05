@@ -6,7 +6,7 @@ class TSRegister extends TSCommand {
             args: [{
                     id: 'nickname',
                     type: 'string',
-                    default: ''
+                    default: null
                 }],
            channelRestriction: 'guild'
         });

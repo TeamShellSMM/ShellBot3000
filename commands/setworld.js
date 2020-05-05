@@ -6,17 +6,17 @@ class SetWorld extends TSCommand {
             args: [{
                     id: 'world_count',
                     type: 'string',
-                    default: ''
+                    default: null
                 },
                 {
                     id: 'level_count',
                     type: 'string',
-                    default: ''
+                    default: null
                 },
                 {
                     id: 'world_name',
                     type: 'string',
-                    default: ''
+                    default: null
                 }],
            channelRestriction: 'guild'
         });

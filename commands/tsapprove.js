@@ -8,18 +8,18 @@ class TSApprove extends TSCommand {
            split: 'quoted',
             args: [{
                 id: 'code',
-                type: 'string',
-                default: ''
+                type: 'uppercase',
+                default: null,
               },
               {
                 id: 'difficulty',
                 type: 'string',
-                default: ''
+                default: null,
               },
               {
                 id: 'reason',
                 type: 'string',
-                default: ''
+                default: null,
               }
             ],
            channelRestriction: 'guild'

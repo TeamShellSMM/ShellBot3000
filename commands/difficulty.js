@@ -5,12 +5,12 @@ class tsdifficulty extends TSCommand {
            aliases: ['tsdifficulty','difficulty'],
             args: [{
                     id: 'code',
-                    type: 'string',
-                    default: ''
+                    type: 'uppercase',
+                    default: null,
                 },{
                     id: 'difficulty',
                     type: 'string',
-                    default: ''
+                    default: null,
                 }],
            channelRestriction: 'guild'
         });

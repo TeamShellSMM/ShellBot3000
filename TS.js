@@ -25,10 +25,11 @@ const TS=function(guild_id,team,client){ //loaded after gs
   this.LEVEL_STATUS={
     PENDING:0,
     APPROVED:1,
-    REJECTED:-1,
+    REJECTED:-1,  //can't readd
     NEED_FIX:-10,
     REUPLOADED:2,
-    REMOVED:-2,
+    REMOVED:-2, 
+    USER_REMOVED:-3,  //can re add
   };
   this.db={
     Teams:require('./models/Teams.js')(guild_id),
@@ -100,6 +101,40 @@ const TS=function(guild_id,team,client){ //loaded after gs
         }
       }
 
+      this.embedStyle={
+        [ts.LEVEL_STATUS.REJECTED]:{
+          color:this.teamVariables.rejectColor || '#dc3545',
+          title:"judge.levelRejected",
+          image:this.teamVariables.rejectedEmote || this.emotes.axemuncher,
+        },
+        [ts.LEVEL_STATUS.APPROVED]:{
+          color:this.teamVariables.approveColor || '#01A19F',
+          title:'judge.approved',
+          image:this.teamVariables.approvedEmote || this.emotes.bam,
+        },
+        [ts.LEVEL_STATUS.NEED_FIX]:{
+          color:this.teamVariables.needFixColor || '#D68100',
+          title:'approval.fixPlayerInstructions',
+          image:this.teamVariables.needFixEmote || this.emotes.think,
+        },
+        judgement:{
+          color:this.teamVariables.judgementColor || null,
+          title:'approval.judgementBegin',
+          image:ts.teamVariables.judgementEmote || ts.emotes.judgement,
+        },
+        remove:{
+          color:this.teamVariables.removeColor || '#dc3545',
+          title:'remove.removedBy',
+          image:ts.teamVariables.removeEmote || ts.emotes.buzzyS ,
+        },
+        rerate:{
+          color:"#17a2b8",
+          title:'difficulty.updated',
+        }
+      }
+      
+
+
       //should verify that the discord roles id exist in server
       this.ranks=ts.gs.select("Ranks");
       this.rank_ids=this.ranks.map((r)=>r.discord_roles)
@@ -153,6 +188,20 @@ const TS=function(guild_id,team,client){ //loaded after gs
       .where('pending_votes.guild_id',this.team.id)
   }
 
+
+  this.modOnly=async(discord_id)=>{
+    if(server_config.ownerID && server_config.ownerID.indexOf(discord_id)!==-1){
+      return true;
+    }
+    if(server_config.devs && server_config.devs.indexOf(discord_id)!==-1){
+      return true;
+    }
+    const member=await ts.db.Member.query().where({discord_id}).first()
+    if(member && member.is_mod){
+        return true
+    }
+    return false;
+  }
   
   //to be called whenever there are any updates to level difficulty and clears
   this.recalculateAfterUpdate=async function(){
@@ -704,12 +753,20 @@ const TS=function(guild_id,team,client){ //loaded after gs
     var pointsDifference=points-nextPoints;
     return pointsDifference
   }
+  
+  class UserError extends Error {
+    constructor(message) {
+      super(message);
+      this.type='user'
+      this.msg=message
+      this.name = "UserError"; // (2)
+    }
+  }
+
+  this.UserError=UserError;
 
   this.userError=function(errorStr){
-    throw {
-      "errorType":"user",
-      "msg":errorStr
-    }
+    throw new UserError(errorStr)
   }
 
   this.makeErrorObj=function(obj,message){
@@ -723,7 +780,7 @@ const TS=function(guild_id,team,client){ //loaded after gs
   }
 
   this.getUserErrorMsg=function(obj,message){
-    if(typeof obj=="object" && obj.errorType=="user"){
+    if(typeof obj=="object" && obj.type=="user"){
       return obj.msg+ts.message("error.afterUserDiscord")
     } else {
       DiscordLog.error(ts.makeErrorObj(obj,message),ts.client)
@@ -732,7 +789,7 @@ const TS=function(guild_id,team,client){ //loaded after gs
   }
 
   this.getWebUserErrorMsg=function(obj){
-    if(typeof obj=="object" && obj.errorType=="user"){
+    if(typeof obj=="object" && obj.type=="user"){
       return { status:"error", message:obj.msg+ts.message("error.afterUserWeb") }
     } else {
       DiscordLog.error({
@@ -863,12 +920,8 @@ const TS=function(guild_id,team,client){ //loaded after gs
     var fixVotes = await ts.getPendingVotes().where("levels.id",level.id).where({type:'fix'});
     var rejectVotes = await ts.getPendingVotes().where("levels.id",level.id).where({type:'reject'});
 
-    var voteEmbed=ts.levelEmbed(level)
-        .setAuthor(ts.message("approval.judgementBegin"));
+    var voteEmbed=ts.levelEmbed(level,this.embedStyle.judgement);
 
-    if(ts.emotes.judgement){
-      voteEmbed.setThumbnail(ts.getEmoteUrl(ts.emotes.judgement));
-    }
 
       var postString = ts.message("approval.approvalVotes");
       if(approveVotes == undefined || approveVotes.length == 0){
@@ -1037,249 +1090,171 @@ const TS=function(guild_id,team,client){ //loaded after gs
   }
 
 
-  this.judge=async function(code, fromFix = false){
-    var guild=this.getGuild()
-    var level = await ts.getExistingLevel(code,fromFix);
-    const author = await ts.db.Members.query().where({name:level.creator}).first();
+  this.initiate=async(author)=>{
+    if(author.is_member != 1){
+      await ts.db.Members.query()
+        .patch({is_member:1})
+        .where({discord_id:author.discord_id})
 
-
-    if(!author){
-      ts.userError(ts.message("approval.creatorNotFound"))
+      if(author.discord_id){ //!argv.test &&
+        //doesn't work with mocked user method here.
+        try{
+          let curr_user=await guild.members.get(author.discord_id)
+          if(curr_user){ //assign role
+            await curr_user.addRole(ts.teamVariables.memberRoleId)
+            await client.channels.get(ts.channels.initiateChannel).send(ts.message("initiation.message",{discord_id:author.discord_id}))
+          } else {
+            if(process.env.NODE_ENV==="production") DiscordLog.error(ts.message("initiation.userNotInDiscord",{name:author.name}),ts.client) //not a breaking error.
+          }
+        } catch (error){
+          if(process.env.NODE_ENV==="production") DiscordLog.error(ts.message("initiation.userNotInDiscord",{name:author.name}),ts.client) //not a breaking error.
+        }
+      }
     }
+  }
 
-    const approvalVotesNeeded=ts.teamVariables.ApprovalVotesNeeded || ts.teamVariables.VotesNeeded || 1
-    const rejectVotesNeeded=ts.teamVariables.RejectVotesNeeded || ts.teamVariables.VotesNeeded || 1
-    const fixVotesNeeded=ts.teamVariables.FixVotesNeeded || ts.teamVariables.VotesNeeded || 1
-
-    //Get all current votes for this level
-    var approvalVotes = await ts.getPendingVotes().where('levels.id',level.id).where("type","approve");
-    var fixVotes = await ts.getPendingVotes().where('levels.id',level.id).where("type","fix");
-    var rejectVotes = await ts.getPendingVotes().where('levels.id',level.id).where("type","reject");
-    var allComments = [...approvalVotes, ...fixVotes, ...rejectVotes];
-    var fixComments = [...fixVotes, ...rejectVotes];
-
-    //Count Approval and Rejection Votes
-    var approvalVoteCount = approvalVotes.length;
-    var fixVoteCount = fixVotes.length + approvalVotes.length;
-    var rejectVoteCount = rejectVotes.length;
-
-    let fixMode = false;
-
-    if(rejectVoteCount >= rejectVotesNeeded && rejectVoteCount>approvalVoteCount){
-      //Reject level
-      await ts.db.Levels.query().patch({status:ts.LEVEL_STATUS.REMOVED})
-        .where({code:code})
-
-      //Build embed
-      var color="#dc3545",title;
-      if(level.status===ts.LEVEL_STATUS.PENDING){
-        title=ts.message("judge.levelRejected")
+  this.embedComments=(embed,comments)=>{
+    for(let i = 0; i < comments.length; i++){
+      let msgString = "";
+      if(comments[i].type=="fix"){
+        msgString='judge.votedFix'
+      } else if(comments[i].type=="approve"){
+        msgString='judge.votedApprove'
       } else {
-        title=ts.message("judge.levelRemoved")
+        msgString='judge.votedReject'
       }
-      if(this.emotes.axemuncher){
-        var image=this.getEmoteUrl(this.emotes.axemuncher);
-      }
-    }  else if (
-        approvalVoteCount >= approvalVotesNeeded
-        && approvalVoteCount>rejectVoteCount 
-    ){
-      if(level.status !== ts.LEVEL_STATUS.PENDING && level.status !== ts.LEVEL_STATUS.NEED_FIX)
-        ts.userError(ts.message("approval.levelNotPending"))
-        //Get the average difficulty and round to nearest .5, build the message at the same time
-        var diffCounter = 0;
-        var diffSum = 0;
-        for(var i = 0; i < approvalVotes.length; i++){
-          var diff = parseFloat(approvalVotes[i].difficulty_vote);
-          if(!Number.isNaN(diff)){
-            diffCounter++;
-            diffSum += diff;
-          }
-        }
-        for(var i = 0; i < fixVotes.length; i++){
-          var diff = parseFloat(fixVotes[i].difficulty_vote);
-          if(!Number.isNaN(diff)){
-            diffCounter++;
-            diffSum += diff;
-          }
-        }
+      let embedHeader=ts.message(msgString,{ ...comments[i] })
+      ts.embedAddLongField(embed,embedHeader,comments[i].reason)
+    }
+  }
 
-        var finalDiff = Math.round((diffSum/diffCounter)*2)/2;
+      //Count Approval and Rejection Votes
+  this.processVotes=({ approvalVotesCount=0,fixVotesCount=0,rejectVotesCount=0 })=>{
+    var fixAndApproveVoteCount = fixVotesCount + approvalVotesCount;
+    const VotesNeeded=parseInt(ts.teamVariables.VotesNeeded,10)
+    const approvalVotesNeeded=parseInt(ts.teamVariables.ApprovalVotesNeeded,10) || VotesNeeded || 1
+    const rejectVotesNeeded=parseInt(ts.teamVariables.RejectVotesNeeded,19) || VotesNeeded || 1
+    const fixVotesNeeded= parseInt(ts.teamVariables.FixVotesNeeded,10) || approvalVotesNeeded || VotesNeeded || 1
 
-        //Only if the level is pending we approve it and send the message
-
-        await ts.db.Levels.query().patch({
-            status:ts.LEVEL_STATUS.APPROVED,
-            difficulty:finalDiff,
-          })
-          .where({code:code})
-
-        await ts.recalculateAfterUpdate({code})
-
-        //Update author to set cult_member if they're not already. send initiate message and assign cult role
-        if(author.is_member != 1){
-          await ts.db.Members.query()
-            .patch({is_member:true})
-            .where({name:author.name})
-
-          if(author.discord_id){ //!argv.test &&
-            //doesn't work with mocked user method here.
-            try{
-              var curr_user=await guild.members.get(author.discord_id)
-              if(curr_user){ //assign role
-                await curr_user.addRole(ts.teamVariables.memberRoleId)
-                await client.channels.get(ts.channels.initiateChannel).send(ts.message("initiation.message",{discord_id:author.discord_id}))
-              } else {
-                DiscordLog.error(ts.message("initiation.userNotInDiscord",{name:author.name}),ts.client) //not a breaking error.
-              }
-            } catch (error){
-              DiscordLog.error(ts.message("initiation.userNotInDiscord",{name:author.name}),ts.client) //not a breaking error.
-            }
-          }
-        }
-
-        //Build Status Message
-        var color="#01A19F";
-        var title=ts.message('judge.approved',{difficulty:finalDiff});
-        if(this.emotes.bam){
-          var image=this.getEmoteUrl(this.emotes.bam);
-        }
-      } else if (
-        fixVoteCount >= fixVotesNeeded
-        && approvalVoteCount>rejectVoteCount
-        && fixVoteCount > 0
-        && level.status !== ts.LEVEL_STATUS.NEED_FIX
-      ) {
-      if(level.status !== ts.LEVEL_STATUS.PENDING)
-        ts.userError(ts.message("approval.levelNotPending"))
-
-      await ts.db.Levels.query().patch({status:ts.LEVEL_STATUS.NEED_FIX})
-        .where({code:code})
-
-      var color="#D68100";
-      var title=ts.message("approval.fixPlayerInstructions");
-      if(this.emotes.think){
-        var image=this.getEmoteUrl(this.emotes.think);
-      }
-
-      fixMode = true;
-    } else if(approvalVoteCount==rejectVoteCount ) {
+    const approvalRatio=approvalVotesCount/approvalVotesNeeded
+    const rejectionRatio=rejectVotesCount/rejectVotesNeeded
+    const fixRatio=fixAndApproveVoteCount/fixVotesNeeded
+    let statusUpdate;
+    if ( approvalRatio>=1 && approvalRatio > rejectionRatio){
+      statusUpdate=ts.LEVEL_STATUS.APPROVED
+    } else if( rejectionRatio>=1 && rejectionRatio>approvalRatio && rejectionRatio>fixRatio){
+      statusUpdate=ts.LEVEL_STATUS.REJECTED
+    } else if ( fixRatio >= 1 && fixRatio != rejectionRatio) {
+      statusUpdate=ts.LEVEL_STATUS.NEED_FIX
+    } else if(rejectVotesCount!==0 && ( fixRatio==rejectionRatio || approvalRatio==rejectionRatio )){
       ts.userError(ts.message("approval.comboBreaker"));
     } else {
-      ts.userError(ts.message("approval.numVotesNeeded"),{vote_num:approvalVotesNeeded});
+      ts.userError(ts.message('approval.numVotesNeeded'));
     }
+    return statusUpdate
+  }
 
-    var mention = ts.message("general.heyListen",{discord_id:author.discord_id});
-    var judgeEmbed = ts.levelEmbed(level)
-      .setColor(color)
-      .setAuthor(title);
 
-    if(image){
-      judgeEmbed.setThumbnail(image);
-    }
 
-    if(fixMode){
-      judgeEmbed.setDescription(ts.message("approval.fixInstructionsCreator"));
-    }
 
-    if(fixMode){
-      for(let i = 0; i < fixComments.length; i++){
-        let msgString = "";
-        if(fixComments[i].type=="fix"){
-          msgString='judge.votedFix';
-        } else {
-          msgString='judge.votedReject';
+  this.judge=async function(code, fromFix = false){
+    const level = await ts.getExistingLevel(code,fromFix);
+    const author = await ts.db.Members.query().where({name:level.creator}).first();
+    if(!author) ts.userError(ts.message("approval.creatorNotFound"));
+
+    if(
+      level.status !== ts.LEVEL_STATUS.PENDING && 
+      level.status !== ts.LEVEL_STATUS.NEED_FIX
+    ) ts.userError(ts.message("approval.levelNotPending"));
+
+    //Get all current votes for this level
+    const approvalVotes = await ts.getPendingVotes().where('levels.id',level.id).where("type","approve");
+    const fixVotes = await ts.getPendingVotes().where('levels.id',level.id).where("type","fix");
+    const rejectVotes = await ts.getPendingVotes().where('levels.id',level.id).where("type","reject");
+    
+    
+    const statusUpdate=this.processVotes({
+      approvalVotesCount:approvalVotes.length,
+      rejectVotesCount:rejectVotes.length,
+      fixVotesCount:fixVotes.length,
+    })
+  
+    let difficulty;
+    if(statusUpdate==ts.LEVEL_STATUS.APPROVED){
+      ts.initiate(author)
+      let difficultyArr=[...approvalVotes,...fixVotes]
+      let diffCounter = 0;
+      let diffSum = 0;
+      for(let i = 0; i < difficultyArr.length; i++){
+        let diff = parseFloat(difficultyArr[i].difficulty_vote);
+        if(!Number.isNaN(diff)){
+          diffCounter++;
+          diffSum += diff;
         }
-        let embedHeader=ts.message(msgString,{ ...fixComments[i] })
-        ts.embedAddLongField(judgeEmbed,embedHeader,fixComments[i].reason)
       }
-    } else {
-      for(let i = 0; i < allComments.length; i++){
-        let msgString = "";
-        if(allComments[i].type=="fix"){
-          msgString='judge.votedFix'
-        } else if(allComments[i].type=="approve"){
-          msgString='judge.votedApprove'
-        } else {
-          msgString='judge.votedReject'
-        }
-        let embedHeader=ts.message(msgString,{ ...allComments[i] })
-        ts.embedAddLongField(judgeEmbed,embedHeader,allComments[i].reason)
-      }
+      difficulty = Math.round((diffSum/diffCounter)*2)/2;
     }
 
-    await client.channels.get(ts.channels.levelChangeNotification).send(mention);
-    await client.channels.get(ts.channels.levelChangeNotification).send(judgeEmbed);
+    if(statusUpdate!=null && statusUpdate!==0){
+      await ts.db.Levels.query()
+        .patch({status:statusUpdate,difficulty})
+        .where({code})
+        await ts.recalculateAfterUpdate({code})
 
+      const mention = this.message("general.heyListen",{discord_id:author.discord_id});
+      const judgeEmbed = this.levelEmbed(level,this.embedStyle[statusUpdate],{difficulty})
+    
+      if(statusUpdate===this.LEVEL_STATUS.NEED_FIX) 
+        judgeEmbed.setDescription(ts.message("approval.fixInstructionsCreator"));
 
-    //Remove Discussion Channel
-    if(!fromFix){
+      this.embedComments(judgeEmbed,[...approvalVotes, ...fixVotes, ...rejectVotes])
+      
+      await client.channels.get(ts.channels.levelChangeNotification).send(mention);
+      await client.channels.get(ts.channels.levelChangeNotification).send(judgeEmbed);
+      //Remove Discussion Channel
       await ts.deleteDiscussionChannel(level.code,ts.message("approval.channelDeleted"))
     } else {
-      await ts.deleteReuploadChannel(level.code,ts.message("approval.channelDeleted"))
+      throw new Error('status updated was null or 0 but was not thrown before')
     }
   }
 
   this.rejectLevelWithReason=async function(code, shellder, message){
     let level=ts.getLevels().where({code})
     
-    var approvalVotes = await ts.getPendingVotes().where('levels.id',level.id).where("type","approve");
-    var fixVotes = await ts.getPendingVotes().where('levels.id',level.id).where("type","fix");
-    var rejectVotes = await ts.getPendingVotes().where('levels.id',level.id).where("type","reject");
-    var allComments = [...approvalVotes, ...fixVotes, ...rejectVotes];
+    let approvalVotes = await ts.getPendingVotes().where('levels.id',level.id).where("type","approve");
+    let fixVotes = await ts.getPendingVotes().where('levels.id',level.id).where("type","fix");
+    let rejectVotes = await ts.getPendingVotes().where('levels.id',level.id).where("type","reject");
 
-    await ts.db.Levels.query().patch({status:ts.LEVEL_STATUS.REMOVED})
+    await ts.db.Levels.query().patch({status:ts.LEVEL_STATUS.REJECTED})
         .where({code})
 
     const author = await ts.db.Member.query().where({"name":updateLevel.creator});
 
-    var color="#dc3545";
-
     var mention = ts.message("general.heyListen",{discord_id:author.discord_id});
-    var exampleEmbed = ts.levelEmbed(updateLevel)
-      .setColor(color)
+    var exampleEmbed = ts.levelEmbed(updateLevel,this.embedStyle[ts.LEVEL_STATUS.REJECTED])
       .setAuthor(ts.message("approval.rejectAfterRefuse"))
 
-    if(this.emotes.axemuncher){
-      var image=this.getEmoteUrl(this.emotes.axemuncher);
-      exampleEmbed.setThumbnail(image);
-    }
-
     exampleEmbed.setDescription("Rejected by <@" + shellder.id + ">: " + message);
+    this.embedComments(exampleEmbed,[...approvalVotes, ...fixVotes, ...rejectVotes]);
 
-    for(var i = 0; i < allComments.length; i++){
-      let action = "";
-      if(allComments[i].type=="fix"){
-        action = " voted for fix with difficulty " + allComments[i].difficulty_vote;
-      } else if(allComments[i].type=="approve"){
-        action = " voted to approve with difficulty " + allComments[i].difficulty_vote;
-      } else {
-        action = " voted for rejection";
-      }
-      var embedHeader=allComments[i].player + action +":"
-      ts.embedAddLongField(exampleEmbed,embedHeader,allComments[i].reason)
-    }
 
     await client.channels.get(ts.channels.levelChangeNotification).send(mention);
     await client.channels.get(ts.channels.levelChangeNotification).send(exampleEmbed);
 
     //Remove Discussion Channel
-    await ts.deleteReuploadChannel(code,ts.message("approval.channelDeleted"))
+    await ts.deleteDiscussionChannel(code,ts.message("approval.channelDeleted"))
   }
 
   this.deleteDiscussionChannel=async function(code,reason){
-    var levelChannel=this.getGuild().channels.find(channel => channel.name === code.toLowerCase() && channel.parent.id == ts.channels.levelDiscussionCategory)
+    if(!code) throw new Error('No code given to this.deleteDiscussionChannel')
+    if(this.valid_code(code.toUpperCase())){
+      const levelChannel=this.getGuild().channels.find(channel => channel.name === code.toLowerCase())
       if(levelChannel){
         await levelChannel.delete(reason)
       }
+    }
   }
 
-  this.deleteReuploadChannel=async function(code,reason){
-    var levelChannel=this.getGuild().channels.find(channel => channel.name === code.toLowerCase() && channel.parent.id == ts.channels.pendingReuploadCategory)
-      if(levelChannel){
-        await levelChannel.delete(reason)
-      }
-  }
 
   this.putFeedback = async function(ip, discordId, salt, message){
     let hash = crypto.createHmac('sha512', salt);
@@ -1290,7 +1265,7 @@ const TS=function(guild_id,team,client){ //loaded after gs
   }
 
 
-  this.levelEmbed=function(level,noLink){
+  this.levelEmbed=function(level,{ color, title, image, noLink },titleArgs){
     var vidStr=[]
 
     level.videos.split(",").forEach((vid,i)=>{
@@ -1306,7 +1281,7 @@ const TS=function(guild_id,team,client){ //loaded after gs
     })
     tagStr=tagStr.join(",")
     var embed = client.util.embed()
-        .setColor("#007bff")
+        .setColor(color ||"#007bff")
         .setTitle(level.level_name + " (" + level.code + ")")
         .setDescription(
           "made by "+
@@ -1316,6 +1291,11 @@ const TS=function(guild_id,team,client){ //loaded after gs
             (tagStr?"Tags: "+tagStr+"\n":"")+
             (vidStr?"Clear Video: "+vidStr:"")
         )
+
+    if(title) embed.setAuthor(ts.message(title,titleArgs))
+    if(image) image=this.getEmoteUrl(image);
+    if(image) embed.setThumbnail(image);
+
       if(!noLink){
         embed.setURL(server_config.page_url + ts.url_slug + "/level/" + level.code)
       }
@@ -1416,7 +1396,6 @@ const TS=function(guild_id,team,client){ //loaded after gs
       new_level=await ts.getLevels().where({code:new_code}).first();
     }
 
-    //await ts.deleteReuploadChannel(old_code,ts.message("approval.channelDeleted"))
 
     if(oldApproved == ts.LEVEL_STATUS.NEED_FIX || oldApproved == ts.LEVEL_STATUS.APPROVED ){
       //set the new one to fix request status and add channel
@@ -1437,12 +1416,13 @@ const TS=function(guild_id,team,client){ //loaded after gs
       var overviewMessage;
       var discussionChannel;
 
+
+      //TODO: move levels to different category and rename instead of delete
       let guild=ts.getGuild()
 
       discussionChannel = guild.channels.find(channel => channel.name === new_level.code.toLowerCase() && channel.parent.id == ts.channels.pendingReuploadCategory); //not sure should specify guild/server
-
       if(discussionChannel){
-        await ts.deleteReuploadChannel(new_code,ts.message("approval.channelDeleted"))
+        await ts.deleteDiscussionChannel(new_code,ts.message("approval.channelDeleted"))
       }
 
       //Create new channel and set parent to category
