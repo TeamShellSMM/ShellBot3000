@@ -46,6 +46,16 @@ describe('registration', function () {
     })
     assert.deepEqual(result,await ts.mockMessage('register.already',{type:'userError'},{name:'Creator'}),)
   })
+
+  
+  it('!register banned', async function () {
+    assert.equal(await mockBotSend({
+      cmd: '!register',
+      channel: 'general',
+      discord_id: '-1',
+    }),await ts.mockMessage('error.userBanned',{type:'userError'}),)
+  })
+
   it('try registering as someone else', async function () {
     result = await mockBotSend({
       cmd: '!register Mod',

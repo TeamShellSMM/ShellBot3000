@@ -59,7 +59,7 @@ class TSFixApprove extends TSCommand {
         if(args.message){
           replyMessage = await ts.rejectLevelWithReason(code, message.author, args.message);
         } else {
-          ts.userError(ts.message('fixapprove.noReason'));
+          ts.userError(ts.message('fixApprove.noReason'));
         }
       }
 

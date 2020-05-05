@@ -39,7 +39,7 @@ class tsremove extends TSCommand {
         await ts.recalculateAfterUpdate({code})
 
 
-        var removeEmbed=ts.levelEmbed(level,this.embedStyle["remove"],{name:player.name})
+      var removeEmbed=ts.levelEmbed(level,this.embedStyle["remove"],{name:player.name})
 
         if(ts.emotes.buzzyS){
           removeEmbed.setThumbnail(ts.getEmoteUrl());

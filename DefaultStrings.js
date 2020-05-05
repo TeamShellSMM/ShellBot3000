@@ -15,16 +15,16 @@ module.exports={
  'login.expiredOTP':'The OTP password given is already expired',
  'login.noOTP':'No OTP provided',
 
- 'level.didYouMean':' Did you mean:```\n{{{level_info}}}```', //✅
+ 'level.didYouMean':' Did you mean:```\n{{{level_info}}}```', 
 
  'error.noDiscordId':'We couldn\'t find your `discord id',
  'clear.noArgs':'There were no arguments in the request',
- 'clear.invalidDifficulty':'You did not provide a valid difficulty vote', //✅
- 'clear.ownLevel':'You can\'t submit a clear for your own level', //✅
- 'clear.removedClear':'You have removed your clear for {{{levelInfo}}}', //✅
- 'clear.addClear':' ‣You have cleared {{{levelInfo}}} {{{GG}}}', //✅
- 'clear.earnedPoints':' ‣You have earned {{earned_points}} points', //✅
- 'clear.pendingLevel':' ‣This level is still pending', //✅
+ 'clear.invalidDifficulty':'You did not provide a valid difficulty vote', 
+ 'clear.ownLevel':'You can\'t submit a clear for your own level', 
+ 'clear.removedClear':'You have removed your clear for {{{levelInfo}}}', 
+ 'clear.addClear':' ‣You have cleared {{{levelInfo}}} {{{GG}}}', 
+ 'clear.earnedPoints':' ‣You have earned {{earned_points}} points', 
+ 'clear.pendingLevel':' ‣This level is still pending', 
  'clear.alreadyUncleared':' ‣You have not submited a clear for {{{levelInfo}}}',
  'clear.alreadyCleared':' ‣You have already submitted a clear for {{{levelInfo}}}',
  'clear.removeDifficulty':'‣You have removed your difficulty vote for {{{levelInfo}}} {{{bam}}}',
@@ -80,7 +80,7 @@ module.exports={
  'remove.removedBy':'This level has been removed by {{name}}',
  'reupload.invalidOldCode':'You did not provide a valid code for the old level',
  'reupload.invalidNewCode':'You did not provide a valid code for the new level',
- 'reupload.sameCode':'The codes given were the same', //✅
+ 'reupload.sameCode':'The codes given were the same', 
  'reupload.giveReason':'Please provide a little message on why you reuploaded at the end of the command (in quotes)',
  'reupload.differentCreator':'The new level uploaded doesn\'t have the same creator as the old level',
  'reupload.wrongApprovedStatus':'The new level is not approved, pending or in a fix request',
@@ -105,14 +105,14 @@ module.exports={
  'pending.refuseDescription':'Refused by: Please check the fixvotes and decide if this is still acceptable to approve or not (use **!fixapprove** or **!fixreject** with a message).',
  'pending.fixReuploadDescription':'Please check if the mandatory fixes where made and make your decision (use **!fixapprove** or **!fixreject** with a message).',
 
- 'removeLevel.cant':'You can\'t remove videos from  "{{{level_name}}}" by {{{creator}}}',//✅
- 'removeLevel.success':'You have removed "{{{level_name}}}" by {{{creator}}} {{{buzzyS}}}',//✅
- 'removeLevel.noReason':"You did not provide a reason to remove this level. If you want to reupload, we recommend using the `!reupload` command. If you want to remove it now and reupload it later make sure __you don't lose the old code__",//✅
- 'removeLevel.alreadyRemoved':'"{{{level_name}}}" by {{{creator}}} has already been removed',//✅
+ 'removeLevel.cant':'You can\'t remove videos from  "{{{level_name}}}" by {{{creator}}}',
+ 'removeLevel.success':'You have removed "{{{level_name}}}" by {{{creator}}} {{{buzzyS}}}',
+ 'removeLevel.noReason':"You did not provide a reason to remove this level. If you want to reupload, we recommend using the `!reupload` command. If you want to remove it now and reupload it later make sure __you don't lose the old code__",
+ 'removeLevel.alreadyRemoved':'"{{{level_name}}}" by {{{creator}}} has already been removed',
 
  'error.notApproved':'Level is not approved',
- 'error.userBanned':'You have been barred from using this service',//✅
- 'error.notRegistered':'You are not yet registered',//✅
+ 'error.userBanned':'You have been barred from using this service',
+ 'error.notRegistered':'You are not yet registered',
  'error.emptyLevelList':'No levels found buzzyS',
  'error.afterUserDiscord':' {{{think}}}',
  'error.afterUserWeb':'',
@@ -124,54 +124,55 @@ module.exports={
  'error.invalidCode':'You did not provide a valid level code',
  'error.invalidMakerCode':'`{{code}}` is not a valid maker id',
 
- 'points.points':'You have {{player.earned_points.clearPoints}} clear points. You have submitted {{player.earned_points.levelsMade}} level(s) {{#if player.earned_points.freeSubmissions}} ({{player.earned_points.freeSubmissions}} free submission(s)){{/if}}.',  //✅
+ 'points.points':'You have {{player.earned_points.clearPoints}} clear points. You have submitted {{player.earned_points.levelsMade}} level(s) {{#if player.earned_points.freeSubmissions}} ({{player.earned_points.freeSubmissions}} free submission(s)){{/if}}.',  
  'points.canUpload':'You have enough points to upload a level {{{PigChamp}}}',
  'points.cantUpload':'You need {{points_needed}} points to upload a new level {{{buzzyS}}}. Check how the points are mapped on {{teamurl}}',
- 'points.rank':' You have earned the rank **{{player.rank.Rank}}** {{{player.rank.Pips}}}',  //✅
+ 'points.rank':' You have earned the rank **{{player.rank.Rank}}** {{{player.rank.Pips}}}',  
 
- 'difficulty.updated':'Difficulty rating updated from {{old_difficulty}} - {{new_difficulty}}',//✅
- 'difficulty.success':'Difficulty was successfully changed!',//✅
- 'difficulty.noReason':'You need to give a reason for the change (in quotation marks)!',//✅
+ 'difficulty.updated':'Difficulty rating updated from {{old_difficulty}} - {{new_difficulty}}',
+ 'difficulty.success':'Difficulty was successfully changed!',
+ 'difficulty.noReason':'You need to give a reason for the change (in quotation marks)!',
 
- 'add.noName':'You didn\'t give a level name', //✅
- 'add.levelExisting':'`{{level.code}}` has already been submitted as \'{{{level.level_name}}}\' by {{level.creator}}',//✅
- 'add.success':'The level {{{level_name}}} ({{code}}) has been added {{{love}}}',//✅
+ 'add.noName':'You didn\'t give a level name', 
+ 'add.levelExisting':'`{{level.code}}` has already been submitted as \'{{{level.level_name}}}\' by {{level.creator}}',
+ 'add.success':'The level {{{level_name}}} ({{code}}) has been added {{{love}}}',
 
- 'tags.noTags':'You didn\'t give any tags',  //✅
+ 'tags.noTags':'You didn\'t give any tags',  
  'tags.cantAdd':'You can\'t add the tag \'{{tag}}\'',
 
- 'register.already':'You\'re already registered as **{{name}}**',//✅
- 'register.nameTaken':'\'{{name}}\' has already been registered by someone else. Please use another nickname',//✅
- 'register.success':'You are now registered as \'{{name}}\'. You can now start submitting your clears in #level-clears {{{bam}}}',//✅
+ 'register.already':'You\'re already registered as **{{name}}**',
+ 'register.nameTaken':'\'{{name}}\' has already been registered by someone else. Please use another nickname',
+ 'register.success':'You are now registered as \'{{name}}\'. You can now start submitting your clears in #level-clears {{{bam}}}',
 
  'login.reply':' You have requested a login token for the website. click the link below to login.:\n <{{login_link}}> {{{bam}}}\n If you\'re on mobile, copy the link and paste it into your preferred browser app. If you open this link in an in-app browser, your login might not be saved properly. {{{buzzyS}}}\n This token will only be valid for 30 minutes',
 
- 'makerid.noCode':'You didn\'t provide any maker code',//✅
- 'makerid.noName':'You didn\'t provide your maker name',//✅
- 'makerid.success':'You have updated your maker-id to {{code}} and maker-name to {{name}} {{{bam}}}',//✅
- 'makerid.existing':'`{{code}} is already being used by \'{{name}}\' ',//✅
- 'makerid.already':'`{{code}}` is already what you have set for your maker-id ',//✅
+ 'makerid.noCode':'You didn\'t provide any maker code',
+ 'makerid.noName':'You didn\'t provide your maker name',
+ 'makerid.success':'You have updated your maker-id to {{code}} and maker-name to {{name}} {{{bam}}}',
+ 'makerid.existing':'`{{code}} is already being used by \'{{name}}\' ',
+ 'makerid.already':'`{{code}}` is already what you have set for your maker-id ',
 
- 'setworld.invalidWorldCount':'You didn\'t provide a valid world count',//✅
- 'setworld.invalidLevelCount':'You didn\'t provide a valid level count',//✅
- 'setworld.noWorldName':'You didn\'t provide a world name',//✅
- 'setworld.success':'Your world was successfully set and should now show up on the worlds page',//✅
- 'setworld.noMakerId':'You need to set your Maker ID and Name first with !makerid XXX-XXX-XXX Name',//✅
+ 'setworld.invalidWorldCount':'You didn\'t provide a valid world count',
+ 'setworld.invalidLevelCount':'You didn\'t provide a valid level count',
+ 'setworld.noWorldName':'You didn\'t provide a world name',
+ 'setworld.success':'Your world was successfully set and should now show up on the worlds page',
+ 'setworld.noMakerId':'You need to set your Maker ID and Name first with !makerid XXX-XXX-XXX Name',
 
 
 
- 'unsetworld.success':'Your world was successfully removed',//✅
+ 'unsetworld.success':'Your world was successfully removed',
 
- 'atme.already':'You already have chosen to be atted',//✅
- 'atme.willBe':'You will be atted by {{BotName}} {{{bam}}}',//✅
- 'atme.alreadyNot':'You already have chosen not to be atted', //✅
- 'atme.willBeNot':'You will not be atted by {{BotName}} {{{bam}}}',//✅
+ 'atme.already':'You already have chosen to be atted',
+ 'atme.willBe':'You will be atted by {{BotName}} {{{bam}}}',
+ 'atme.alreadyNot':'You already have chosen not to be atted', 
+ 'atme.willBeNot':'You will not be atted by {{BotName}} {{{bam}}}',
 
  'ammendCode.success':'The level "{{{level.level_name}}}", by {{level.creator}}, has changed code from `{{old_code}}` to `{{new_code}}`',
 
 
  'help.basic':'You can find all the commands at <https://makerteams.net/features>',
- 'mock.userSuccess':"You're now {{name}}. Identity theft is not a joke, Jim!", //✅
-
+ 'mock.userSuccess':"You're now {{name}}. Identity theft is not a joke, Jim!", 
+ 'resetStatus.alreadyPending':'This level is already pending. This command will reset level\'s status to PENDING',
+ 'resetStatus.succesful':'"{{{level_name}}}" by {{{creator}}} has been reset to PENDING',
 
 }

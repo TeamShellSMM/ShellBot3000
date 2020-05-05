@@ -153,13 +153,9 @@ const TS=function(guild_id,team,client){ //loaded after gs
 
       
       
-      if(server_config.AutomatedTest == guild_id && argv.test){
-        await DiscordLog.log(`Data loaded for ${this.teamVariables.TeamName}. Starting Test`,this.client)
-        guild.channels.get(TS.TS_LIST[guild.id].channels.modChannel).send('?test')
-      } else {
-        if(process.env.NODE_ENV !== "testing"){
-          await DiscordLog.log(`Data loaded for ${this.teamVariables.TeamName}`,this.client)
-        }
+    
+      if(process.env.NODE_ENV !== "testing"){
+        await DiscordLog.log(`Data loaded for ${this.teamVariables.TeamName}`,this.client)
       }
   }
 
@@ -196,8 +192,9 @@ const TS=function(guild_id,team,client){ //loaded after gs
     if(server_config.devs && server_config.devs.indexOf(discord_id)!==-1){
       return true;
     }
-    const member=await ts.db.Member.query().where({discord_id}).first()
+    const member=await ts.db.Members.query().where({discord_id}).first()
     if(member && member.is_mod){
+        console.log('in there')
         return true
     }
     return false;
@@ -521,12 +518,6 @@ const TS=function(guild_id,team,client){ //loaded after gs
     }
   }
 
-  function argToStr(str){
-    return (str==null?'':str+'').toLowerCase()
-
-  }
-
-
   this.commandPassedBoolean=(value)=>{
     if(value==='') return null;
     if(['1',1,true].includes(value)) return 1;
@@ -561,6 +552,8 @@ const TS=function(guild_id,team,client){ //loaded after gs
 
     if(args.completed==null && args.liked==null && args.difficulty==null) ts.userError(ts.message('clear.noArgs'))
 
+
+    if(args.code==null) ts.userError(ts.message('error.noCode'))
     args.code=args.code.toUpperCase();
 
     if(args.difficulty) args.difficulty=parseFloat(args.difficulty)
