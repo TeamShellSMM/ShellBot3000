@@ -17,8 +17,6 @@ class TSLevelStatus extends TSCommand {
         const approval_votes_needed=ts.get_variable("ApprovalVotesNeeded")
         const reject_votes_needed=ts.get_variable("RejectVotesNeeded")
 
-        if(!ts.valid_format(code))
-            ts.userError("Level code given was not in xxx-xxx-xxx format")
         if(!ts.valid_code(code))
             ts.userError("There were some invalid characters in your level code")
 

@@ -27,11 +27,11 @@ class points extends TSCommand {
 
         var msg=ts.message("points.points",{ player })
 
-        if(player.earned_points.pointsNeeded>=0){
+        if(player.earned_points.canUpload){
            msg+=ts.message("points.canUpload");
         } else {
            msg+=ts.message("points.cantUpload",{
-             "points_earned":Math.abs(player.earned_points.pointsNeeded).toFixed(1)
+             points_earned:player.earned_points.pointsNeeded
            })
         }
         msg+=ts.message("points.rank",{ player })
