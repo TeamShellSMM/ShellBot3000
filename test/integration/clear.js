@@ -1,6 +1,6 @@
 describe('!clears', function () {
-  before(async () => {
-    await ts.setupData({
+  beforeEach(async () => {
+    await TEST.setupData({
       Members: [{
         name: 'Mod',
         discord_id: '128',
@@ -34,13 +34,22 @@ describe('!clears', function () {
     });
   });
 
-  it('no arguments', async function () {
-    const result = await mockBotSend({
+  it('no level code', async function () {
+    const result = await TEST.mockBotSend({
       cmd: '!clear',
       channel: 'general',
       discord_id: '256',
     })
-    assert.equal(result,await ts.mockMessage('error.noCode',{type:'userError'},{name:'Creator'}))
+    assert.equal(result,await TEST.mockMessage('error.noCode',{type:'userError'},{name:'Creator'}))
+  })
+
+  it('no level code', async function () {
+    const result = await TEST.mockBotSend({
+      cmd: '!clear',
+      channel: 'general',
+      discord_id: '256',
+    })
+    assert.equal(result,await TEST.mockMessage('error.noCode',{type:'userError'},{name:'Creator'}))
   })
 
 })

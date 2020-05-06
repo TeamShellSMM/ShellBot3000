@@ -25,7 +25,7 @@ class TSRerate extends TSCommand {
 
     async tsexec(ts,message,{ code , difficulty, reason }) {
       if(!(
-        message.channel.id === ts.channels.modChannel  //only in bot-test channel
+        message.channel.id === ts.channels.modChannel 
       )) return false;
 
       if(code){

@@ -12,10 +12,6 @@ class TSCommand extends Command {
     }
 
     async exec(message,args) {
-        if(process.argv[2]==='--test' && typeof global.TESTREPLY === "function" ){
-            message.reply=global.TESTREPLY
-            message.channel.send=global.TESTREPLY
-        }
         let ts;
         try {
             ts=TS.teams(message.guild.id)
@@ -25,7 +21,7 @@ class TSCommand extends Command {
         }
         
         if(!await this.canRun(ts,message)){
-            DiscordLog.error(ts.makeErrorObj(`can't run: ${message.content}`,message),ts.client)
+            DiscordLog.log(ts.makeErrorObj(`can't run: ${message.content}`,message),ts.client)
             return false;
         }
 

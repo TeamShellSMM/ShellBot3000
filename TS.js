@@ -1,6 +1,5 @@
 'use strict'
 const stringSimilarity = require('string-similarity')
-const argv = require('yargs').argv
 const Handlebars = require("handlebars");
 const crypto=require('crypto');
 const moment=require('moment');
@@ -10,7 +9,7 @@ const DEFAULTMESSAGES=require("./DefaultStrings.js");
 const DiscordLog = require('./DiscordLog');
 
 const GS=require("./GS.js");
-const TS=function(guild_id,team,client){ //loaded after gs
+const TS=function(guild_id,team,client,gs){ //loaded after gs
   if(!client) throw new Error(`No client passed to TS()`);
   const ts=this;
   this.team=team;
@@ -21,15 +20,16 @@ const TS=function(guild_id,team,client){ //loaded after gs
   this.web_config=this.team.web_config?JSON.parse(this.team.web_config):{}
   this.client=client;
   this.guild_id=guild_id;
-  this.gs=new GS({...server_config,...this.config});
+  /* istanbul ignore next */
+  this.gs=gs?gs:new GS({...server_config,...this.config});
   this.LEVEL_STATUS={
     PENDING:0,
     APPROVED:1,
-    REJECTED:-1,  //can't readd
+    REJECTED:-1,  //can't re-add
     NEED_FIX:-10,
     REUPLOADED:2,
     REMOVED:-2, 
-    USER_REMOVED:-3,  //can re add
+    USER_REMOVED:-3,  //can re-add
   };
   this.db={
     Teams:require('./models/Teams.js')(guild_id),
@@ -68,11 +68,6 @@ const TS=function(guild_id,team,client){ //loaded after gs
 
       await this.gs.loadSheets(static_vars) //loading initial sheets
 
-      this.pointMap={}
-      var _points=ts.gs.select("Points");
-      for(let i=0;i<_points.length;i++){
-        this.pointMap[parseFloat(_points[i].Difficulty)]=parseFloat(_points[i].Points);
-      }
 
       let sheetToMap={
         channels:'Channels',
@@ -134,26 +129,20 @@ const TS=function(guild_id,team,client){ //loaded after gs
       }
       
 
-
       //should verify that the discord roles id exist in server
       this.ranks=ts.gs.select("Ranks");
       this.rank_ids=this.ranks.map((r)=>r.discord_roles)
 
-      if(this.teamVariables.ModName){
-        this.mods=guild.members
-          .filter((m)=> m.roles.some(role=> role.name==this.teamVariables.ModName))
-          .map((m)=> m.user.id)
-      } else {
-        this.mods=[guild.owner.user.id]
-      }
-
-      
       await this.saveSheetToDb();
       await this.recalculateAfterUpdate();
 
+      this.pointMap={}
+      var _points=await ts.db.Points.query().select();
+      for(let i=0;i<_points.length;i++){
+        this.pointMap[_points[i].difficulty]=_points[i].score;
+      }
       
-      
-    
+      /* istanbul ignore if */
       if(process.env.NODE_ENV !== "testing"){
         await DiscordLog.log(`Data loaded for ${this.teamVariables.TeamName}`,this.client)
       }
@@ -169,13 +158,7 @@ const TS=function(guild_id,team,client){ //loaded after gs
       .join('members',{'levels.creator':'members.id'})
       .where('levels.guild_id',this.team.id)
   }
-  this.getPlays=()=>{
-    return knex('plays')
-      .select(knex.raw(`plays.*, members.id player_id,members.name player,levels.id level_id,levels.code code`))
-      .join('members',{'plays.player':'members.id'})
-      .join('levels',{'plays.code':'levels.id'})
-      .where('plays.guild_id',this.team.id)
-  }
+
   this.getPendingVotes=()=>{
     return knex('pending_votes')
       .select(knex.raw(`pending_votes.*, members.id player_id,members.name player,levels.id level_id,levels.code code`))
@@ -186,15 +169,27 @@ const TS=function(guild_id,team,client){ //loaded after gs
 
 
   this.modOnly=async(discord_id)=>{
-    if(server_config.ownerID && server_config.ownerID.indexOf(discord_id)!==-1){
+    if(!discord_id) return false;
+
+    if(server_config.devs && server_config.devs.indexOf(discord_id)!==-1){ //devs can help to troubleshoot
       return true;
     }
-    if(server_config.devs && server_config.devs.indexOf(discord_id)!==-1){
+    const guild=await ts.getGuild();
+    if(guild.owner.user.id==discord_id){ //owner can do anything
       return true;
     }
-    const member=await ts.db.Members.query().where({discord_id}).first()
+
+    if(ts.teamVariables.discordAdminCanMod==='yes'){ 
+      //if yes, any discord mods can do team administrative stuff but won't officially appear in the "Mod" list
+      const discord_user=guild.members.get(discord_id)
+      if(discord_user &&  discord_user.hasPermission("ADMINISTRATOR")){
+        return true
+      }
+    }
+
+    //specified, listed mods can do anything
+    const member=await ts.db.Members.query().where({discord_id}).first() 
     if(member && member.is_mod){
-        console.log('in there')
         return true
     }
     return false;
@@ -301,12 +296,12 @@ const TS=function(guild_id,team,client){ //loaded after gs
         members.maker_points=COALESCE(own_levels.maker_points,0)
       WHERE members.guild_id=:guild_id;
   `,{ guild_id:this.team.id });
-
-
   }
 
   //used to save variables to db?
   this.saveSheetToDb=async function(){
+    await ts.db.Points.transaction(async(trx)=>{
+
     let guild=ts.getGuild();
     let mods=[guild.owner.user.id];
     if(this.teamVariables.ModName){
@@ -315,31 +310,31 @@ const TS=function(guild_id,team,client){ //loaded after gs
         .map((m)=> m.user.id)
     }
 
-    await ts.db.Members.query().patch({is_mod:null}).whereNotIn('discord_id',mods).where({is_mod:1});
-    await ts.db.Members.query().patch({is_mod:1}).whereIn('discord_id',mods).where({is_mod:null});
+    
+
+    await ts.db.Members.query(trx).patch({is_mod:null}).whereNotIn('discord_id',mods).where({is_mod:1});
+    await ts.db.Members.query(trx).patch({is_mod:1}).whereIn('discord_id',mods).where({is_mod:null});
 
     ts.gs.loadSheets(["Points"]);
+    console.time('saveToDb')
     var _points=ts.gs.select("Points");
-    for(let i=0;i<_points.length;i++){
-      this.pointMap[parseFloat(_points[i].Difficulty)]=parseFloat(_points[i].Points);
-      let dbPoint = await ts.db.Points.query().select().where('difficulty', parseFloat(_points[i].Difficulty));
-      if(dbPoint.length == 0){
-        await ts.db.Points.query().insert({
-          difficulty: _points[i].Difficulty,
-          score: _points[i].Points
-        });
-      } else {
-        await ts.db.Points.query().where('difficulty', parseFloat(_points[i].Difficulty)).update({
-          difficulty: _points[i].Difficulty,
-          score: _points[i].Points
-        });
+      for(let i=0;i<_points.length;i++){
+        let dbPoint = await ts.db.Points.query(trx).select().where('difficulty', parseFloat(_points[i].Difficulty));
+        if(dbPoint.length == 0){
+          await ts.db.Points.query(trx).insert({
+            difficulty: _points[i].Difficulty,
+            score: _points[i].Points
+          });
+        } else {
+          await ts.db.Points.query(trx).where('difficulty', parseFloat(_points[i].Difficulty)).update({
+            difficulty: _points[i].Difficulty,
+            score: _points[i].Points
+          });
+        }
       }
-    }
-  }
-
-  this.getDiscordMember=function(discord_id){
-    const member=this.getGuild().members.get(discord_id);
-    return member
+      console.timeEnd('saveToDb')
+    })
+    
   }
 
   this.removeRankRoles=async function(discord_id){
@@ -353,6 +348,33 @@ const TS=function(guild_id,team,client){ //loaded after gs
     //if not has role
     ts.removeRankRoles(discord_id)
     await member.addRole(role_id)
+  }
+
+
+
+  this.addLevel=async({ code, level_name, discord_id })=>{
+    if(!code) ts.userError(ts.message('error.noCode'));
+    if(!ts.valid_code(code)) ts.userError(ts.message("error.invalidCode"));
+    if(!level_name) ts.userError(ts.message("add.noName"));
+
+    const player=await ts.get_user(discord_id);
+    var existing_level=await ts.getLevels().where({ code }).first()
+  
+    if(existing_level) ts.userError(ts.message("add.levelExisting",{level:existing_level}));
+    if(!player.earned_points.canUpload){
+      ts.userError(ts.message("points.cantUpload",{points_needed:player.earned_points.pointsNeeded}));
+    }
+  
+    await ts.db.Levels.query().insert({
+      code,
+      level_name,
+      creator:player.id,
+      difficulty:0,
+      tags: ts.teamVariables.allowSMM1 && ts.is_smm1(code) ? 'SMM1' : '',
+      status:0,
+    })
+    await ts.recalculateAfterUpdate({name:player.name})
+    return { reply:ts.message("add.success",{level_name,code}),player }
   }
 
   /* template and string */
@@ -384,11 +406,16 @@ const TS=function(guild_id,team,client){ //loaded after gs
   this.generateLoginLink=function(otp){
     return server_config.page_url + ts.url_slug + "/login/"+otp
   }
+
+  this.generateToken=(length=8)=>{
+    return crypto.randomBytes(length).toString('hex').toUpperCase()
+  }
+
   this.generateOtp=async function(discord_id){
-    let newOtp=crypto.randomBytes(8).toString('hex').toUpperCase()
+    let newOtp=this.generateToken()
     let existing=await ts.db.Tokens.query().where({token:newOtp}) //need to add check for only within expiry time (30 minutes)
     while(!existing){
-      newOtp=crypto.randomBytes(8).toString('hex').toUpperCase()
+      newOtp=this.generateToken()
       existing=await ts.db.Tokens.query().where({token:newOtp})
     }
     await ts.db.Tokens.query().insert({
@@ -399,10 +426,10 @@ const TS=function(guild_id,team,client){ //loaded after gs
   }
 
   this.login=async function(discord_id,row_id){
-    let bearer=crypto.randomBytes(16).toString('hex').toUpperCase()
+    let bearer=this.generateToken(16)
     let existing=await ts.db.Tokens.query().where({token:bearer}) //need to add check for only within expiry time (30 minutes)
     while(!existing){
-      bearer=crypto.randomBytes(16).toString('hex').toUpperCase()
+      bearer=this.generateToken(16)
       existing=await ts.db.Tokens.query().where({token:bearer})
     }
     await ts.db.Tokens.query()
@@ -528,6 +555,8 @@ const TS=function(guild_id,team,client){ //loaded after gs
 
   this.clear=async (args,strOnly)=>{
 
+    if(!args.discord_id) ts.userError(ts.message("error.noDiscordId"));
+
     if(args.difficulty==="like"){
       args.difficulty=null
       args.liked=1
@@ -565,8 +594,6 @@ const TS=function(guild_id,team,client){ //loaded after gs
     if(args.difficulty!='0' && args.difficulty && !ts.valid_difficulty(args.difficulty)){
       ts.userError(ts.message("clear.invalidDifficulty"));
     }
-
-    if(!args.discord_id) ts.userError(ts.message("error.noDiscordId"));
 
     const player=await ts.get_user(args.discord_id);
     var level=await ts.getExistingLevel(args.code);
@@ -734,17 +761,12 @@ const TS=function(guild_id,team,client){ //loaded after gs
     return this.teamVariables[var_name]
   }
 
-  this.levelsAvailable=function(points,levelsUploaded,freeLevels){
-    var min=parseFloat(this.get_variable("Minimum Point"));
-    var next=parseFloat(this.get_variable("New Level"));
-
-    var nextLevel=levelsUploaded+1-(freeLevels?freeLevels:0);
-    var nextPoints= nextLevel==1? min : min+ (nextLevel-1)*next
-
-    points=parseFloat(points);
-
-    var pointsDifference=points-nextPoints;
-    return pointsDifference
+  this.pointsNeededForLevel=function(args){
+    const { points,levelsUploaded,freeLevels=0,min,next } = args
+    let nextLevel=levelsUploaded+1-(freeLevels || 0);
+    let nextPoints= (nextLevel==1 ? min : min) + (nextLevel-1)*next
+    var pointsDifference=Math.round((nextPoints-parseFloat(points))*10)/10;
+    return Math.max(pointsDifference,0)
   }
   
   class UserError extends Error {
@@ -891,8 +913,10 @@ const TS=function(guild_id,team,client){ //loaded after gs
 
 
   this.get_user= async function(message){
-    var discord_id=typeof message=="string"?message:message.author.id
-    if(!discord_id) ts.userError(ts.message('error.noDiscordId'));
+    let discord_id=message && message.author? message.author.id: message
+    if(!discord_id){
+      ts.userError(ts.message('error.noDiscordId'));
+    }
     var player=await ts.db.Members.query().where({ discord_id }).first()
 
     if(!player)
@@ -953,7 +977,7 @@ const TS=function(guild_id,team,client){ //loaded after gs
 
   this.makePendingReuploadEmbed=async function(level, author, refuse, alreadyApprovedMessage){
     var fixVotes = await ts.getPendingVotes().where("levels.id",level.id).where("type","fix");
-    var voteEmbed=ts.levelEmbed(level);
+    var voteEmbed=ts.levelEmbed(level,ts.embedStyle.judgement);
 
     if(alreadyApprovedMessage){
       //If we got a level we already approved before we just build a mini embed with the message
@@ -1065,21 +1089,14 @@ const TS=function(guild_id,team,client){ //loaded after gs
         overviewMessage = await overviewMessage.pin();
       }
 
-      var voteEmbed=await ts.makeVoteEmbed(level)
-
+      let voteEmbed=await ts.makeVoteEmbed(level)
       if(!overviewMessage){
         overviewMessage = (await discussionChannel.fetchPinnedMessages()).last();
-      }
-
-      await overviewMessage.edit(voteEmbed);
-
-      var replyMessage = "";
-      if(updating){
-        replyMessage += ts.message("approval.voteChanged",{channel_id:discussionChannel.id})
       } else {
-        replyMessage += ts.message("approval.voteAdded",{channel_id:discussionChannel.id})
-      }
-      return replyMessage
+        await overviewMessage.edit(voteEmbed);
+      }      
+
+      return ts.message(updating?'approval.voteChanged':'approval.voteAdded',{channel_id:discussionChannel.id});
   }
 
 
@@ -1097,9 +1114,11 @@ const TS=function(guild_id,team,client){ //loaded after gs
             await curr_user.addRole(ts.teamVariables.memberRoleId)
             await client.channels.get(ts.channels.initiateChannel).send(ts.message("initiation.message",{discord_id:author.discord_id}))
           } else {
+            /* istanbul ignore if */
             if(process.env.NODE_ENV==="production") DiscordLog.error(ts.message("initiation.userNotInDiscord",{name:author.name}),ts.client) //not a breaking error.
           }
         } catch (error){
+          /* istanbul ignore if */
           if(process.env.NODE_ENV==="production") DiscordLog.error(ts.message("initiation.userNotInDiscord",{name:author.name}),ts.client) //not a breaking error.
         }
       }
@@ -1313,16 +1332,31 @@ const TS=function(guild_id,team,client){ //loaded after gs
   }
 
   this.reuploadLevel=async function(message){
+
+    var player=await ts.db.Members.query().where({ discord_id:message.author.id }).first()
+    
+    if(!player){
+      ts.userError(ts.message("error.notRegistered"));
+    }
+
     let command=ts.parse_command(message);
 
     let old_code=command.arguments.shift();
-    if(old_code) old_code=old_code.toUpperCase();
+    if(old_code){
+      old_code=old_code.toUpperCase();
+    } else {
+      ts.userError(ts.message("reupload.noOldCode"))
+    }
 
     if(!ts.valid_code(old_code)) ts.userError(ts.message("reupload.invalidOldCode"))
 
 
     let new_code=command.arguments.shift()
-    if(new_code) new_code=new_code.toUpperCase();
+    if(new_code){
+      new_code=new_code.toUpperCase();
+    } else {
+      ts.userError(ts.message("reupload.noNewCode"))
+    }
 
     if(!ts.valid_code(new_code)) ts.userError(ts.message("reupload.invalidNewCode"));
 
@@ -1331,20 +1365,20 @@ const TS=function(guild_id,team,client){ //loaded after gs
     if(old_code==new_code) ts.userError(ts.message("reupload.sameCode"));
     if(!reason) ts.userError(ts.message("reupload.giveReason"));
 
-    var player=await ts.db.Members.query().where({ discord_id:message.author.id }).first()
-
-    if(!player) ts.userError(ts.message("error.notRegistered"));
+    
 
     var earned_points=await ts.calculatePoints(player.name);
     var rank=ts.get_rank(earned_points.clearPoints);
     var user_reply="<@"+message.author.id+">"+(rank.Pips ? rank.Pips : "")+" ";
 
-    var level=await ts.getExistingLevel(old_code,true)
+    var level=await ts.getLevels().where({code:old_code}).first()
+    if(!level) ts.userError(ts.message("error.levelNotFound",{code:old_code}));
+
     var new_level=await ts.getLevels().where({code:new_code}).first()
     let oldApproved=level.status;
 
 
-    if(!level) ts.userError(ts.message("error.levelNotFound",{code:old_code}));
+    
 
     //Reupload means you're going to replace the old one so need to do that for upload check
     var creator_points=await ts.calculatePoints(level.creator, level.status==ts.LEVEL_STATUS.APPROVED || level.status==ts.LEVEL_STATUS.PENDING || level.status==ts.LEVEL_STATUS.NEED_FIX)
@@ -1356,16 +1390,15 @@ const TS=function(guild_id,team,client){ //loaded after gs
     if( new_level
         && new_level.status != ts.LEVEL_STATUS.PENDING
         && new_level.status != ts.LEVEL_STATUS.APPROVED
-        && new_level.status != ts.LEVEL_STATUS.NEED_FIX
-        ) ts.userError(ts.message("reupload.wrongApprovedStatus"));
-    if(!new_level && creator_points.available<0)
-      ts.userError(ts.message("reupload.notEnoughPoints"));
-    if(level.new_code && ts.valid_code(level.new_code))
+      ) ts.userError(ts.message("reupload.wrongApprovedStatus"));
+    if(!new_level && !creator_points.canUpload) ts.userError(ts.message("reupload.notEnoughPoints"));
+
+    if(level.new_code)
       ts.userError(ts.message("reupload.haveReuploaded",{code:level.new_code}));
 
     //only creator and shellder can reupload a level
     if(!(level.creator_id==player.id || player.is_mod)){
-      ts.userError(ts.message("reupload.noPermission", {level}));
+      ts.userError(ts.message("reupload.noPermission", level));
     }
 
     await ts.db.Levels.query().patch({
@@ -1476,18 +1509,29 @@ const TS=function(guild_id,team,client){ //loaded after gs
 
   this.calculatePoints= async function(name,if_remove_check){ //delta check is to see if we can add a level if we remove it
     let member=await ts.db.Members.query().where({name}).first()
+    let min=parseFloat(this.get_variable("Minimum Point")|| 0);
+    let next=parseFloat(this.get_variable("New Level") || 0);
+    let pointsNeeded=this.pointsNeededForLevel({
+      points:member.clear_score_sum,
+      levelsUploaded:Math.max(0,member.levels_created-(if_remove_check?1:0)),
+      freeLevels:member.free_submissions,
+      min,
+      next,
+    });
     return {
       clearPoints:member.clear_score_sum.toFixed(1),
       levelsMade:member.levels_created,
       freeSubmissions:member.free_submissions,
-      available:this.levelsAvailable( member.clear_score_sum,member.levels_created-(if_remove_check?1:0),member.free_submissions),
+      pointsNeeded:pointsNeeded.toFixed(1),
+      canUpload:pointsNeeded<0.05,
     }
   }
 }
+//points,levelsUploaded,freeLevels,min,next
 TS.TS_LIST={}
 
-TS.add=async (guild_id,team,client)=>{
-  TS.TS_LIST[guild_id]=new TS(guild_id,team,client)
+TS.add=async (guild_id,team,client,gs)=>{
+  TS.TS_LIST[guild_id]=new TS(guild_id,team,client,gs)
   await TS.TS_LIST[guild_id].load()
   return TS.TS_LIST[guild_id];
 }
@@ -1517,7 +1561,7 @@ TS.teams=(guild_id)=>{
   }
 }
 
-TS.create=async (args,client)=>{
+TS.create=async (args,client,gs)=>{
   if(!args) throw new Error(`No arguments passed to TS.create`)
   const { guild_id } = args;
   const Team=require('./models/Teams.js')()
@@ -1526,7 +1570,7 @@ TS.create=async (args,client)=>{
     await Team.query().insert(args)
     let existingTeam=await Team.query().where({ guild_id }).first()
     if(!existingTeam) new Error(`Can't get get row after inserting`);
-    return await TS.add(existingTeam.guild_id,existingTeam,client)
+    return await TS.add(existingTeam.guild_id,existingTeam,client,gs)
   } else {
     throw new Error(`Server already registered as ${existingTeam.guild_name}`)
   }

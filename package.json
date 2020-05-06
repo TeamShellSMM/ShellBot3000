@@ -20,11 +20,11 @@
     "request-promise": "^4.2.5",
     "sqlite3": "^4.1.1",
     "string-similarity": "^4.0.1",
-    "valid-url": "^1.0.9",
-    "yargs": "^15.3.1"
+    "valid-url": "^1.0.9"
   },
   "devDependencies": {
     "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
     "mocha": "^7.1.2",
     "nyc": "^15.0.1",
     "supertest": "^4.0.2"
@@ -33,8 +33,7 @@
     "migrate": "node_modules/.bin/knex migrate:latest",
     "start": "node app.js",
     "test": "env NODE_ENV=testing mocha --recursive --reporter spec --timeout 10000 ",
-    "coverage": "nyc --reporter=lcov --reporter=text npm test",
-    "testBot": "node app.js --test"
+    "coverage": "nyc --reporter=lcov --reporter=text npm test"
   },
   "keywords": [],
   "author": "",

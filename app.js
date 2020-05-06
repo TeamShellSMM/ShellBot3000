@@ -1,11 +1,9 @@
 'use strict'
 const config = require('./config.json')[process.env.NODE_ENV || 'development']
-const argv = require('yargs').argv
 const { AkairoClient } = require('discord-akairo');
 const TS=require('./TS.js')
 const DiscordLog = require('./DiscordLog');
 const WebApi=require('./WebApi');
-if(argv.test) config.defaultCooldown=0;
 
 const client = new AkairoClient(config, {
     disableEveryone: true
@@ -25,21 +23,12 @@ client.on("ready", async () => {
   if(!teams) throw new Error(`No teams configurations buzzyS`);
 
   for(let team of teams){
-      let guild=await client.guilds.find((guild)=> guild.id==team.guild_id)
-      if(guild){
-        if(
-          !argv.test
-          || argv.test
-          && (
-            !  config.AutomatedTest
-            || config.AutomatedTest == guild.id
-        )){
-        if(team!=null){
-          if(team.id) await TS.add(guild.id,team,client)
-        }
-      }
+    let guild=await client.guilds.find((guild)=> guild.id==team.guild_id)
+    if(team!=null){
+      if(team.id) await TS.add(guild.id,team,client)
     }
   }
+  
   if(config.initTestChannel && config.initCommand){
     await client.channels.get(config.initTestChannel).send(config.initCommand);
   }

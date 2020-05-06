@@ -78,14 +78,16 @@ module.exports={
  'fixApprove.noReason':'You have to provide a message to the creator explaining why this was rejected!',
 
  'remove.removedBy':'This level has been removed by {{name}}',
- 'reupload.invalidOldCode':'You did not provide a valid code for the old level',
- 'reupload.invalidNewCode':'You did not provide a valid code for the new level',
+ 'reupload.noOldCode':'You did not provide a code for the old level. The reupload command is `!reupload <old code> <new code> reason for reuploading`',
+ 'reupload.noNewCode':'You did not provide a code for the old level. The reupload command is `!reupload <old code> <new code> reason for reuploading`',
+ 'reupload.invalidOldCode':'You did not provide a valid code for the old level. The reupload command is `!reupload <old code> <new code> reason for reuploading`',
+ 'reupload.invalidNewCode':'You did not provide a valid code for the new level. The reupload command is `!reupload <old code> <new code> reason for reuploading`',
  'reupload.sameCode':'The codes given were the same', 
  'reupload.giveReason':'Please provide a little message on why you reuploaded at the end of the command (in quotes)',
  'reupload.differentCreator':'The new level uploaded doesn\'t have the same creator as the old level',
  'reupload.wrongApprovedStatus':'The new level is not approved, pending or in a fix request',
  'reupload.notEnoughPoints':'Creator doesn\'t have enough points to upload a new level',
- 'reupload.haveReuploaded':'Level has already been reuploaded with Code {{code}}',
+ 'reupload.haveReuploaded':'Old level has already been reuploaded with Code {{code}}',
  'reupload.noPermission':'You can\'t reupload \'{{{level.level_name}}}\' by {{level.creator}}',
  'reupload.tooManyReuploadChannels':'Can\'t handle the request right now because there are already 50 open reupload requests (this should really never happen)!',
  'reupload.reuploadNotify':'This level has been reuploaded from {{old_code}} to {{new_code}}. Below are the comments of the old level',
@@ -116,7 +118,7 @@ module.exports={
  'error.emptyLevelList':'No levels found buzzyS',
  'error.afterUserDiscord':' {{{think}}}',
  'error.afterUserWeb':'',
- 'error.levelNotFound':'The code {{code}} was not found in {{TeamName}}\'s list.',
+ 'error.levelNotFound':'The code `{{code}}` was not found in {{TeamName}}\'s list.',
  'error.levelIsFixing':'The level \'{{{level.level_name}}}\' is under \'Request to fix\' status',
  'error.levelIsRemoved':'The level \'{{{level.level_name}}}\'  has been removed from {{TeamName}}\'s list',
  'error.unknownError':'something went wrong buzzyS',
@@ -172,7 +174,7 @@ module.exports={
 
  'help.basic':'You can find all the commands at <https://makerteams.net/features>',
  'mock.userSuccess':"You're now {{name}}. Identity theft is not a joke, Jim!", 
- 'resetStatus.alreadyPending':'This level is already pending. This command will reset level\'s status to PENDING',
+ 'resetStatus.alreadyPending':'This level is already pending. This command only resets a level\'s status to PENDING',
  'resetStatus.succesful':'"{{{level_name}}}" by {{{creator}}} has been reset to PENDING',
 
 }

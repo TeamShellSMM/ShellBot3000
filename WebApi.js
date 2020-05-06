@@ -22,10 +22,7 @@ module.exports = async function(config,client){
   async function generateSiteJson(args={}){
     const { ts, user , code , name , dashboard } = args;
     if(!ts) throw `TS not loaded buzzyS`;
-    const SheetCache = ts.gs.getArrayFormat(["Competition Winners"])
-
-    let competition_winners = SheetCache["Competition Winners"];
-    competition_winners.shift()
+    let competition_winners = ts.gs.select("Competition Winners");
     let _tags = ts.gs.select("tags");
     let _seasons = ts.gs.select("Seasons")
 
