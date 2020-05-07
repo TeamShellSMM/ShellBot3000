@@ -89,7 +89,7 @@ describe('!approve', function () {
       channel: 'xxx-xxx-xxx',
       discord_id: '512',
     })
-    assert.equal(result2,await TEST.mockMessage('approval.voteAdded',{
+    assert.equal(result2[1],await TEST.mockMessage('approval.voteAdded',{
       type:'normal',
       discord_id:'512',
     },{

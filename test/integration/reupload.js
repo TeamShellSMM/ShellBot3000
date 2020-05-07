@@ -160,7 +160,7 @@ describe('!reupload', function () {
   it('New level exists and level is not pending or approved',async()=>{
 
     assert.equal(await TEST.mockBotSend({
-      cmd: '!reupload XXX-XXX-XX1 XXX-XXX-XX3 long reason',
+      cmd: '!reupload XXX-XXX-XX1 XXX-XXX-XX4 long reason',
       channel: 'general',
       discord_id: '64',
     }),await TEST.mockMessage('reupload.wrongApprovedStatus',{type:'userError'}));
@@ -218,8 +218,9 @@ describe('!reupload', function () {
   })
 
   it('creator successful reupload pending level with just enough points',async()=>{
+    await TEST.clearChannels()
     TEST.ts.teamVariables['New Level']=1;
-    await TEST.ts.db.Members.query().patch({clear_score_sum:2}).where({discord_id:'64'})
+    await TEST.ts.db.Members.query().patch({clear_score_sum:3}).where({discord_id:'64'})
     
     const player=await TEST.ts.get_user('64')
     //check if can't upload a new level with current points
@@ -245,7 +246,7 @@ describe('!reupload', function () {
   it('Succesful approved level reupload. Generate the right status and create the proper channels',async()=>{
     await TEST.clearChannels()
     TEST.ts.teamVariables['New Level']=1;
-    await TEST.ts.db.Members.query().patch({clear_score_sum:2}).where({discord_id:'64'})
+    await TEST.ts.db.Members.query().patch({clear_score_sum:3}).where({discord_id:'64'})
     //check can upload a new level with current points
     assert.equal(
       await TEST.mockBotSend({
@@ -259,6 +260,54 @@ describe('!reupload', function () {
         }, new_code:'XXX-XXX-YYY'
       })+TEST.ts.message("reupload.inReuploadQueue")
     );
+
+    const old_level=await TEST.ts.getLevels().where({code:'XXX-XXX-XX2'}).first()
+    const new_level=await TEST.ts.getLevels().where({code:'XXX-XXX-YYY'}).first()
+
+    assert.exists(old_level)
+    assert.exists(new_level)
+
+    assert.equal(old_level.status,TEST.ts.LEVEL_STATUS.REUPLOADED)
+    assert.equal(new_level.status,TEST.ts.LEVEL_STATUS.PENDING_APPROVED_REUPLOAD)
+
+    assert.notExists(await TEST.findChannel({
+      name:'XXX-XXX-YYY',
+      parentID:TEST.ts.channels.levelDiscussionCategory
+    }),"channel note created in the normal pending list");
+
+    assert.exists(await TEST.findChannel({
+      name:'XXX-XXX-YYY',
+      parentID:TEST.ts.channels.pendingReuploadCategory
+    }),"a channel created in the pending reupload list");
+  
+  })
+
+  it('Succesful need_fix level reupload. Generate the right status and create the proper channels',async()=>{
+    await TEST.clearChannels()
+    TEST.ts.teamVariables['New Level']=1;
+    await TEST.ts.db.Members.query().patch({clear_score_sum:3}).where({discord_id:'64'})
+    //check can upload a new level with current points
+    assert.equal(
+      await TEST.mockBotSend({
+        cmd: '!reupload XXX-XXX-XX3 XXX-XXX-YYY long reason',
+        channel: 'general',
+        discord_id: '64',
+      }),
+      await TEST.mockMessage('reupload.success',{type:'registeredSuccess',discord_id:'64'},{level:{
+        level_name:'need fix level',
+        creator:'Creator',
+        }, new_code:'XXX-XXX-YYY'
+      })+TEST.ts.message("reupload.inReuploadQueue")
+    );
+
+    const old_level=await TEST.ts.getLevels().where({code:'XXX-XXX-XX3'}).first()
+    const new_level=await TEST.ts.getLevels().where({code:'XXX-XXX-YYY'}).first()
+
+    assert.exists(old_level)
+    assert.exists(new_level)
+
+    assert.equal(old_level.status,TEST.ts.LEVEL_STATUS.REMOVED)
+    assert.equal(new_level.status,TEST.ts.LEVEL_STATUS.NEED_FIX)
 
     assert.notExists(await TEST.findChannel({
       name:'XXX-XXX-YYY',
@@ -280,22 +329,21 @@ describe('!reupload', function () {
     })
 
     TEST.ts.teamVariables['New Level']=1;
-    await TEST.ts.db.Members.query().patch({clear_score_sum:2}).where({discord_id:'64'})
+    await TEST.ts.db.Members.query().patch({clear_score_sum:3}).where({discord_id:'64'})
 
     const result=await TEST.mockBotSend({
       cmd: '!reupload XXX-XXX-XX1 XXX-XXX-YYY long reason',
       channel: 'general',
       discord_id: '64',
     });
-    console.log(result)
     //check can upload a new level with current points
-    assert.lengthOf(result,3,'three sets of messaegs')
+    assert.equal(result[0].title,'pending level (XXX-XXX-YYY)')
+    assert.lengthOf(result,4,'Four sets of messages')
     assert.equal(
-      result[0],'This level has been reuploaded from XXX-XXX-XX1 to XXX-XXX-YYY. Below are the comments of the old level'
+      result[1],'This level has been reuploaded from XXX-XXX-XX1 to XXX-XXX-YYY. Below are the comments of the old level'
     );
-    assert.equal(result[1].title,'pending level (XXX-XXX-XX1)')
     assert.equal(
-      result[2],
+      result[3],
       await TEST.mockMessage('reupload.success',{type:'registeredSuccess',discord_id:'64'},{level:{
         level_name:'pending level',
         creator:'Creator',
@@ -317,6 +365,9 @@ describe('!reupload', function () {
       name:'XXX-XXX-YYY',
       parentID:TEST.ts.channels.pendingReuploadCategory
     }),"new channel shouldn't exist in pending reupload");
-  
   })
+
+  //TODO: reupload of a level already in pending reupload queue
+  //reupload of need fix
+  //reupload of 
 })

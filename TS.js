@@ -25,13 +25,13 @@ class UserError extends Error {
 
 /**
  * This is the main object that encapsulates all the various MakerTeam processes for a guild. Any methods called from an instance will only be for that guild
+ * @class
  * @param {string} guild_id - the discord guild_id this TS does
  * @param {Team} team 
  * @param {AkairoClient} client 
  * @param {GS} [gs] 
  * 
  */
-
 const TS=function(guild_id,team,client,gs){ //loaded after gs
   if(!client) throw new Error(`No client passed to TS()`);
   const ts=this;
@@ -48,6 +48,7 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
   this.LEVEL_STATUS={
     PENDING:0,
     APPROVED:1,
+    PENDING_APPROVED_REUPLOAD:3,
     REJECTED:-1,  //can't re-add
     NEED_FIX:-10,
     REUPLOADED:2,
@@ -311,7 +312,7 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
         INNER JOIN points ON points.difficulty=levels.difficulty AND points.guild_id=levels.guild_id
         WHERE
           levels.guild_id=:guild_id and
-          levels.status in (0,1)
+          levels.status in (0,1,-10,3)
         GROUP BY creator,levels.guild_id
       ) own_levels ON
           members.guild_id=own_levels.guild_id
@@ -347,7 +348,7 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
     await ts.db.Members.query(trx).patch({is_mod:1}).whereIn('discord_id',mods).where({is_mod:null});
 
     ts.gs.loadSheets(["Points"]);
-    console.time('saveToDb')
+    //console.time('saveToDb')
     var _points=ts.gs.select("Points");
       for(let i=0;i<_points.length;i++){
         let dbPoint = await ts.db.Points.query(trx).select().where('difficulty', parseFloat(_points[i].Difficulty));
@@ -363,7 +364,7 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
           });
         }
       }
-      console.timeEnd('saveToDb')
+      //console.timeEnd('saveToDb')
     })
     
   }
@@ -653,10 +654,10 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
    * @property {boolean} liked       - When 1, a like will be saved. When 0 then a like will be removed. Null will not updated the like information
    * @property {number} difficulty   - When a valid difficulty is passed, a difficulty will be saved. When 0, the difficulty vote will be removed. Null will not update the difficulty infomration
    * @property {boolean} strOnly     - When 1, a formated user identification string will not be passed. Used for the web
- */
+   */
   /**
    * @description This function submits a clear based on the passed arguments and will do the checks.
-   * @property {TsClearParam} args Arguments to be supplied from either !clear or the website 
+   * @param {...TsClearParam} args Arguments to be supplied from either !clear or the website 
    * @return {string} A response string to be sent to the user.
    */
   this.clear=async ({discord_id,code,completed,liked,difficulty,strOnly})=>{
@@ -686,7 +687,6 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
   
     if(completed==null && liked==null && difficulty==null) ts.userError(ts.message('clear.noArgs'))
   
-  
     if(code==null) ts.userError(ts.message('error.noCode'))
     code=code.toUpperCase();
   
@@ -697,7 +697,7 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
   
   
     if(difficulty!='0' && difficulty && !ts.valid_difficulty(difficulty)){
-      ts.userError(ts.message("clear.invalidDifficulty"));
+      ts.userError(ts.message('clear.invalidDifficulty'));
     }
   
     const player=await ts.get_user(discord_id);
@@ -1002,7 +1002,7 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
     }
 
 
-    //console.time("get levels")
+    ////console.time("get levels")
     var [ filtered_levels , fields ]=await knex.raw(`
     SELECT levels.*,members.name creator from 
     levels
@@ -1030,7 +1030,7 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
         range:(min==max?min:min+"-"+max)
       }))
     }
-//console.time("rolling dice")
+////console.time("rolling dice")
     var borderLine=Math.floor(filtered_levels.length*0.6)
     if(Math.random()<0.2){
       var randNum=getRandomInt(0,borderLine)
@@ -1190,63 +1190,94 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
         ts.userError(ts.message("approval.levelNotPending"));
       }
 
-
-      var updating = false;
+      let replyMsg='approval.voteAdded';
       if(!vote){
         await ts.db.PendingVotes.query().insert({
           code: level.id,
           player: shellder.id,
           type: args.type,
-          difficulty_vote: (args.type=== "approve" || args.type == "fix") ? args.difficulty : null,
+          difficulty_vote: (args.type=== 'approve' || args.type == 'fix') ? args.difficulty : null,
           reason: args.reason
         });
       } else {
-        updating = true;
-        var updateJson = {
-          type: args.type
+        replyMsg='approval.voteChanged';
+        let updateJson = {
+          type: args.type,
         }
-        if(args.reason){
-          updateJson.reason = args.reason;
-        }
-        if(args.difficulty){
-          updateJson.difficulty_vote = args.difficulty || null;
-        }
-        var updateVote = await ts.db.PendingVotes.query().findById(vote.id).patch(updateJson);
+        if(args.reason) updateJson.reason = args.reason;
+        if(args.difficulty) updateJson.difficulty_vote = args.difficulty || null;
+        await ts.db.PendingVotes.query().findById(vote.id).patch(updateJson);
       }
-
 
       //generate judgement embed
-      var overviewMessage;
-      var discussionChannel;
-
-      let guild=this.getGuild()
-
-      discussionChannel = guild.channels.find(channel => channel.name === level.code.toLowerCase() && channel.parent.id == ts.channels.levelDiscussionCategory); //not sure should specify guild/server
-
-      if(!discussionChannel){
-        //Create new channel and set parent to category
-        if(guild.channels.get(ts.channels.levelDiscussionCategory).children.size===50){
-          ts.userError(ts.message("approval.tooManyDiscussionChannels"))
-        }
-        discussionChannel = await guild.createChannel(args.code, {
-          type: 'text',
-          parent: guild.channels.get(ts.channels.levelDiscussionCategory)
-        });
-        //Post empty overview post
-        overviewMessage = await discussionChannel.send("**The Judgement for '" + level.level_name + " (" + level.code + ") by <@" + author.discord_id + ">' has now begun!**\n\n> Current Votes for approving the level:\n> None\n\n> Current votes for rejecting the level:\n> None");
-        overviewMessage = await overviewMessage.pin();
-      }
-
       let voteEmbed=await ts.makeVoteEmbed(level)
-      if(!overviewMessage){
-        overviewMessage = (await discussionChannel.fetchPinnedMessages()).last();
-      } else {
-        await overviewMessage.edit(voteEmbed);
-      }      
+      const discussionChannel=await ts.discussionChannel(level.code,ts.channels.levelDiscussionCategory)
+      await ts.updatePinned(discussionChannel,voteEmbed)
 
-      return ts.message(updating?'approval.voteChanged':'approval.voteAdded',{channel_id:discussionChannel.id});
+      return ts.message(replyMsg,{channel_id:discussionChannel.id});
   }
 
+  /**
+   * Helper function to create a discussion channel in the right parent. If there is already a channel, we will move the channel to the right one
+   * @param {string} channel_name channel name to find
+   * @param {Snowflake} parentID id of the parent category
+   * @param {string} [old_channel_name] if given, the function will try to find the old name first and will be renamed to channel_name if found 
+   * @return {Channel} returns a Discord Channel or either the created or found channel
+   */
+  this.discussionChannel=async (channel_name,parentID,old_channel_name)=>{
+    if(!channel_name) throw new TypeError('undefined channel_name');
+    if(!parentID) throw new TypeError('undefined parentID');
+
+    const guild=ts.getGuild()
+    const tooManyChannelsError=ts.message(parentID===ts.channels.levelDiscussionCategory? 'approval.tooManyDiscussionChannels' : 'reupload.tooManyReuploadChannels');
+
+    let discussionChannel = guild.channels.find(channel => channel.name === channel_name.toLowerCase());
+
+    if(old_channel_name){
+      let old_channel = guild.channels.find(channel => channel.name === old_channel_name.toLowerCase());
+      if(old_channel){
+        if(!discussionChannel){
+          await old_channel.setName(channel_name.toLowerCase());
+          discussionChannel=old_channel
+        } else {
+          await old_channel.delete('duplicate channel')
+          DiscordLog.error('Duplicate channel found for `old_channel_name` reupload to `channel_name`. deleting `old_channel_name`')
+        }
+      }
+    }
+    if(!discussionChannel){
+      if(guild.channels.get(parentID).children.size===50) ts.userError(tooManyChannelsError);
+
+      discussionChannel = await guild.createChannel(channel_name, {
+        type: 'text',
+        parent: guild.channels.get(parentID)
+      });
+    } else if(discussionChannel.parentID!=parentID){
+      if(guild.channels.get(parentID).children.size===50) ts.userError(tooManyChannelsError);
+      await discussionChannel.setParent(parentID)
+    }
+    return discussionChannel
+  }
+  
+  /**
+   *  Helper function to check if a channel exists, then post an overviem message and pin it if there are no pins or update it if there are pins
+   * @param {Channel} channel a discord channel object
+   * @param {RichEmbed} embed Discord Rich Embed
+   * @throws {TypeError} Will throw type errors if the arguments are not provided
+   */
+  this.updatePinned=async(channel,embed)=>{
+    //console.time('pinned')
+    if(!channel) throw new TypeError('channel_name undefined')
+    if(!embed) throw new TypeError('embed not defined')
+    let overviewMessage = (process.env.NODE_ENV!=="testing")?(await channel.fetchPinnedMessages()).last():null;
+    if(!overviewMessage){
+      overviewMessage = await channel.send(embed);
+      if(overviewMessage) await overviewMessage.pin();
+    } else {
+      await overviewMessage.edit(embed)
+    }
+    //console.timeEnd('pinned')
+  }
 
   /**
    * @description This function will initiate any passed discord member object. Will set is_member=1 in the database and assign the member role. An initiation message will also be sent to the initiation channel
@@ -1302,7 +1333,7 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
    * @description This will process vote counts and get the respective votes needed and returns the result as a status update
    * @return {}
    */
-  this.processVotes=({ approvalVotesCount=0,fixVotesCount=0,rejectVotesCount=0 })=>{
+  this.processVotes=({ approvalVotesCount=0,fixVotesCount=0,rejectVotesCount=0, is_fix=false })=>{
     var fixAndApproveVoteCount = fixVotesCount + approvalVotesCount;
     const VotesNeeded=parseInt(ts.teamVariables.VotesNeeded,10)
     const approvalVotesNeeded=parseInt(ts.teamVariables.ApprovalVotesNeeded,10) || VotesNeeded || 1
@@ -1312,12 +1343,16 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
     const approvalRatio=approvalVotesCount/approvalVotesNeeded
     const rejectionRatio=rejectVotesCount/rejectVotesNeeded
     const fixRatio=fixAndApproveVoteCount/fixVotesNeeded
+    const approveFixRatio=fixAndApproveVoteCount/approvalVotesNeeded
     let statusUpdate;
-    if ( approvalRatio>=1 && approvalRatio > rejectionRatio){
+    if ( 
+      !is_fix && approvalRatio>=1 && approvalRatio > rejectionRatio 
+      || is_fix && approveFixRatio>=1 && approveFixRatio > rejectionRatio 
+      ){
       statusUpdate=ts.LEVEL_STATUS.APPROVED
     } else if( rejectionRatio>=1 && rejectionRatio>approvalRatio && rejectionRatio>fixRatio){
       statusUpdate=ts.LEVEL_STATUS.REJECTED
-    } else if ( fixRatio >= 1 && fixRatio != rejectionRatio) {
+    } else if ( !is_fix && fixRatio >= 1 && fixRatio != rejectionRatio) {
       statusUpdate=ts.LEVEL_STATUS.NEED_FIX
     } else if(rejectVotesCount!==0 && ( fixRatio==rejectionRatio || approvalRatio==rejectionRatio )){
       ts.userError(ts.message("approval.comboBreaker"));
@@ -1350,6 +1385,7 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
       approvalVotesCount:approvalVotes.length,
       rejectVotesCount:rejectVotes.length,
       fixVotesCount:fixVotes.length,
+      is_fix:fromFix,
     })
   
     let difficulty;
@@ -1496,9 +1532,7 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
 
     var player=await ts.db.Members.query().where({ discord_id:message.author.id }).first()
     
-    if(!player){
-      ts.userError(ts.message("error.notRegistered"));
-    }
+    if(!player) ts.userError(ts.message("error.notRegistered"));
 
     let command=ts.parse_command(message);
 
@@ -1526,8 +1560,6 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
     if(old_code==new_code) ts.userError(ts.message("reupload.sameCode"));
     if(!reason) ts.userError(ts.message("reupload.giveReason"));
 
-    
-
     var earned_points=await ts.calculatePoints(player.name);
     var rank=ts.get_rank(earned_points.clearPoints);
     var user_reply="<@"+message.author.id+">"+(rank.Pips ? rank.Pips : "")+" ";
@@ -1538,29 +1570,25 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
     var new_level=await ts.getLevels().where({code:new_code}).first()
     let oldApproved=level.status;
 
-
+  //level.status==ts.LEVEL_STATUS.APPROVED || level.status==ts.LEVEL_STATUS.PENDING
+  if(new_level && level.creator!=new_level.creator) ts.userError(ts.message("reupload.differentCreator"));
+  if( new_level
+    && new_level.status != ts.LEVEL_STATUS.PENDING
+    && new_level.status != ts.LEVEL_STATUS.APPROVED
+    && new_level.status != ts.LEVEL_STATUS.NEED_FIX
+  ) ts.userError(ts.message("reupload.wrongApprovedStatus"));
     
 
     //Reupload means you're going to replace the old one so need to do that for upload check
-    var creator_points=await ts.calculatePoints(level.creator, level.status==ts.LEVEL_STATUS.APPROVED || level.status==ts.LEVEL_STATUS.PENDING || level.status==ts.LEVEL_STATUS.NEED_FIX)
+    let creator_points=await ts.calculatePoints(level.creator, 
+      level.status==ts.LEVEL_STATUS.APPROVED 
+      || level.status==ts.LEVEL_STATUS.PENDING 
+      || level.status==ts.LEVEL_STATUS.NEED_FIX
+      || level.status==ts.LEVEL_STATUS.PENDING_APPROVED_REUPLOAD)
 
-
-    //level.status==ts.LEVEL_STATUS.APPROVED || level.status==ts.LEVEL_STATUS.PENDING
-    if(new_level && level.creator!=new_level.creator)
-      ts.userError(ts.message("reupload.differentCreator"));
-    if( new_level
-        && new_level.status != ts.LEVEL_STATUS.PENDING
-        && new_level.status != ts.LEVEL_STATUS.APPROVED
-      ) ts.userError(ts.message("reupload.wrongApprovedStatus"));
     if(!new_level && !creator_points.canUpload) ts.userError(ts.message("reupload.notEnoughPoints"));
-
-    if(level.new_code)
-      ts.userError(ts.message("reupload.haveReuploaded",{code:level.new_code}));
-
-    //only creator and shellder can reupload a level
-    if(!(level.creator_id==player.id || player.is_mod)){
-      ts.userError(ts.message("reupload.noPermission", level));
-    }
+    if(level.new_code) ts.userError(ts.message("reupload.haveReuploaded",{code:level.new_code}));
+    if(!(level.creator_id==player.id || player.is_mod)) ts.userError(ts.message("reupload.noPermission", level));
 
     await ts.db.Levels.query().patch({
       status: level.status==ts.LEVEL_STATUS.APPROVED ? ts.LEVEL_STATUS.REUPLOADED : ts.LEVEL_STATUS.REMOVED,
@@ -1583,76 +1611,45 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
       new_level=await ts.getLevels().where({code:new_code}).first();
     }
 
+    let newStatus;
+    if(oldApproved == ts.LEVEL_STATUS.NEED_FIX){
+      newStatus=ts.LEVEL_STATUS.NEED_FIX //should make another one
+    } else if( oldApproved == ts.LEVEL_STATUS.APPROVED ){
+      newStatus=ts.LEVEL_STATUS.PENDING_APPROVED_REUPLOAD
+    } else {
+      newStatus=ts.LEVEL_STATUS.PENDING
+    }
 
-    if(oldApproved == ts.LEVEL_STATUS.NEED_FIX || oldApproved == ts.LEVEL_STATUS.APPROVED ){
-      //set the new one to fix request status and add channel
-      //Move pending votes to the new level
-      await ts.db.PendingVotes.query()
+    await ts.db.PendingVotes.query()
         .patch({code: new_level.id})
         .where({code:level.id})
 
-
       await ts.db.Levels.query()
-        .patch({status:ts.LEVEL_STATUS.NEED_FIX})
+        .patch({status:oldApproved == ts.LEVEL_STATUS.APPROVED ? ts.LEVEL_STATUS.PENDING_APPROVED_REUPLOAD : ts.LEVEL_STATUS.NEED_FIX})
         .where({code:new_code})
 
+
+    //if(newStatus == ts.LEVEL_STATUS.NEED_FIX || newStatus == ts.LEVEL_STATUS.PENDING_APPROVED_REUPLOAD ){
       const author = await ts.db.Members.query()
         .where({id:new_level.creator_id})
         .first();
 
-      var overviewMessage;
-      var discussionChannel;
+      //ts.channels.pendingReuploadCategory
 
-
-      //TODO: move levels to different category and rename instead of delete
-      let guild=ts.getGuild()
-
-      discussionChannel = guild.channels.find(channel => channel.name === new_level.code.toLowerCase() && channel.parent.id == ts.channels.pendingReuploadCategory); //not sure should specify guild/server
-      if(discussionChannel){
-        await ts.deleteDiscussionChannel(new_code,ts.message("approval.channelDeleted"))
-      }
-
-      //Create new channel and set parent to category
-      if(guild.channels.get(ts.channels.pendingReuploadCategory).children.size===50){
-        ts.userError(ts.message("reupload.tooManyReuploadChannels"))
-      }
-      discussionChannel = await guild.createChannel(new_code, {
-        type: 'text',
-        parent: guild.channels.get(ts.channels.pendingReuploadCategory)
-      });
       //Post empty overview post
-      if(oldApproved == ts.LEVEL_STATUS.NEED_FIX){
-        await discussionChannel.send("Reupload Request for <@" + author.discord_id + ">'s level with message: " + reason);
-        let voteEmbed = await ts.makePendingReuploadEmbed(new_level, author, false);
-        overviewMessage = await discussionChannel.send(voteEmbed);
-        overviewMessage = await overviewMessage.pin();
-      } else {
-        await discussionChannel.send("Reupload Request for <@" + author.discord_id + ">'s level: ");
-        let voteEmbed = await ts.makePendingReuploadEmbed(new_level, author, false, reason);
-        overviewMessage = await discussionChannel.send(voteEmbed);
-        overviewMessage = await overviewMessage.pin();
-      }
-    }
+      
+      let voteEmbed = await ts.makePendingReuploadEmbed(new_level, author, false, reason || "");
+    const channel=await ts.discussionChannel(new_code,newStatus===ts.LEVEL_STATUS.PENDING ? ts.channels.levelDiscussionCategory : ts.channels.pendingReuploadCategory,level.code)
+    await ts.updatePinned(channel,voteEmbed)
+    await channel.send(ts.message("reupload.reuploadNotify",{old_code,new_code}))
+    await channel.send(`Reupload Request for <@${author.discord_id}>'s level with message: ${reason}`);
 
-    let guild=ts.getGuild();
-    //let existingChannel=guild.channels.find(channel => channel.name === old_code.toLowerCase() && channel.parent.id == ts.channels.levelDiscussionCategory)
-    //is channel.parent.id not available because of test?
-    let existingChannel=guild.channels.find(channel => channel.name === old_code.toLowerCase() && channel.parentID == ts.channels.levelDiscussionCategory)
-    if(existingChannel){
-      await existingChannel.setName(new_code.toLowerCase())
-      await existingChannel.send(ts.message("reupload.reuploadNotify",{old_code,new_code}))
-      let oldEmbed=await ts.makeVoteEmbed(level)
-      await existingChannel.send(oldEmbed)
-    }
 
-    var reply=ts.message("reupload.success",{ level , new_code })
-    if(!new_level){
-      reply+=ts.message("reupload.renamingInstructions")
-    }
-    if(oldApproved == ts.LEVEL_STATUS.NEED_FIX || oldApproved == 1){
-      reply += ts.message("reupload.inReuploadQueue")
-    }
+    let reply=ts.message("reupload.success",{ level , new_code })
+    if(!new_level) reply+=ts.message("reupload.renamingInstructions");
+    if(oldApproved == ts.LEVEL_STATUS.NEED_FIX || oldApproved == 1) reply += ts.message("reupload.inReuploadQueue");
 
+    ts.recalculateAfterUpdate()
     return user_reply+reply;
   }
 

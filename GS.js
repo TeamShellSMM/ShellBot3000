@@ -1,4 +1,4 @@
-'use strict'
+'use strict' /* istanbul ignore file */
 const request = require('request-promise')
 const { google } = require("googleapis");
 

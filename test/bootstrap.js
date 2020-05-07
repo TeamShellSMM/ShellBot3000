@@ -202,6 +202,9 @@ describe('Setup test and check teams registration',function(){
     });
     await client.login(TEST.config.discord_access_token);
     TEST.bot_id=client.user.id
+    console.log(process.env.NODE_ENV)
+    console.log(global.TEST.config.userBot)
+    TEST.userBot=global.TEST.config.userBot
     assert.isOk(client,'client is okay')
     global.message=await client.channels.get(TEST.config.initTestChannel).send('ShellBotted');
     await global.message.delete()
@@ -273,9 +276,11 @@ describe('Setup test and check teams registration',function(){
       })
     }
 
+
     global.TEST.acceptReply=()=>{
       let guild=TEST.ts.getGuild();
       let cache=[]
+
       function collect_reply(args){
         cache.push(args)
       }
@@ -327,6 +332,7 @@ describe('Setup test and check teams registration',function(){
         const result=TEST.acceptReply()
         function fulfill(){
           clearTimeout(clearId);
+          message.author.id=TEST.bot_id
           TEST.ts.promisedCallback=null
           _fulfill(result());
         }

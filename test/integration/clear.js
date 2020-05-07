@@ -43,13 +43,76 @@ describe('!clears', function () {
     assert.equal(result,await TEST.mockMessage('error.noCode',{type:'userError'},{name:'Creator'}))
   })
 
-  it('no level code', async function () {
+  it('unregistered', async function () {
     const result = await TEST.mockBotSend({
-      cmd: '!clear',
+      cmd: '!clear xxx-xxx-xxx',
+      channel: 'general',
+      discord_id: '1000', //'-256' should error but dont
+    })
+    assert.equal(result,await TEST.mockMessage('error.notRegistered',{type:'userError'},{name:'Creator'}))
+  })
+
+  it('barred user', async function () {
+    const result = await TEST.mockBotSend({
+      cmd: '!clear XXX-XXX-XXX',
+      channel: 'general',
+      discord_id: '-1', //'-256' should error but dont
+    })
+    assert.equal(result,await TEST.mockMessage('error.userBanned',{type:'userError'},{name:'Creator'}))
+  })
+
+  it('invalid difficulty', async function () {
+    const result = await TEST.mockBotSend({
+      cmd: '!clear XXX-XXX-XXX 31.4',
       channel: 'general',
       discord_id: '256',
     })
-    assert.equal(result,await TEST.mockMessage('error.noCode',{type:'userError'},{name:'Creator'}))
+    assert.equal(result,await TEST.mockMessage('clear.invalidDifficulty',{type:'userError'},{name:'Creator'}))
+  })
+
+  it('can\'t clear own level', async function () {
+    const result = await TEST.mockBotSend({
+      cmd: '!clear XXX-XXX-XXX',
+      channel: 'general',
+      discord_id: '256',
+    })
+    assert.equal(result,await TEST.mockMessage('clear.ownLevel',{type:'userError'},{name:'Creator'}))
+  })
+
+  it('basic clear', async function () {
+    const result = await TEST.mockBotSend({
+      cmd: '!clear XXX-XXX-XXX',
+      channel: 'general',
+      discord_id: '128',
+    })
+    assert.equal(result,'<@128> \n ‣You have cleared \'level1\'  by Creator \n ‣You have earned 1 points')
+  })
+
+  it('clear with like', async function () {
+    const result = await TEST.mockBotSend({
+      cmd: '!clear XXX-XXX-XXX like',
+      channel: 'general',
+      discord_id: '128',
+    })
+    assert.equal(result,'<@128> \n ‣You have cleared \'level1\'  by Creator \n ‣You have earned 1 points\n ‣You also have liked this level ')
+  })
+
+  it('clear with difficulty', async function () {
+    const result = await TEST.mockBotSend({
+      cmd: '!clear XXX-XXX-XXX 5',
+      channel: 'general',
+      discord_id: '128',
+    })
+    assert.equal(result,'<@128> \n ‣You have cleared \'level1\'  by Creator \n ‣You have earned 1 points\n ‣You also have voted 5 as the difficulty for this level ')
+  })
+
+  it('clear with like and difficulty', async function () {
+    const result = await TEST.mockBotSend({
+      cmd: '!clear XXX-XXX-XXX 5 like',
+      channel: 'general',
+      discord_id: '128',
+    })
+    assert.equal(result,'<@128> \n ‣You have cleared \'level1\'  by Creator \n ‣You have earned 1 points\n ‣You also have voted 5 as the difficulty for this level ')
   })
 
 })

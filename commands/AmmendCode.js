@@ -22,7 +22,9 @@ class AmmendCode extends TSCommand {
 
   async tsexec(ts,message, { old_code, new_code }) {
 
-    console.log({ old_code , new_code })
+  if(!old_code) ts.userError(ts.message("reupload.noOldCode"));
+  if(!new_code) ts.userError(ts.message("reupload.noNewCode"));
+
   if(!ts.valid_code(old_code)){
     ts.userError(ts.message("reupload.invalidOldCode"))
   }
@@ -44,23 +46,27 @@ class AmmendCode extends TSCommand {
   await ts.db.Levels.query().patch({code:new_code})
     .where({code:old_code});
 
-  let updates=[]
-  let winners=ts.gs.query("Competition Winners", {
-    filter: {Code:old_code},
-    update: {Code:new_code}
-  },true);
 
-  if(winners){
-    winners=winners.map((level)=>{
-    return level.update_ranges[0]
-    })
-    updates=updates.concat(winners)
-  }
+  //For now not testing GS stuff as we're deprecating it soon
+  if(process.env.NODE_ENV!=='testing'){
+      let updates=[]
+      let winners=ts.gs.query("Competition Winners", {
+        filter: {Code:old_code},
+        update: {Code:new_code}
+      },true);
 
-  if(updates){
-    await ts.gs.batchUpdate(updates);
-    await ts.gs.loadSheets(["Competition Winners"]);
-  }
+      if(winners){
+        winners=winners.map((level)=>{
+        return level.update_ranges[0]
+        })
+        updates=updates.concat(winners)
+      }
+
+    if(updates){
+      await ts.gs.batchUpdate(updates);
+      await ts.gs.loadSheets(["Competition Winners"]);
+    }
+  } 
   
 
   let guild=ts.getGuild();

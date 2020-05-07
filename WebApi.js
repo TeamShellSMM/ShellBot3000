@@ -186,8 +186,6 @@ module.exports = async function(config,client){
 
     if(code && levels){
       json.plays=await ts.getPlays().where('levels.id',levels[0].id)
-      console.log(user)
-      console.log(levels[0].status)
       if(user && user.is_mod && [ts.LEVEL_STATUS.PENDING,ts.LEVEL_STATUS.NEED_FIX].includes(levels[0].status)){
         json.pending_comments=await ts.getPendingVotes().where('levels.id',levels[0].id)
       }
