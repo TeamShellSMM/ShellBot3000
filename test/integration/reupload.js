@@ -186,8 +186,20 @@ describe('!reupload', function () {
 
   })
 
+
+  /* janky error. sometimes it works sometimes it doesnt
+    !reupload
+          not enough points:
+
+          AssertionError: expected '<@64> You have reuploaded \'pending level\' by Creator with code `XXX-XXX-YYY. ' to equal 'Creator doesn\'t have enough points to upload a new level '
+          + expected - actual
+
+          -<@64> You have reuploaded 'pending level' by Creator with code `XXX-XXX-YYY. 
+          +Creator doesn't have enough points to upload a new level 
+  */
   it('not enough points',async()=>{
     TEST.ts.teamVariables['New Level']=5;
+    await TEST.ts.db.Members.query().patch({clear_score_sum:0}).where({discord_id:'64'})
     const result = await TEST.mockBotSend({
       cmd: '!reupload XXX-XXX-XX1 XXX-XXX-YYY long reason',
       channel: 'general',
@@ -230,17 +242,81 @@ describe('!reupload', function () {
     }, new_code:'XXX-XXX-YYY'}))
   })
 
-  it('creator successful reupload approved level',async()=>{
+  it('Succesful approved level reupload. Generate the right status and create the proper channels',async()=>{
+    await TEST.clearChannels()
     TEST.ts.teamVariables['New Level']=1;
     await TEST.ts.db.Members.query().patch({clear_score_sum:2}).where({discord_id:'64'})
     //check can upload a new level with current points
-    assert.equal(await TEST.mockBotSend({
-      cmd: '!reupload XXX-XXX-XX2 XXX-XXX-YYY long reason',
-      channel: 'general',
-      discord_id: '64',
-    }),await TEST.mockMessage('reupload.success',{type:'registeredSuccess',discord_id:'64'},{level:{
+    assert.equal(
+      await TEST.mockBotSend({
+        cmd: '!reupload XXX-XXX-XX2 XXX-XXX-YYY long reason',
+        channel: 'general',
+        discord_id: '64',
+      }),
+      await TEST.mockMessage('reupload.success',{type:'registeredSuccess',discord_id:'64'},{level:{
         level_name:'approved level',
         creator:'Creator',
-    }, new_code:'XXX-XXX-YYY'})+TEST.ts.message("reupload.inReuploadQueue"))
+        }, new_code:'XXX-XXX-YYY'
+      })+TEST.ts.message("reupload.inReuploadQueue")
+    );
+
+    assert.notExists(await TEST.findChannel({
+      name:'XXX-XXX-YYY',
+      parentID:TEST.ts.channels.levelDiscussionCategory
+    }),"channel note created in the normal pending list");
+
+    assert.exists(await TEST.findChannel({
+      name:'XXX-XXX-YYY',
+      parentID:TEST.ts.channels.pendingReuploadCategory
+    }),"a channel created in the pending reupload list");
+  
+  })
+
+  it('Succesful pending level reupload. Discussion channel exists, rename channel',async()=>{
+    await TEST.clearChannels()
+    await TEST.createChannel({
+      name:'XXX-XXX-XX1',
+      parent:TEST.ts.channels.levelDiscussionCategory,
+    })
+
+    TEST.ts.teamVariables['New Level']=1;
+    await TEST.ts.db.Members.query().patch({clear_score_sum:2}).where({discord_id:'64'})
+
+    const result=await TEST.mockBotSend({
+      cmd: '!reupload XXX-XXX-XX1 XXX-XXX-YYY long reason',
+      channel: 'general',
+      discord_id: '64',
+    });
+    console.log(result)
+    //check can upload a new level with current points
+    assert.lengthOf(result,3,'three sets of messaegs')
+    assert.equal(
+      result[0],'This level has been reuploaded from XXX-XXX-XX1 to XXX-XXX-YYY. Below are the comments of the old level'
+    );
+    assert.equal(result[1].title,'pending level (XXX-XXX-XX1)')
+    assert.equal(
+      result[2],
+      await TEST.mockMessage('reupload.success',{type:'registeredSuccess',discord_id:'64'},{level:{
+        level_name:'pending level',
+        creator:'Creator',
+        }, new_code:'XXX-XXX-YYY'
+      })
+    );
+
+    assert.notExists(await TEST.findChannel({
+      name:'XXX-XXX-XX1',
+      parentID:TEST.ts.channels.levelDiscussionCategory
+    }),"old channel doesn't exist");
+
+    assert.exists(await TEST.findChannel({
+      name:'XXX-XXX-YYY',
+      parentID:TEST.ts.channels.levelDiscussionCategory,
+    }),"next channel should exist");
+
+    assert.notExists(await TEST.findChannel({
+      name:'XXX-XXX-YYY',
+      parentID:TEST.ts.channels.pendingReuploadCategory
+    }),"new channel shouldn't exist in pending reupload");
+  
   })
 })

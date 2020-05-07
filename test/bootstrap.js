@@ -292,7 +292,35 @@ describe('Setup test and check teams registration',function(){
         return cache;
       }
     }
-    
+
+    global.TEST.clearChannels=async ()=>{
+      const guild=global.TEST.ts.getGuild()
+      const channels=guild.channels.array()
+      for(let i=0;i<channels.length;i++){
+        let channel=channels[i]
+        if(channel.parentID === global.TEST.ts.channels.levelDiscussionCategory 
+          || channel.parentID === global.TEST.ts.channels.pendingReuploadCategory){
+            await channel.delete('AUTOTEST')
+          }
+      }
+    }
+    /**
+     * Create a channel
+     * @param {Object} args passed parameter object
+     * @param {string} args.name channel name
+     * @param {string} args.parentID the id of the parent channel
+     */
+    global.TEST.createChannel=async({ name, parent })=>{
+      const guild=global.TEST.ts.getGuild()
+      await guild.createChannel(name, {
+        type: 'text',
+        parent,
+      })
+    }
+    global.TEST.findChannel=({ name, parentID })=>{
+      const guild=global.TEST.ts.getGuild()
+      return guild.channels.find((channel)=> channel.parentID===parentID && channel.name===name.toLowerCase())
+    }
     global.TEST.expectReply=(waitFor=10000)=>{
       return new Promise(function(_fulfill,reject){
         let clearId;

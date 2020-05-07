@@ -91,7 +91,7 @@ module.exports={
  'reupload.noPermission':'You can\'t reupload \'{{{level.level_name}}}\' by {{level.creator}}',
  'reupload.tooManyReuploadChannels':'Can\'t handle the request right now because there are already 50 open reupload requests (this should really never happen)!',
  'reupload.reuploadNotify':'This level has been reuploaded from {{old_code}} to {{new_code}}. Below are the comments of the old level',
- 'reupload.success':'You have reuploaded \'{{{level.level_name}}}\' by {{level.creator}} with code `{{new_code}}. {{{bam}}}',
+ 'reupload.success':'You have reuploaded \'{{{level.level_name}}}\' by {{level.creator}} with code `{{new_code}}`. {{{bam}}}',
  'reupload.renamingInstructions':' If you want to rename the new level, you can use !rename new-code level name.',
  'reupload.inReuploadQueue':' Your level has also been put in the reupload queue, we\'ll get back to you shortly.',
 

@@ -1635,7 +1635,9 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
     }
 
     let guild=ts.getGuild();
-    let existingChannel=guild.channels.find(channel => channel.name === old_code.toLowerCase() && channel.parent.id == ts.channels.levelDiscussionCategory)
+    //let existingChannel=guild.channels.find(channel => channel.name === old_code.toLowerCase() && channel.parent.id == ts.channels.levelDiscussionCategory)
+    //is channel.parent.id not available because of test?
+    let existingChannel=guild.channels.find(channel => channel.name === old_code.toLowerCase() && channel.parentID == ts.channels.levelDiscussionCategory)
     if(existingChannel){
       await existingChannel.setName(new_code.toLowerCase())
       await existingChannel.send(ts.message("reupload.reuploadNotify",{old_code,new_code}))
