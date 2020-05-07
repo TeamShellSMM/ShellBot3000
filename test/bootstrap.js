@@ -202,8 +202,6 @@ describe('Setup test and check teams registration',function(){
     });
     await client.login(TEST.config.discord_access_token);
     TEST.bot_id=client.user.id
-    console.log(process.env.NODE_ENV)
-    console.log(global.TEST.config.userBot)
     TEST.userBot=global.TEST.config.userBot
     assert.isOk(client,'client is okay')
     global.message=await client.channels.get(TEST.config.initTestChannel).send('ShellBotted');
@@ -321,6 +319,19 @@ describe('Setup test and check teams registration',function(){
         type: 'text',
         parent,
       })
+    }
+
+    global.TEST.clearUserBot=async()=>{
+      const guild=global.TEST.ts.getGuild();
+      const allRoles=guild.roles.filter((r)=> r.name!=="TestUser" && r.name!=="ShellBot Testing").map((r)=>r.id)
+      const member=guild.members.get(TEST.userBot)
+      await member.removeRoles(allRoles)
+    }
+
+    global.TEST.getUserBot=async ()=>{
+      const guild=global.TEST.ts.getGuild();
+      const member=guild.members.get(TEST.userBot);
+      return member;
     }
     global.TEST.findChannel=({ name, parentID })=>{
       const guild=global.TEST.ts.getGuild()

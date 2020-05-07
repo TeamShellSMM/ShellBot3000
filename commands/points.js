@@ -15,11 +15,9 @@ class points extends TSCommand {
 
     async tsexec(ts,message,{ role }) {
         const player=await ts.get_user(message);
-
-        var all_ranks=ts.gs.select("Ranks");
-        var all_ranks_id=all_ranks.map(r=>r.discord_roles)
+        
         if(role=="role" || role=="norole"){
-          await message.member.removeRoles(all_ranks_id)
+          await message.member.removeRoles(ts.rank_ids)
         }
         if(role=="role" && player.rank.discord_roles && player.rank.discord_roles.length > 0){
           await message.member.addRole(player.rank.discord_roles)

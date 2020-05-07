@@ -1038,7 +1038,6 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
         range:(min==max?min:min+"-"+max)
       }))
     }
-////console.time("rolling dice")
     var borderLine=Math.floor(filtered_levels.length*0.6)
     if(Math.random()<0.2){
       var randNum=getRandomInt(0,borderLine)
