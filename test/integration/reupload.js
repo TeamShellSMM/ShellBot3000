@@ -218,7 +218,7 @@ describe('!reupload', function () {
   })
 
   it('creator successful reupload pending level with just enough points',async()=>{
-    await TEST.clearChannels()
+    await TEST.clearChannels();
     TEST.ts.teamVariables['New Level']=1;
     await TEST.ts.db.Members.query().patch({clear_score_sum:3}).where({discord_id:'64'})
     

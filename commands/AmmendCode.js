@@ -1,4 +1,5 @@
 const TSCommand = require('../TSCommand.js');
+/* istanbul ignore next */
 const config = require('../config.json')[process.env.NODE_ENV || 'development']
 class AmmendCode extends TSCommand {
   constructor() {
@@ -48,6 +49,7 @@ class AmmendCode extends TSCommand {
 
 
   //For now not testing GS stuff as we're deprecating it soon
+  /* istanbul ignore if */
   if(process.env.NODE_ENV!=='testing'){
       let updates=[]
       let winners=ts.gs.query("Competition Winners", {

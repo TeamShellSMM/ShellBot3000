@@ -18,8 +18,8 @@ class TSRename extends TSCommand {
 
       const level_name=command.arguments.join(" ")
 
-      if(!level_name)
-        ts.userError("You didn't give a new level name")
+      if(!level_name) ts.userError("You didn't give a new level name");
+      if(ts.isSpecialDiscordString(level_name)) ts.userError(ts.message('error.specialDiscordString'));
 
       const player=await ts.get_user(message);
       var level=await ts.getExistingLevel(code)

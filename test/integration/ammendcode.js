@@ -101,37 +101,49 @@ describe('!ammendcode', function () {
 
   it('owner succesful', async function () {
     const ownerId=TEST.ts.getGuild().owner.user.id
+    await TEST.clearChannels();
+    await TEST.createChannel({
+      name:'XXX-XXX-XXX',
+      parent:TEST.ts.channels.levelDiscussionCategory,
+    })
     const result = await TEST.mockBotSend({
-      cmd: '!resetstatus xxx-xxx-xxx',
+      cmd: '!ammendcode xxx-xxx-xxx xxx-xxx-xx3',
       channel: 'general',
       discord_id: ownerId,
     })
-    assert.equal(result,await TEST.mockMessage('resetStatus.succesful',{type:'normal'},{
-      level_name: 'approved level',
-      creator: 'Creator',
-      code: 'XXX-XXX-XXX',
-      status: 1,
-      difficulty: 1,
-    }))
-    const level=await TEST.ts.db.Levels.query().where({code:'XXX-XXX-XXX'}).first()
-    assert.equal(level.status,0)
+    assert.equal(result,await TEST.mockMessage('ammendCode.success',{type:'normal'},{
+      level:{
+        level_name: 'approved level',
+        creator: 'Creator',
+        code: 'XXX-XXX-XXX',
+        status: 1,
+        difficulty: 1,
+      },
+    old_code:'XXX-XXX-XXX',new_code:'XXX-XXX-XX3'}))
+    const old_level=await TEST.ts.db.Levels.query().where({code:'XXX-XXX-XXX'}).first()
+    const new_level=await TEST.ts.db.Levels.query().where({code:'XXX-XXX-XX3'}).first()
+    assert.notExists(old_level)
+    assert.exists(new_level)
+
+    assert.notExists(await TEST.findChannel({
+      name:'XXX-XXX-XXX',
+      parentID:TEST.ts.channels.levelDiscussionCategory
+    }),"old channel doesn't exist");
+
+    assert.exists(await TEST.findChannel({
+      name:'XXX-XXX-XX3',
+      parentID:TEST.ts.channels.levelDiscussionCategory,
+    }),"next channel should exist");
   })
   it('discord admin, with no flag', async function () {
     delete TEST.ts.teamVariables.discordAdminCanMod
     const result = await TEST.mockBotSend({
-      cmd: '!resetstatus xxx-xxx-xxx',
+      cmd: '!ammendcode xxx-xxx-xxx xxx-xxx-xx3',
       channel: 'general',
       waitFor:100,
       discord_id: TEST.bot_id, //we use bot for now as bot was set to have admin rights in test server
       //TODO: make admin test users
     })
-    assert.notEqual(result,await TEST.mockMessage('resetStatus.succesful',{type:'normal'},{
-      level_name: 'approved level',
-      creator: 'Creator',
-      code: 'XXX-XXX-XXX',
-      status: 1,
-      difficulty: 1,
-    }))
     assert.lengthOf(result,0,"no result")
   })
 

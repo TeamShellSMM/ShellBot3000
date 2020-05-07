@@ -103,6 +103,15 @@ describe('!add', function () {
     assert.equal(levels[3].difficulty,0)
   })
 
+  it('adding level name with special discord strings, <@at>=reject', async function () {
+    result = await TEST.mockBotSend({
+      cmd: '!add XXX-XXX-XX4 house of <@80351110224678912>',
+      channel: 'general',
+      discord_id: '512',
+    })
+    assert.deepEqual(result,await TEST.mockMessage('error.specialDiscordString',{type:'userError'}))
+  })
+
   it('no points', async function () {
     await TEST.clearTable('levels');
     TEST.ts.teamVariables['Minimum Point']=10

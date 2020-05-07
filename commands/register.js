@@ -23,9 +23,12 @@ class TSRegister extends TSCommand {
 
       let command=ts.parse_command(message);
       let nickname=message.author.username;
+
       if(command.arguments.length > 0){
         nickname=command.arguments.join(' ');
       }
+
+      if(ts.isSpecialDiscordString(nickname)) ts.userError(ts.message('error.specialDiscordString'));
 
       nickname=nickname.replace(/\\/g,'');
       if(await ts.db.Members.query().whereRaw('lower(name) = ?',[ nickname.toLowerCase() ]).first()){

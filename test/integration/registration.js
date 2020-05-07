@@ -64,6 +64,25 @@ describe('registration', function () {
     })
     assert.deepEqual(result,await TEST.mockMessage('register.nameTaken',{type:'userError'},{name:'Mod'}))
   })
+
+  it('registering with special discord strings, <@at>=reject', async function () {
+    result = await TEST.mockBotSend({
+      cmd: '!register <@80351110224678912>',
+      channel: 'general',
+      discord_id: '512',
+    })
+    assert.deepEqual(result,await TEST.mockMessage('error.specialDiscordString',{type:'userError'}))
+  })
+
+  it('registering with special discord strings, <#channel>=reject', async function () {
+    result = await TEST.mockBotSend({
+      cmd: '!register <#80351110224678912>',
+      channel: 'general',
+      discord_id: '512',
+    })
+    assert.deepEqual(result,await TEST.mockMessage('error.specialDiscordString',{type:'userError'}))
+  })
+
   it('succesful registration without argument', async function () {
     result = await TEST.mockBotSend({
       cmd: '!register',

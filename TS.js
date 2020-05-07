@@ -194,6 +194,13 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
       .where('pending_votes.guild_id',this.team.id)
   }
 
+  /**
+   * This checks if a string contains a special discord string.
+   */
+  this.isSpecialDiscordString=(str)=>{
+    return /<(@[!&]?|#|a?:[a-zA-Z0-9_]{2,}:)[0-9]{16,20}>/.test(str)
+  }
+
 
   this.modOnly=async(discord_id)=>{
     if(!discord_id) return false;
@@ -229,8 +236,8 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
   this.recalculateAfterUpdate=async function(){
     await knex.raw(`UPDATE levels 
       inner join (SELECT *
-    ,round(((likes*2+clears)*score*likes/clears),1) maker_points
-    ,round(likes/clears*100,1) clear_like_ratio
+    ,if(clears=0,0,round(((likes*2+clears)*score*likes/clears),1)) maker_points
+    ,if(clears=0,0,round(likes/clears*100,1)) clear_like_ratio
     ,concat(vote,',',votetotal) votestr
     FROM
     (SELECT 
@@ -390,6 +397,7 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
     if(!code) ts.userError(ts.message('error.noCode'));
     if(!ts.valid_code(code)) ts.userError(ts.message("error.invalidCode"));
     if(!level_name) ts.userError(ts.message("add.noName"));
+    if(ts.isSpecialDiscordString(level_name)) ts.userError(ts.message('error.specialDiscordString'));
 
     const player=await ts.get_user(discord_id);
     var existing_level=await ts.getLevels().where({ code }).first()

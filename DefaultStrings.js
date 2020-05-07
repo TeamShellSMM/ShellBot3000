@@ -95,6 +95,8 @@ module.exports={
  'reupload.renamingInstructions':' If you want to rename the new level, you can use !rename new-code level name.',
  'reupload.inReuploadQueue':' Your level has also been put in the reupload queue, we\'ll get back to you shortly.',
 
+ 'error.specialDiscordString':'We can\'t process your command because it had special discord strings like <@666085542085001246> in it',
+
  'initiation.message':'We welcome <@{{discord_id}}> to our team!',
  'initiation.userNotInDiscord':'{{name}} was not found in {{TeamName}}\'s discord',
 
