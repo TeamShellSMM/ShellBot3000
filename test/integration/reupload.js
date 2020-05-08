@@ -298,7 +298,7 @@ describe('!reupload', function () {
     assert.exists(new_level)
 
     assert.equal(old_level.status,TEST.ts.LEVEL_STATUS.REMOVED)
-    assert.equal(new_level.status,TEST.ts.LEVEL_STATUS.NEED_FIX)
+    assert.equal(new_level.status,TEST.ts.LEVEL_STATUS.PENDING_FIXED_REUPLOAD)
 
     assert.notExists(await TEST.findChannel({
       name:'XXX-XXX-YYY',

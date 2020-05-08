@@ -17,11 +17,15 @@ const GS=require("./GS.js");
  */
 const LEVEL_STATUS={
   PENDING:0,
-  NEED_FIX:-10,
   PENDING_APPROVED_REUPLOAD:3,
+  PENDING_FIXED_REUPLOAD:4,
+  PENDING_NOT_FIXED_REUPLOAD:5,
+
+  NEED_FIX:-10,
   APPROVED:1,
-  REUPLOADED:2,
   REJECTED:-1,
+
+  REUPLOADED:2,
   REMOVED:-2, 
   USER_REMOVED:-3,
 };
@@ -34,6 +38,7 @@ const PENDING_LEVELS=[
   LEVEL_STATUS.PENDING,
   LEVEL_STATUS.NEED_FIX,
   LEVEL_STATUS.PENDING_APPROVED_REUPLOAD,
+  LEVEL_STATUS.PENDING_FIXED_REUPLOAD,
 ]
 
 /**
@@ -1237,9 +1242,7 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
         if(args.type === "approve"){
           ts.userError(ts.message("approval.levelAlreadyApproved"));
         }
-      } else if(level.status === ts.LEVEL_STATUS.PENDING){
-        //I don't care that this is empty, I can't be arsed anymore to think how to structure this if
-      } else {
+      } else if(!PENDING_LEVELS.includes(level.status)){
         ts.userError(ts.message("approval.levelNotPending"));
       }
 
@@ -1263,11 +1266,12 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
       }
 
       //generate judgement embed
-      let voteEmbed=await ts.makeVoteEmbed(level)
-      const discussionChannel=await ts.discussionChannel(level.code,ts.channels.levelDiscussionCategory)
-      await ts.updatePinned(discussionChannel,voteEmbed)
-
-      return ts.message(replyMsg,{channel_id:discussionChannel.id});
+      if(!args.skip_update){
+        let voteEmbed=await ts.makeVoteEmbed(level)
+        const discussionChannel=await ts.discussionChannel(level.code,ts.channels.levelDiscussionCategory)
+        await ts.updatePinned(discussionChannel,voteEmbed)
+        return ts.message(replyMsg,{channel_id:discussionChannel.id});
+      }
   }
 
   /**
@@ -1384,14 +1388,16 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
 
   /**
    * @description This will process vote counts and get the respective votes needed and returns the result as a status update
-   * @return {}
+   * @return {LevelStatus} returns the status update if any
+   * @throws {UserError} if there is a tie
+   * @throws {UserError} if there is not enough votes
    */
-  this.processVotes=({ approvalVotesCount=0,fixVotesCount=0,rejectVotesCount=0, is_fix=false })=>{
+  this.processVotes=({ approvalVotesNeeded=0,fixVotesNeeded=0,approvalVotesCount=0,fixVotesCount=0,rejectVotesCount=0, is_fix=false })=>{
     var fixAndApproveVoteCount = fixVotesCount + approvalVotesCount;
     const VotesNeeded=parseInt(ts.teamVariables.VotesNeeded,10)
-    const approvalVotesNeeded=parseInt(ts.teamVariables.ApprovalVotesNeeded,10) || VotesNeeded || 1
-    const rejectVotesNeeded=parseInt(ts.teamVariables.RejectVotesNeeded,19) || VotesNeeded || 1
-    const fixVotesNeeded= parseInt(ts.teamVariables.FixVotesNeeded,10) || approvalVotesNeeded || VotesNeeded || 1
+    approvalVotesNeeded=approvalVotesNeeded || parseInt(ts.teamVariables.ApprovalVotesNeeded,10) || VotesNeeded || 1
+    const rejectVotesNeeded=parseInt(ts.teamVariables.RejectVotesNeeded,10) || VotesNeeded || 1
+    fixVotesNeeded= fixVotesNeeded|| parseInt(ts.teamVariables.FixVotesNeeded,10) || approvalVotesNeeded || VotesNeeded || 1
 
     const approvalRatio=approvalVotesCount/approvalVotesNeeded
     const rejectionRatio=rejectVotesCount/rejectVotesNeeded
@@ -1416,7 +1422,26 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
   }
 
 
-
+  /**
+   * @description Processes the votes to see if it's all approval and fixes and see if the variance in difficulty is within the specified tolerance
+   * @param {object} args 
+   * @param {object} args.AgreeingVotesNeeded
+   * @param {object} args.AgreeingMaxDifference
+   * @param {object} args.approvalVotes
+   * @param {object} args.fixVotes
+   * @param {object} args.rejectVotes
+   * @return {boolean}
+   */
+  this.checkForAgreement=({ AgreeingVotesNeeded,AgreeingMaxDifference,approvalVotes=[],fixVotes=[],rejectVotes=[]})=>{
+    if(!(AgreeingVotesNeeded && AgreeingMaxDifference)) return false;
+    if(rejectVotes.length>0) return false;
+    let min=99,max=-1;
+    [...approvalVotes,...fixVotes].forEach(v=>{
+      min=Math.min(min,v.difficulty_vote)
+      max=Math.max(max,v.difficulty_vote)
+    })
+    return (max-min)<=AgreeingMaxDifference;
+  }
 
   this.judge=async function(code, fromFix = false){
     const level = await ts.getExistingLevel(code,fromFix);
@@ -1424,8 +1449,7 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
     if(!author) ts.userError(ts.message("approval.creatorNotFound"));
 
     if(
-      level.status !== ts.LEVEL_STATUS.PENDING && 
-      level.status !== ts.LEVEL_STATUS.NEED_FIX
+      !PENDING_LEVELS.includes(level.status)
     ) ts.userError(ts.message("approval.levelNotPending"));
 
     //Get all current votes for this level
@@ -1433,8 +1457,18 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
     const fixVotes = await ts.getPendingVotes().where('levels.id',level.id).where("type","fix");
     const rejectVotes = await ts.getPendingVotes().where('levels.id',level.id).where("type","reject");
     
-    
+    const AgreeingVotesNeeded=ts.teamVariables.AgreeingVotesNeeded || 0
+    const AgreeingMaxDifference=ts.teamVariables.AgreeingMaxDifference || 0
+    const inAgreement=ts.checkForAgreement({
+      AgreeingVotesNeeded,
+      AgreeingMaxDifference,
+      approvalVotes,
+      fixVotes,
+      rejectVotes,
+    })
+
     const statusUpdate=this.processVotes({
+      AgreeingVotesNeeded: inAgreement ? AgreeingVotesNeeded : null,
       approvalVotesCount:approvalVotes.length,
       rejectVotesCount:rejectVotes.length,
       fixVotesCount:fixVotes.length,
@@ -1633,11 +1667,7 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
     
 
     //Reupload means you're going to replace the old one so need to do that for upload check
-    let creator_points=await ts.calculatePoints(level.creator, 
-      level.status==ts.LEVEL_STATUS.APPROVED 
-      || level.status==ts.LEVEL_STATUS.PENDING 
-      || level.status==ts.LEVEL_STATUS.NEED_FIX
-      || level.status==ts.LEVEL_STATUS.PENDING_APPROVED_REUPLOAD)
+    let creator_points=await ts.calculatePoints(level.creator,ts.SHOWN_IN_LIST.includes(level.status))
 
     if(!new_level && !creator_points.canUpload) ts.userError(ts.message("reupload.notEnoughPoints"));
     if(level.new_code) ts.userError(ts.message("reupload.haveReuploaded",{code:level.new_code}));
@@ -1664,23 +1694,22 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
       new_level=await ts.getLevels().where({code:new_code}).first();
     }
 
-    let newStatus;
-    if(oldApproved == ts.LEVEL_STATUS.NEED_FIX){
-      newStatus=ts.LEVEL_STATUS.NEED_FIX //should make another one
-    } else if( oldApproved == ts.LEVEL_STATUS.APPROVED ){
+    await ts.db.PendingVotes.query()
+      .patch({code: new_level.id})
+      .where({code:level.id})
+
+    let newStatus=0;
+    if(oldApproved === ts.LEVEL_STATUS.NEED_FIX){
+      newStatus=ts.LEVEL_STATUS.PENDING_FIXED_REUPLOAD; //should make another one
+    } else if( oldApproved === ts.LEVEL_STATUS.APPROVED ){
       newStatus=ts.LEVEL_STATUS.PENDING_APPROVED_REUPLOAD
-    } else {
-      newStatus=ts.LEVEL_STATUS.PENDING
     }
 
-    await ts.db.PendingVotes.query()
-        .patch({code: new_level.id})
-        .where({code:level.id})
-
-      await ts.db.Levels.query()
-        .patch({status:oldApproved == ts.LEVEL_STATUS.APPROVED ? ts.LEVEL_STATUS.PENDING_APPROVED_REUPLOAD : ts.LEVEL_STATUS.NEED_FIX})
-        .where({code:new_code})
-
+      if(newStatus){
+        await ts.db.Levels.query()
+          .patch({status:newStatus})
+          .where({code:new_code})
+      }
 
     //if(newStatus == ts.LEVEL_STATUS.NEED_FIX || newStatus == ts.LEVEL_STATUS.PENDING_APPROVED_REUPLOAD ){
       const author = await ts.db.Members.query()
@@ -1691,7 +1720,7 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
 
       //Post empty overview post
       
-      let voteEmbed = await ts.makePendingReuploadEmbed(new_level, author, false, reason || "");
+    let voteEmbed = await ts.makePendingReuploadEmbed(new_level, author, false, reason || "");
     const channel=await ts.discussionChannel(new_code,newStatus===ts.LEVEL_STATUS.PENDING ? ts.channels.levelDiscussionCategory : ts.channels.pendingReuploadCategory,level.code)
     await ts.updatePinned(channel,voteEmbed)
     await channel.send(ts.message("reupload.reuploadNotify",{old_code,new_code}))

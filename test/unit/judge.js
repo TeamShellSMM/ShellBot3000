@@ -170,4 +170,36 @@ describe('judge', function () {
     })
 
   })
+
+  describe('3 approvals but is passed an override number of votes', function () {
+    before(() => {
+      TEST.ts.teamVariables.VotesNeeded = 3
+      TEST.ts.teamVariables.ApprovalVotesNeeded = 3
+      TEST.ts.teamVariables.RejectVotesNeeded = 2
+      TEST.ts.teamVariables.FixVotesNeeded = 3
+    })
+
+    it('2 approve, 2 ApproveVotesNeeded', async () => {
+      assert.equal(TEST.ts.processVotes({
+        approvalVotesNeeded:2,
+        approvalVotesCount: 2,
+      }),TEST.ts.LEVEL_STATUS.APPROVED)
+    })
+
+    it('1 approve, 2 approveVotesNeeded ', async () => {
+      assert.throws(() => TEST.ts.processVotes({
+        approvalVotesNeeded:2,
+        approvalVotesCount: 1,
+      }), TEST.ts.UserError, TEST.ts.message('approval.numVotesNeeded'))
+    })
+
+    it('3 rejects,4 approve = reject', async () => {
+      assert.equal(TEST.ts.processVotes({
+        fixVotesNeeded:2,
+        fixVotesCount: 1,
+        approvalVotesCount: 1,
+      }),TEST.ts.LEVEL_STATUS.NEED_FIX)
+    })
+
+  })
 })

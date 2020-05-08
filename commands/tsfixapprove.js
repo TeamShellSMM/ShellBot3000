@@ -5,7 +5,7 @@ class TSFixApprove extends TSCommand {
            aliases: ['tsfixapprove', 'tsfixreject', 'fixapprove', 'fixreject'],
            split: 'quoted',
             args: [{
-                id: 'message',
+                id: 'reason',
                 type: 'string',
                 default: null
               },
@@ -14,7 +14,7 @@ class TSFixApprove extends TSCommand {
         });
     }
 
-    async tsexec(ts,message,args) {
+    async tsexec(ts,message,{ reason }) {
       /*
         Possible command syntax:
         !tsapprove code difficulty reason
@@ -50,10 +50,15 @@ class TSFixApprove extends TSCommand {
         approving = true;
       }
 
-      args.discord_id=message.author.id
-
       let replyMessage = "";
       if(approving){
+        await ts.approve({
+          discord_id:message.author.id,
+          code,
+          type:'approve',
+          reason,
+          skip_update:true,
+        })
         replyMessage = await ts.judge(code, true);
       } else {
         if(args.message){
