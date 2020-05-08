@@ -9,55 +9,41 @@ class tsremove extends TSCommand {
     }
 
     async tsexec(ts,message,{command}) {
+      var code=command.arguments.shift();
+      if(!code) ts.userError(ts.message('error.noCode'))
+      code=code.toUpperCase()
+      const reason=command.arguments.join(" ")
 
-        var code=command.arguments.shift();
-        if(!code) ts.userError(ts.message('error.noCode'))
-        code=code.toUpperCase()
-        var reason=command.arguments.join(" ")
+      if(!reason) ts.userError(ts.userError(ts.message('removeLevel.noReason')));
 
-        if(!reason)
-          ts.userError(ts.userError(ts.message('removeLevel.noReason')))
+      const player=await ts.get_user(message);
+      var level=await ts.getExistingLevel(code,true)
 
-        const player=await ts.get_user(message);
-        var level=await ts.getExistingLevel(code,true)
+      if(ts.REMOVED_LEVELS.includes(level.status)) ts.userError(ts.message('removeLevel.alreadyRemoved',level));
 
-        if(level.status!= ts.LEVEL_STATUS.PENDING && level.status!=ts.LEVEL_STATUS.APPROVED)
-          ts.userError(ts.message('removeLevel.alreadyRemoved',level));
+      //only creator and shellder can reupload a level
+      if(!(level.creator==player.name || player.is_mod)) ts.userError(ts.message('removeLevel.cant',level));
 
-        //only creator and shellder can reupload a level
-        if(!(level.creator==player.name || player.is_mod))
-          ts.userError(ts.message('removeLevel.cant',level))
+      //tsremove run by shellders and not their own levels get REMOVED
+      const newStatus= level.creator!=player.name && player.is_mod ? ts.LEVEL_STATUS.REMOVED : ts.LEVEL_STATUS.USER_REMOVED; 
+      
+      await ts.db.Levels.query().patch({status:newStatus}).where({code})
+      await ts.recalculateAfterUpdate({code})
 
-        //tsremove run by shellders and not their own levels get -2
-        //user removed can readd. readd here just updates the row, or we delete the old code?
-        const approvedStr=level.status= level.creator!=player.name && player.is_mod? ts.LEVEL_STATUS.REMOVED : ts.LEVEL_STATUS.USER_REMOVED; 
-        
-        await ts.db.Levels.query().patch({status:approvedStr})
-          .where({code})
+      await ts.deleteDiscussionChannel(level.code,"!tsremove")
+    
+      //Send updates to to #shellbot-level-update
+      const removeEmbed=ts.levelEmbed(level,ts.embedStyle["remove"],{name:player.name})
+      removeEmbed.addField("\u200b","**Reason for removal** :```"+reason+"```-<@" +player.discord_id + ">");
+      if(level.creator!=player.name){ //moderation
+        const creator=await ts.db.Members.query().where({name:level.creator}).first()
+        const mention = "**<@" + creator.discord_id + ">, we got some news for you: **";
+        await this.client.channels.get(ts.channels.levelChangeNotification).send(mention);
+      }
+      await this.client.channels.get(ts.channels.levelChangeNotification).send(removeEmbed);
 
-        await ts.recalculateAfterUpdate({code})
-
-
-      var removeEmbed=ts.levelEmbed(level,ts.embedStyle["remove"],{name:player.name})
-
-        if(ts.emotes.buzzyS){
-          removeEmbed.setThumbnail(ts.getEmoteUrl());
-        }
-
-        removeEmbed.addField("\u200b","**Reason for removal** :```"+reason+"```-<@" +player.discord_id + ">");
-        //Send updates to to #shellbot-level-update
-
-        if(level.creator!=player.name){ //moderation
-          const creator=await ts.db.Members.query().where({name:level.creator}).first()
-          var mention = "**<@" + creator.discord_id + ">, we got some news for you: **";
-          await this.client.channels.get(ts.channels.levelChangeNotification).send(mention);
-        }
-
-        await ts.deleteDiscussionChannel(level.code,"Level has been removed via !tsremove")
-
-        var reply=ts.message('removeLevel.success',level)
-        await this.client.channels.get(ts.channels.levelChangeNotification).send(removeEmbed);
-        await message.channel.send(player.user_reply+reply)
+      const reply=ts.message('removeLevel.success',level)
+      await message.channel.send(player.user_reply+reply)
     }
 }
 module.exports = tsremove;

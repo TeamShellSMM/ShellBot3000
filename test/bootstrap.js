@@ -177,7 +177,7 @@ function mockGS(){
       {Tag:'tag2',Type:'success',Seperate:null,add_lock:null,remove_lock:null,},
       {Tag:'seperate',Type:'warning',Seperate:1,add_lock:null,remove_lock:null,},
       {Tag:'all_locked',Type:'success',Seperate:null,add_lock:1,remove_lock:1,},
-      {Tag:'remove_lock',Type:'success',Seperate:null,add_lock:null,remove_lock:1,},
+      {Tag:'remove_locked',Type:'success',Seperate:null,add_lock:null,remove_lock:1,},
     ],
   }
   this.loadSheets=()=>{}

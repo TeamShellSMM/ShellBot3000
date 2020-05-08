@@ -12,15 +12,6 @@ describe('!reupload', function () {
         name: 'Another Creator',
         discord_id: '256',
       }],
-      /*
-      PENDING:0,
-      APPROVED:1,
-      REJECTED:-1,  //can't re-add
-      NEED_FIX:-10,
-      REUPLOADED:2,
-      REMOVED:-2, 
-      USER_REMOVED:-3,  //can re-add
-      */
       Levels: [{
         level_name: 'pending level',
         creator: 1,

@@ -4,11 +4,57 @@ const Handlebars = require("handlebars");
 const crypto=require('crypto');
 const moment=require('moment');
 const knex = require('./db/knex');
+/* istanbul ignore next */
 const server_config = require('./config.json')[process.env.NODE_ENV || 'development'];
 const DEFAULTMESSAGES=require("./DefaultStrings.js");
 const DiscordLog = require('./DiscordLog');
 
 const GS=require("./GS.js");
+
+/**
+ * Level statuses
+ * @type {object}
+ */
+const LEVEL_STATUS={
+  PENDING:0,
+  NEED_FIX:-10,
+  PENDING_APPROVED_REUPLOAD:3,
+  APPROVED:1,
+  REUPLOADED:2,
+  REJECTED:-1,
+  REMOVED:-2, 
+  USER_REMOVED:-3,
+};
+
+/**
+ * Level status that are pending
+ * @type {number[]}
+ */
+const PENDING_LEVELS=[
+  LEVEL_STATUS.PENDING,
+  LEVEL_STATUS.NEED_FIX,
+  LEVEL_STATUS.PENDING_APPROVED_REUPLOAD,
+]
+
+/**
+ * Level status that appears in the list
+ * @type {number[]}
+ */
+const SHOWN_IN_LIST=[
+  ...PENDING_LEVELS,
+  LEVEL_STATUS.APPROVED,
+];
+
+/**
+ * Level status that doesn't appear in the list
+ * @type {number[]}
+ */
+const REMOVED_LEVELS=[
+  LEVEL_STATUS.REUPLOADED,
+  LEVEL_STATUS.REJECTED,
+  LEVEL_STATUS.REMOVED,
+  LEVEL_STATUS.USER_REMOVED,
+];
 
 /**
  * Class representing a user error. To be thrown and caught and sent to the user with ts.getUserErrorMsg() for discord
@@ -45,16 +91,10 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
   this.guild_id=guild_id;
   /* istanbul ignore next */
   this.gs=gs?gs:new GS({...server_config,...this.config});
-  this.LEVEL_STATUS={
-    PENDING:0,
-    APPROVED:1,
-    PENDING_APPROVED_REUPLOAD:3,
-    REJECTED:-1,  //can't re-add
-    NEED_FIX:-10,
-    REUPLOADED:2,
-    REMOVED:-2, 
-    USER_REMOVED:-3,  //can re-add
-  };
+  this.LEVEL_STATUS=LEVEL_STATUS;
+  this.PENDING_LEVELS=PENDING_LEVELS;
+  this.SHOWN_IN_LIST=SHOWN_IN_LIST;
+  this.REMOVED_LEVELS=REMOVED_LEVELS;
   this.db={
     Teams:require('./models/Teams.js')(guild_id),
     Tokens:require('./models/Tokens'),
@@ -271,7 +311,7 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
       ,sum(CASE WHEN pending_votes.type='fix' THEN 1 ELSE 0 END) want_fixes from pending_votes group by pending_votes.code) pending on
       levels.id=pending.code
     WHERE 
-      levels.status IN (0,1,-10)
+      levels.status IN (:SHOWN_IN_LIST:)
       AND teams.id=:guild_id
     GROUP BY levels.id) a) b on
     levels.id=b.id
@@ -316,23 +356,29 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
           SUM(points.score) own_score,
           levels.creator
         FROM levels
-        INNER JOIN points ON points.difficulty=levels.difficulty AND points.guild_id=levels.guild_id
+        INNER JOIN points ON
+          points.difficulty=levels.difficulty
+          AND points.guild_id=levels.guild_id
         WHERE
           levels.guild_id=:guild_id and
-          levels.status in (0,1,-10,3)
+          levels.status in (:SHOWN_IN_LIST:)
         GROUP BY creator,levels.guild_id
       ) own_levels ON
           members.guild_id=own_levels.guild_id
           AND members.id=own_levels.creator
       SET
-        members.clear_score_sum=COALESCE(total_score,0),
+        members.clear_score_sum=COALESCE(total_score,0)+if(:include_own_score,COALESCE(own_levels.own_score,0),0),
         members.levels_cleared=COALESCE(total_cleared,0),
         members.levels_created=COALESCE(calculated_levels_created,0),
         members.own_score=COALESCE(own_levels.own_score,0),
         members.free_submissions=COALESCE(own_levels.free_submissions,0),
         members.maker_points=COALESCE(own_levels.maker_points,0)
       WHERE members.guild_id=:guild_id;
-  `,{ guild_id:this.team.id });
+  `,{ 
+      guild_id:this.team.id,
+      SHOWN_IN_LIST:knex.raw(SHOWN_IN_LIST),
+      include_own_score: !!ts.teamVariables.includeOwnPoints || false,
+    });
   }
 
   /**
@@ -878,7 +924,7 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
 
       ts.userError(ts.message("error.levelNotFound", { code })+matchStr);
     }
-    if(!includeRemoved && !(level.status==ts.LEVEL_STATUS.PENDING || level.status==ts.LEVEL_STATUS.APPROVED)){ //level is removed. not pending/accepted
+    if(!includeRemoved && ts.REMOVED_LEVELS.includes(level.status)){ //level is removed. not pending/accepted
       if(level.status==ts.LEVEL_STATUS.NEED_FIX){
         ts.userError(ts.message("error.levelIsFixing",{ level }));
       }
@@ -1704,12 +1750,18 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
 //points,levelsUploaded,freeLevels,min,next
 TS.TS_LIST={}
 
+/**
+ * call to add a TS into the list.
+ */
 TS.add=async (guild_id,team,client,gs)=>{
   TS.TS_LIST[guild_id]=new TS(guild_id,team,client,gs)
   await TS.TS_LIST[guild_id].load()
   return TS.TS_LIST[guild_id];
 }
 
+/**
+ * Get a TS object from a url_slug
+ */
 TS.teamFromUrl=(url_slug)=>{
   for(let i in TS.TS_LIST){
     let team=TS.TS_LIST[i]
@@ -1720,6 +1772,9 @@ TS.teamFromUrl=(url_slug)=>{
   return false
 }
 
+/**
+ * default makerteam messages for use above the team layer
+ */
 TS.message=function(type,args){
   if(TS.defaultMessages[type]){
     return TS.defaultMessages[type](args)
@@ -1727,6 +1782,10 @@ TS.message=function(type,args){
   throw `"${type}" message string was not found in ts.message`;
 }
 
+/**
+ * Get a team
+ * @param {Snowflake} guild_id
+ */
 TS.teams=(guild_id)=>{
   if(TS.TS_LIST[guild_id]){
     return TS.TS_LIST[guild_id];
@@ -1736,7 +1795,9 @@ TS.teams=(guild_id)=>{
 }
 
 TS.UserError=UserError;
-
+/**
+ * Registers a new team when they run it in a discord server that is not registered
+ */
 TS.create=async (args,client,gs)=>{
   if(!args) throw new Error(`No arguments passed to TS.create`)
   const { guild_id } = args;
