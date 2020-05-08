@@ -1,4 +1,4 @@
-describe('judge', function () {
+describe('judge:processVotes', function () {
   describe('processVotes 1 votes needed', function () {
     before(() => {
       TEST.ts.teamVariables.VotesNeeded = 1
@@ -201,5 +201,80 @@ describe('judge', function () {
       }),TEST.ts.LEVEL_STATUS.NEED_FIX)
     })
 
+  })
+})
+
+describe('judge:checkForAgreement', ()=>{
+
+  it('1 agreeing votes, 2 agreeing votes needed, within tolerance=false', async () => {
+    assert.isFalse(TEST.ts.checkForAgreement({
+      AgreeingVotesNeeded:2,
+      AgreeingMaxDifference:0.5,
+      approvalVotes:[{difficulty_vote:1}],
+      fixVotes:[],
+      rejectVotes:[],
+    }))
+  })
+
+  it('2 agreeing votes, within tolerance=true', async () => {
+    assert.isTrue(TEST.ts.checkForAgreement({
+      AgreeingVotesNeeded:2,
+      AgreeingMaxDifference:0.5,
+      approvalVotes:[{difficulty_vote:1},{difficulty_vote:1}],
+      fixVotes:[],
+      rejectVotes:[],
+    }))
+  })
+
+  it('2 approve/fix votes, within tolerance=true', async () => {
+    assert.isTrue(TEST.ts.checkForAgreement({
+      AgreeingVotesNeeded:2,
+      AgreeingMaxDifference:0.5,
+      approvalVotes:[{difficulty_vote:1}],
+      fixVotes:[{difficulty_vote:1}],
+      rejectVotes:[],
+    }))
+  })
+
+  it('3 approve/fix votes, within tolerance=true', async () => {
+    assert.isTrue(TEST.ts.checkForAgreement({
+      AgreeingVotesNeeded:3,
+      AgreeingMaxDifference:0.5,
+      approvalVotes:[{difficulty_vote:1},{difficulty_vote:1.5},{difficulty_vote:1}],
+      fixVotes:[{difficulty_vote:1}],
+      rejectVotes:[],
+    }))
+  })
+
+  //agreeingVotesNeeded > 1
+
+  it('3 approve/fix votes, within tolerance=true', async () => {
+    assert.isTrue(TEST.ts.checkForAgreement({
+      AgreeingVotesNeeded:3,
+      AgreeingMaxDifference:0.5,
+      approvalVotes:[{difficulty_vote:1},{difficulty_vote:1.5},{difficulty_vote:1}],
+      fixVotes:[{difficulty_vote:1}],
+      rejectVotes:[],
+    }))
+  })
+  
+  it('2 approve/fix votes, within tolerance,with 1 =true', async () => {
+    assert.isTrue(TEST.ts.checkForAgreement({
+      AgreeingVotesNeeded:2,
+      AgreeingMaxDifference:0.5,
+      approvalVotes:[{difficulty_vote:1}],
+      fixVotes:[{difficulty_vote:1}],
+      rejectVotes:[],
+    }))
+  })
+
+  it('2 agreeing votes, not within tolerance=true', async () => {
+    assert.isFalse(TEST.ts.checkForAgreement({
+      AgreeingVotesNeeded:2,
+      AgreeingMaxDifference:0.5,
+      approvalVotes:[{difficulty_vote:1},{difficulty_vote:2}],
+      fixVotes:[],
+      rejectVotes:[],
+    }))
   })
 })

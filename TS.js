@@ -1434,6 +1434,7 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
    */
   this.checkForAgreement=({ AgreeingVotesNeeded,AgreeingMaxDifference,approvalVotes=[],fixVotes=[],rejectVotes=[]})=>{
     if(!(AgreeingVotesNeeded && AgreeingMaxDifference)) return false;
+    if((approvalVotes.length+fixVotes.length)< AgreeingVotesNeeded) return false;
     if(rejectVotes.length>0) return false;
     let min=99,max=-1;
     [...approvalVotes,...fixVotes].forEach(v=>{
@@ -1468,7 +1469,8 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
     })
 
     const statusUpdate=this.processVotes({
-      AgreeingVotesNeeded: inAgreement ? AgreeingVotesNeeded : null,
+      approvalVotesNeeded: inAgreement ? AgreeingVotesNeeded : null,
+      fixVotesNeeded: inAgreement ? AgreeingVotesNeeded : null,
       approvalVotesCount:approvalVotes.length,
       rejectVotesCount:rejectVotes.length,
       fixVotesCount:fixVotes.length,
