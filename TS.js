@@ -903,6 +903,38 @@ const TS=function(guild_id,config,client){ //loaded after gs
     var fixVoteCount = fixVotes.length;
     var rejectVoteCount = rejectVotes.length;
 
+    let approvalVotesNeeded = ts.get_variable("ApprovalVotesNeeded");
+    let agreeingVotesNeeded = ts.get_variable("AgreeingVotesNeeded");
+    let agreeingMaxDifference = ts.get_variable("AgreeingMaxDifference");
+
+    if(agreeingVotesNeeded && agreeingVotesNeeded > 1 && agreeingMaxDifference && agreeingMaxDifference > 0 && rejectVoteCount <= 0 && approvalVoteCount > 1){
+      let minDifficulty = 99;
+      let maxDifficulty = -1;
+
+      for(let approvalVote of approvalVotes){
+        let diff = parseFloat(approvalVote.difficulty_vote);
+        if(diff < minDifficulty){
+          minDifficulty = diff;
+        }
+        if(diff > maxDifficulty){
+          maxDifficulty = diff;
+        }
+      }
+      for(let fixVote of fixVotes){
+        let diff = parseFloat(fixVote.difficulty_vote);
+        if(diff < minDifficulty){
+          minDifficulty = diff;
+        }
+        if(diff > maxDifficulty){
+          maxDifficulty = diff;
+        }
+      }
+
+      if(maxDifficulty - minDifficulty <= agreeingMaxDifference){
+        approvalVotesNeeded = agreeingVotesNeeded;
+      }
+    }
+
     let fixMode = false;
 
     if(rejectVoteCount >= ts.get_variable("RejectVotesNeeded") && rejectVoteCount>approvalVoteCount){
@@ -922,7 +954,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
         var image=this.getEmoteUrl(this.emotes.axemuncher);
       }
 
-    } else if (approvalVoteCount >= ts.get_variable("ApprovalVotesNeeded")  && approvalVoteCount>rejectVoteCount && fixVoteCount > 0 && level.status !== ts.LEVEL_STATUS.NEED_FIX) {
+    } else if (approvalVoteCount >= approvalVotesNeeded  && approvalVoteCount>rejectVoteCount && fixVoteCount > 0 && level.status !== ts.LEVEL_STATUS.NEED_FIX) {
       if(level.status !== ts.LEVEL_STATUS.PENDING)
         ts.userError(ts.message("approval.levelNotPending"))
 
@@ -937,7 +969,7 @@ const TS=function(guild_id,config,client){ //loaded after gs
       }
 
       fixMode = true;
-    } else if (approvalVoteCount >= ts.get_variable("ApprovalVotesNeeded")  && approvalVoteCount>rejectVoteCount ){
+    } else if (approvalVoteCount >= approvalVotesNeeded && approvalVoteCount>rejectVoteCount ){
       if(level.status !== ts.LEVEL_STATUS.PENDING && level.status !== ts.LEVEL_STATUS.NEED_FIX)
         ts.userError(ts.message("approval.levelNotPending"))
         //Get the average difficulty and round to nearest .5, build the message at the same time
