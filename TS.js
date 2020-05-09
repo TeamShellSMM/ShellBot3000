@@ -1561,7 +1561,7 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
 
 
   this.levelEmbed=function(level,args={},titleArgs){
-    const { color, title, image, noLink }=args;
+    let { color, title, image, noLink }=args;
     var vidStr=[]
 
     level.videos.split(",").forEach((vid,i)=>{
