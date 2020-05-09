@@ -650,7 +650,6 @@ app.post('/json/worlds',web_ts(async (ts,req)=>{
     }
 
     let rand=await ts.randomLevel(req.body)
-    console.log(rand)
     rand.status="sucessful"
     return rand
   }))

@@ -47,7 +47,7 @@ describe('Web Apis', function () {
           .expect('Content-Type', /json/)
           .expect(200)
 
-        console.log(body)
+        //console.log(body)
         assert.notEqual(body.status,'error','Should not return error')
 
         assert.lengthOf(body.levels,1,'one levels in db')
@@ -67,7 +67,7 @@ describe('Web Apis', function () {
           .expect('Content-Type', /json/)
           .expect(200)
 
-        console.log(body)
+        //console.log(body)
         assert.notEqual(body.status,'error')
 
         assert.lengthOf(body.levels,1,'one levels in db')
@@ -87,7 +87,7 @@ describe('Web Apis', function () {
           .expect('Content-Type', /json/)
           .expect(200)
 
-        console.log(body)
+        //console.log(body)
         assert.notEqual(body.status,'error')
 
         assert.lengthOf(body.levels,1,'one levels in db')
@@ -107,7 +107,7 @@ describe('Web Apis', function () {
           .expect('Content-Type', /json/)
           .expect(200)
 
-        console.log(body)
+        //console.log(body)
         assert.notEqual(body.status,'error')
 
         assert.exists(body.data)
@@ -126,7 +126,7 @@ describe('Web Apis', function () {
           assert.notEqual(body.status,'error')
         //For now we stop comparing these
         //TODO: make it work with actual dates
-        console.log(body)
+        //console.log(body)
 
       })
 
@@ -140,7 +140,7 @@ describe('Web Apis', function () {
         assert.notEqual(body.status,'error')
         //For now we stop comparing these
         //TODO: make it work with actual dates
-        console.log(body)
+        //console.log(body)
       })
 
 
@@ -164,7 +164,7 @@ describe('Web Apis', function () {
           .send({ url_slug:TEST.ts.url_slug})
           //.expect('Content-Type', /json/)
           //.expect(403)
-        console.log(body)
+        //console.log(body)
       })
 
       it('POST /approve', async function (){
@@ -173,7 +173,7 @@ describe('Web Apis', function () {
           .send({ url_slug:TEST.ts.url_slug})
           //.expect('Content-Type', /json/)
           //.expect(403)
-        console.log(body)
+        //console.log(body)
       })
 
       it('POST /feedback', async function (){
@@ -182,7 +182,7 @@ describe('Web Apis', function () {
           .send({ url_slug:TEST.ts.url_slug})
           //.expect('Content-Type', /json/)
           //.expect(403)
-        console.log(body)
+        //console.log(body)
       })
   })
 
@@ -233,7 +233,7 @@ describe('Web Apis', function () {
         .expect('Content-Type', /json/)
         .expect(200)
 
-      console.log(body)
+      //console.log(body)
       assert.notEqual(body.status,'error','Should not return error')
 
       assert.lengthOf(body.levels,1,'one levels in db')
