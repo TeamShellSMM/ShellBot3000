@@ -414,7 +414,7 @@ module.exports = async function(config,client){
       from_season = parseInt(from_season,10);
     }
 
-    let membersSQL;
+    let membersSQL='';
     if(data.membershipStatus == '1'){
       membersSQL=`AND members.is_member=1`
     } else if(data.membershipStatus == '2'){;
