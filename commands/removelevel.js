@@ -33,7 +33,7 @@ class tsremove extends TSCommand {
       await ts.deleteDiscussionChannel(level.code,"!tsremove")
     
       //Send updates to to #shellbot-level-update
-      const removeEmbed=ts.levelEmbed(level)
+      const removeEmbed=ts.levelEmbed(level,ts.embedStyle["remove"],{name:player.name})
       removeEmbed.addField("\u200b","**Reason for removal** :```"+reason+"```-<@" +player.discord_id + ">");
       if(level.creator!=player.name){ //moderation
         const creator=await ts.db.Members.query().where({name:level.creator}).first()
