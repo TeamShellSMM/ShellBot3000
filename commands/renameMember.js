@@ -1,5 +1,5 @@
 const TSCommand = require('../TSCommand.js');
-const config = require('../config.json');
+const config = require('../config.json')[process.env.NODE_ENV || 'development']
 class RenameMember extends TSCommand {
     constructor() {
         super('renamemember', {
@@ -7,11 +7,11 @@ class RenameMember extends TSCommand {
             args: [{
                 id: 'discord_id',
                 type: 'string',
-                default: ''
+                default: null
             },{
                 id: 'new_name',
                 type: 'string',
-                default: ''
+                default: null
             }],
             split: 'quoted',
         });
@@ -25,7 +25,8 @@ class RenameMember extends TSCommand {
             return true;
         }
         
-        if(ts.is_mod({discord_id:message.author.id})){
+        const member=await ts.db.Member.query().where({discord_id:message.author.id}).first()
+        if(member && member.is_mod){
             return true
         }
 
@@ -48,17 +49,6 @@ class RenameMember extends TSCommand {
           .patch({name:new_name})
           .where({discord_id})
 
-        await ts.db.Levels.query()
-          .patch({creator:new_name})
-          .where({creator:old_name})
-
-        await ts.db.Plays.query()
-          .patch({player:new_name})
-          .where({player:old_name})
-
-        await ts.db.PendingVotes.query()
-          .patch({player:new_name})
-          .where({player:old_name})
 
         let updates=[]
         let winners=ts.gs.query("Competition Winners", {
@@ -79,7 +69,7 @@ class RenameMember extends TSCommand {
             await ts.load()
         }
 
-        return message.reply('"'+old_name+'" has been renamed to "'+new_name+'"');
+        return await message.reply('"'+old_name+'" has been renamed to "'+new_name+'"');
     }
 }
 

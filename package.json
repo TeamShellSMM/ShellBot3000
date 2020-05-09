@@ -1,7 +1,7 @@
 {
   "name": "shellbot3000",
   "version": "1.0.0",
-  "description": "",
+  "description": "A Discord Bot for Super Mario Maker teams and community.",
   "main": "app.js",
   "dependencies": {
     "body-parser": "^1.19.0",
@@ -13,19 +13,27 @@
     "handlebars": "^4.7.6",
     "knex": "^0.20.13",
     "moment": "^2.24.0",
+    "mysql": "^2.18.1",
+    "mysql2": "^2.1.0",
     "objection": "^2.1.3",
     "request": "^2.88.2",
     "request-promise": "^4.2.5",
     "sqlite3": "^4.1.1",
     "string-similarity": "^4.0.1",
-    "valid-url": "^1.0.9",
-    "yargs": "^15.3.1"
+    "valid-url": "^1.0.9"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
+    "mocha": "^7.1.2",
+    "nyc": "^15.0.1",
+    "supertest": "^4.0.2"
+  },
   "scripts": {
     "migrate": "node_modules/.bin/knex migrate:latest",
     "start": "node app.js",
-    "test": "node app.js --test"
+    "test": "env NODE_ENV=test mocha",
+    "coverage": "nyc --reporter=lcov --reporter=text npm test"
   },
   "keywords": [],
   "author": "",

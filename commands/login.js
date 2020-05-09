@@ -1,5 +1,5 @@
 const TSCommand = require('../TSCommand.js');
-const config = require('../config.json');
+const config = require('../config.json')[process.env.NODE_ENV || 'development']
 class login extends TSCommand {
     constructor() {
         super('login', {
@@ -12,8 +12,8 @@ class login extends TSCommand {
     async tsexec(ts,message,args) {
       const player=await ts.get_user(message);
       let otp=await ts.generateOtp(message.author.id)
-      let login_link=config.page_url + ts.config.url_slug + "/login/"+otp;
-      message.author.send(player.user_reply+ts.message("login.reply",{login_link:login_link}))
+      let login_link=ts.generateLoginLink(otp);
+      await message.author.send(player.user_reply+ts.message("login.reply",{login_link:login_link}))
     }
 }
 module.exports = login;

@@ -6,16 +6,16 @@ class TSClear extends TSCommand {
            aliases: ['tsclear','clear'],
             args: [{
                     id: 'code',
-                    type: 'string',
-                    default: ''
+                    type: 'uppercase',
+                    default: null
                 },{
                     id: 'difficulty',
                     type: 'string',
-                    default: ''
+                    default: null,
                 },{
-                    id: 'like',
-                    type: 'string',
-                    default: ''
+                    id: 'liked',
+                    type: 'integer',
+                    default: null
                 }],
            channelRestriction: 'guild'
         });
@@ -25,7 +25,7 @@ class TSClear extends TSCommand {
         args.discord_id=message.author.id
         args.completed=1
         let msg=await ts.clear(args)
-        message.channel.send(msg)
+        await message.channel.send(msg)
     }
 }
 module.exports = TSClear;

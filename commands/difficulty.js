@@ -5,12 +5,12 @@ class tsdifficulty extends TSCommand {
            aliases: ['tsdifficulty','difficulty'],
             args: [{
                     id: 'code',
-                    type: 'string',
-                    default: ''
+                    type: 'uppercase',
+                    default: null,
                 },{
                     id: 'difficulty',
                     type: 'string',
-                    default: ''
+                    default: null,
                 }],
            channelRestriction: 'guild'
         });
@@ -19,7 +19,7 @@ class tsdifficulty extends TSCommand {
     async tsexec(ts,message,args) {
       args.discord_id=message.author.id
       let msg=await ts.clear(args)
-      message.channel.send(msg)
+      await message.channel.send(msg)
     }
 }
 module.exports = tsdifficulty;

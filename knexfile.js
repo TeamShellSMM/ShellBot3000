@@ -1,6 +1,6 @@
 const config = require('./config.json');
 module.exports = {
-  development:config.db,
-  test:config.db,
-  production:config.db
+  development:config.development.db,
+  test:config.test.db,
+  production:config.production.db,
 };

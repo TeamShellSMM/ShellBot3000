@@ -7,7 +7,7 @@ class points extends TSCommand {
             args: [{
                     id: 'role',
                     type: 'string',
-                    default: ''
+                    default: null
                 }],
            channelRestriction: 'guild'
         });
@@ -15,11 +15,9 @@ class points extends TSCommand {
 
     async tsexec(ts,message,{ role }) {
         const player=await ts.get_user(message);
-
-        var all_ranks=ts.gs.select("Ranks");
-        var all_ranks_id=all_ranks.map(r=>r.discord_roles)
+        
         if(role=="role" || role=="norole"){
-          await message.member.removeRoles(all_ranks_id)
+          await message.member.removeRoles(ts.rank_ids)
         }
         if(role=="role" && player.rank.discord_roles && player.rank.discord_roles.length > 0){
           await message.member.addRole(player.rank.discord_roles)
@@ -27,15 +25,15 @@ class points extends TSCommand {
 
         var msg=ts.message("points.points",{ player })
 
-        if(player.earned_points.available>=0){
+        if(player.earned_points.canUpload){
            msg+=ts.message("points.canUpload");
         } else {
            msg+=ts.message("points.cantUpload",{
-             "points_earned":Math.abs(player.earned_points.available).toFixed(1)
+             points_earned:player.earned_points.pointsNeeded
            })
         }
         msg+=ts.message("points.rank",{ player })
-        message.channel.send(player.user_reply+msg)
+        await message.channel.send(player.user_reply+msg)
     }
 }
 module.exports = points;

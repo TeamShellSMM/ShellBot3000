@@ -23,7 +23,7 @@ class TSRefuseFix extends TSCommand {
         }
         
         const player=await ts.get_user(message);
-        var level=await ts.db.Levels.query().where({code}).first();
+        var level=await ts.getLevels().where({code}).first();
         const author = await ts.db.Members.query().where({name:level.creator}).first();
 
         if(level.status!=ts.LEVEL_STATUS.NEED_FIX)
@@ -62,7 +62,7 @@ class TSRefuseFix extends TSCommand {
 
         var replyMessage = "Your level was put in the reupload queue, we'll get back to you in a bit!";
 
-        message.reply(replyMessage);
+        await message.reply(replyMessage);
     }
 }
 module.exports = TSRefuseFix;

@@ -5,16 +5,16 @@ class TSFixApprove extends TSCommand {
            aliases: ['tsfixapprove', 'tsfixreject', 'fixapprove', 'fixreject'],
            split: 'quoted',
             args: [{
-                id: 'message',
+                id: 'reason',
                 type: 'string',
-                default: ''
+                default: null
               },
             ],
            channelRestriction: 'guild'
         });
     }
 
-    async tsexec(ts,message,args) {
+    async tsexec(ts,message,{ reason }) {
       /*
         Possible command syntax:
         !tsapprove code difficulty reason
@@ -50,20 +50,25 @@ class TSFixApprove extends TSCommand {
         approving = true;
       }
 
-      args.discord_id=message.author.id
-
       let replyMessage = "";
       if(approving){
+        await ts.approve({
+          discord_id:message.author.id,
+          code,
+          type:'approve',
+          reason,
+          skip_update:true,
+        })
         replyMessage = await ts.judge(code, true);
       } else {
         if(args.message){
           replyMessage = await ts.rejectLevelWithReason(code, message.author, args.message);
         } else {
-          ts.userError("You have to provide a message to the creator explaining why this was rejected!");
+          ts.userError(ts.message('fixApprove.noReason'));
         }
       }
 
-      message.reply(replyMessage);
+      await message.reply(replyMessage);
     }
 }
 module.exports = TSFixApprove;

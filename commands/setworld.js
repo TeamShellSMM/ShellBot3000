@@ -6,17 +6,17 @@ class SetWorld extends TSCommand {
             args: [{
                     id: 'world_count',
                     type: 'string',
-                    default: ''
+                    default: null
                 },
                 {
                     id: 'level_count',
                     type: 'string',
-                    default: ''
+                    default: null
                 },
                 {
                     id: 'world_name',
                     type: 'string',
-                    default: ''
+                    default: null
                 }],
            channelRestriction: 'guild'
         });
@@ -25,8 +25,8 @@ class SetWorld extends TSCommand {
     async tsexec(ts,message,args) {
       let command=ts.parse_command(message);
 
-      let world_count = parseInt(command.arguments.shift());
-      let level_count = parseInt(command.arguments.shift());
+      let world_count = parseInt(command.arguments.shift(),10);
+      let level_count = parseInt(command.arguments.shift(),10);
       let world_name = command.arguments.join(" ");
 
       if(!world_count) ts.userError(ts.message('setworld.invalidWorldCount'));

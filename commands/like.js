@@ -6,8 +6,8 @@ class tslike extends TSCommand {
            aliases: ['tslike','like','tsunlike','unlike'],
             args: [{
                     id: 'code',
-                    type: 'string',
-                    default: ''
+                    type: 'uppercase',
+                    default: null
                 }],
            channelRestriction: 'guild'
         });
@@ -17,9 +17,9 @@ class tslike extends TSCommand {
       const likeCommands=["tslike","like"];
       const command=ts.parse_command(message)
       args.discord_id=message.author.id
-      args.like=likeCommands.indexOf(command.command)!=-1?1:0
+      args.liked=likeCommands.indexOf(command.command)!=-1?1:0
       let msg=await ts.clear(args)
-      message.channel.send(msg)
+      await message.channel.send(msg)
     }
 }
 module.exports = tslike;

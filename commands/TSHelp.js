@@ -6,14 +6,14 @@ class TSHelp extends TSCommand {
            args: [{
             id: 'command',
             type: 'string',
-            default: ''
+            default: null
            }],
            channelRestriction: 'guild'
         });
     }
 
     async tsexec(ts,message) {
-      message.reply(ts.message('help.basic'))
+      await message.reply(ts.message('help.basic'))
     }
 }
 module.exports = TSHelp;

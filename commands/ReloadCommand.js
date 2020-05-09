@@ -1,5 +1,7 @@
+/* istanbul ignore file */
+
 const { Command } = require('discord-akairo');
-const config = require('../config.json');
+const config = require('../config.json')[process.env.NODE_ENV || 'development']
 
 class ReloadCommand extends Command {
     constructor() {
@@ -25,7 +27,7 @@ class ReloadCommand extends Command {
         }
 
         await this.handler.reloadAll();
-        return message.reply(`Reloaded commands`);
+        return await message.reply(`Reloaded commands`);
     }
 }
 

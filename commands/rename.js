@@ -7,35 +7,25 @@ class TSRename extends TSCommand {
         });
     }
 
-    async tsexec(ts,message,args) {
+    async tsexec(ts,message) {
       let command=ts.parse_command(message);
-      let code=command.arguments.shift()
-      if(code)
-        code=code.toUpperCase()
+      let code=command.arguments.shift();
+      const level_name=command.arguments.join(' ');
+      if(!code) ts.userError(ts.message('error.noCode'));
+      if(!level_name) ts.userError(ts.message('rename.noNewName'));
+      if(ts.isSpecialDiscordString(level_name)) ts.userError(ts.message('error.specialDiscordString'));
 
-      if(!ts.valid_code(code))
-        ts.userError("You did not provide a valid level code")
-
-      const level_name=command.arguments.join(" ")
-
-      if(!level_name)
-        ts.userError("You didn't give a new level name")
-
+      if(code) code=code.toUpperCase();
       const player=await ts.get_user(message);
-      var level=await ts.getExistingLevel(code)
+      let level=await ts.getExistingLevel(code);
 
-      if(!(level.creator==player.name || ts.is_mod(player)))
-        ts.userError("You can't rename \""+level.level_name+"\" by "+level.creator);
+      if(!(level.creator==player.name || player.is_mod)) ts.userError(ts.message('rename.noPermission',level));
+      if(level.level_name==level_name) ts.userError(ts.message('rename.alreadyName',level));
 
-      if(level.level_name==level_name)
-        ts.userError("Level name is already \""+level_name+"\"")
+      await ts.db.Levels.query().patch({level_name}).where({code});
 
-      await ts.db.Levels.query()
-        .patch({level_name})
-        .where({code})
-
-      var reply="The level \""+level.level_name+"\" ("+code+") has been renamed to \""+level_name+"\" "+(ts.emotes.bam ? ts.emotes.bam : "")
-      message.channel.send(player.user_reply+reply)
+      let reply=ts.message('rename.success',{new_level_name:level_name,...level});
+      await message.channel.send(player.user_reply+reply);
     }
 }
 module.exports = TSRename;

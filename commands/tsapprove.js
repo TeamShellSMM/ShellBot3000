@@ -8,18 +8,18 @@ class TSApprove extends TSCommand {
            split: 'quoted',
             args: [{
                 id: 'code',
-                type: 'string',
-                default: ''
+                type: 'uppercase',
+                default: null,
               },
               {
                 id: 'difficulty',
                 type: 'string',
-                default: ''
+                default: null,
               },
               {
                 id: 'reason',
                 type: 'string',
-                default: ''
+                default: null,
               }
             ],
            channelRestriction: 'guild'
@@ -50,11 +50,6 @@ class TSApprove extends TSCommand {
         args.reason = args.difficulty;
         args.difficulty = args.code;
         args.code = message.channel.name.toUpperCase();
-      } else {
-        //Check the code only if not in discussion channel
-        if(!ts.valid_code(args.code.toUpperCase())){
-          ts.userError("Level Code is invalid! ")
-        }
       }
 
       if(!(
@@ -66,7 +61,7 @@ class TSApprove extends TSCommand {
       if(command.command.indexOf("reject") !== -1){
         //Difficulty doesn't exist in reject, so it get replaced by reason
         args.reason = args.difficulty;
-        args.difficulty = "";
+        args.difficulty = null;
       }
 
       if(args.code){
@@ -91,15 +86,15 @@ class TSApprove extends TSCommand {
 
       args.discord_id=message.author.id
       var replyMessage=await ts.approve(args)
-      message.reply(replyMessage);
+      await message.reply(replyMessage);
 
       //clear
       if(clearCommands.indexOf(command.command) !== -1){
           args.completed=1;
         if(likeCommands.indexOf(command.command) !==-1)
-          args.like=1;
+          args.liked=1;
         var clearMessage=await ts.clear(args)
-        this.client.channels.get(ts.channels.commandFeed).send(clearMessage)
+        await this.client.channels.get(ts.channels.commandFeed).send(clearMessage)
       }
     }
 }

@@ -1,5 +1,5 @@
 const TSCommand = require('../TSCommand.js');
-const config = require('../config.json');
+const config = require('../config.json')[process.env.NODE_ENV || 'development']
 
 class ReloadData extends TSCommand {
     constructor() {
@@ -17,18 +17,18 @@ class ReloadData extends TSCommand {
             return true;
         }
         
-        if(ts.is_mod({discord_id:message.author.id})){
+        const member=await ts.db.Member.query().where({discord_id:message.author.id}).first()
+        if(member && member.is_mod){
             return true
         }
-        
         return false;
     }
     
 
     async tsexec(ts,message, args){
-
+        await ts.saveSheetToDb()
         await ts.load()
-        return message.reply(`Reloaded data!`);
+        return await message.reply(`Reloaded data!`);
     }
 }
 

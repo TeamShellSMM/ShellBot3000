@@ -6,18 +6,18 @@ class TSRerate extends TSCommand {
            split: 'quoted',
             args: [{
               id: 'code',
-              type: 'string',
-              default: ''
+              type: 'uppercase',
+              default: null,
             },
             {
               id: 'difficulty',
-              type: 'string',
-              default: ''
+              type: 'number',
+              default: null,
             },
             {
               id: 'reason',
               type: 'string',
-              default: ''
+              default: null,
             }],
            channelRestriction: 'guild'
         });
@@ -25,7 +25,7 @@ class TSRerate extends TSCommand {
 
     async tsexec(ts,message,{ code , difficulty, reason }) {
       if(!(
-        message.channel.id === ts.channels.modChannel  //only in bot-test channel
+        message.channel.id === ts.channels.modChannel 
       )) return false;
 
       if(code){
@@ -47,18 +47,15 @@ class TSRerate extends TSCommand {
 
       if(level.difficulty==difficulty) ts.userError("\""+level.level_name+"\" is already rated "+difficulty);
 
-      await ts.db.Levels.query()
-        .patch({difficulty})
-        .where({code})
-        
+      await ts.db.Levels.query().patch({difficulty}).where({code})
 
-      var rerateEmbed = ts.levelEmbed(level)
-            .setColor("#17a2b8")
-            .setAuthor(ts.message('difficulty.updated',{ 
-              old_difficulty:level.difficulty,
-              new_difficulty:difficulty,
-            }))
-            .addField("\u200b","**Reason** :\n```"+reason+"```Rerated by <@" +message.member.id + ">")
+      await ts.recalculateAfterUpdate({code})
+
+      var rerateEmbed = ts.levelEmbed(level,ts.embedStyle.rerate,{ 
+            old_difficulty:level.difficulty,
+            new_difficulty:difficulty,
+          })
+          .addField("\u200b","**Reason** :\n```"+reason+"```Rerated by <@" +message.member.id + ">")
 
       var levelChangeChannel=await this.client.channels.get(ts.channels.levelChangeNotification)
 
@@ -67,7 +64,7 @@ class TSRerate extends TSCommand {
         await levelChangeChannel.send(mention);
       }
       await levelChangeChannel.send(rerateEmbed);
-      message.reply(ts.message('difficulty.success'));
+      await message.reply(ts.message('difficulty.success'));
   }
 }
 module.exports = TSRerate;

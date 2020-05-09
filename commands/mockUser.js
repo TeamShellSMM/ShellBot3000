@@ -1,19 +1,20 @@
-const config = require('../config.json');
+const config = require('../config.json')[process.env.NODE_ENV || 'development']
 const TSCommand = require('../TSCommand.js');
 class mockUser extends TSCommand {
     constructor() {
         super('mockUser', {
           aliases: ['mockUser'],
+          split: 'quoted',
           args: [{
             id: 'user',
             type: 'string',
-            default: ''
+            default: null
           }],
         });
     }
 
     async canRun(ts,message){
-        if(ts.teamVariables.isTesting!=="yes"){
+        if(process.env.NODE_ENV!=='production'){
             return false
         }
 
@@ -54,7 +55,7 @@ class mockUser extends TSCommand {
           .where({name:target.name})
 
         let p=await ts.get_user(message)
-        message.channel.send(ts.message('mock.userSuccess',{name:p.name}))
+        await message.channel.send(ts.message('mock.userSuccess',{name:p.name}))
     }
 }
 module.exports = mockUser;

@@ -1,4 +1,5 @@
 const TSCommand = require('../TSCommand.js');
+
 class tsadd extends TSCommand {
     constructor() {
         super('tsadd', {
@@ -7,37 +8,14 @@ class tsadd extends TSCommand {
         });
     }
 
-    async tsexec(ts,message,args) {
+
+    async tsexec(ts,message) {
       let command=ts.parse_command(message);
       let code=command.arguments.shift()
-      if(code)
-        code=code.toUpperCase()
-
-      if(!code) ts.userError(ts.message('error.noCode'));
-      if(!ts.valid_code(code)) ts.userError(ts.message("error.invalidCode"));
-
+      if(code) code=code.toUpperCase()
       const level_name=command.arguments.join(" ")
-
-      if(!level_name)
-        ts.userError(ts.message("add.noName"))
-
-      const player=await ts.get_user(message);
-      var existing_level=await ts.db.Levels.query().where({ code }).first()
-
-      if(existing_level) ts.userError(ts.message("add.levelExisting",{level:existing_level}));
-
-      if(player.earned_points.available.toFixed(1)<0)
-        ts.userError(ts.message("points.cantUpload",{points_needed:Math.abs(player.earned_points.available).toFixed(1)}));
-
-      await ts.db.Levels.query().insert({
-        code,
-        level_name,
-        creator:player.name,
-        difficulty:0,
-        status:0
-      })
-
-      message.channel.send(player.user_reply+ts.message("add.success",{level_name,code}))
+      const { reply, player } = await ts.addLevel({ code,level_name,discord_id:message.author.id})
+      await message.channel.send(player.user_reply+reply)
     }
 }
 module.exports = tsadd;
