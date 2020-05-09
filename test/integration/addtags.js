@@ -41,7 +41,7 @@ describe('!addtags,!removetags',()=>{
       cmd: '!addtags xxx-xxx-xxx tag1,tag2,tag3',
       channel: 'general',
       discord_id: '256',
-    }),'<@256> Tags added for "approved level" by "Creator "\nCurrent tags:```tag1\ntag2\ntag3```')
+    }),'<@256> Tags added for "approved level" by "Creator "\nCurrent tags:```\ntag1\ntag2\ntag3```')
   })
 
   it('!addtag none added', async ()=>{
@@ -49,7 +49,7 @@ describe('!addtags,!removetags',()=>{
       cmd: '!addtags XXX-XXX-XX2 tag2',
       channel: 'general',
       discord_id: '256',
-    }),'No new tags added for "pending level" by "Creator"\nCurrent tags:```removetag1\ntag2\nremovetag3\nall_locked\nremove_locked``` ')
+    }),'No new tags added for "pending level" by "Creator"\nCurrent tags:```\nremovetag1\ntag2\nremovetag3\nall_locked\nremove_locked``` ')
   })
 
   it('!addtag can\'t add locked tag', async ()=>{
@@ -65,7 +65,7 @@ describe('!addtags,!removetags',()=>{
       cmd: '!removetags XXX-XXX-XX2 removetag1,removetag3',
       channel: 'general',
       discord_id: '256',
-    }),'<@256> Tags removed for "pending level" by "Creator "\nCurrent tags:```tag2\nall_locked\nremove_locked```')
+    }),'<@256> Tags removed for "pending level" by "Creator "\nCurrent tags:```\ntag2\nall_locked\nremove_locked```')
   })
 
   it('!removetag success by mod', async ()=>{
@@ -73,7 +73,7 @@ describe('!addtags,!removetags',()=>{
       cmd: '!removetags XXX-XXX-XX2 removetag1,removetag3',
       channel: 'general',
       discord_id: '128',
-    }),'<@128> Tags removed for "pending level" by "Creator "\nCurrent tags:```tag2\nall_locked\nremove_locked```')
+    }),'<@128> Tags removed for "pending level" by "Creator "\nCurrent tags:```\ntag2\nall_locked\nremove_locked```')
   })
 
   it('!removetag fail by other player', async ()=>{
@@ -89,7 +89,7 @@ describe('!addtags,!removetags',()=>{
       cmd: '!removetags XXX-XXX-XX2 removetag2',
       channel: 'general',
       discord_id: '256',
-    }),'No tags have been removed for "pending level" by "Creator"\nCurrent tags:```removetag1\ntag2\nremovetag3\nall_locked\nremove_locked``` ')
+    }),'No tags have been removed for "pending level" by "Creator"\nCurrent tags:```\nremovetag1\ntag2\nremovetag3\nall_locked\nremove_locked``` ')
   })
 
   it('!removetag can\'t remove locked tag', async ()=>{
