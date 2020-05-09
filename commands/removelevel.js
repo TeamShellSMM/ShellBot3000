@@ -27,13 +27,13 @@ class tsremove extends TSCommand {
       //tsremove run by shellders and not their own levels get REMOVED
       const newStatus= level.creator!=player.name && player.is_mod ? ts.LEVEL_STATUS.REMOVED : ts.LEVEL_STATUS.USER_REMOVED; 
       
-      await ts.db.Levels.query().patch({status:newStatus}).where({code})
+      await ts.db.Levels.query().patch({status:newStatus,old_status:level.status}).where({code})
       await ts.recalculateAfterUpdate({code})
 
       await ts.deleteDiscussionChannel(level.code,"!tsremove")
     
       //Send updates to to #shellbot-level-update
-      const removeEmbed=ts.levelEmbed(level,ts.embedStyle["remove"],{name:player.name})
+      const removeEmbed=ts.levelEmbed(level)
       removeEmbed.addField("\u200b","**Reason for removal** :```"+reason+"```-<@" +player.discord_id + ">");
       if(level.creator!=player.name){ //moderation
         const creator=await ts.db.Members.query().where({name:level.creator}).first()

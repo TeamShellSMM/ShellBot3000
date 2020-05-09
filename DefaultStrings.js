@@ -117,10 +117,16 @@ module.exports={
   'pending.refuseDescription':'Refused by: Please check the fixvotes and decide if this is still acceptable to approve or not (use **!fixapprove** or **!fixreject** with a message).',
   'pending.fixReuploadDescription':'Please check if the mandatory fixes where made and make your decision (use **!fixapprove** or **!fixreject** with a message).',
 
-  'removeLevel.cant':'You can\'t remove videos from  "{{{level_name}}}" by {{{creator}}}',
+  'removeLevel.cant':'You can\'t remove "{{{level_name}}}" by {{{creator}}}',
   'removeLevel.success':'You have removed "{{{level_name}}}" by {{{creator}}} {{{buzzyS}}}',
   'removeLevel.noReason':"You did not provide a reason to remove this level. If you want to reupload, we recommend using the `!reupload` command. If you want to remove it now and reupload it later make sure __you don't lose the old code__",
   'removeLevel.alreadyRemoved':'"{{{level_name}}}" by {{{creator}}} has already been removed',
+  'undoRemoveLevel.cant':'You can\'t undo the removal of "{{{level_name}}}" by {{{creator}}}',
+  'undoRemoveLevel.noReason':"Just leave a note why you're undoing the level remove",
+  'undoRemoveLevel.alreadyNotRemoved':'"{{{level_name}}}" by {{{creator}}} is not removed',
+  'undoRemoveLevel.title':'Reverting level to last status',
+  'undoRemoveLevel.success':'You have undid the status change of "{{{level_name}}}" by {{{creator}}} {{{bam}}}',
+  
 
   'error.notApproved':'Level is not approved',
   'error.userBanned':'You have been barred from using this service',

@@ -197,6 +197,11 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
         rerate:{
           color:"#17a2b8",
           title:'difficulty.updated',
+        },
+        undo:{
+          color:"#17a2b8",
+          title:'undoRemoveLevel.title',
+          image:ts.teamVariables.undoEmote || ts.emotes.bam ,
         }
       }
       
@@ -1675,6 +1680,7 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
 
     await ts.db.Levels.query().patch({
       status: level.status==ts.LEVEL_STATUS.APPROVED ? ts.LEVEL_STATUS.REUPLOADED : ts.LEVEL_STATUS.REMOVED,
+      old_status: level.status,
       new_code,
     })
     .where({
@@ -1707,7 +1713,7 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
 
       if(newStatus){
         await ts.db.Levels.query()
-          .patch({status:newStatus})
+          .patch({status:newStatus,old_status:level.status})
           .where({code:new_code})
       }
 

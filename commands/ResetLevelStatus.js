@@ -21,7 +21,7 @@ class ResetLevelStatus extends TSCommand {
     const level=await ts.getExistingLevel(code,true)
     if(level.status===ts.LEVEL_STATUS.PENDING) ts.userError(ts.message('resetStatus.alreadyPending'));
 
-    await ts.db.Levels.query().patch({status:ts.LEVEL_STATUS.PENDING}).where({code})
+    await ts.db.Levels.query().patch({status:ts.LEVEL_STATUS.PENDING,old_status:level.status,new_code:null}).where({code})
     await message.reply(ts.message('resetStatus.succesful',level))
   }
 }
