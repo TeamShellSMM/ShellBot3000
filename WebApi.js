@@ -164,7 +164,6 @@ module.exports = async function(config,client){
       })
       if(makerDetails){
         json.maker=makerDetails
-        console.log(makerDetails)
         if(json.maker.length>0){
           json.maker=json.maker[0]
           delete json.maker.discord_id
