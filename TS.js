@@ -1418,8 +1418,7 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
     return statusUpdate
   }
 
-<<<<<<< HEAD
-
+  
   /**
    * @description Processes the votes to see if it's all approval and fixes and see if the variance in difficulty is within the specified tolerance
    * @param {object} args 
@@ -1441,106 +1440,6 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
     })
     return (max-min)<=AgreeingMaxDifference;
   }
-=======
-    //Get all current votes for this level
-    var approvalVotes = await ts.db.PendingVotes.query().where({code}).where("type","approve");
-    var fixVotes = await ts.db.PendingVotes.query().where({code}).where("type","fix");
-    var rejectVotes = await ts.db.PendingVotes.query().where({code}).where("type","reject");
-    var allComments = [...approvalVotes, ...fixVotes, ...rejectVotes];
-    var fixComments = [...fixVotes, ...rejectVotes];
-
-    //Count Approval and Rejection Votes
-    var approvalVoteCount = approvalVotes.length + fixVotes.length;
-    var fixVoteCount = fixVotes.length;
-    var rejectVoteCount = rejectVotes.length;
-
-    let approvalVotesNeeded = ts.get_variable("ApprovalVotesNeeded");
-    let agreeingVotesNeeded = ts.get_variable("AgreeingVotesNeeded");
-    let agreeingMaxDifference = ts.get_variable("AgreeingMaxDifference");
-
-    if(agreeingVotesNeeded && agreeingVotesNeeded > 1 && agreeingMaxDifference && agreeingMaxDifference > 0 && rejectVoteCount <= 0 && approvalVoteCount > 1){
-      let minDifficulty = 99;
-      let maxDifficulty = -1;
-
-      for(let approvalVote of approvalVotes){
-        let diff = parseFloat(approvalVote.difficulty_vote);
-        if(diff < minDifficulty){
-          minDifficulty = diff;
-        }
-        if(diff > maxDifficulty){
-          maxDifficulty = diff;
-        }
-      }
-      for(let fixVote of fixVotes){
-        let diff = parseFloat(fixVote.difficulty_vote);
-        if(diff < minDifficulty){
-          minDifficulty = diff;
-        }
-        if(diff > maxDifficulty){
-          maxDifficulty = diff;
-        }
-      }
-
-      if(maxDifficulty - minDifficulty <= agreeingMaxDifference){
-        approvalVotesNeeded = agreeingVotesNeeded;
-      }
-    }
-
-    let fixMode = false;
-
-    if(rejectVoteCount >= ts.get_variable("RejectVotesNeeded") && rejectVoteCount>approvalVoteCount){
-      //Reject level
-      await ts.db.Levels.query()
-        .patch({status:ts.LEVEL_STATUS.REMOVED})
-        .where({code:code})
-
-      //Build embed
-      var color="#dc3545",title;
-      if(level.status===ts.LEVEL_STATUS.PENDING){
-        title=ts.message("judge.levelRejected")
-      } else {
-        title=ts.message("judge.levelRemoved")
-      }
-      if(this.emotes.axemuncher){
-        var image=this.getEmoteUrl(this.emotes.axemuncher);
-      }
-
-    } else if (approvalVoteCount >= approvalVotesNeeded  && approvalVoteCount>rejectVoteCount && fixVoteCount > 0 && level.status !== ts.LEVEL_STATUS.NEED_FIX) {
-      if(level.status !== ts.LEVEL_STATUS.PENDING)
-        ts.userError(ts.message("approval.levelNotPending"))
-
-      await ts.db.Levels.query()
-        .patch({status:ts.LEVEL_STATUS.NEED_FIX})
-        .where({code:code})
-
-      var color="#D68100";
-      var title=ts.message("approval.fixPlayerInstructions");
-      if(this.emotes.think){
-        var image=this.getEmoteUrl(this.emotes.think);
-      }
-
-      fixMode = true;
-    } else if (approvalVoteCount >= approvalVotesNeeded && approvalVoteCount>rejectVoteCount ){
-      if(level.status !== ts.LEVEL_STATUS.PENDING && level.status !== ts.LEVEL_STATUS.NEED_FIX)
-        ts.userError(ts.message("approval.levelNotPending"))
-        //Get the average difficulty and round to nearest .5, build the message at the same time
-        var diffCounter = 0;
-        var diffSum = 0;
-        for(var i = 0; i < approvalVotes.length; i++){
-          var diff = parseFloat(approvalVotes[i].difficulty_vote);
-          if(!Number.isNaN(diff)){
-            diffCounter++;
-            diffSum += diff;
-          }
-        }
-        for(var i = 0; i < fixVotes.length; i++){
-          var diff = parseFloat(fixVotes[i].difficulty_vote);
-          if(!Number.isNaN(diff)){
-            diffCounter++;
-            diffSum += diff;
-          }
-        }
->>>>>>> 2d52dd06ce97e9ad9853529a4c9572d3d8d20895
 
   this.judge=async function(code, fromFix = false){
     const level = await ts.getExistingLevel(code,fromFix);
@@ -1943,4 +1842,4 @@ TS.create=async (args,client,gs)=>{
   }
 }
 
-module.exports=TS
+module.exports=TS 
