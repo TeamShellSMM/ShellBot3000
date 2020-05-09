@@ -163,7 +163,7 @@ module.exports={
   'tags.haveRemoved':'Tags removed for "{{level_name}}" by "{{creator}} {{{bam}}}"\n',
   'tags.noPermission':'You can\'t remove tags from "{{level_name}}" by "{{creator}}"',
   'tags.cantRemove':'You can\'t remove the tag "{{tag}}"',
-  'tags.currentTags':'Current tags:```{{tags_str}}```',
+  'tags.currentTags':'Current tags:```\n{{tags_str}}```',
 
   'register.already':'You\'re already registered as **{{name}}**',
   'register.nameTaken':'\'{{name}}\' has already been registered by someone else. Please use another nickname',
