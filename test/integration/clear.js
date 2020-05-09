@@ -106,6 +106,26 @@ describe('!clears', function () {
     assert.equal(result,'<@128> \n ‣You have cleared \'level1\'  by Creator \n ‣You have earned 1 points\n ‣You also have voted 5 as the difficulty for this level ')
   })
 
+  it('remove difficulty', async function () {
+    assert.equal(await TEST.mockBotSend({
+      cmd: '!clear XXX-XXX-XXX 5 1',
+      channel: 'general',
+      discord_id: '128',
+    }),'<@128> \n ‣You have cleared \'level1\'  by Creator \n ‣You have earned 1 points\n ‣You also have voted 5 as the difficulty for this level \n ‣You also have liked this level ');
+
+    let play=await TEST.ts.db.Plays.query().where({code:1,player:1}).first()
+    assert.exists(play)
+    assert.equal(play.difficulty_vote,5)
+    assert.equal(await TEST.mockBotSend({
+      cmd: '!clear XXX-XXX-XXX 0 1',
+      channel: 'general',
+      discord_id: '128',
+    }),'<@128> \n ‣You have already submitted a clear for \'level1\'  by Creator\n‣You have removed your difficulty vote for this level \n ‣You also have already liked this level ');
+    play=await TEST.ts.db.Plays.query().where({code:1,player:1}).first()
+    assert.exists(play)
+    assert.isNull(play.difficulty_vote)
+  })
+
   it('clear with like and difficulty', async function () {
     const result = await TEST.mockBotSend({
       cmd: '!clear XXX-XXX-XXX 5 like',

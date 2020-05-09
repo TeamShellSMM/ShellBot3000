@@ -786,10 +786,10 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
         updated.liked=true
       }
       if(
-        (difficulty || difficulty==='0' ) &&
+        (difficulty || difficulty===0 ) &&
         existing_play.difficulty_vote!=difficulty 
       ){ //difficulty update
-        updated_row.difficulty_vote=difficulty==='0'?null:difficulty; //0 difficulty will remove your vote
+        updated_row.difficulty_vote= difficulty===0?null:difficulty; //0 difficulty will remove your vote
         updated.difficulty=true
       }
       if(updated_row) await ts.db.Plays.query().findById(existing_play.id).patch(updated_row);
@@ -799,7 +799,7 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
         player:player.id,
         completed: completed||0,
         liked:liked||0,
-        difficulty_vote:difficulty==='0' ? null:difficulty
+        difficulty_vote:difficulty===0 ? null:difficulty
       });
       if(completed!=null) updated.completed=true;
       if(liked!=null ) updated.liked=true;
@@ -830,7 +830,7 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
   
   
     if(updated.difficulty){
-      msg.push(difficulty==='0'?
+      msg.push(difficulty===0?
         ts.message("clear.removeDifficulty",{ level }):
         ts.message("clear.addDifficulty",{
           level:level,
@@ -838,7 +838,7 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
         })
       )
     } else if(difficulty || difficulty==='0' ){
-      msg.push(difficulty==='0'?
+      msg.push(difficulty===0?
         ts.message("clear.alreadyDifficulty",{ level }):
         ts.message("clear.alreadyNoDifficulty",{
           level:level,
