@@ -23,15 +23,14 @@ describe('registration', function () {
   });
 
   it('!points not registered', async function () {
-    result = await TEST.mockBotSend({
+    assert.deepEqual(await TEST.mockBotSend({
       cmd: '!points',
       channel: 'general',
       discord_id: '512',
-    })
-    assert.deepEqual(result,await TEST.mockMessage('error.notRegistered',{type:'userError'},{name:'Creator'}))
+    }),await TEST.mockMessage('error.notRegistered',{type:'userError'},{name:'Creator'}))
   })
   it('!points for banned', async function () {
-    result = await TEST.mockBotSend({
+    const result = await TEST.mockBotSend({
       cmd: '!points',
       channel: 'general',
       discord_id: '-1',
@@ -39,7 +38,7 @@ describe('registration', function () {
     assert.deepEqual(result,await TEST.mockMessage('error.userBanned',{type:'userError'}))
   })
   it('!register already', async function () {
-    result = await TEST.mockBotSend({
+    const result = await TEST.mockBotSend({
       cmd: '!register',
       channel: 'general',
       discord_id: '256',
@@ -57,7 +56,7 @@ describe('registration', function () {
   })
 
   it('try registering as someone else', async function () {
-    result = await TEST.mockBotSend({
+    const result = await TEST.mockBotSend({
       cmd: '!register Mod',
       channel: 'general',
       discord_id: '512',
@@ -66,7 +65,7 @@ describe('registration', function () {
   })
 
   it('registering with special discord strings, <@at>=reject', async function () {
-    result = await TEST.mockBotSend({
+    const result = await TEST.mockBotSend({
       cmd: '!register <@80351110224678912>',
       channel: 'general',
       discord_id: '512',
@@ -75,7 +74,7 @@ describe('registration', function () {
   })
 
   it('registering with special discord strings, <#channel>=reject', async function () {
-    result = await TEST.mockBotSend({
+    const result = await TEST.mockBotSend({
       cmd: '!register <#80351110224678912>',
       channel: 'general',
       discord_id: '512',
@@ -84,18 +83,18 @@ describe('registration', function () {
   })
 
   it('succesful registration without argument', async function () {
-    result = await TEST.mockBotSend({
+    const result = await TEST.mockBotSend({
       cmd: '!register',
       channel: 'general',
       discord_id: '512',
     })
     const dbResult=await TEST.ts.db.Members.query().where({discord_id:'512'})
     assert.lengthOf(dbResult,1,"Should only have one item")
-    assert.equal(dbResult[0].name,client.user.username,'name is stored')
-    assert.deepEqual(result,await TEST.mockMessage('register.success',{},{name:await client.user.username}),'message is correct')
+    assert.equal(dbResult[0].name,TEST.client.user.username,'name is stored')
+    assert.deepEqual(result,await TEST.mockMessage('register.success',{},{name:TEST.client.user.username}),'message is correct')
   })
   it('succesful registration with supplied nickname', async function () {
-    result = await TEST.mockBotSend({
+    const result = await TEST.mockBotSend({
       cmd: '!register my_name',
       channel: 'general',
       discord_id: '1024',
@@ -109,7 +108,7 @@ describe('registration', function () {
   let discord_id;
   it('!login, check OTP', async function () {
     discord_id='1024';
-    result = await TEST.mockBotSend({
+    const result = await TEST.mockBotSend({
       cmd: '!login',
       channel: 'general',
       discord_id: '1024',

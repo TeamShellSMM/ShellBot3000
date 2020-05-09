@@ -6,7 +6,7 @@ const WebApi=require('../WebApi');
 global.assert = chai.assert;
 global.TEST.knex= require('../db/knex');
 global.TEST.request = require('supertest');
-global.TEST.config = require('../config.json')['testing']; //force testing TEST.config
+global.TEST.config = require('../config.json')['test']; //force testing TEST.config
 global.TEST.config.defaultCooldown=0;
 global.TS=require('../TS.js')
 let DiscordLog=require('../DiscordLog');
@@ -189,7 +189,7 @@ function mockGS(){
 
 
 after(async()=>{
-  await client.destroy();
+  await TEST.client.destroy();
   await TEST.knex.destroy();
 })
 
@@ -197,16 +197,16 @@ after(async()=>{
 describe('Setup test and check teams registration',function(){
 
   it('Creating discord connection and sending a message',async function(){
-    global.client=new AkairoClient(TEST.config, {
+    global.TEST.client=new AkairoClient(TEST.config, {
       disableEveryone: true
     });
-    await client.login(TEST.config.discord_access_token);
-    TEST.bot_id=client.user.id
+    await TEST.client.login(TEST.config.discord_access_token);
+    TEST.bot_id=TEST.client.user.id
     TEST.userBot=global.TEST.config.userBot
-    assert.isOk(client,'client is okay')
-    global.message=await client.channels.get(TEST.config.initTestChannel).send('ShellBotted');
-    await global.message.delete()
-    assert.isOk(message,'message is sent');
+    assert.isOk(TEST.client,'client is okay')
+    global.TEST.message=await TEST.client.channels.get(TEST.config.initTestChannel).send('ShellBotted');
+    await global.TEST.message.delete()
+    assert.isOk(TEST.message,'message is sent');
   });
 
   it('Creating team info and TS',async function(){
@@ -216,16 +216,16 @@ describe('Setup test and check teams registration',function(){
       TRUNCATE table points;
       SET FOREIGN_KEY_CHECKS = 1;
     `);
-    global.TEST.ts=await TS.create(TEST.config.testConfig,client,new mockGS())
+    global.TEST.ts=await TS.create(TEST.config.testConfig,global.TEST.client,new mockGS())
 
-    let [teams,fields]=await TEST.knex.raw(`SELECT * FROM teams;`);
+    let [ teams ]=await TEST.knex.raw(`SELECT * FROM teams;`);
     assert.lengthOf(teams,1,'Should have created teams');
 
     assert.isOk(TEST.ts,'ts is created')
   });
 
   it('Creating web api',async function(){
-    global.app = await WebApi(TEST.config,client);
+    global.app = await WebApi(TEST.config,TEST.client);
     assert.isOk(app,'App is created')
   });
 
@@ -246,8 +246,8 @@ describe('Setup test and check teams registration',function(){
     }
   
     global.TEST.setupData=async(data)=>{
-      await TEST.clearDb() 
       await TEST.knex.transaction(async(trx)=>{
+        await TEST.clearDb(trx) 
         for(let i in data){
           for(let j=0;j<data[i].length;j++){
             await TEST.ts.db[i].query(trx).insert(data[i][j])
@@ -255,6 +255,8 @@ describe('Setup test and check teams registration',function(){
         }
       })
       TEST.ts.recalculateAfterUpdate()
+      await global.TEST.sleep(10)
+      
     }
     
     global.TEST.clearTable=async(table,trx)=>{
@@ -266,12 +268,10 @@ describe('Setup test and check teams registration',function(){
     }
   
     const all_tables=['plays','pending_votes','levels','members','tokens'];
-    global.TEST.clearDb=async()=>{
-      await TEST.knex.transaction(async(trx)=>{
-        for(let table of all_tables){
-          await TEST.clearTable(table,trx)
-        }
-      })
+    global.TEST.clearDb=async(trx)=>{
+      for(let table of all_tables){
+        await TEST.clearTable(table,trx)
+      }
     }
 
 
@@ -285,7 +285,7 @@ describe('Setup test and check teams registration',function(){
       TEST.ts.sendDM=(discord_id,msg)=>{
         collect_reply(msg)
       }
-      message.author.send=collect_reply
+      TEST.message.author.send=collect_reply
       guild.channels.forEach((c)=>{
         c.send=collect_reply
         c.reply=collect_reply
@@ -343,7 +343,7 @@ describe('Setup test and check teams registration',function(){
         const result=TEST.acceptReply()
         function fulfill(){
           clearTimeout(clearId);
-          message.author.id=TEST.bot_id
+          TEST.message.author.id=TEST.bot_id
           TEST.ts.promisedCallback=null
           _fulfill(result());
         }
@@ -355,17 +355,17 @@ describe('Setup test and check teams registration',function(){
     
     global.TEST.mockBotSend=async ({ cmd , channel, discord_id, waitFor })=>{
       let guild=TEST.ts.getGuild()
-      message.author.id=discord_id;
-      message.content = cmd;
+      TEST.message.author.id=discord_id;
+      TEST.message.content = cmd;
       channel=channel || global.TEST.ts.channels.modChannel
       if(/[^0-9]/.test(channel)){
-        message.channel=await guild.channels.find(c => c.name === channel.toLowerCase())
+        TEST.message.channel=await guild.channels.find(c => c.name === channel.toLowerCase())
       } else {
-        message.channel=await guild.channels.get(channel)
+        TEST.message.channel=await guild.channels.get(channel)
       }
     
       const ret=global.TEST.expectReply(waitFor)
-      client.emit("message",message)
+      TEST.client.emit("message",TEST.message)
       return await ret;
     }
     

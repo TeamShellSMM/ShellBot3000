@@ -14,7 +14,7 @@ class mockUser extends TSCommand {
     }
 
     async canRun(ts,message){
-        if(ts.teamVariables.isTesting!=="yes"){
+        if(process.env.NODE_ENV!=='production'){
             return false
         }
 

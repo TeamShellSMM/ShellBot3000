@@ -60,30 +60,27 @@ describe('!rename', function () {
   })
 
   it('level name with special discord strings, <@at>=reject', async function () {
-    result = await TEST.mockBotSend({
+    assert.equal(await TEST.mockBotSend({
       cmd: '!rename XXX-XXX-XXX house of <@80351110224678912>',
       channel: 'general',
       discord_id: '256',
-    })
-    assert.equal(result,await TEST.mockMessage('error.specialDiscordString',{type:'userError'}))
+    }),await TEST.mockMessage('error.specialDiscordString',{type:'userError'}))
   })
 
   it('other user tries to rename a level', async function () {
-    result = await TEST.mockBotSend({
+    assert.equal(await TEST.mockBotSend({
       cmd: '!rename XXX-XXX-XXX new name',
       channel: 'general',
       discord_id: '512',
-    })
-    assert.equal(result,'You can\'t rename \'level1\' by Creator ')
+    }),'You can\'t rename \'level1\' by Creator ')
   })
 
   it('same level name', async function () {
-    result = await TEST.mockBotSend({
+    assert.equal(await TEST.mockBotSend({
       cmd: '!rename XXX-XXX-XXX level1',
       channel: 'general',
       discord_id: '256',
-    })
-    assert.equal(result,'Level name is already "level1" ')
+    }),'Level name is already "level1" ')
   })
 
   it('successful', async function () {

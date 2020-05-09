@@ -50,7 +50,7 @@ class AmmendCode extends TSCommand {
 
   //For now not testing GS stuff as we're deprecating it soon
   /* istanbul ignore if */
-  if(process.env.NODE_ENV!=='testing'){
+  if(process.env.NODE_ENV!=='test'){
       let updates=[]
       let winners=ts.gs.query("Competition Winners", {
         filter: {Code:old_code},
@@ -72,7 +72,7 @@ class AmmendCode extends TSCommand {
   
 
   let guild=ts.getGuild();
-  let existingChannel=guild.channels.find(channel => channel.name === old_code.toLowerCase() && channel.parent.id == ts.channels.levelDiscussionCategory)
+  let existingChannel=guild.channels.find(channel => channel.name === old_code.toLowerCase() && channel.parentID == ts.channels.levelDiscussionCategory)
   if(existingChannel){
     await existingChannel.setName(new_code.toLowerCase())
   }

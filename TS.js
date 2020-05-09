@@ -215,7 +215,7 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
       }
       
       /* istanbul ignore if */
-      if(process.env.NODE_ENV !== "testing"){
+      if(process.env.NODE_ENV !== 'test'){
         await DiscordLog.log(`Data loaded for ${this.teamVariables.TeamName}`,this.client)
       }
   }
@@ -229,6 +229,24 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
       .select(knex.raw(`levels.*, members.id creator_id,members.name creator`))
       .join('members',{'levels.creator':'members.id'})
       .where('levels.guild_id',this.team.id)
+  }
+  
+  this.getPlays=()=>{
+    return knex('plays')
+      .select(knex.raw(`
+        ROW_NUMBER() OVER ( ORDER BY plays.id ) as no,
+        plays.*,
+        members.id player_id,
+        members.name player,
+        levels.id level_id,
+        levels.code code,
+        levels.difficulty,
+        levels.level_name,
+        creator_table.name creator_name`))
+      .join('members',{'plays.player':'members.id'})
+      .join('levels',{'plays.code':'levels.id'})
+      .join('members as creator_table',{'creator_table.id':'levels.creator'})
+      .where('plays.guild_id',this.team.id)
   }
 
   this.getPendingVotes=()=>{
@@ -647,32 +665,6 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
   }
 
   /**
-   * Check if a level is a reupload or not
-   */
-  this.isReupload=async function(code){
-    let reuploads=await ts.getLevels().where({new_code:code})
-    if(reuploads.length===0) return false
-
-    let isFixStatus=false;
-    let hasBeenApproved=false;
-    reuploads=reuploads.map( o =>{
-      if(o.status===ts.LEVEL_STATUS.NEED_FIX){
-        isFixStatus=true;
-      }
-      if(o.status===ts.LEVEL_STATUS.APPROVED){
-        hasBeenApproved=true
-      }
-      return o.code;
-    })
-    return {
-      "reupload":true,
-      "isFixStatus":isFixStatus,
-      "hasBeenApproved":hasBeenApproved,
-      "codes":reuploads
-    }
-  }
-
-  /**
    * Helper function to convert a long text and embeds them as fields to a DiscordEmbed
    */
   this.embedAddLongField=function(embed,body,header="\u200b"){
@@ -1011,7 +1003,7 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
   /**
    * Helper function to get a random integer for ts.random
    */
-  function getRandomInt(min, max) {
+  this.getRandomInt=(min, max)=>{
     min = Math.ceil(min);
     max = Math.floor(max);
     return Math.floor(Math.random() * (max - min)) + min; //The maximum is exclusive and the minimum is inclusive
@@ -1021,69 +1013,74 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
   /**
    * Gets a random level based on plays of the player/passed players and difficulty
    */
-  this.randomLevel=async function(args){
-    if(args.minDifficulty && !ts.valid_difficulty(args.minDifficulty)){
-      ts.userError(args.maxDifficulty? ts.message("random.noMinDifficulty") : ts.message("random.noDifficulty"))
+  this.randomLevel=async function({ discord_id,players,minDifficulty,maxDifficulty}){
+    if(minDifficulty && !ts.valid_difficulty(minDifficulty)){
+      ts.userError(maxDifficulty? ts.message("random.noMinDifficulty") : ts.message("random.noDifficulty"))
     }
-
-    if(args.maxDifficulty){
-      if(!ts.valid_difficulty(args.maxDifficulty))
+  
+    if(maxDifficulty){
+      if(!ts.valid_difficulty(maxDifficulty))
         ts.userError(ts.message("random.noMaxDifficulty"))
     } else {
-      if(args.minDifficulty){
-        args.maxDifficulty=args.minDifficulty
+      if(minDifficulty){
+        maxDifficulty=minDifficulty
       }
     }
-
-    if(parseFloat(args.minDifficulty)>parseFloat(args.maxDifficulty)){
-      let temp=args.maxDifficulty
-      args.maxDifficulty=args.minDifficulty
-      args.minDifficulty=temp
+  
+    if(parseFloat(minDifficulty)>parseFloat(maxDifficulty)){
+      let temp=maxDifficulty
+      maxDifficulty=minDifficulty
+      minDifficulty=temp
     }
-
-    let min=parseFloat(args.minDifficulty) || 1
-    let max=parseFloat(args.maxDifficulty) || min
-
-    const player=args.discord_id!=null? await ts.get_user(args.discord_id) : null
-    let players=null;
-    if(args.players){
-      let playerNames=args.players.split(",");
+  
+    let min=parseFloat(minDifficulty) || 1
+    let max=parseFloat(maxDifficulty) || min
+    
+    let _players
+    const player=discord_id!=null? await ts.get_user(discord_id) : null
+    if(players){
+      let playerNames=players.split(",");
       let rawPlayers=await ts.db.Members.query().whereIn('name',playerNames);
-      players=[]
+      _players=[]
       rawPlayers.forEach( p => {
-        players.push(p.id)
+        _players.push(p.id)
         if(playerNames.indexOf(p.name) === -1){
           ts.userError(ts.message("random.playerNotFound",{player:p.name}));
         }
       })
-    } else {
-      players=[player.id]
+    } else if(player) {
+      _players=[player.id]
     }
 
 
-    ////console.time("get levels")
-    var [ filtered_levels , fields ]=await knex.raw(`
+    const playsSQL1= _players ? `
+    left join plays on levels.id=plays.code
+    and plays.player in (:players:)
+    and completed=1`:'';
+    const playsSQL2= _players ? `and creator not in (:players:)`:'';
+    const playsSQL3= _players ? `and plays.id is null`:'';
+  
+
+    const par={
+      team_id:ts.team.id,
+      min, max,
+      players:_players
+    };
+    
+    let [ filtered_levels ]=await knex.raw(`
     SELECT levels.*,members.name creator from 
     levels
     inner join members on levels.creator=members.id
-    left join plays on
-    levels.id=plays.code
-    and plays.player in (:players:)
-    and completed=1
+    ${playsSQL1}
     where status=1 
-    and creator not in (:players:)
+    ${playsSQL2}
     and levels.guild_id=:team_id
     and ( levels.not_default is null or levels.not_default!=1 )
     and levels.difficulty between :min and :max
-    and plays.id is null
+    ${playsSQL3}
     group by levels.id
-    order by likes;`,{
-      team_id:ts.team.id,
-      min, max,
-      players:players||-1
-    })
-    //var filtered_levels=[]
-
+    order by likes;`,par)
+  
     if(filtered_levels.length==0){
       ts.userError(ts.message("random.outOfLevels",{
         range:(min==max?min:min+"-"+max)
@@ -1091,9 +1088,9 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
     }
     var borderLine=Math.floor(filtered_levels.length*0.6)
     if(Math.random()<0.2){
-      var randNum=getRandomInt(0,borderLine)
+      var randNum=ts.getRandomInt(0,borderLine)
     } else {
-      var randNum=getRandomInt(borderLine,filtered_levels.length)
+      var randNum=ts.getRandomInt(borderLine,filtered_levels.length)
     }
     var level=filtered_levels[randNum]
     return {
@@ -1326,7 +1323,7 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
     //console.time('pinned')
     if(!channel) throw new TypeError('channel_name undefined')
     if(!embed) throw new TypeError('embed not defined')
-    let overviewMessage = (process.env.NODE_ENV!=="testing")?(await channel.fetchPinnedMessages()).last():null;
+    let overviewMessage = (process.env.NODE_ENV!=='test')?(await channel.fetchPinnedMessages()).last():null;
     if(!overviewMessage){
       overviewMessage = await channel.send(embed);
       if(overviewMessage) await overviewMessage.pin();
@@ -1563,7 +1560,8 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
   }
 
 
-  this.levelEmbed=function(level,{ color, title, image, noLink },titleArgs){
+  this.levelEmbed=function(level,args={},titleArgs){
+    const { color, title, image, noLink }=args;
     var vidStr=[]
 
     level.videos.split(",").forEach((vid,i)=>{

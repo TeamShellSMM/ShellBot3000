@@ -24,8 +24,8 @@ client.on("ready", async () => {
 
   for(let team of teams){
     let guild=await client.guilds.find((guild)=> guild.id==team.guild_id)
-    if(team!=null){
-      if(team.id) await TS.add(guild.id,team,client)
+    if(team && guild){
+      await TS.add(guild.id,team,client)
     }
   }
   

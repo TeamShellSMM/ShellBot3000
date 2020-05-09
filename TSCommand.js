@@ -31,7 +31,7 @@ class TSCommand extends Command {
         } catch(error){
             await message.reply(ts.getUserErrorMsg(error,message))
         }
-        //testing
+        
         if(typeof ts.promisedCallback==="function") ts.promisedCallback(); 
     }
 }

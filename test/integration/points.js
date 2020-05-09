@@ -1,5 +1,6 @@
 describe('!points', function () {
   before(async () => {
+    TEST.ts.teamVariables.includeOwnPoints=0
     await TEST.setupData({
       Members: [{
         name: 'Mod',
@@ -29,6 +30,8 @@ describe('!points', function () {
     });
   });
 
+  
+
   it('!points', async function () {
     TEST.ts.teamVariables['Minimum Point']=0
     assert.equal(await TEST.mockBotSend({
@@ -36,6 +39,27 @@ describe('!points', function () {
       channel: 'general',
       discord_id: '128',
     }),'<@128> You have 0.0 clear points. You have submitted 0 level(s) .You have enough points to upload a level  You have earned the rank **no rank** ')
+  })
+
+  it('!points creator not include own points', async function () {
+    TEST.ts.teamVariables['Minimum Point']=0
+    assert.equal(await TEST.mockBotSend({
+      cmd: '!points',
+      channel: 'general',
+      discord_id: '256',
+    }),'<@256> You have 0.0 clear points. You have submitted 2 level(s) .You have enough points to upload a level  You have earned the rank **no rank** ')
+  })
+
+  it('!points creator include own points', async function () {
+    TEST.ts.teamVariables.includeOwnPoints=1
+    TEST.ts.teamVariables['Minimum Point']=0
+    TEST.ts.recalculateAfterUpdate()
+    assert.equal(await TEST.mockBotSend({
+      cmd: '!points',
+      channel: 'general',
+      discord_id: '256',
+    }),'<@256> You have 1.0 clear points. You have submitted 2 level(s) .You have enough points to upload a level  You have earned the rank **no rank** ')
+    TEST.ts.teamVariables.includeOwnPoints=0
   })
 
   it('!points after one clear', async function () {

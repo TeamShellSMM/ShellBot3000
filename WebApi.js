@@ -49,7 +49,7 @@ module.exports = async function(config,client){
         AND registered_plays.player=:player_id
     `:``
 
-    let [ levels, fields ]= await knex.raw(`
+    let [ levels ]= await knex.raw(`
       SELECT 
         levels.row_num no
         ,levels.id
@@ -126,7 +126,7 @@ module.exports = async function(config,client){
     };
 
     if(name){
-      json.maker=await knex.raw(`
+      const [ makerDetails ]=await knex.raw(`
       SELECT members.*
         ,sum(round(((likes*2+clears)*score*likes/clears),1)) maker_points
         FROM members 
@@ -142,7 +142,7 @@ module.exports = async function(config,client){
             levels
           LEFT JOIN plays ON
             levels.guild_id=plays.guild_id
-            AND levels.code=plays.code
+            AND levels.id=plays.code
             AND levels.creator!=plays.player
             AND levels.status=1
           LEFT JOIN points ON
@@ -151,23 +151,26 @@ module.exports = async function(config,client){
           WHERE 
             levels.guild_id=:guild_id
             AND levels.status = :status
-            AND levels.creator = :name
           GROUP BY levels.id
         ) a ON
           members.guild_id=a.guild_id
-          AND members.name=a.creator
+          AND members.id=a.creator
         WHERE members.name=:name 
         AND members.guild_id=:guild_id
       `, { 
-        guild_id:ts.guild_id,
+        guild_id:ts.team.id,
         name,
         status:ts.LEVEL_STATUS.APPROVED 
       })
-      json.maker=json.maker[0]
-      if(json.maker.length>0){
-        json.maker=json.maker[0]
-        delete json.maker.discord_id
-        delete json.maker.guild_id
+      if(makerDetails){
+        json.maker=makerDetails
+        console.log(makerDetails)
+        if(json.maker.length>0){
+          json.maker=json.maker[0]
+          delete json.maker.discord_id
+          delete json.maker.guild_id
+          json.plays=await ts.getPlays().where('player',json.maker.id)
+        }
       }
     }
 
@@ -195,23 +198,14 @@ module.exports = async function(config,client){
   }
 
   async function generateMembersJson(ts,isShellder, data){
-    const SheetCache = ts.gs.getArrayFormat([
-        "Seasons!B",
-        "tags",
-        "Competition Winners",
-        "Points!B"
-      ])
-
-    let competition_winners = SheetCache["Competition Winners"];
-    competition_winners.shift();
+    let competition_winners = ts.gs.select("Competition Winners");
 
     let members = [];
 
     if(data.membershipStatus == '1'){
       members = await ts.db.Members.query().select().where("is_member", 1).orderBy("clear_score_sum", "desc");
     } else if(data.membershipStatus == '2'){
-      members = await ts.db.Members.query().select().orderBy("clear_score_sum", "desc");
-      members = members.filter(member => member.is_mod);
+      members = await ts.db.Members.query().select().where("is_mod",1).orderBy("clear_score_sum", "desc");
     } else if(data.membershipStatus == '4'){
       members = await ts.db.Members.query().select().where("is_member", 0).orWhere("is_member", null).orderBy("clear_score_sum", "desc");
     } else {
@@ -248,9 +242,11 @@ module.exports = async function(config,client){
 
       return json;
     } else {
+
+      //TODO: fix 
       let membersObj = {};
 
-      let memberNames = Array.from(members, x => x.name);
+      let memberNames = Array.from(members, x => x.id);
 
       for(let memName of memberNames){
         membersObj[memName] = {
@@ -343,15 +339,9 @@ module.exports = async function(config,client){
 
 
   async function generateWorldsJson(ts,isShellder, data){
-    const SheetCache = ts.gs.getArrayFormat([
-        "Seasons!B",
-        "tags",
-        "Competition Winners",
-        "Points!B"
-      ])
-  
-    let competition_winners = SheetCache["Competition Winners"];
-    competition_winners.shift();
+
+    let competition_winners = ts.gs.select("Competition Winners");
+    
   
     let members = [];
   
@@ -399,39 +389,33 @@ module.exports = async function(config,client){
     return {data: json};
   }
 
-  async function generateMakersJson(ts,isShellder, data){
-    const SheetCache = ts.gs.getArrayFormat([
-        "Seasons!B",
-        "tags",
-        "Competition Winners",
-        "Points!B"
-      ])
+  async function generateMakersJson(ts,data){
 
-    let competition_winners = SheetCache["Competition Winners"];
-    competition_winners.shift();
-    let seasons = SheetCache["Seasons"];
-    seasons.shift();
+    let competition_winners = ts.gs.select("Competition Winners");
 
+    let seasons = ts.gs.select("Seasons");
+
+    data.season = data.season || -1
     if(data.season == -1){
       data.season = seasons.length;
     }
+
 
     let current_season = seasons[data.season - 1];
     let from_season = current_season[0];
     let to_season = 2147483647;
     if(seasons.length > data.season){
       let next_season = seasons[data.season];
-      to_season = parseInt(next_season[0]);
+      to_season = parseInt(next_season.StartDate,10);
     }
 
     if(!from_season){
       from_season = 0;
     } else {
-      from_season = parseInt(from_season);
+      from_season = parseInt(from_season,10);
     }
 
-    let members = [];
-    let membersSQL=``;
+    let membersSQL;
     if(data.membershipStatus == '1'){
       membersSQL=`AND members.is_member=1`
     } else if(data.membershipStatus == '2'){;
@@ -440,7 +424,7 @@ module.exports = async function(config,client){
       membersSQL=`AND members.is_member!=1`
     }
 
-    let [json,fields]=await knex.raw(`SELECT 
+    let [ json ]=await knex.raw(`SELECT 
     row_number() over ( order by sum(maker_points)) id
       ,name
 	    ,code
@@ -465,6 +449,7 @@ module.exports = async function(config,client){
       WHERE levels.status IN (0,1)
           AND levels.created_at between FROM_UNIXTIME(:from_season) AND FROM_UNIXTIME(:to_season)
           AND teams.guild_id = :guild_id
+          ${membersSQL}
       group by levels.code) a
       group by name
       order by maker_points desc`,{ from_season, to_season, guild_id: ts.guild_id });
@@ -525,16 +510,8 @@ module.exports = async function(config,client){
   }
 
   async function generateWorldsJson(ts,isShellder, data){
-  const SheetCache = ts.gs.getArrayFormat([
-      "Seasons!B",
-      "tags",
-      "Competition Winners",
-      "Points!B"
-    ])
 
-  let competition_winners = SheetCache["Competition Winners"];
-  competition_winners.shift();
-
+  let competition_winners = ts.gs.select("Competition Winners");
   let members = [];
 
   if(data.membershipStatus == '1'){
@@ -633,10 +610,8 @@ app.post('/json/worlds',web_ts(async (ts,req)=>{
   app.post('/json/makers',web_ts(async (ts,req)=>{
     if(req.body && req.body.token){
       req.body.discord_id=await ts.checkBearerToken(req.body.token)
-      var user=await ts.get_user(req.body.discord_id)
     }
-
-    let json = await generateMakersJson(ts,user && user.is_mod, req.body)
+    let json = await generateMakersJson(ts,req.body)
     return json;
   }))
 
@@ -673,10 +648,10 @@ app.post('/json/worlds',web_ts(async (ts,req)=>{
   app.post('/random',web_ts(async (ts,req)=>{
     if(req.body && req.body.token){
       req.body.discord_id=await ts.checkBearerToken(req.body.token)
-      var user=await ts.get_user(req.body.discord_id)
     }
 
     let rand=await ts.randomLevel(req.body)
+    console.log(rand)
     rand.status="sucessful"
     return rand
   }))
@@ -697,12 +672,6 @@ app.post('/json/worlds',web_ts(async (ts,req)=>{
     await ts.putFeedback(ip, discordId, ts.config.config.feedback_salt, req.body.message);
     return { status: "successful"}
 
-  }))
-
-  app.post('/json/level',web_ts(async (ts,req)=>{
-
-
-    
   }))
 
   app.post('/json/login', web_ts(async (ts,req) => {

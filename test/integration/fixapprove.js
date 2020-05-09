@@ -23,10 +23,10 @@ describe('!fixapprove', function () {
         status: TEST.ts.LEVEL_STATUS.REJECTED,
         difficulty: 0,
       },{
-        level_name: 'approved',
+        level_name: 'approved reuploaded',
         creator: 1,
         code: 'XXX-XXX-XX3',
-        status: TEST.ts.LEVEL_STATUS.APPROVED,
+        status: TEST.ts.LEVEL_STATUS.PENDING_APPROVED_REUPLOADED,
         difficulty: 0,
       }],
       PendingVotes:[{
@@ -35,6 +35,12 @@ describe('!fixapprove', function () {
         type:"fix",
         difficulty_vote:2,
         reason:'It\'s a bit janky innit',
+      },{
+        player:2,
+        code:3,
+        type:"approve",
+        difficulty_vote:2,
+        reason:'Is good',
       }],
     });
   });
@@ -58,5 +64,19 @@ describe('!fixapprove', function () {
     assert.equal(level.status,TEST.ts.LEVEL_STATUS.APPROVED)
   })
 
-
+  it('approve',async ()=>{
+    await TEST.createChannel({
+      name:'XXX-XXX-XX3',
+      parent:TEST.ts.channels.pendingReupload,
+    })
+    const result = await TEST.mockBotSend({
+      cmd: '!fixapprove',
+      channel: 'XXX-XXX-XX3',
+      discord_id: '128',
+    })
+    assert.equal(result[1].fields[0].name,'Mod1 voted for approval with difficulty 2:')
+    const level=await TEST.ts.db.Levels.query().where({code:'XXX-XXX-XX3'}).first()
+    assert.isOk(level)
+    assert.equal(level.status,TEST.ts.LEVEL_STATUS.APPROVED)
+  })
 })

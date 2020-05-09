@@ -268,13 +268,23 @@ describe('judge:checkForAgreement', ()=>{
     }))
   })
 
-  it('2 agreeing votes, not within tolerance=true', async () => {
+  it('2 agreeing votes, not within tolerance=false', async () => {
     assert.isFalse(TEST.ts.checkForAgreement({
       AgreeingVotesNeeded:2,
       AgreeingMaxDifference:0.5,
       approvalVotes:[{difficulty_vote:1},{difficulty_vote:2}],
       fixVotes:[],
       rejectVotes:[],
+    }))
+  })
+
+  it('2 agreeing votes, 1 reject=false', async () => {
+    assert.isFalse(TEST.ts.checkForAgreement({
+      AgreeingVotesNeeded:2,
+      AgreeingMaxDifference:0.5,
+      approvalVotes:[{difficulty_vote:1},{difficulty_vote:1}],
+      fixVotes:[],
+      rejectVotes:[{difficulty_vote:1}],
     }))
   })
 })
