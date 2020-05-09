@@ -35,6 +35,8 @@ class TSFixApprove extends TSCommand {
       } else {
         //Check the code only if not in discussion channel
       }
+      if(message.channel.parentID!==ts.channels.pendingReuploadCategory) ts.userError(ts.message('fixApprove.notInChannel',{code}));
+
 
       if(!(
         inReuploadChannel //should also work in the discussion channel for that level
@@ -61,14 +63,19 @@ class TSFixApprove extends TSCommand {
         })
         replyMessage = await ts.judge(code, true);
       } else {
-        if(args.message){
-          replyMessage = await ts.rejectLevelWithReason(code, message.author, args.message);
+        if(reason){
+          await ts.approve({
+            discord_id:message.author.id,
+            code,
+            type:'reject',
+            reason,
+            skip_update:true,
+          })
+          replyMessage = await ts.rejectLevelWithReason(code, message.author, reason );
         } else {
           ts.userError(ts.message('fixApprove.noReason'));
         }
       }
-
-      await message.reply(replyMessage);
     }
 }
 module.exports = TSFixApprove;

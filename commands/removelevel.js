@@ -42,8 +42,10 @@ class tsremove extends TSCommand {
       }
       await this.client.channels.get(ts.channels.levelChangeNotification).send(removeEmbed);
 
-      const reply=ts.message('removeLevel.success',level)
-      await message.channel.send(player.user_reply+reply)
+      if(!message.channel.deleted){
+        const reply=ts.message('removeLevel.success',level)
+        await message.channel.send(player.user_reply+reply)
+      }
     }
 }
 module.exports = tsremove;

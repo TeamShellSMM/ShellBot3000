@@ -173,6 +173,7 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
           color:this.teamVariables.rejectColor || '#dc3545',
           title:"judge.levelRejected",
           image:this.teamVariables.rejectedEmote || this.emotes.axemuncher,
+          noLink:true,
         },
         [ts.LEVEL_STATUS.APPROVED]:{
           color:this.teamVariables.approveColor || '#01A19F',
@@ -193,6 +194,7 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
           color:this.teamVariables.removeColor || '#dc3545',
           title:'remove.removedBy',
           image:ts.teamVariables.removeEmote || ts.emotes.buzzyS ,
+          noLink:true,
         },
         rerate:{
           color:"#17a2b8",
@@ -1184,6 +1186,7 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
     var fixVotes = await ts.getPendingVotes().where("levels.id",level.id).where("type","fix");
     var voteEmbed=ts.levelEmbed(level,ts.embedStyle.judgement);
 
+
     if(alreadyApprovedMessage){
       //If we got a level we already approved before we just build a mini embed with the message
       voteEmbed.setAuthor(ts.message("pending.pendingTitle"))
@@ -1519,27 +1522,25 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
   }
 
   this.rejectLevelWithReason=async function(code, shellder, message){
-    let level=ts.getLevels().where({code})
+    let level=await ts.getLevels().where({code}).first()
+
+    if(level.status!==ts.LEVEL_STATUS.NEED_FIX) ts.userError(ts.message('fixApprove.rejectNotNeedFix',{code}))
+
+    let allVotes = await ts.getPendingVotes().where({'levels.id':level.id}).orderBy('type');
     
-    let approvalVotes = await ts.getPendingVotes().where('levels.id',level.id).where("type","approve");
-    let fixVotes = await ts.getPendingVotes().where('levels.id',level.id).where("type","fix");
-    let rejectVotes = await ts.getPendingVotes().where('levels.id',level.id).where("type","reject");
 
-    await ts.db.Levels.query().patch({status:ts.LEVEL_STATUS.REJECTED})
-        .where({code})
+    await ts.db.Levels.query().patch({status:ts.LEVEL_STATUS.REJECTED,old_status:level.status}).where({code})
 
-    const author = await ts.db.Member.query().where({"name":updateLevel.creator});
-
+    const author = await ts.db.Members.query().where({id:level.creator_id}).first();
     var mention = ts.message("general.heyListen",{discord_id:author.discord_id});
-    var exampleEmbed = ts.levelEmbed(updateLevel,this.embedStyle[ts.LEVEL_STATUS.REJECTED])
+    var embed = ts.levelEmbed(level,this.embedStyle[ts.LEVEL_STATUS.REJECTED])
       .setAuthor(ts.message("approval.rejectAfterRefuse"))
 
-    exampleEmbed.setDescription("Rejected by <@" + shellder.id + ">: " + message);
-    this.embedComments(exampleEmbed,[...approvalVotes, ...fixVotes, ...rejectVotes]);
-
+    embed.setDescription("Rejected by <@" + shellder.id + ">: ```\n" + message+'\n```');
+    this.embedComments(embed,allVotes);
 
     await client.channels.get(ts.channels.levelChangeNotification).send(mention);
-    await client.channels.get(ts.channels.levelChangeNotification).send(exampleEmbed);
+    await client.channels.get(ts.channels.levelChangeNotification).send(embed);
 
     //Remove Discussion Channel
     await ts.deleteDiscussionChannel(code,ts.message("approval.channelDeleted"))

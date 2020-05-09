@@ -28,6 +28,12 @@ describe('!fixapprove', function () {
         code: 'XXX-XXX-XX3',
         status: TEST.ts.LEVEL_STATUS.PENDING_APPROVED_REUPLOADED,
         difficulty: 0,
+      },{
+        level_name: 'need fixreject',
+        creator: 1,
+        code: 'XXX-XXX-XX4',
+        status: TEST.ts.LEVEL_STATUS.NEED_FIX,
+        difficulty: 0,
       }],
       PendingVotes:[{
         player:2,
@@ -41,6 +47,12 @@ describe('!fixapprove', function () {
         type:"approve",
         difficulty_vote:2,
         reason:'Is good',
+      },{
+        player:2,
+        code:4,
+        type:"fix",
+        difficulty_vote:1,
+        reason:'better fix or reject',
       }],
     });
   });
@@ -48,7 +60,7 @@ describe('!fixapprove', function () {
   it('approve',async ()=>{
     await TEST.createChannel({
       name:'XXX-XXX-XXX',
-      parent:TEST.ts.channels.pendingReupload,
+      parent:TEST.ts.channels.pendingReuploadCategory,
     })
     const result = await TEST.mockBotSend({
       cmd: '!fixapprove "that was a fix."',
@@ -67,7 +79,7 @@ describe('!fixapprove', function () {
   it('approve',async ()=>{
     await TEST.createChannel({
       name:'XXX-XXX-XX3',
-      parent:TEST.ts.channels.pendingReupload,
+      parent:TEST.ts.channels.pendingReuploadCategory,
     })
     const result = await TEST.mockBotSend({
       cmd: '!fixapprove',
@@ -78,5 +90,45 @@ describe('!fixapprove', function () {
     const level=await TEST.ts.db.Levels.query().where({code:'XXX-XXX-XX3'}).first()
     assert.isOk(level)
     assert.equal(level.status,TEST.ts.LEVEL_STATUS.APPROVED)
+  })
+
+  it('reject outside pendingReupload category',async ()=>{
+    await TEST.createChannel({
+      name:'XXX-XXX-XX4',
+    })
+    const result = await TEST.mockBotSend({
+      cmd: '!fixreject "unfortunately no"',
+      channel: 'XXX-XXX-XX4',
+      discord_id: '128',
+    })
+    assert.equal(result,'This channel is not in the pending reupload category  ')
+  })
+
+  it('reject success',async ()=>{
+    await TEST.createChannel({
+      name:'XXX-XXX-XX4',
+      parent:TEST.ts.channels.pendingReuploadCategory,
+    })
+    const result = await TEST.mockBotSend({
+      cmd: '!fixreject "unfortunately no"',
+      channel: 'XXX-XXX-XX4',
+      discord_id: '128',
+    })
+    assert.equal(result[0],'**<@64>, we got some news for you: **')
+    //TODO: make helper test fuction to check field titles
+    assert.equal(result[1].author.name,'We\'re really sorry, but this level was rejected after you refused to reupload.')
+  })
+
+  it('reject level not need_fix',async ()=>{
+    await TEST.createChannel({
+      name:'XXX-XXX-XX3',
+      parent:TEST.ts.channels.pendingReuploadCategory,
+    })
+    const result = await TEST.mockBotSend({
+      cmd: '!fixreject "unfortunately no"',
+      channel: 'XXX-XXX-XX3',
+      discord_id: '128',
+    })
+    assert.equal(result,'This level is not in the "Need Fix" status  ')
   })
 })

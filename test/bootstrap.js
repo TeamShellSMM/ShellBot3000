@@ -246,7 +246,7 @@ describe('Setup test and check teams registration',function(){
     }
   
     global.TEST.setupData=async(data)=>{
-      await TEST.knex.transaction(async(trx)=>{
+      const ret=await TEST.knex.transaction(async(trx)=>{
         await TEST.clearDb(trx) 
         for(let i in data){
           for(let j=0;j<data[i].length;j++){
@@ -255,12 +255,11 @@ describe('Setup test and check teams registration',function(){
         }
       })
       TEST.ts.recalculateAfterUpdate()
-      await global.TEST.sleep(10)
-      
+      return ret
     }
     
     global.TEST.clearTable=async(table,trx)=>{
-      await (trx || TEST.knex).raw(`
+      return await (trx || TEST.knex).raw(`
         SET FOREIGN_KEY_CHECKS = 0; 
         TRUNCATE table ??;
         SET FOREIGN_KEY_CHECKS = 1;
@@ -304,7 +303,9 @@ describe('Setup test and check teams registration',function(){
         if(channel.parentID === global.TEST.ts.channels.levelDiscussionCategory 
           || channel.parentID === global.TEST.ts.channels.pendingReuploadCategory){
             await channel.delete('AUTOTEST')
-          }
+        } else if(TEST.ts.valid_code(channel.name)){
+          await channel.delete('AUTOTEST')
+        }
       }
     }
     /**

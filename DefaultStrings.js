@@ -76,8 +76,9 @@ module.exports={
   'judge.votedApprove':'{{player}} voted for approval with difficulty {{difficulty_vote}}:',
   'judge.votedReject':'{{player}} voted for rejection:',
   'judge.votedFix':'{{player}} voted for fix with difficulty {{difficulty_vote}}:',
-
+  'fixApprove.notInChannel':'This channel is not in the pending reupload category {{{buzzyS}}}',
   'fixApprove.noReason':'You have to provide a message to the creator explaining why this was rejected!',
+  'fixApprove.rejectNotNeedFix':'This level is not in the "Need Fix" status {{{buzzyS}}}',
 
   'remove.removedBy':'This level has been removed by {{name}}',
   'reupload.noOldCode':'You did not provide a code for the old level. The reupload command is `!reupload <old code> <new code> reason for reuploading`',
