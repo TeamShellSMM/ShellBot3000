@@ -66,7 +66,7 @@ describe('!reupload', function () {
         creator: 1,
         code: 'XXX-XXX-XX9',
         new_code:'XXX-XXX-X10',
-        status: TEST.ts.LEVEL_STATUS.PENDING,
+        status: TEST.ts.LEVEL_STATUS.REUPLOADED,
         difficulty: 0,
       }],
     };
@@ -343,7 +343,4 @@ describe('!reupload', function () {
     }),"new channel shouldn't exist in pending reupload");
   })
 
-  //TODO: reupload of a level already in pending reupload queue
-  //reupload of need fix
-  //reupload of 
 })
