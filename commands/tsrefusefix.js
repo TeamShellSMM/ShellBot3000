@@ -23,10 +23,10 @@ class TSRefuseFix extends TSCommand {
         }
         
         const player=await ts.get_user(message);
-        var level=await ts.getLevels().where({code}).first();
+        let level=await ts.getLevels().where({code}).first();
         const author = await ts.db.Members.query().where({name:level.creator}).first();
 
-        if(level.status!=ts.LEVEL_STATUS.NEED_FIX)
+        if(!(level.status==ts.LEVEL_STATUS.PENDING_NOT_FIXED_REUPLOAD || level.status==ts.LEVEL_STATUS.PENDING_FIXED_REUPLOADED))
           ts.userError("This level is not currently in a fix request!");
 
         //only creator can use this command
@@ -40,6 +40,7 @@ class TSRefuseFix extends TSCommand {
         let guild=ts.getGuild()
 
         await ts.db.Levels.query().where({code}).patch({status:ts.LEVEL_STATUS.PENDING_NOT_FIXED_REUPLOAD})
+        level.status=ts.LEVEL_STATUS.PENDING_NOT_FIXED_REUPLOAD;
         //TODO: put author comment in pending_votes
         discussionChannel = guild.channels.find(channel => channel.name === level.code.toLowerCase() && channel.parent.id == ts.channels.pendingReuploadCategory); //not sure should specify guild/server
 
@@ -54,7 +55,7 @@ class TSRefuseFix extends TSCommand {
           });
           //Post empty overview post
           await discussionChannel.send("Reupload Request for <@" + author.discord_id + ">'s level with message: " + reason);
-          let voteEmbed = await ts.makePendingReuploadEmbed(level, author, reason);
+          let voteEmbed = await ts.makeVoteEmbed(level, reason);
           overviewMessage = await discussionChannel.send(voteEmbed);
           overviewMessage = await overviewMessage.pin();
 

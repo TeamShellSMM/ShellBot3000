@@ -36,7 +36,7 @@ const LEVEL_STATUS={
  */
 const PENDING_LEVELS=[
   LEVEL_STATUS.PENDING,
-  LEVEL_STATUS.NEED_FIX,
+  LEVEL_STATUS.PENDING_NOT_FIXED_REUPLOAD,
   LEVEL_STATUS.PENDING_APPROVED_REUPLOAD,
   LEVEL_STATUS.PENDING_FIXED_REUPLOAD,
 ];
@@ -1519,7 +1519,7 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
   this.rejectLevelWithReason=async function(code, shellder, message){
     let level=await ts.getLevels().where({code}).first()
 
-    if(level.status!==ts.LEVEL_STATUS.NEED_FIX) ts.userError(ts.message('fixApprove.rejectNotNeedFix',{code}))
+    if(level.status!==ts.LEVEL_STATUS.PENDING_FIXED_REUPLOAD && level.status!==ts.LEVEL_STATUS.PENDING_NOT_FIXED_REUPLOAD  ) ts.userError(ts.message('fixApprove.rejectNotNeedFix',{code}))
 
     let allVotes = await ts.getPendingVotes().where({'levels.id':level.id}).orderBy('type');
     
