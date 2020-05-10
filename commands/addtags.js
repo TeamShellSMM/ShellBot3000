@@ -12,13 +12,20 @@ class TSAddtags extends TSCommand {
 
     async tsexec(ts,message,args) {
       const addCommands=['tsaddtags','addtags','tsaddtag','addtag']
+      /* istanbul ignore next */
       const setTags=ts.gs.select("tags") || [];
       let command=ts.parse_command(message);
       let code=command.arguments.shift()
-      if(code) code=code.toUpperCase()
+      if(code){
+        code=code.toUpperCase()
+      } else {
+        ts.userError(ts.message('error.noCode'));
+      }
 
       let new_tags=command.arguments.join(" ")
-      if(!new_tags) ts.userError(ts.message("tags.noTags"))
+      if(!new_tags){
+        ts.userError(ts.message("tags.noTags"))
+      }
       new_tags=new_tags.split(/[,\n]/)
 
       const player=await ts.get_user(message);

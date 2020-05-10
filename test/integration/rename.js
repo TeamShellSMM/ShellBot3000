@@ -85,7 +85,7 @@ describe('!rename', function () {
 
   it('successful', async function () {
     const result = await TEST.mockBotSend({
-      cmd: '!rename XXX-XXX-XXX new long name',
+      cmd: '!rename xxx-xxx-xxx new long name',
       channel: 'general',
       discord_id: '256',
     })

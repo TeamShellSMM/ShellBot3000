@@ -39,7 +39,7 @@ const PENDING_LEVELS=[
   LEVEL_STATUS.NEED_FIX,
   LEVEL_STATUS.PENDING_APPROVED_REUPLOAD,
   LEVEL_STATUS.PENDING_FIXED_REUPLOAD,
-]
+];
 
 /**
  * Level status that appears in the list
@@ -84,10 +84,13 @@ class UserError extends Error {
  * 
  */
 const TS=function(guild_id,team,client,gs){ //loaded after gs
-  if(!client) throw new Error(`No client passed to TS()`);
+  if(!client){
+    throw new Error(`No client passed to TS()`);
+  }
   const ts=this;
   this.team=team;
   this.url_slug=this.team.url_slug;
+  /* istanbul ignore next */
   this.config=this.team.config?
     (typeof this.team.config==="string"?JSON.parse(this.team.config):this.team.config)
     :{}
@@ -748,12 +751,19 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
     if(difficulty==='') difficulty=null;
     if(difficulty==null) difficulty=null;
   
-    if(completed==null && liked==null && difficulty==null) ts.userError(ts.message('clear.noArgs'))
+    if(completed==null && liked==null && difficulty==null){
+      ts.userError(ts.message('clear.noArgs'));
+    }
+
   
-    if(code==null) ts.userError(ts.message('error.noCode'))
+    if(code==null){
+      ts.userError(ts.message('error.noCode'));
+    }
     code=code.toUpperCase();
   
-    if(difficulty) difficulty=parseFloat(difficulty)
+    if(difficulty){
+      difficulty=parseFloat(difficulty);
+    }
       
   
       
@@ -1340,7 +1350,8 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
         .patch({is_member:1})
         .where({discord_id:author.discord_id})
 
-      if(author.discord_id){ //!argv.test &&
+      /* istanbul ignore if */
+      if(author.discord_id){ 
         //doesn't work with mocked user method here.
         try{
           let curr_user=await guild.members.get(author.discord_id)
@@ -1444,9 +1455,9 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
     const author = await ts.db.Members.query().where({name:level.creator}).first();
     if(!author) ts.userError(ts.message("approval.creatorNotFound"));
 
-    if(
-      !PENDING_LEVELS.includes(level.status)
-    ) ts.userError(ts.message("approval.levelNotPending"));
+    if(!PENDING_LEVELS.includes(level.status)){
+      ts.userError(ts.message("approval.levelNotPending"));
+    }
 
     //Get all current votes for this level
     const approvalVotes = await ts.getPendingVotes().where('levels.id',level.id).where("type","approve");

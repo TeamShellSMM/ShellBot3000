@@ -29,13 +29,19 @@ describe('!like', function () {
     });
   });
 
-  it('check like', async function () {
-    const result = await TEST.mockBotSend({
+  it('check like/unlike', async function () {
+    assert.equal(await TEST.mockBotSend({
       cmd: '!like XXX-XXX-XXX',
       channel: 'general',
       waitFor:100,
       discord_id: '128',
-    })
-    assert.equal(result,'<@128> \n ‣You have liked \'approved level\'  by Creator ')
+    }),'<@128> \n ‣You have liked \'approved level\'  by Creator ')
+
+    assert.equal(await TEST.mockBotSend({
+      cmd: '!unlike XXX-XXX-XXX',
+      channel: 'general',
+      waitFor:100,
+      discord_id: '128',
+    }),'<@128> \n‣You have unliked \'approved level\'  by Creator ')
   })
 })

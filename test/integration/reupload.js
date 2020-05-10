@@ -322,11 +322,9 @@ describe('!reupload', function () {
       channel: 'general',
       discord_id: '64',
     });
-
-    //console.log(result)
     
-    //check can upload a new level with current points
-    assert.equal(result,'<@64> You have reuploaded \'pending level\' by Creator with code `XXX-XXX-YYY`. ')
+    assert.equal(result[1],'This level has been reuploaded from XXX-XXX-XX1 to XXX-XXX-YYY. Below are the comments of the old level')//check can upload a new level with current points
+    assert.equal(result[3],'<@64> You have reuploaded \'pending level\' by Creator with code `XXX-XXX-YYY`. ')
     
 
     assert.notExists(await TEST.findChannel({

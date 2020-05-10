@@ -1,5 +1,4 @@
 const TSCommand = require('../TSCommand.js');
-const config = require('../config.json')[process.env.NODE_ENV || 'development']
 class login extends TSCommand {
     constructor() {
         super('login', {

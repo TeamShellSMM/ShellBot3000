@@ -11,11 +11,13 @@ class TSRename extends TSCommand {
       let command=ts.parse_command(message);
       let code=command.arguments.shift();
       const level_name=command.arguments.join(' ');
-      if(!code) ts.userError(ts.message('error.noCode'));
+      if(!code){
+        ts.userError(ts.message('error.noCode'));
+      } else {
+        code=code.toUpperCase();
+      }
       if(!level_name) ts.userError(ts.message('rename.noNewName'));
       if(ts.isSpecialDiscordString(level_name)) ts.userError(ts.message('error.specialDiscordString'));
-
-      if(code) code=code.toUpperCase();
       const player=await ts.get_user(message);
       let level=await ts.getExistingLevel(code);
 
