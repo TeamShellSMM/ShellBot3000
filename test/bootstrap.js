@@ -254,7 +254,7 @@ describe('Setup test and check teams registration',function(){
           }
         }
       })
-      TEST.ts.recalculateAfterUpdate()
+      await TEST.ts.recalculateAfterUpdate()
       return ret
     }
     
@@ -336,7 +336,7 @@ describe('Setup test and check teams registration',function(){
     }
     global.TEST.findChannel=({ name, parentID })=>{
       const guild=global.TEST.ts.getGuild()
-      return guild.channels.find((channel)=> channel.parentID===parentID && channel.name===name.toLowerCase())
+      return guild.channels.find((channel)=> (!parentID || parentID && channel.parentID===parentID)&& channel.name===name.toLowerCase())
     }
     global.TEST.expectReply=(waitFor=10000)=>{
       return new Promise(function(_fulfill,reject){

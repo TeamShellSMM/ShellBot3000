@@ -206,11 +206,10 @@ module.exports = async function(config,client){
     } else if(data.membershipStatus == '2'){
       members = await ts.db.Members.query().select().where("is_mod",1).orderBy("clear_score_sum", "desc");
     } else if(data.membershipStatus == '4'){
-      members = await ts.db.Members.query().select().where("is_member", 0).orWhere("is_member", null).orderBy("clear_score_sum", "desc");
+      members = await ts.db.Members.query().select().where(q=> q.where("is_member", 0).orWhere("is_member", null)).orderBy("clear_score_sum", "desc");
     } else {
       members = await ts.db.Members.query().select().orderBy("clear_score_sum", "desc");
     }
-
     let json = [];
 
     if(data.timePeriod == '1' && data.timePeriod2 == '1'){
@@ -238,7 +237,7 @@ module.exports = async function(config,client){
 
         memberCounter++;
       }
-
+      console.log('here')
       return json;
     } else {
 

@@ -7,7 +7,7 @@ class TSRefuseFix extends TSCommand {
         });
     }
 
-    async tsexec(ts,message,args) {
+    async tsexec(ts,message) {
         let command=ts.parse_command(message);
         let code=command.arguments.shift()
         if(code)
@@ -52,7 +52,7 @@ class TSRefuseFix extends TSCommand {
           });
           //Post empty overview post
           await discussionChannel.send("Reupload Request for <@" + author.discord_id + ">'s level with message: " + reason);
-          let voteEmbed = await ts.makePendingReuploadEmbed(level, author, true);
+          let voteEmbed = await ts.makePendingReuploadEmbed(level, author, true, reason);
           overviewMessage = await discussionChannel.send(voteEmbed);
           overviewMessage = await overviewMessage.pin();
 

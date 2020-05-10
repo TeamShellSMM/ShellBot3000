@@ -509,6 +509,9 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
 
   /**
    * function to generate a message based on the template string type. automatically assigns default and team variables apart from provided arguments
+   * @param {string} type the message type defined in DefaultStrings which could be overwritten by custom messages
+   * @param {object} args the values to be passed to Handlebar. overrides any default values
+   * @returns {string} final message string
    */
   this.message=function(type,args){
     if(this.messages[type]){
@@ -519,14 +522,16 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
 
   /**
    * Helper function to get the Discord Guild object
+   * @returns {Guild} 
    */
   this.getGuild=function(){
     return client.guilds.get(guild_id)
   }
 
 
-  /**
+  /** 
    * Generates a login link to be DM-ed to the user to login to the website
+   * @returns {string} login link
    */
   this.generateLoginLink=function(otp){
     return server_config.page_url + ts.url_slug + "/login/"+otp
@@ -1182,20 +1187,16 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
       return voteEmbed
   }
 
-  this.makePendingReuploadEmbed=async function(level, author, refuse, alreadyApprovedMessage){
+  this.makePendingReuploadEmbed=async function(level, author, refuse, reupload_comment){
     var fixVotes = await ts.getPendingVotes().where("levels.id",level.id).where("type","fix");
-    var voteEmbed=ts.levelEmbed(level,ts.embedStyle.judgement);
+    var voteEmbed=await ts.makeVoteEmbed(level);
+    voteEmbed.addField(`Creator (${author.name}) reupload comment:`, '```\n'+reupload_comment+'\n```');
 
-
-    if(alreadyApprovedMessage){
+    if(level.status===ts.LEVEL_STATUS.PENDING_APPROVED_REUPLOAD){
       //If we got a level we already approved before we just build a mini embed with the message
       voteEmbed.setAuthor(ts.message("pending.pendingTitle"))
       .setDescription(ts.message("pending.alreadyApprovedBefore"))
-      .addField(author.name + ":", alreadyApprovedMessage);
-      return voteEmbed;
-    }
-
-    if(refuse){
+    } else if(refuse){
         voteEmbed.setAuthor(ts.message("pending.refuseTitle"))
         .setDescription(ts.message("pending.refuseDescription"))
     } else {
@@ -1205,18 +1206,6 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
     if(ts.emotes.judgement){
       voteEmbed.setThumbnail(ts.getEmoteUrl(ts.emotes.judgement));
     }
-
-    let postString = ts.message("approval.fixVotes");
-    if(fixVotes == undefined || fixVotes.length == 0){
-      postString += "> None\n";
-    } else {
-      for(var i = 0; i < fixVotes.length; i++){
-        const curShellder = await ts.db.Members.query().where({name:fixVotes[i].player}).first();
-        postString += "<@" + curShellder.discord_id + "> - Difficulty: " + fixVotes[i].difficulty_vote + ", Requested fixes: " + fixVotes[i].reason + "\n";
-      }
-    }
-
-    ts.embedAddLongField(voteEmbed,postString)
     return voteEmbed
   }
 
@@ -1284,9 +1273,10 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
    * @param {string} channel_name channel name to find
    * @param {Snowflake} parentID id of the parent category
    * @param {string} [old_channel_name] if given, the function will try to find the old name first and will be renamed to channel_name if found 
+   * @param {LevelRow} level
    * @return {Channel} returns a Discord Channel or either the created or found channel
    */
-  this.discussionChannel=async (channel_name,parentID,old_channel_name)=>{
+  this.discussionChannel=async (channel_name,parentID,old_channel_name,level)=>{
     if(!channel_name) throw new TypeError('undefined channel_name');
     if(!parentID) throw new TypeError('undefined parentID');
 
@@ -1712,33 +1702,40 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
       newStatus=ts.LEVEL_STATUS.PENDING_APPROVED_REUPLOAD
     }
 
-      if(newStatus){
-        await ts.db.Levels.query()
-          .patch({status:newStatus,old_status:level.status})
-          .where({code:new_code})
+    if(newStatus){
+      await ts.db.Levels.query()
+        .patch({status:newStatus}) //new level doesn't need old_status
+        .where({code:new_code})
+
+      new_level.status=newStatus
+    }
+
+    const author = await ts.db.Members.query()
+      .where({id:new_level.creator_id})
+      .first();
+  
+    if(newStatus!==0 || newStatus===0 && ts.findChannel({name:level.code})){
+      //console.log('here found channel')
+
+      //TODO:FIX HERE
+      //  
+      const channel=await ts.discussionChannel(new_code,newStatus===ts.LEVEL_STATUS.PENDING ? ts.channels.levelDiscussionCategory : ts.channels.pendingReuploadCategory,level.code)
+      let voteEmbed;
+      if(newStatus===0){
+        voteEmbed = await ts.makeVoteEmbed(new_level);
+      } else {
+        voteEmbed = await ts.makePendingReuploadEmbed(new_level, author, false, reason || "");
       }
-
-    //if(newStatus == ts.LEVEL_STATUS.NEED_FIX || newStatus == ts.LEVEL_STATUS.PENDING_APPROVED_REUPLOAD ){
-      const author = await ts.db.Members.query()
-        .where({id:new_level.creator_id})
-        .first();
-
-      //ts.channels.pendingReuploadCategory
-
-      //Post empty overview post
-      
-    let voteEmbed = await ts.makePendingReuploadEmbed(new_level, author, false, reason || "");
-    const channel=await ts.discussionChannel(new_code,newStatus===ts.LEVEL_STATUS.PENDING ? ts.channels.levelDiscussionCategory : ts.channels.pendingReuploadCategory,level.code)
-    await ts.updatePinned(channel,voteEmbed)
-    await channel.send(ts.message("reupload.reuploadNotify",{old_code,new_code}))
-    await channel.send(`Reupload Request for <@${author.discord_id}>'s level with message: ${reason}`);
-
+      await ts.updatePinned(channel,voteEmbed)
+      await channel.send(ts.message("reupload.reuploadNotify",{old_code,new_code}))
+      await channel.send(`Reupload Request for <@${author.discord_id}>'s level with message: ${reason}`);
+    }
 
     let reply=ts.message("reupload.success",{ level , new_code })
     if(!new_level) reply+=ts.message("reupload.renamingInstructions");
-    if(oldApproved == ts.LEVEL_STATUS.NEED_FIX || oldApproved == 1) reply += ts.message("reupload.inReuploadQueue");
+    if( newStatus!==ts.LEVEL_STATUS.PENDING ) reply += ts.message("reupload.inReuploadQueue");
 
-    ts.recalculateAfterUpdate()
+    await ts.recalculateAfterUpdate()
     return user_reply+reply;
   }
 
@@ -1758,6 +1755,18 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
       }
     }
     return false
+  }
+
+  /**
+   * Helper function to find channels
+   * @param {string} obj.name Channel name
+   * @param {Snowflake} obj.parentID Category ID
+   * @returns {boolean} channel found or not
+   */
+  this.findChannel=({ name, parentID })=>{
+    const guild=ts.getGuild();
+    const channel=guild.channels.find((channel)=> (!parentID || parentID && channel.parentID===parentID)&& channel.name===name.toLowerCase());
+    return channel
   }
 
   /**

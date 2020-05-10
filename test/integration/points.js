@@ -53,7 +53,7 @@ describe('!points', function () {
   it('!points creator include own points', async function () {
     TEST.ts.teamVariables.includeOwnPoints=1
     TEST.ts.teamVariables['Minimum Point']=0
-    TEST.ts.recalculateAfterUpdate()
+    await TEST.ts.recalculateAfterUpdate()
     assert.equal(await TEST.mockBotSend({
       cmd: '!points',
       channel: 'general',

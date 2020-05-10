@@ -178,16 +178,6 @@ describe('!reupload', function () {
   })
 
 
-  /* janky error. sometimes it works sometimes it doesnt
-    !reupload
-          not enough points:
-
-          AssertionError: expected '<@64> You have reuploaded \'pending level\' by Creator with code `XXX-XXX-YYY. ' to equal 'Creator doesn\'t have enough points to upload a new level '
-          + expected - actual
-
-          -<@64> You have reuploaded 'pending level' by Creator with code `XXX-XXX-YYY. 
-          +Creator doesn't have enough points to upload a new level 
-  */
   it('not enough points',async()=>{
     TEST.ts.teamVariables['New Level']=5;
     await TEST.ts.db.Members.query().patch({clear_score_sum:0}).where({discord_id:'64'})
@@ -222,6 +212,11 @@ describe('!reupload', function () {
     }),await TEST.mockMessage('points.cantUpload',{type:'userError',discord_id:'64'},{
       points_needed:player.earned_points.pointsNeeded,
     }))
+
+    assert.notExists(await TEST.findChannel({
+      name:'XXX-XXX-YYY',
+      parentID:TEST.ts.channels.pendingReuploadCategory,
+    }),"channel not be created in the normal pending list");
 
     //check can upload a new level with current points
     assert.equal(await TEST.mockBotSend({
@@ -264,7 +259,7 @@ describe('!reupload', function () {
     assert.notExists(await TEST.findChannel({
       name:'XXX-XXX-YYY',
       parentID:TEST.ts.channels.levelDiscussionCategory
-    }),"channel note created in the normal pending list");
+    }),"channel not created in the normal pending list");
 
     assert.exists(await TEST.findChannel({
       name:'XXX-XXX-YYY',
@@ -302,8 +297,8 @@ describe('!reupload', function () {
 
     assert.notExists(await TEST.findChannel({
       name:'XXX-XXX-YYY',
-      parentID:TEST.ts.channels.levelDiscussionCategory
-    }),"channel note created in the normal pending list");
+      parentID:TEST.ts.channels.levelDiscussionCategory,
+    }),"channel not created in the normal pending list");
 
     assert.exists(await TEST.findChannel({
       name:'XXX-XXX-YYY',
@@ -327,25 +322,17 @@ describe('!reupload', function () {
       channel: 'general',
       discord_id: '64',
     });
+
+    //console.log(result)
+    
     //check can upload a new level with current points
-    assert.equal(result[0].title,'pending level (XXX-XXX-YYY)')
-    assert.lengthOf(result,4,'Four sets of messages')
-    assert.equal(
-      result[1],'This level has been reuploaded from XXX-XXX-XX1 to XXX-XXX-YYY. Below are the comments of the old level'
-    );
-    assert.equal(
-      result[3],
-      await TEST.mockMessage('reupload.success',{type:'registeredSuccess',discord_id:'64'},{level:{
-        level_name:'pending level',
-        creator:'Creator',
-        }, new_code:'XXX-XXX-YYY'
-      })
-    );
+    assert.equal(result,'<@64> You have reuploaded \'pending level\' by Creator with code `XXX-XXX-YYY`. ')
+    
 
     assert.notExists(await TEST.findChannel({
       name:'XXX-XXX-XX1',
       parentID:TEST.ts.channels.levelDiscussionCategory
-    }),"old channel doesn't exist");
+    }),"old channel shouuldn't exist");
 
     assert.exists(await TEST.findChannel({
       name:'XXX-XXX-YYY',
