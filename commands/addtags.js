@@ -91,7 +91,8 @@ class TSAddtags extends TSCommand {
       })
 
       if(old_tags.length===new_tags.length) ts.userError(ts.message('tags.noRemoved',level)+ts.message('tags.currentTags',{tags_str:old_tags.join("\n")}));
-      reply=ts.message('tags.haveRemoved',level)+ts.message('tags.currentTags',{tags_str:new_tags.join("\n")})
+      old_tags=new_tags
+      reply=ts.message('tags.haveRemoved',level)+ts.message('tags.currentTags',{tags_str:old_tags.join("\n")})
     }
 
     await ts.db.Levels.query().patch({tags:old_tags.join(',')})

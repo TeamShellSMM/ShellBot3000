@@ -66,6 +66,8 @@ describe('!addtags,!removetags',()=>{
       channel: 'general',
       discord_id: '256',
     }),'<@256> Tags removed for "pending level" by "Creator "\nCurrent tags:```\ntag2\nall_locked\nremove_locked```')
+    const level=await TEST.ts.db.Levels.query().where({code:'XXX-XXX-XX2'}).first()
+    assert.equal(level.tags,'tag2,all_locked,remove_locked')
   })
 
   it('!removetag success by mod', async ()=>{
@@ -74,6 +76,8 @@ describe('!addtags,!removetags',()=>{
       channel: 'general',
       discord_id: '128',
     }),'<@128> Tags removed for "pending level" by "Creator "\nCurrent tags:```\ntag2\nall_locked\nremove_locked```')
+    const level=await TEST.ts.db.Levels.query().where({code:'XXX-XXX-XX2'}).first()
+    assert.equal(level.tags,'tag2,all_locked,remove_locked')
   })
 
   it('!removetag fail by other player', async ()=>{
@@ -82,6 +86,8 @@ describe('!addtags,!removetags',()=>{
       channel: 'general',
       discord_id: '512',
     }),'You can\'t remove tags from "pending level" by "Creator" ')
+    const level=await TEST.ts.db.Levels.query().where({code:'XXX-XXX-XX2'}).first()
+    assert.equal(level.tags,'removetag1,tag2,removetag3,all_locked,remove_locked')
   })
 
   it('!removetag none', async ()=>{
@@ -99,5 +105,6 @@ describe('!addtags,!removetags',()=>{
       discord_id: '256',
     }),'You can\'t remove the tag "remove_locked" ')
   })
+
 
 })
