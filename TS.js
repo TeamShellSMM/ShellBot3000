@@ -1689,9 +1689,8 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
 
     //Reupload means you're going to replace the old one so need to do that for upload check
     let creator_points=await ts.calculatePoints(level.creator,ts.SHOWN_IN_LIST.includes(level.status))
-
-    if(!new_level && !creator_points.canUpload) ts.userError(ts.message("reupload.notEnoughPoints"));
     if(level.new_code) ts.userError(ts.message("reupload.haveReuploaded",{code:level.new_code}));
+    if(!new_level && !ts.SHOWN_IN_LIST.includes(level.status) ) ts.userError(ts.message("reupload.notEnoughPoints"));
     if(!(level.creator_id==player.id || player.is_mod)) ts.userError(ts.message("reupload.noPermission", level));
 
     await ts.db.Levels.query().patch({

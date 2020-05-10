@@ -166,7 +166,7 @@ describe('!reupload', function () {
   })
 
 
-  it('not enough points',async()=>{
+  it('not enough points, but reuploading approved=can',async()=>{
     TEST.ts.teamVariables['New Level']=5;
     await TEST.ts.db.Members.query().patch({clear_score_sum:0}).where({discord_id:'64'})
     const result = await TEST.mockBotSend({
@@ -174,7 +174,7 @@ describe('!reupload', function () {
       channel: 'general',
       discord_id: '64',
     })
-    assert.equal(result,await TEST.mockMessage('reupload.notEnoughPoints',{type:'userError'},{code:'XXX-XXX-X10'}))
+    assert.equal(result,'<@64> You have reuploaded \'pending level\' by Creator with code `XXX-XXX-YYY`. ')
   })
 
   it('Level has already been reuploaded',async()=>{
