@@ -39,6 +39,8 @@ class TSRefuseFix extends TSCommand {
 
         let guild=ts.getGuild()
 
+        await ts.db.Levels.query().where({code}).patch({status:ts.LEVEL_STATUS.PENDING_NOT_FIXED_REUPLOAD})
+        //TODO: put author comment in pending_votes
         discussionChannel = guild.channels.find(channel => channel.name === level.code.toLowerCase() && channel.parent.id == ts.channels.pendingReuploadCategory); //not sure should specify guild/server
 
         if(!discussionChannel){
@@ -52,7 +54,7 @@ class TSRefuseFix extends TSCommand {
           });
           //Post empty overview post
           await discussionChannel.send("Reupload Request for <@" + author.discord_id + ">'s level with message: " + reason);
-          let voteEmbed = await ts.makePendingReuploadEmbed(level, author, true, reason);
+          let voteEmbed = await ts.makePendingReuploadEmbed(level, author, reason);
           overviewMessage = await discussionChannel.send(voteEmbed);
           overviewMessage = await overviewMessage.pin();
 

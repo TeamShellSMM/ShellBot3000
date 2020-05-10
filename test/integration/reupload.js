@@ -323,7 +323,7 @@ describe('!reupload', function () {
       discord_id: '64',
     });
     
-    assert.equal(result[1],'This level has been reuploaded from XXX-XXX-XX1 to XXX-XXX-YYY. Below are the comments of the old level')//check can upload a new level with current points
+    assert.equal(result[1],'This level has been reuploaded from XXX-XXX-XX1 to XXX-XXX-YYY.')//check can upload a new level with current points
     assert.equal(result[3],'<@64> You have reuploaded \'pending level\' by Creator with code `XXX-XXX-YYY`. ')
     
 

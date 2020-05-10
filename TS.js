@@ -1154,13 +1154,27 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
   /**
    * This extends the levelEmbed and add all the pending votes associated with this level. to be used in the level discussion channels
    */
-  this.makeVoteEmbed=async function(level){
+  this.makeVoteEmbed=async function(level, reupload_comment){
     var approveVotes = await ts.getPendingVotes().where("levels.id",level.id).where({type:'approve'});
     var fixVotes = await ts.getPendingVotes().where("levels.id",level.id).where({type:'fix'});
     var rejectVotes = await ts.getPendingVotes().where("levels.id",level.id).where({type:'reject'});
 
     var voteEmbed=ts.levelEmbed(level,this.embedStyle.judgement);
 
+    if(level.status===ts.LEVEL_STATUS.PENDING_APPROVED_REUPLOAD){
+      voteEmbed.setAuthor(ts.message("pending.pendingTitle"))
+      .setDescription(ts.message("pending.alreadyApprovedBefore"))
+    } else if(level.status===ts.LEVEL_STATUS.PENDING_NOT_FIXED_REUPLOAD){
+        voteEmbed.setAuthor(ts.message("pending.refuseTitle"))
+        .setDescription(ts.message("pending.refuseDescription"))
+    } else if(level.status===ts.LEVEL_STATUS.PENDING_FIXED_REUPLOAD) {
+      voteEmbed.setAuthor(ts.message("pending.reuploadedTitle"))
+      .setDescription(ts.message("pending.fixReuploadDescription"))
+    }
+    if(reupload_comment){
+      voteEmbed.addField(`Creator (${level.creator_name}) reupload comment:`, '```\n'+reupload_comment+'\n```');
+    }
+    
 
       var postString = ts.message("approval.approvalVotes");
       if(approveVotes == undefined || approveVotes.length == 0){
@@ -1195,28 +1209,6 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
 
       ts.embedAddLongField(voteEmbed,postString)
       return voteEmbed
-  }
-
-  this.makePendingReuploadEmbed=async function(level, author, refuse, reupload_comment){
-    var fixVotes = await ts.getPendingVotes().where("levels.id",level.id).where("type","fix");
-    var voteEmbed=await ts.makeVoteEmbed(level);
-    voteEmbed.addField(`Creator (${author.name}) reupload comment:`, '```\n'+reupload_comment+'\n```');
-
-    if(level.status===ts.LEVEL_STATUS.PENDING_APPROVED_REUPLOAD){
-      //If we got a level we already approved before we just build a mini embed with the message
-      voteEmbed.setAuthor(ts.message("pending.pendingTitle"))
-      .setDescription(ts.message("pending.alreadyApprovedBefore"))
-    } else if(refuse){
-        voteEmbed.setAuthor(ts.message("pending.refuseTitle"))
-        .setDescription(ts.message("pending.refuseDescription"))
-    } else {
-      voteEmbed.setAuthor(ts.message("pending.reuploadedTitle"))
-      .setDescription(ts.message("pending.fixReuploadDescription"))
-    }
-    if(ts.emotes.judgement){
-      voteEmbed.setThumbnail(ts.getEmoteUrl(ts.emotes.judgement));
-    }
-    return voteEmbed
   }
 
   /**
@@ -1272,9 +1264,9 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
       //generate judgement embed
       if(!args.skip_update){
         let voteEmbed=await ts.makeVoteEmbed(level)
-        const discussionChannel=await ts.discussionChannel(level.code,ts.channels.levelDiscussionCategory)
-        await ts.updatePinned(discussionChannel,voteEmbed)
-        return ts.message(replyMsg,{channel_id:discussionChannel.id});
+        const { channel }=await ts.discussionChannel(level.code,ts.channels.levelDiscussionCategory)
+        await ts.updatePinned(channel,voteEmbed)
+        return ts.message(replyMsg,{channel_id:channel.id});
       }
   }
 
@@ -1291,6 +1283,7 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
     if(!parentID) throw new TypeError('undefined parentID');
 
     const guild=ts.getGuild()
+    let created=false;
     const tooManyChannelsError=ts.message(parentID===ts.channels.levelDiscussionCategory? 'approval.tooManyDiscussionChannels' : 'reupload.tooManyReuploadChannels');
 
     let discussionChannel = guild.channels.find(channel => channel.name === channel_name.toLowerCase());
@@ -1314,11 +1307,12 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
         type: 'text',
         parent: guild.channels.get(parentID)
       });
+      created=true;
     } else if(discussionChannel.parentID!=parentID){
       if(guild.channels.get(parentID).children.size===50) ts.userError(tooManyChannelsError);
       await discussionChannel.setParent(parentID)
     }
-    return discussionChannel
+    return { channel:discussionChannel,created }
   }
   
   /**
@@ -1730,13 +1724,8 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
 
       //TODO:FIX HERE
       //  
-      const channel=await ts.discussionChannel(new_code,newStatus===ts.LEVEL_STATUS.PENDING ? ts.channels.levelDiscussionCategory : ts.channels.pendingReuploadCategory,level.code)
-      let voteEmbed;
-      if(newStatus===0){
-        voteEmbed = await ts.makeVoteEmbed(new_level);
-      } else {
-        voteEmbed = await ts.makePendingReuploadEmbed(new_level, author, false, reason || "");
-      }
+      const { channel }=await ts.discussionChannel(new_code,newStatus===ts.LEVEL_STATUS.PENDING ? ts.channels.levelDiscussionCategory : ts.channels.pendingReuploadCategory,level.code)      
+      const voteEmbed = await ts.makeVoteEmbed(new_level,reason||"");
       await ts.updatePinned(channel,voteEmbed)
       await channel.send(ts.message("reupload.reuploadNotify",{old_code,new_code}))
       await channel.send(`Reupload Request for <@${author.discord_id}>'s level with message: ${reason}`);
