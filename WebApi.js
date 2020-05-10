@@ -237,7 +237,6 @@ module.exports = async function(config,client){
 
         memberCounter++;
       }
-      console.log('here')
       return json;
     } else {
 

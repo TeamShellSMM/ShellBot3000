@@ -47,6 +47,7 @@ const PENDING_LEVELS=[
  */
 const SHOWN_IN_LIST=[
   ...PENDING_LEVELS,
+  LEVEL_STATUS.NEED_FIX,
   LEVEL_STATUS.APPROVED,
 ];
 
@@ -1388,7 +1389,7 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
    * @throws {UserError} if there is not enough votes
    */
   this.processVotes=({ approvalVotesNeeded=0,fixVotesNeeded=0,approvalVotesCount=0,fixVotesCount=0,rejectVotesCount=0, is_fix=false })=>{
-    var fixAndApproveVoteCount = fixVotesCount + approvalVotesCount;
+    const fixAndApproveVoteCount = fixVotesCount + approvalVotesCount;
     const VotesNeeded=parseInt(ts.teamVariables.VotesNeeded,10)
     approvalVotesNeeded=approvalVotesNeeded || parseInt(ts.teamVariables.ApprovalVotesNeeded,10) || VotesNeeded || 1
     const rejectVotesNeeded=parseInt(ts.teamVariables.RejectVotesNeeded,10) || VotesNeeded || 1
@@ -1396,19 +1397,43 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
 
     const approvalRatio=approvalVotesCount/approvalVotesNeeded
     const rejectionRatio=rejectVotesCount/rejectVotesNeeded
-    const fixRatio=fixAndApproveVoteCount/fixVotesNeeded
-    const approveFixRatio=fixAndApproveVoteCount/approvalVotesNeeded
+    const fixRatio = fixVotesCount/fixVotesNeeded
+    const fixApproveRatio=fixAndApproveVoteCount/fixVotesNeeded
+    const approvalFixRatio=fixAndApproveVoteCount/approvalVotesNeeded
     let statusUpdate;
     if ( 
-      !is_fix && approvalRatio>=1 && approvalRatio > rejectionRatio 
-      || is_fix && approveFixRatio>=1 && approveFixRatio > rejectionRatio 
+      !is_fix 
+        && approvalRatio>=1
+        && approvalRatio > rejectionRatio
+        && approvalRatio >= fixRatio
+      || is_fix
+        && approvalFixRatio>=1
+        && approvalFixRatio > rejectionRatio 
       ){
-      statusUpdate=ts.LEVEL_STATUS.APPROVED
-    } else if( rejectionRatio>=1 && rejectionRatio>approvalRatio && rejectionRatio>fixRatio){
-      statusUpdate=ts.LEVEL_STATUS.REJECTED
-    } else if ( !is_fix && fixRatio >= 1 && fixRatio != rejectionRatio) {
+      statusUpdate=ts.LEVEL_STATUS.APPROVED;
+    } else if( 
+      rejectionRatio>=1 
+      && rejectionRatio>approvalRatio
+      && rejectionRatio>fixApproveRatio
+    ){
+      statusUpdate=ts.LEVEL_STATUS.REJECTED;
+    } else if ( 
+      !is_fix //never reassign fix vote
+      && fixApproveRatio >= 1
+      && fixApproveRatio !== rejectionRatio
+      && (
+        approvalRatio<1 ||
+        approvalRatio>=1 && approvalRatio!==fixRatio
+      )
+    ) {
       statusUpdate=ts.LEVEL_STATUS.NEED_FIX
-    } else if(rejectVotesCount!==0 && ( fixRatio==rejectionRatio || approvalRatio==rejectionRatio )){
+    } else if(
+      rejectVotesCount!==0
+      && (
+        fixApproveRatio==rejectionRatio
+        || approvalRatio==rejectionRatio
+       )
+    ){
       ts.userError(ts.message("approval.comboBreaker"));
     } else {
       ts.userError(ts.message('approval.numVotesNeeded'));

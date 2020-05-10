@@ -122,7 +122,7 @@ describe('!add', function () {
     })
     const player=await TEST.ts.get_user('256')
     assert.equal(result,await TEST.mockMessage('points.cantUpload',{type:'userError',discord_id:'256'},{
-      points_needed:Math.abs(player.earned_points.pointsNeeded).toFixed(1)
+      points_needed:player.earned_points.pointsNeeded
     }))
     const levels=await TEST.ts.getLevels();
     assert.lengthOf(levels,0)

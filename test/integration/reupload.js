@@ -31,12 +31,6 @@ describe('!reupload', function () {
         status: TEST.ts.LEVEL_STATUS.NEED_FIX,
         difficulty: 0,
       },{
-        level_name: 'reuploaded level',
-        creator: 1,
-        code: 'XXX-XXX-XX4',
-        status: TEST.ts.LEVEL_STATUS.REUPLOADED,
-        difficulty: 1,
-      },{
         level_name: 'removed level',
         creator: 1,
         code: 'XXX-XXX-XX5',
@@ -151,13 +145,7 @@ describe('!reupload', function () {
   it('New level exists and level is not pending or approved',async()=>{
 
     assert.equal(await TEST.mockBotSend({
-      cmd: '!reupload XXX-XXX-XX1 XXX-XXX-XX4 long reason',
-      channel: 'general',
-      discord_id: '64',
-    }),await TEST.mockMessage('reupload.wrongApprovedStatus',{type:'userError'}));
-
-    assert.equal(await TEST.mockBotSend({
-      cmd: '!reupload XXX-XXX-XX1 XXX-XXX-XX4 long reason',
+      cmd: '!reupload XXX-XXX-XX1 XXX-XXX-XX9 long reason',
       channel: 'general',
       discord_id: '64',
     }),await TEST.mockMessage('reupload.wrongApprovedStatus',{type:'userError'}));
@@ -201,7 +189,7 @@ describe('!reupload', function () {
   it('creator successful reupload pending level with just enough points',async()=>{
     await TEST.clearChannels();
     TEST.ts.teamVariables['New Level']=1;
-    await TEST.ts.db.Members.query().patch({clear_score_sum:3}).where({discord_id:'64'})
+    await TEST.ts.db.Members.query().patch({clear_score_sum:2}).where({discord_id:'64'})
     
     const player=await TEST.ts.get_user('64')
     //check if can't upload a new level with current points

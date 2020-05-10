@@ -38,7 +38,7 @@ class PendingStatus extends TSCommand {
             }
             statusStr=statusStr.length>0?statusStr.join(","):"No votes has been cast yet"
 
-            return level.code+' - "'+level.level_name+'":\n -'+statusStr+'\n';
+            return level.code+' - "'+level.level_name+'":\n •'+statusStr+'\n';
         })
         let levelStr=await Promise.all(levelStrPromises)
         await message.channel.send(player.user_reply+"\nYour Pending Levels:```"+levelStr.join("\n")+"\n```");

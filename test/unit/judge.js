@@ -42,6 +42,13 @@ describe('judge:processVotes', function () {
       }), TEST.ts.UserError, TEST.ts.message('approval.comboBreaker'))
     })
 
+    it('1 approved,2 fix = fixed', async () => {
+      assert.equal(TEST.ts.processVotes({
+        fixVotesCount: 2,
+        approvalVotesCount: 1,
+      }), TEST.ts.LEVEL_STATUS.NEED_FIX)
+    })
+
   })
 
   describe('2 votes needed, same', function () {

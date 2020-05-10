@@ -193,182 +193,181 @@ after(async()=>{
   await TEST.knex.destroy();
 })
 
+before(async()=>{
+  global.TEST.client=new AkairoClient(TEST.config, {
+    disableEveryone: true
+  });
+  await TEST.client.login(TEST.config.discord_access_token);
+  TEST.bot_id=TEST.client.user.id
+  TEST.userBot=global.TEST.config.userBot
+  global.TEST.message=await TEST.client.channels.get(TEST.config.initTestChannel).send('ShellBotted');
+  await global.TEST.message.delete()
+
+  await TEST.knex.raw(`
+    SET FOREIGN_KEY_CHECKS = 0; 
+    TRUNCATE table teams;
+    TRUNCATE table points;
+    SET FOREIGN_KEY_CHECKS = 1;
+  `);
+  global.TEST.ts=await TS.create(TEST.config.testConfig,global.TEST.client,new mockGS())
+
+  global.app = await WebApi(TEST.config,TEST.client);
+
+  global.TEST.mockMessage=async (template,{ type , discord_id },args)=>{
+    let msg=TEST.ts.message(template,args);
+    if(type=='userError') return msg+TEST.ts.message('error.afterUserDiscord');
+    if(type=='registeredSuccess'){
+      let user=await TEST.ts.get_user(discord_id);
+      return user.user_reply+msg;
+    }
+    return msg;
+  }
+
+  global.TEST.sleep=(ms)=>{
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  global.TEST.setupData=async(data)=>{
+    const ret=await TEST.knex.transaction(async(trx)=>{
+      await TEST.clearDb(trx) 
+      for(let i in data){
+        for(let j=0;j<data[i].length;j++){
+          await TEST.ts.db[i].query(trx).insert(data[i][j])
+        }
+      }
+    })
+    await TEST.ts.recalculateAfterUpdate()
+    return ret
+  }
+  
+  global.TEST.clearTable=async(table,trx)=>{
+    return await (trx || TEST.knex).raw(`
+      SET FOREIGN_KEY_CHECKS = 0; 
+      TRUNCATE table ??;
+      SET FOREIGN_KEY_CHECKS = 1;
+    `,[table]);
+  }
+
+  const all_tables=['plays','pending_votes','levels','members','tokens'];
+  global.TEST.clearDb=async(trx)=>{
+    for(let table of all_tables){
+      await TEST.clearTable(table,trx)
+    }
+  }
+
+
+  global.TEST.acceptReply=()=>{
+    let guild=TEST.ts.getGuild();
+    let cache=[]
+
+    function collect_reply(args){
+      cache.push(args)
+    }
+    TEST.ts.sendDM=(discord_id,msg)=>{
+      collect_reply(msg)
+    }
+    TEST.message.author.send=collect_reply
+    guild.channels.forEach((c)=>{
+      c.send=collect_reply
+      c.reply=collect_reply
+    })
+    return ()=>{
+      if(cache.length==1) cache=cache[0]
+      return cache;
+    }
+  }
+
+  global.TEST.clearChannels=async ()=>{
+    const guild=global.TEST.ts.getGuild()
+    const channels=guild.channels.array()
+    for(let i=0;i<channels.length;i++){
+      let channel=channels[i]
+      if(channel.parentID === global.TEST.ts.channels.levelDiscussionCategory 
+        || channel.parentID === global.TEST.ts.channels.pendingReuploadCategory){
+          await channel.delete('AUTOTEST')
+      } else if(TEST.ts.valid_code(channel.name)){
+        await channel.delete('AUTOTEST')
+      }
+    }
+  }
+  /**
+   * Create a channel
+   * @param {Object} args passed parameter object
+   * @param {string} args.name channel name
+   * @param {string} args.parentID the id of the parent channel
+   */
+  global.TEST.createChannel=async({ name, parent })=>{
+    const guild=global.TEST.ts.getGuild()
+    await guild.createChannel(name, {
+      type: 'text',
+      parent,
+    })
+  }
+
+  global.TEST.clearUserBot=async()=>{
+    const guild=global.TEST.ts.getGuild();
+    const allRoles=guild.roles.filter((r)=> r.name!=="TestUser" && r.name!=="ShellBot Testing").map((r)=>r.id)
+    const member=guild.members.get(TEST.userBot)
+    await member.removeRoles(allRoles)
+  }
+
+  global.TEST.getUserBot=async ()=>{
+    const guild=global.TEST.ts.getGuild();
+    const member=guild.members.get(TEST.userBot);
+    return member;
+  }
+  global.TEST.findChannel=({ name, parentID })=>{
+    const guild=global.TEST.ts.getGuild()
+    return guild.channels.find((channel)=> (!parentID || parentID && channel.parentID===parentID)&& channel.name===name.toLowerCase())
+  }
+  global.TEST.expectReply=(waitFor=10000)=>{
+    return new Promise(function(_fulfill,reject){
+      let clearId;
+      const result=TEST.acceptReply()
+      function fulfill(){
+        clearTimeout(clearId);
+        TEST.message.author.id=TEST.bot_id
+        TEST.ts.promisedCallback=null
+        _fulfill(result());
+      }
+      clearId=setTimeout(fulfill,waitFor)
+      TEST.ts.promisedCallback=fulfill
+      TEST.ts.promisedReject=reject
+    })
+  }
+  
+  global.TEST.mockBotSend=async ({ cmd , channel, discord_id, waitFor })=>{
+    let guild=TEST.ts.getGuild()
+    TEST.message.author.id=discord_id;
+    TEST.message.content = cmd;
+    channel=channel || global.TEST.ts.channels.modChannel
+    if(/[^0-9]/.test(channel)){
+      TEST.message.channel=await guild.channels.find(c => c.name === channel.toLowerCase())
+    } else {
+      TEST.message.channel=await guild.channels.get(channel)
+    }
+  
+    const ret=global.TEST.expectReply(waitFor)
+    TEST.client.emit("message",TEST.message)
+    return await ret;
+  }
+})
+
 
 describe('Setup test and check teams registration',function(){
 
   it('Creating discord connection and sending a message',async function(){
-    global.TEST.client=new AkairoClient(TEST.config, {
-      disableEveryone: true
-    });
-    await TEST.client.login(TEST.config.discord_access_token);
-    TEST.bot_id=TEST.client.user.id
-    TEST.userBot=global.TEST.config.userBot
     assert.isOk(TEST.client,'client is okay')
-    global.TEST.message=await TEST.client.channels.get(TEST.config.initTestChannel).send('ShellBotted');
-    await global.TEST.message.delete()
     assert.isOk(TEST.message,'message is sent');
   });
 
   it('Creating team info and TS',async function(){
-    await TEST.knex.raw(`
-      SET FOREIGN_KEY_CHECKS = 0; 
-      TRUNCATE table teams;
-      TRUNCATE table points;
-      SET FOREIGN_KEY_CHECKS = 1;
-    `);
-    global.TEST.ts=await TS.create(TEST.config.testConfig,global.TEST.client,new mockGS())
-
     let [ teams ]=await TEST.knex.raw(`SELECT * FROM teams;`);
     assert.lengthOf(teams,1,'Should have created teams');
-
     assert.isOk(TEST.ts,'ts is created')
   });
 
   it('Creating web api',async function(){
-    global.app = await WebApi(TEST.config,TEST.client);
     assert.isOk(app,'App is created')
-  });
-
-
-  it('Setting up test functions',async function(){
-    global.TEST.mockMessage=async (template,{ type , discord_id },args)=>{
-      let msg=TEST.ts.message(template,args);
-      if(type=='userError') return msg+TEST.ts.message('error.afterUserDiscord');
-      if(type=='registeredSuccess'){
-        let user=await TEST.ts.get_user(discord_id);
-        return user.user_reply+msg;
-      }
-      return msg;
-    }
-  
-    global.TEST.sleep=(ms)=>{
-      return new Promise(resolve => setTimeout(resolve, ms));
-    }
-  
-    global.TEST.setupData=async(data)=>{
-      const ret=await TEST.knex.transaction(async(trx)=>{
-        await TEST.clearDb(trx) 
-        for(let i in data){
-          for(let j=0;j<data[i].length;j++){
-            await TEST.ts.db[i].query(trx).insert(data[i][j])
-          }
-        }
-      })
-      await TEST.ts.recalculateAfterUpdate()
-      return ret
-    }
-    
-    global.TEST.clearTable=async(table,trx)=>{
-      return await (trx || TEST.knex).raw(`
-        SET FOREIGN_KEY_CHECKS = 0; 
-        TRUNCATE table ??;
-        SET FOREIGN_KEY_CHECKS = 1;
-      `,[table]);
-    }
-  
-    const all_tables=['plays','pending_votes','levels','members','tokens'];
-    global.TEST.clearDb=async(trx)=>{
-      for(let table of all_tables){
-        await TEST.clearTable(table,trx)
-      }
-    }
-
-
-    global.TEST.acceptReply=()=>{
-      let guild=TEST.ts.getGuild();
-      let cache=[]
-
-      function collect_reply(args){
-        cache.push(args)
-      }
-      TEST.ts.sendDM=(discord_id,msg)=>{
-        collect_reply(msg)
-      }
-      TEST.message.author.send=collect_reply
-      guild.channels.forEach((c)=>{
-        c.send=collect_reply
-        c.reply=collect_reply
-      })
-      return ()=>{
-        if(cache.length==1) cache=cache[0]
-        return cache;
-      }
-    }
-
-    global.TEST.clearChannels=async ()=>{
-      const guild=global.TEST.ts.getGuild()
-      const channels=guild.channels.array()
-      for(let i=0;i<channels.length;i++){
-        let channel=channels[i]
-        if(channel.parentID === global.TEST.ts.channels.levelDiscussionCategory 
-          || channel.parentID === global.TEST.ts.channels.pendingReuploadCategory){
-            await channel.delete('AUTOTEST')
-        } else if(TEST.ts.valid_code(channel.name)){
-          await channel.delete('AUTOTEST')
-        }
-      }
-    }
-    /**
-     * Create a channel
-     * @param {Object} args passed parameter object
-     * @param {string} args.name channel name
-     * @param {string} args.parentID the id of the parent channel
-     */
-    global.TEST.createChannel=async({ name, parent })=>{
-      const guild=global.TEST.ts.getGuild()
-      await guild.createChannel(name, {
-        type: 'text',
-        parent,
-      })
-    }
-
-    global.TEST.clearUserBot=async()=>{
-      const guild=global.TEST.ts.getGuild();
-      const allRoles=guild.roles.filter((r)=> r.name!=="TestUser" && r.name!=="ShellBot Testing").map((r)=>r.id)
-      const member=guild.members.get(TEST.userBot)
-      await member.removeRoles(allRoles)
-    }
-
-    global.TEST.getUserBot=async ()=>{
-      const guild=global.TEST.ts.getGuild();
-      const member=guild.members.get(TEST.userBot);
-      return member;
-    }
-    global.TEST.findChannel=({ name, parentID })=>{
-      const guild=global.TEST.ts.getGuild()
-      return guild.channels.find((channel)=> (!parentID || parentID && channel.parentID===parentID)&& channel.name===name.toLowerCase())
-    }
-    global.TEST.expectReply=(waitFor=10000)=>{
-      return new Promise(function(_fulfill,reject){
-        let clearId;
-        const result=TEST.acceptReply()
-        function fulfill(){
-          clearTimeout(clearId);
-          TEST.message.author.id=TEST.bot_id
-          TEST.ts.promisedCallback=null
-          _fulfill(result());
-        }
-        clearId=setTimeout(fulfill,waitFor)
-        TEST.ts.promisedCallback=fulfill
-        TEST.ts.promisedReject=reject
-      })
-    }
-    
-    global.TEST.mockBotSend=async ({ cmd , channel, discord_id, waitFor })=>{
-      let guild=TEST.ts.getGuild()
-      TEST.message.author.id=discord_id;
-      TEST.message.content = cmd;
-      channel=channel || global.TEST.ts.channels.modChannel
-      if(/[^0-9]/.test(channel)){
-        TEST.message.channel=await guild.channels.find(c => c.name === channel.toLowerCase())
-      } else {
-        TEST.message.channel=await guild.channels.get(channel)
-      }
-    
-      const ret=global.TEST.expectReply(waitFor)
-      TEST.client.emit("message",TEST.message)
-      return await ret;
-    }
-    
   });
 })

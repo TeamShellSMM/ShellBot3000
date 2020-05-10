@@ -13,23 +13,8 @@ class mockUser extends TSCommand {
         });
     }
 
-    async canRun(ts,message){
-        if(process.env.NODE_ENV!=='production'){
-            return false
-        }
-
-        if(config.ownerID && config.ownerID.indexOf(message.author.id)!==-1){
-            return true;
-        }
-        if(config.devs && config.devs.indexOf(message.author.id)!==-1){
-            return true;
-        }
-
-        if(message.author.id==ts.client.user.id){
-          return true;
-        }
-        
-        return false;
+    async canRun(){
+        return process.env.NODE_ENV!=='production'
     }
 
 

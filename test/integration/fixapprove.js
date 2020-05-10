@@ -114,7 +114,6 @@ describe('!fixapprove', function () {
       channel: 'XXX-XXX-XX4',
       discord_id: '128',
     })
-    console.log(result)
     assert.equal(result[0],'**<@64>, we got some news for you: **')
     //TODO: make helper test fuction to check field titles
     assert.equal(result[1].author.name,'We\'re really sorry, but this level was rejected after you refused to reupload.')
