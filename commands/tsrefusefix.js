@@ -26,7 +26,7 @@ class TSRefuseFix extends TSCommand {
         let level=await ts.getLevels().where({code}).first();
         const author = await ts.db.Members.query().where({name:level.creator}).first();
 
-        if(!(level.status==ts.LEVEL_STATUS.PENDING_NOT_FIXED_REUPLOAD || level.status==ts.LEVEL_STATUS.PENDING_FIXED_REUPLOADED))
+        if(level.status!==ts.LEVEL_STATUS.NEED_FIX)
           ts.userError("This level is not currently in a fix request!");
 
         //only creator can use this command

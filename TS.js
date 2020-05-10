@@ -1339,15 +1339,14 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
    * @description This function will initiate any passed discord member object. Will set is_member=1 in the database and assign the member role. An initiation message will also be sent to the initiation channel
    */
   this.initiate=async(author)=>{
+    let guild=ts.getGuild()
     if(author.is_member != 1){
       await ts.db.Members.query()
         .patch({is_member:1})
         .where({discord_id:author.discord_id})
-
       /* istanbul ignore if */
-      if(author.discord_id){ 
+      if(author.discord_id){  //TODO: something broke here
         //doesn't work with mocked user method here.
-        try{
           let curr_user=await guild.members.get(author.discord_id)
           if(curr_user){ //assign role
             await curr_user.addRole(ts.teamVariables.memberRoleId)
@@ -1356,10 +1355,6 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
             /* istanbul ignore if */
             if(process.env.NODE_ENV==="production") DiscordLog.error(ts.message("initiation.userNotInDiscord",{name:author.name}),ts.client) //not a breaking error.
           }
-        } catch (error){
-          /* istanbul ignore if */
-          if(process.env.NODE_ENV==="production") DiscordLog.error(ts.message("initiation.userNotInDiscord",{name:author.name}),ts.client) //not a breaking error.
-        }
       }
     }
   }
