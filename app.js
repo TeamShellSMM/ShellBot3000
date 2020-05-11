@@ -17,7 +17,7 @@ client.on("guildCreate", async guild => {
 
 
 client.on("ready", async () => {
-  await DiscordLog.log(`${config.botName} has started, with ${client.users.size} users, in ${client.channels.size} channels of ${client.guilds.size} guilds.`,client);
+  await DiscordLog.log(`${config.botName} has started , with ${client.users.size} users, in ${client.channels.size} channels of ${client.guilds.size} guilds. environment: ${process.env.NODE_ENV}`,client);
   let Teams = require('./models/Teams')();
   let teams = await Teams.query().select()
   if(!teams) throw new Error(`No teams configurations buzzyS`);
