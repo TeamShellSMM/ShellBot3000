@@ -579,6 +579,60 @@ app.post('/json/worlds',web_ts(async (ts,req)=>{
     } 
   })
 
+  app.post('/teams/settings',web_ts(async (ts,req) => {
+    if(!req.body || !req.body.token) ts.userError("website.noToken");
+    req.body.discord_id=await ts.checkBearerToken(req.body.token)
+    if(!await ts.teamAdmin(req.body.discord_id)) ts.userError(ts.message('website.forbidden'));
+
+    const settings=await ts.getSettings('settings')
+    const ret=[]
+    for(let i=0;i<ts.defaultVariables.length;i++){
+      ret.push({
+        ...ts.defaultVariables[i],
+        value:settings[ts.defaultVariables[i].name] || ts.defaultVariables[i].default,
+      })
+    }
+    return ret
+  }))
+
+  app.put('/teams/settings',web_ts(async (ts,req) => {
+    if(!req.body || !req.body.token) ts.userError("website.noToken");
+    req.body.discord_id=await ts.checkBearerToken(req.body.token)
+    if(!await ts.teamAdmin(req.body.discord_id)) ts.userError(ts.message('website.forbidden'));
+    const user=await ts.get_user(req.body.discord_id)
+    const varName=ts.defaultVariables.map((v)=> v.name)
+    await knex.transaction(async(trx)=>{
+      for(const row of req.body.data){
+        if(varName.includes(row.name)){
+          const existing=await trx('team_settings')
+            .where({'guild_id':ts.team.id})
+            .where({type:'settings'})
+            .where({name:row.name}).first()
+          if(existing){
+            if(existing.value!==row.value){
+              await trx('team_settings')
+              .update({value:row.value,admin_id:user.id})
+              .where({'guild_id':ts.team.id})
+              .where({type:'settings'})
+              .where({name:row.name})
+            }
+          } else {
+            await trx('team_settings')
+            .insert({
+              guild_id:ts.team.id,
+              admin_id:user.id,
+              name:row.name,
+              value:row.value,
+              type:'settings',
+            })
+          }
+
+        }
+      }
+    })
+    return 'success'
+  }))
+
   app.post('/json',web_ts(async (ts,req)=>{
     if(process.env.NODE_ENV==="development") console.time('user')
       

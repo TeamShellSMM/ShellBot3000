@@ -12,6 +12,28 @@ const DiscordLog = require('./DiscordLog');
 const GS=require("./GS.js");
 
 /**
+ * Team settable Variables
+ */
+const defaultVariables=[
+  {name:'TeamName',default:'A Maker Team',type:'text',description:'Will be used by the bot in the reponses'},
+  {name:'ModName',default:'Admin',type:'text',description:'Will be refered to by the bot\'s response'},
+  {name:'BotName',default:'ShellBot 3000',type:'text',description:'What the bot will refer to itself in it\'s responses'},
+  {name:'Minimum Point',default:0,type:'number',description:'Minimum no. of points needed to submit their first level'},
+  {name:'New Level',default:0,type:'number',description:'How many points needed to submit another level'},
+  {name:'memberRole',default:'',type:'text',description:'Roles assigned when a member gets an approved level (name)'},
+  {name:'memberRoleId',default:'',type:'text',description:'Roles assigned when a member gets an approved level'},
+  {name:'VotesNeeded',default:1,type:'number',description:'How many mods needed to approve/reject  level'},
+  {name:'ApprovalVotesNeeded',default:null,type:'number',description:'How many mods needed to approve a level'},
+  {name:'RejectVotesNeeded',default:null,type:'number',description:'How many mods are needed to reject a level'},
+  {name:'AgreeingVotesNeeded',default:null,type:'number',description:'How many approval/fix votes are needed in agreement (within the max difference of difficulty, and with no rejects) to allow judging'},
+  {name:'AgreeingMaxDifference',default:null,type:'number',description:'How far apart the approval/fix votes can be to count as in agreement'},
+  {name:'includeOwnPoints',default:false,type:'boolean',description:'Allow creator made levels to count with own points?'},
+  {name:'allowSMM1',default:false,type:'boolean',description:'Allow submissions of SMM1 levels'},
+  {name:'discordAdminCanMod',default:false,type:'boolean',description:'Allows anyone with admin role to mod for the team'},
+];
+
+
+/**
  * Level statuses
  * @type {object}
  */
@@ -89,6 +111,7 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
     throw new Error(`No client passed to TS()`);
   }
   const ts=this;
+  this.defaultVariables=defaultVariables;
   this.team=team;
   this.url_slug=this.team.url_slug;
   /* istanbul ignore next */
@@ -114,6 +137,16 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
     Points:require('./models/Points')(this.team.id,ts),
   };
 
+  this.getSettings=async(type)=>{
+    const rows=await knex('team_settings')
+      .where({'guild_id':this.team.id})
+      .where({type})
+    const ret={}
+    rows.forEach(r=>{
+      ret[r.name]=r.value
+    })
+    return ret;
+  }
   /**
    * Important function that loads all the necessary data on runtime.
    */
@@ -276,6 +309,25 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
     return /<(@[!&]?|#|a?:[a-zA-Z0-9_]{2,}:)[0-9]{16,20}>/.test(str)
   }
 
+  this.teamAdmin=async(discord_id)=>{
+    if(!discord_id) return false;
+
+    if(server_config.devs && server_config.devs.indexOf(discord_id)!==-1){ //devs can help to troubleshoot
+      return true;
+    }
+    const guild=await ts.getGuild();
+    if(guild.owner.user.id==discord_id){ //owner can do anything
+      return true;
+    }
+
+    //if yes, any discord mods can do team administrative stuff but won't officially appear in the "Mod" list
+    const discord_user=guild.members.get(discord_id)
+    if(discord_user &&  discord_user.hasPermission("ADMINISTRATOR")){
+      return true
+    }
+
+    return false
+  }
 
   this.modOnly=async(discord_id)=>{
     if(!discord_id) return false;

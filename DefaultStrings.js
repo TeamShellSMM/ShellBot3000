@@ -6,6 +6,7 @@ module.exports={
   'website.tokenError':'Token expired. Need to relogin',
   'website.authError':'Authentication error',
   'website.noToken':'No token sent',
+  'website.forbidden':'forbidden',
 
   'api.noslug':'No url_slug found',
   'api.slugNotFound':'url slug provided was not found',
