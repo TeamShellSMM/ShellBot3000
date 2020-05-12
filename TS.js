@@ -217,9 +217,6 @@ const TS=function(guild_id,client,gs){ //loaded after gs
           })
       }
 
-      console.log(this.channels);
-      console.log(this.teamVariables);
-
 
 
       this.messages={}
