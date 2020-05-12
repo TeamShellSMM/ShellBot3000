@@ -62,6 +62,12 @@ describe('!reupload', function () {
         new_code:'XXX-XXX-X10',
         status: TEST.ts.LEVEL_STATUS.REUPLOADED,
         difficulty: 0,
+      },{
+        level_name: 'User removed',
+        creator: 1,
+        code: 'XXX-XXX-X11',
+        status: TEST.ts.LEVEL_STATUS.USER_REMOVED,
+        difficulty: 2,
       }],
     };
 
@@ -293,6 +299,19 @@ describe('!reupload', function () {
       parentID:TEST.ts.channels.pendingReuploadCategory
     }),"a channel created in the pending reupload list");
   
+  })
+
+  it('Succesful user removed reupload',async()=>{
+    await TEST.clearChannels()
+    TEST.ts.teamVariables['New Level']=0;
+    await TEST.ts.db.Members.query().patch({clear_score_sum:3}).where({discord_id:'64'})
+    //check can upload a new level with current points
+    assert.equal(
+      await TEST.mockBotSend({
+        cmd: '!reupload XXX-XXX-X11 XXX-XXX-YYY long reason',
+        channel: 'general',
+        discord_id: '64',
+      }),'<@64> You have reuploaded \'User removed\' by Creator with code `XXX-XXX-YYY`. ');
   })
 
   it('Succesful pending level reupload. Discussion channel exists, rename channel',async()=>{

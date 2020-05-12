@@ -22,6 +22,7 @@ const defaultVariables=[
   {name:'New Level',default:0,type:'number',description:'How many points needed to submit another level'},
   {name:'memberRole',default:'',type:'text',description:'Roles assigned when a member gets an approved level (name)'},
   {name:'memberRoleId',default:'',type:'text',description:'Roles assigned when a member gets an approved level'},
+  {name:'maxDifficulty',default:10,type:'number',description:'The maximum allowed difficulty for this team.'},
   {name:'VotesNeeded',default:1,type:'number',description:'How many mods needed to approve/reject  level'},
   {name:'ApprovalVotesNeeded',default:null,type:'number',description:'How many mods needed to approve a level'},
   {name:'RejectVotesNeeded',default:null,type:'number',description:'How many mods are needed to reject a level'},
@@ -106,37 +107,7 @@ class UserError extends Error {
  * @param {GS} [gs] 
  * 
  */
-const TS=function(guild_id,team,client,gs){ //loaded after gs
-  if(!client){
-    throw new Error(`No client passed to TS()`);
-  }
-  const ts=this;
-  this.defaultVariables=defaultVariables;
-  this.team=team;
-  this.url_slug=this.team.url_slug;
-  /* istanbul ignore next */
-  this.config=this.team.config?
-    (typeof this.team.config==="string"?JSON.parse(this.team.config):this.team.config)
-    :{}
-  this.web_config=this.team.web_config?JSON.parse(this.team.web_config):{}
-  this.client=client;
-  this.guild_id=guild_id;
-  /* istanbul ignore next */
-  this.gs=gs?gs:new GS({...server_config,...this.config});
-  this.LEVEL_STATUS=LEVEL_STATUS;
-  this.PENDING_LEVELS=PENDING_LEVELS;
-  this.SHOWN_IN_LIST=SHOWN_IN_LIST;
-  this.REMOVED_LEVELS=REMOVED_LEVELS;
-  this.db={
-    Teams:require('./models/Teams.js')(guild_id),
-    Tokens:require('./models/Tokens'),
-    Plays:require('./models/Plays')(this.team.id,ts),
-    PendingVotes:require('./models/PendingVotes')(this.team.id,ts),
-    Members:require('./models/Members')(this.team.id,ts),
-    Levels:require('./models/Levels')(this.team.id,ts),
-    Points:require('./models/Points')(this.team.id,ts),
-  };
-
+const TS=function(guild_id,client,gs){ //loaded after gs
   this.getSettings=async(type)=>{
     const rows=await knex('team_settings')
       .where({'guild_id':this.team.id})
@@ -150,11 +121,53 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
   /**
    * Important function that loads all the necessary data on runtime.
    */
+  const ts=this;
   this.load=async function(){
+
+    if(!client){
+      throw new Error(`No client passed to TS()`);
+    }
+    if(!guild_id){
+      throw new Error(`No guild_id was passed to TS()`);
+    }
+
+    const guild=ts.getGuild(guild_id);
+    if(!guild) throw new Error('Cannot find discord server. Invalid guild_id')
+    await guild.fetchMembers(); //just load up all members
+    
+
+    const Teams=require('./models/Teams.js')(guild_id);
+    this.team=await Teams.query().select().first();
+    this.db={
+      Teams,
+      Tokens:require('./models/Tokens'),
+      Plays:require('./models/Plays')(this.team.id,ts),
+      PendingVotes:require('./models/PendingVotes')(this.team.id,ts),
+      Members:require('./models/Members')(this.team.id,ts),
+      Levels:require('./models/Levels')(this.team.id,ts),
+      Points:require('./models/Points')(this.team.id,ts),
+    };
+
+    this.defaultVariables=defaultVariables;
+    this.url_slug=this.team.url_slug;
+    /* istanbul ignore next */
+    this.config=this.team.config?
+      (typeof this.team.config==="string"?JSON.parse(this.team.config):this.team.config)
+      :{}
+    this.web_config=this.team.web_config?JSON.parse(this.team.web_config):{}
+    this.client=client;
+    this.guild_id=guild_id;
+
+
+    /* istanbul ignore next */
+    this.gs=gs?gs:new GS({...server_config,...this.config});
+    this.LEVEL_STATUS=LEVEL_STATUS;
+    this.PENDING_LEVELS=PENDING_LEVELS;
+    this.SHOWN_IN_LIST=SHOWN_IN_LIST;
+    this.REMOVED_LEVELS=REMOVED_LEVELS;
+    
     ts.knex=knex;
     ts.gs.clearCache();
-    let guild=await ts.getGuild()
-    await guild.fetchMembers(); //just load up all members
     const defaultVars = {
       customStrings:{ //defaults
         "levelInfo":"@@LEVEL_PLACEHOLDER@@",
@@ -168,21 +181,23 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
     });
 
     const static_vars=[
-      "TeamSettings","Points",
+      "Points",
       "Ranks","Seasons",
-      "Emotes","Channels","tags",
-      "CustomString","Messages",
+      "Emotes","tags",
+      "Messages",
       "Competition Winners", //static vars
       ]; //initial vars to be loaded on bot load
 
       await this.gs.loadSheets(static_vars) //loading initial sheets
 
-
       let sheetToMap={
-        channels:'Channels',
         emotes:'Emotes',
-        customStrings:'CustomString',
-        teamVariables:'TeamSettings',
+      }
+
+      let dbToMap={
+        teamVariables:'settings',
+        channels:'channels',
+        customStrings:'strings',
       }
 
       for(let key in sheetToMap){
@@ -191,6 +206,21 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
           this[key][v.Name]=v.value?v.value:'';
         });
       }
+
+      for(let key in dbToMap){
+        this[key]={...defaultVars[key]}
+        const data=await knex('team_settings')
+          .where({'guild_id':this.team.id})
+          .where({type:dbToMap[key]})
+          data.forEach((d)=>{
+            this[key][d.name]=d.value
+          })
+      }
+
+      console.log(this.channels);
+      console.log(this.teamVariables);
+
+
 
       this.messages={}
       this.gs.select("Messages").forEach((v)=>{
@@ -243,7 +273,6 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
           image:ts.teamVariables.undoEmote || ts.emotes.bam ,
         }
       }
-      
 
       //should verify that the discord roles id exist in server
       this.ranks=ts.gs.select("Ranks");
@@ -309,13 +338,13 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
     return /<(@[!&]?|#|a?:[a-zA-Z0-9_]{2,}:)[0-9]{16,20}>/.test(str)
   }
 
-  this.teamAdmin=async(discord_id)=>{
+  this.teamAdmin=(discord_id)=>{
     if(!discord_id) return false;
 
     if(server_config.devs && server_config.devs.indexOf(discord_id)!==-1){ //devs can help to troubleshoot
       return true;
     }
-    const guild=await ts.getGuild();
+    const guild=ts.getGuild();
     if(guild.owner.user.id==discord_id){ //owner can do anything
       return true;
     }
@@ -1797,8 +1826,6 @@ const TS=function(guild_id,team,client,gs){ //loaded after gs
       .first();
   
     if(newStatus!==0 || newStatus===0 && ts.findChannel({name:level.code})){
-      //console.log('here found channel')
-
       //TODO:FIX HERE
       //  
       const { channel }=await ts.discussionChannel(new_code,newStatus===ts.LEVEL_STATUS.PENDING ? ts.channels.levelDiscussionCategory : ts.channels.pendingReuploadCategory,level.code)      
@@ -1875,8 +1902,8 @@ TS.TS_LIST={}
 /**
  * call to add a TS into the list.
  */
-TS.add=async (guild_id,team,client,gs)=>{
-  TS.TS_LIST[guild_id]=new TS(guild_id,team,client,gs)
+TS.add=async (guild_id,client,gs)=>{
+  TS.TS_LIST[guild_id]=new TS(guild_id,client,gs)
   await TS.TS_LIST[guild_id].load()
   return TS.TS_LIST[guild_id];
 }

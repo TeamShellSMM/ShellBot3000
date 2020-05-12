@@ -15,30 +15,7 @@ DiscordLog.error=(obj,client)=>{ console.log(obj) }
 
 function mockGS(){
   const data={
-    "TeamSettings":[
-      {Name:'TeamName',value:'AutoTest'},
-      {Name:'ModName',value:'Jampolice'},
-      {Name:'BotName',value:'Autobot'},
-      {Name:'Minimum Point',value:0},
-      {Name:'New Level',value:0},
-      {Name:'VotesNeeded',value:1},
-      {Name:'memberRoleId',value:'701487078852001942'}, //change memberRoleId to name?
-      {Name:'isTesting',value:'yes'},
-      {Name:'VotesNeededReject',value:null},
-      {Name:'VotesNeededFix',value:null},
-      {Name:'includeOwnPoints',value:null},
-    ],
-    "CustomString":[],
     "Messages":[],
-    "Channels":[
-      {Name:'modChannel',value:'703205477491671090',default:'bot-mod-channel',description:'The only channel where mod commands will work (approve,rerate). Only mods should be able to send/read channel'},
-      {Name:'initiateChannel',value:'704991246757658692',default:'bot-makerteam-initiation',description:'The channel where the member will be notified if they officially become a member. This channel should be read only to everybody'},
-      {Name:'levelChangeNotification',value:'704991248259350618',default:'bot-level-updates',description:'The channel where level approvals,rejections and rerates notifications are posted by the bot. This should be readonly to everyone'},
-      {Name:'commandFeed',value:'704991250096586752',default:'bot-command-feed',description:'This is where clears/likes and other commands from the web will be shown. This should be read only to everyone'},
-      {Name:'pendingReuploadCategory',value:'704991252256522290',default:'bot-pending-reupload',description:'The channel where level reuploads are discussed. Only mods should be able to send/read this category'},
-      {Name:'feedbackChannel',value:'704991254072786944',default:'bot-makerteam-feedback',description:'Channel where the anonymous feedback will be posted. This should be readonly for whoever can read the feedback'},
-      {Name:'levelDiscussionCategory',value:'704991256140316712',default:'bot-pending-discussion',description:'Channel category where pending channels will be created. Only mods should be able to send/read this category'},
-    ],
     "Emotes":[
       {Name:'robo',value:null},
       {Name:'think',value:null},
@@ -198,6 +175,8 @@ before(async()=>{
     disableEveryone: true
   });
   await TEST.client.login(TEST.config.discord_access_token);
+  assert.exists(global.TEST.client,'should have dicord client right now')
+
   TEST.bot_id=TEST.client.user.id
   TEST.userBot=global.TEST.config.userBot
   global.TEST.message=await TEST.client.channels.get(TEST.config.initTestChannel).send('ShellBotted');
@@ -207,9 +186,45 @@ before(async()=>{
     SET FOREIGN_KEY_CHECKS = 0; 
     TRUNCATE table teams;
     TRUNCATE table points;
+    TRUNCATE table team_settings;
     SET FOREIGN_KEY_CHECKS = 1;
   `);
-  global.TEST.ts=await TS.create(TEST.config.testConfig,global.TEST.client,new mockGS())
+
+  const defaultTeam=[{
+      guild_id:TEST.config.AutomatedTest,
+      guild_name:"MakerTeam",
+      url_slug:"makerteam",
+      config:"{\"feedback_salt\": \"123\"}",
+    },
+  ]
+  const defaultSettings=[
+    {guild_id:1,name:'TeamName',value:'AutoTest',type:'settings',admin_id:1},
+    {guild_id:1,name:'ModName',value:'Jampolice',type:'settings',admin_id:1},
+    {guild_id:1,name:'BotName',value:'Autobot',type:'settings',admin_id:1},
+    {guild_id:1,name:'Minimum Point',value:0,type:'settings',admin_id:1},
+    {guild_id:1,name:'New Level',value:0,type:'settings',admin_id:1},
+    {guild_id:1,name:'VotesNeeded',value:1,type:'settings',admin_id:1},
+    {guild_id:1,name:'memberRoleId',value:'701487078852001942',type:'settings',admin_id:1},
+    {guild_id:1,name:'isTesting',value:'yes',type:'settings',admin_id:1},
+    {guild_id:1,name:'VotesNeededReject',value:null,type:'settings',admin_id:1},
+    {guild_id:1,name:'VotesNeededFix',value:null,type:'settings',admin_id:1},
+    {guild_id:1,name:'includeOwnPoints',value:null,type:'settings',admin_id:1},
+    {guild_id:1,name:'modChannel',value:'703205477491671090',type:'channels',admin_id:1},
+    {guild_id:1,name:'initiateChannel',value:'704991246757658692',type:'channels',admin_id:1},
+    {guild_id:1,name:'levelChangeNotification',value:'704991248259350618',type:'channels',admin_id:1},
+    {guild_id:1,name:'commandFeed',value:'704991250096586752',type:'channels',admin_id:1},
+    {guild_id:1,name:'feedbackChannel',value:'704991254072786944',type:'channels',admin_id:1},
+    {guild_id:1,name:'pendingReuploadCategory',value:'709534212306239489',type:'channels',admin_id:1},
+    {guild_id:1,name:'levelDiscussionCategory',value:'709534284905709578',type:'channels',admin_id:1},
+  ];
+
+  await TEST.knex.transaction(async(trx)=>{
+    await trx('teams').insert(defaultTeam);
+    await trx('team_settings').insert(defaultSettings);
+  })
+  
+
+  global.TEST.ts=await TS.add(TEST.config.AutomatedTest,global.TEST.client,new mockGS())
 
   global.app = await WebApi(TEST.config,TEST.client);
 
@@ -237,7 +252,6 @@ before(async()=>{
       }
     })
     await TEST.ts.recalculateAfterUpdate()
-    return ret
   }
   
   global.TEST.clearTable=async(table,trx)=>{
@@ -259,7 +273,6 @@ before(async()=>{
   global.TEST.acceptReply=()=>{
     let guild=TEST.ts.getGuild();
     let cache=[]
-
     function collect_reply(args){
       cache.push(args)
     }
@@ -272,7 +285,7 @@ before(async()=>{
       c.reply=collect_reply
     })
     return ()=>{
-      if(cache.length==1) cache=cache[0]
+      if(cache.length==1) return cache[0]
       return cache;
     }
   }
@@ -282,8 +295,8 @@ before(async()=>{
     const channels=guild.channels.array()
     for(let i=0;i<channels.length;i++){
       let channel=channels[i]
-      if(channel.parentID === global.TEST.ts.channels.levelDiscussionCategory 
-        || channel.parentID === global.TEST.ts.channels.pendingReuploadCategory){
+      if(global.TEST.ts.channels.levelDiscussionCategory && channel.parentID === global.TEST.ts.channels.levelDiscussionCategory 
+        || global.TEST.ts.channels.pendingReuploadCategory && channel.parentID === global.TEST.ts.channels.pendingReuploadCategory){
           await channel.delete('AUTOTEST')
       } else if(TEST.ts.valid_code(channel.name)){
         await channel.delete('AUTOTEST')

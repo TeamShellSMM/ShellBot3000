@@ -9,12 +9,9 @@ const client = new AkairoClient(config, {
     disableEveryone: true
 });
 
-
 client.on("guildCreate", async guild => {
   DiscordLog.log(`Joined a new guild: ${guild.name}`,client);
 });
-
-
 
 client.on("ready", async () => {
   await DiscordLog.log(`${config.botName} has started , with ${client.users.size} users, in ${client.channels.size} channels of ${client.guilds.size} guilds. environment: ${process.env.NODE_ENV}`,client);
@@ -25,7 +22,7 @@ client.on("ready", async () => {
   for(let team of teams){
     let guild=await client.guilds.find((guild)=> guild.id==team.guild_id)
     if(team && guild){
-      await TS.add(guild.id,team,client)
+      await TS.add(guild.id,client)
     }
   }
   

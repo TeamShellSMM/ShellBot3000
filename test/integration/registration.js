@@ -182,6 +182,7 @@ app.post('/json/login', web_ts(async (ts,req) => {
       assert.deepEqual(body,{
         status:"logged_in",
         type:"bearer",
+        url_slug:'makerteam',
         "discord_id":user.discord_id,
         token,
         "user_info":user

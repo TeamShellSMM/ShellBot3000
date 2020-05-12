@@ -13,7 +13,7 @@ module.exports = {
   recursive: true,
   reporter: 'spec',
   //require: 'test/bootstrap.js'
-  retries: 1,
+  retries: 0,
   slow: 75,
   sort: false,
   // spec: 'test/**/*.spec.js' // the positional arguments!

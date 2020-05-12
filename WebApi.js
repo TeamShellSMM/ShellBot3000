@@ -469,14 +469,8 @@ module.exports = async function(config,client){
     return {data: json, seasons: seasons};
   }
 
-  /*
-  function get_slug(){
-    let refer=req.headers.referer.split(req.host)[1].split('/')
-  }
-  */
-
-
-  function web_ts(callback){
+  let web_ts=(callback)=>{
+    //let refer=req.headers.referer.split(req.host)[1].split('/')
     return async (req, res) => {
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
       let ts;
@@ -487,7 +481,15 @@ module.exports = async function(config,client){
             res.status(404).send('Not found');
             DiscordLog.error(`"${req.body.url_slug}" not found`);
           } else {
+            if(req.body && req.body.token){
+              req.body.discord_id=await ts.checkBearerToken(req.body.token)
+              req.user=await ts.get_user(req.body.discord_id)
+            }
             let data=await callback(ts,req,res)
+            data.url_slug=ts.url_slug;
+            if(ts.teamAdmin(req.body.discord_id)){
+              data.teamAdmin=true;
+            }
             res.send(JSON.stringify(data));
           }
         } catch(error){
@@ -580,19 +582,24 @@ app.post('/json/worlds',web_ts(async (ts,req)=>{
   })
 
   app.post('/teams/settings',web_ts(async (ts,req) => {
-    if(!req.body || !req.body.token) ts.userError("website.noToken");
-    req.body.discord_id=await ts.checkBearerToken(req.body.token)
+    if(!req.body.discord_id) ts.userError("website.noToken");
     if(!await ts.teamAdmin(req.body.discord_id)) ts.userError(ts.message('website.forbidden'));
 
     const settings=await ts.getSettings('settings')
     const ret=[]
     for(let i=0;i<ts.defaultVariables.length;i++){
+      let value=settings[ts.defaultVariables[i].name] || ts.defaultVariables[i].default;
+      if(ts.defaultVariables[i].type==="boolean"){
+        value= value=='true'
+      } else if(ts.defaultVariables[i].type==="number"){
+        value=Number(value)
+      }
       ret.push({
         ...ts.defaultVariables[i],
-        value:settings[ts.defaultVariables[i].name] || ts.defaultVariables[i].default,
+        value,
       })
     }
-    return ret
+    return {settings:ret}
   }))
 
   app.put('/teams/settings',web_ts(async (ts,req) => {
@@ -630,21 +637,18 @@ app.post('/json/worlds',web_ts(async (ts,req)=>{
         }
       }
     })
-    return 'success'
+    await ts.recalculateAfterUpdate()
+    return { status: "successful"}
   }))
 
   app.post('/json',web_ts(async (ts,req)=>{
-    if(process.env.NODE_ENV==="development") console.time('user')
       
       if(req.body && req.body.token){
         req.body.discord_id=await ts.checkBearerToken(req.body.token)
         var user=await ts.get_user(req.body.discord_id)
       }
-    if(process.env.NODE_ENV==="development") console.timeEnd('user')
 
-    if(process.env.NODE_ENV==="development") console.time('json')
     let json = await generateSiteJson({ts , user ,...req.body })
-    if(process.env.NODE_ENV==="development") console.timeEnd('json')
     return json;
   }))
 
@@ -726,8 +730,8 @@ app.post('/json/worlds',web_ts(async (ts,req)=>{
 
   app.post('/json/login', web_ts(async (ts,req) => {
       let returnObj={}
-      if(!req.body.otp)
-        ts.userError(ts.message("login.noOTP"));
+      if(!req.body.otp) ts.userError(ts.message("login.noOTP"));
+
 
       let token=await ts.db.Tokens.query()
         .where('token','=',req.body.otp)
