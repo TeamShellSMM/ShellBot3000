@@ -15,22 +15,41 @@ const GS=require("./GS.js");
  * Team settable Variables
  */
 const defaultVariables=[
-  {name:'TeamName',default:'A Maker Team',type:'text',description:'Will be used by the bot in the reponses'},
-  {name:'ModName',default:'Admin',type:'text',description:'Will be refered to by the bot\'s response'},
-  {name:'BotName',default:'ShellBot 3000',type:'text',description:'What the bot will refer to itself in it\'s responses'},
-  {name:'Minimum Point',default:0,type:'number',description:'Minimum no. of points needed to submit their first level'},
-  {name:'New Level',default:0,type:'number',description:'How many points needed to submit another level'},
-  {name:'memberRole',default:'',type:'text',description:'Roles assigned when a member gets an approved level (name)'},
-  {name:'memberRoleId',default:'',type:'text',description:'Roles assigned when a member gets an approved level'},
-  {name:'maxDifficulty',default:10,type:'number',description:'The maximum allowed difficulty for this team.'},
-  {name:'VotesNeeded',default:1,type:'number',description:'How many mods needed to approve/reject  level'},
-  {name:'ApprovalVotesNeeded',default:null,type:'number',description:'How many mods needed to approve a level'},
-  {name:'RejectVotesNeeded',default:null,type:'number',description:'How many mods are needed to reject a level'},
-  {name:'AgreeingVotesNeeded',default:null,type:'number',description:'How many approval/fix votes are needed in agreement (within the max difference of difficulty, and with no rejects) to allow judging'},
-  {name:'AgreeingMaxDifference',default:null,type:'number',description:'How far apart the approval/fix votes can be to count as in agreement'},
-  {name:'includeOwnPoints',default:false,type:'boolean',description:'Allow creator made levels to count with own points?'},
-  {name:'allowSMM1',default:false,type:'boolean',description:'Allow submissions of SMM1 levels'},
-  {name:'discordAdminCanMod',default:false,type:'boolean',description:'Allows anyone with admin role to mod for the team'},
+  {name:'TeamName',caption:'Team Name',default:'A Maker Team',type:'text',description:'Will be used by the bot in the reponses'},
+  {name:'ModName',caption:'Mod Name',default:'Admin',type:'text',description:'Will be refered to by the bot\'s response'},
+  {name:'BotName',caption:'Bot Name',default:'ShellBot 3000',type:'text',description:'What the bot will refer to itself in it\'s responses'},
+  {name:'Minimum Point',caption:'First Level Points',default:0,type:'number',description:'Minimum no. of points needed to submit their first level'},
+  {name:'New Level',caption:'New Level Points',default:0,type:'number',description:'How many points needed to submit another level'},
+  {name:'memberRole',caption:'Member Role',default:'',type:'text',description:'Roles assigned when a member gets an approved level (name)'},
+  {name:'memberRoleId',caption:'Member Role Id',default:'',type:'text',description:'Roles assigned when a member gets an approved level'},
+
+  
+  {name:'maxDifficulty',caption:'Maximum Difficulty',default:10,type:'number',description:'The maximum allowed difficulty for this team.'},
+  {name:'VotesNeeded',caption:'Votes Needed',default:1,type:'number',description:'How many mods needed to approve/reject  level'},
+  {name:'ApprovalVotesNeeded',caption:'Approval Votes',default:null,type:'number',description:'How many mods needed to approve a level'},
+  {name:'RejectVotesNeeded',caption:'Reject Votes',default:null,type:'number',description:'How many mods are needed to reject a level'},
+  {name:'AgreeingVotesNeeded',caption:'Agreeing Votes',default:null,type:'number',description:'How many approval/fix votes are needed in agreement (within the max difference of difficulty, and with no rejects) to allow judging'},
+  {name:'AgreeingMaxDifference',caption:'Aggreeing Votes Difference',default:null,type:'number',step:'0.1',description:'How far apart the approval/fix votes can be to count as in agreement'},
+
+  {name:'includeOwnPoints',caption:'Own Points',default:false,type:'boolean',description:'Allow creator made levels to count with own points?'},
+  {name:'allowSMM1',caption:'Allow SMM1',default:false,type:'boolean',description:'Allow submissions of SMM1 levels'},
+  {name:'discordAdminCanMod',caption:'Discord Admin Mod',default:false,type:'boolean',description:'Allows anyone with admin role to mod for the team'},
+
+  {name:'userErrorEmote',caption:'User Error Emote',default:null,type:'text',description:'The default emote that will show when a user error occurs.'},
+  {name:'updateEmote',caption:'Update Emote',default:null,type:'text',description:'The default emote that will show when an update appears'},
+  {name:'pogEmote',caption:'Pog Emote',default:null,type:'text',description:'The default emote that will show when pog things happen'},
+  {name:'loveEmote',caption:'Love Emote',default:null,type:'text',description:'The default love emote used in some messages'},
+  {name:'GGEmote',caption:'GG Emote',default:null,type:'text',description:'GG emote shown in clear messages'},
+
+  {name:'rejectedEmote',caption:'Rejected Level Emote',default:null,type:'text',description:'Emote to be shown in level rejected messages'},
+  {name:'approvedEmote',caption:'Approved Level Emote',default:null,type:'text',description:'Emote to be shown in level approved messages'},
+  {name:'needFixEmote',caption:'Fix Request Emote',default:null,type:'text',description:'Emote to be shown in need fix messages'},
+  {name:'judgementEmote',caption:'Judgement Emote',default:null,type:'text',description:'Emote to be shown in approval votes embed for mods'},
+  {name:'removeEmote',caption:'Remove Level Emote',default:null,type:'text',description:'Emote to be shown in remove level messages'},
+  {name:'undoEmote',caption:'Undo Remove Emote',default:null,type:'text',description:'Emote to be shown in undo remove level messages'},
+  {name:'rerateEmote',caption:'Level Rerate Emote',default:null,type:'text',description:'Emote to be shown in rerate level messages'},
+  {name:'randomEmote',caption:'Random Level Emote',default:null,type:'text',description:'Emote to be shown in random level messages'},
+  
 ];
 
 
@@ -181,7 +200,6 @@ const TS=function(guild_id,client,gs){ //loaded after gs
     });
 
     const static_vars=[
-      "Points",
       "Ranks","Seasons",
       "Emotes","tags",
       "Messages",
@@ -263,6 +281,16 @@ const TS=function(guild_id,client,gs){ //loaded after gs
         rerate:{
           color:"#17a2b8",
           title:'difficulty.updated',
+          image:ts.teamVariables.rerateEmote,
+        },
+        random:{
+          color:"#17a2b8",
+          title:'random.embedTitle',
+          image:ts.teamVariables.randomEmote,
+        },
+        randoms:{
+          title:'random.embedTitlePlayers',
+          image:ts.teamVariables.randomEmote
         },
         undo:{
           color:"#17a2b8",
@@ -512,24 +540,6 @@ const TS=function(guild_id,client,gs){ //loaded after gs
 
     await ts.db.Members.query(trx).patch({is_mod:null}).whereNotIn('discord_id',mods).where({is_mod:1});
     await ts.db.Members.query(trx).patch({is_mod:1}).whereIn('discord_id',mods).where({is_mod:null});
-
-    ts.gs.loadSheets(["Points"]);
-    //console.time('saveToDb')
-    var _points=ts.gs.select("Points");
-      for(let i=0;i<_points.length;i++){
-        let dbPoint = await ts.db.Points.query(trx).select().where('difficulty', parseFloat(_points[i].Difficulty));
-        if(dbPoint.length == 0){
-          await ts.db.Points.query(trx).insert({
-            difficulty: _points[i].Difficulty,
-            score: _points[i].Points
-          });
-        } else {
-          await ts.db.Points.query(trx).where('difficulty', parseFloat(_points[i].Difficulty)).update({
-            difficulty: _points[i].Difficulty,
-            score: _points[i].Points
-          });
-        }
-      }
       //console.timeEnd('saveToDb')
     })
     

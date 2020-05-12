@@ -65,7 +65,7 @@ module.exports={
   'approval.voteChanged':'Your vote was changed in <#{{channel_id}}>!',
   'approval.voteAdded':'Your vote was added to <#{{channel_id}}>!',
   'approval.fixPlayerInstructions':'This level is one step from being approved, we\'d just like to see some fixes!',
-  'approval.comboBreaker':'The votes are the same! {{buzzyS}} We need a tiebreaker',
+  'approval.comboBreaker':'The votes are the same! {{{buzzyS}}} We need a tiebreaker',
   'approval.numVotesNeeded':'The necessary amount of reject/approval votes has not been reached yet!',
   'approval.fixInstructionsCreator':'If you want to fix these issues use **!reupload** (to get it approved really quickly) or if you don\'t want to just use **!refusefix** and the mods will decide if it\'s still acceptable.',
   'approval.channelDeleted':'Justice has been met!',

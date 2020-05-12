@@ -637,7 +637,7 @@ app.post('/json/worlds',web_ts(async (ts,req)=>{
         }
       }
     })
-    await ts.recalculateAfterUpdate()
+    await ts.load()
     return { status: "successful"}
   }))
 
