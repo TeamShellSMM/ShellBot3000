@@ -140,7 +140,7 @@ describe('!add', function () {
   })
 
   it('Submit SMM1 code with allowSMM1 flag on', async function () {
-    TEST.ts.teamVariables.allowSMM1=1
+    TEST.ts.teamVariables.allowSMM1='true'
     const result = await TEST.mockBotSend({
       cmd: '!add 0791-0000-03DD-2D52 The Ultimate Road of Shell',
       channel: 'general',

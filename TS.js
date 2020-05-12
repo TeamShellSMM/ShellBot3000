@@ -584,7 +584,7 @@ const TS=function(guild_id,client,gs){ //loaded after gs
       level_name,
       creator:player.id,
       difficulty:0,
-      tags: ts.teamVariables.allowSMM1 && ts.is_smm1(code) ? 'SMM1' : '',
+      tags: ts.teamVariables.allowSMM1 =="true" && ts.is_smm1(code) ? 'SMM1' : '',
       status:0,
     })
     await ts.recalculateAfterUpdate({name:player.name})
@@ -736,7 +736,7 @@ const TS=function(guild_id,client,gs){ //loaded after gs
    */
   this.valid_code=function(code){
     if(code==null) return false;
-    return this.is_smm2(code) || ts.teamVariables.allowSMM1 && this.is_smm1(code);
+    return this.is_smm2(code) || ts.teamVariables.allowSMM1=="true" && this.is_smm1(code);
   }
 
   /**
