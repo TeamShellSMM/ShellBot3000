@@ -50,6 +50,10 @@ class TSApprove extends TSCommand {
         args.reason = args.difficulty;
         args.difficulty = args.code;
         args.code = message.channel.name.toUpperCase();
+      } else{
+        if(args.code){
+          args.code = args.code.toUpperCase();
+        }
       }
 
       if(!(
@@ -62,10 +66,6 @@ class TSApprove extends TSCommand {
         //Difficulty doesn't exist in reject, so it get replaced by reason
         args.reason = args.difficulty;
         args.difficulty = null;
-      }
-
-      if(args.code){
-        args.code = args.code.toUpperCase();
       }
 
       //Then Check the other args
