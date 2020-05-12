@@ -1,6 +1,6 @@
 describe('!points', function () {
   before(async () => {
-    TEST.ts.teamVariables.includeOwnPoints=0
+    TEST.ts.teamVariables.includeOwnPoints='false'
     await TEST.setupData({
       Members: [{
         name: 'Mod',
@@ -51,7 +51,7 @@ describe('!points', function () {
   })
 
   it('!points creator include own points', async function () {
-    TEST.ts.teamVariables.includeOwnPoints=1
+    TEST.ts.teamVariables.includeOwnPoints='true'
     TEST.ts.teamVariables['Minimum Point']=0
     await TEST.ts.recalculateAfterUpdate()
     assert.equal(await TEST.mockBotSend({

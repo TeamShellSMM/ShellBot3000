@@ -36,6 +36,7 @@ const defaultVariables=[
   {name:'discordAdminCanMod',caption:'Discord Admin Mod',default:false,type:'boolean',description:'Allows anyone with admin role to mod for the team'},
 
   {name:'userErrorEmote',caption:'User Error Emote',default:null,type:'text',description:'The default emote that will show when a user error occurs.'},
+  {name:'criticalErrorEmote',caption:'Critical Error Emote',default:null,type:'text',description:'The default emote of an error you should tell the devs about buzzyS'},
   {name:'updateEmote',caption:'Update Emote',default:null,type:'text',description:'The default emote that will show when an update appears'},
   {name:'pogEmote',caption:'Pog Emote',default:null,type:'text',description:'The default emote that will show when pog things happen'},
   {name:'loveEmote',caption:'Love Emote',default:null,type:'text',description:'The default love emote used in some messages'},
@@ -178,6 +179,8 @@ const TS=function(guild_id,client,gs){ //loaded after gs
     this.guild_id=guild_id;
 
 
+
+
     /* istanbul ignore next */
     this.gs=gs?gs:new GS({...server_config,...this.config});
     this.LEVEL_STATUS=LEVEL_STATUS;
@@ -200,29 +203,21 @@ const TS=function(guild_id,client,gs){ //loaded after gs
     });
 
     const static_vars=[
-      "Ranks","Seasons",
-      "Emotes","tags",
+      "Ranks",
+      "Seasons",
+      "tags",
       "Messages",
       "Competition Winners", //static vars
       ]; //initial vars to be loaded on bot load
 
       await this.gs.loadSheets(static_vars) //loading initial sheets
 
-      let sheetToMap={
-        emotes:'Emotes',
-      }
+
 
       let dbToMap={
         teamVariables:'settings',
         channels:'channels',
         customStrings:'strings',
-      }
-
-      for(let key in sheetToMap){
-        this[key]={...defaultVars[key]}
-        ts.gs.select(sheetToMap[key]).forEach(v=>{
-          this[key][v.Name]=v.value?v.value:'';
-        });
       }
 
       for(let key in dbToMap){
@@ -235,6 +230,14 @@ const TS=function(guild_id,client,gs){ //loaded after gs
           })
       }
 
+      this.emotes={
+        think:this.teamVariables.userErrorEmote,
+        PigChamp:this.teamVariables.pogEmote,
+        buzzyS:this.teamVariables.criticalErrorEmote,
+        bam:this.teamVariables.updateEmote,
+        love:this.teamVariables.loveEmote,
+        GG:this.teamVariables.GGEmote,
+      }
 
 
       this.messages={}
@@ -518,7 +521,7 @@ const TS=function(guild_id,client,gs){ //loaded after gs
   `,{ 
       guild_id:this.team.id,
       SHOWN_IN_LIST:knex.raw(SHOWN_IN_LIST),
-      include_own_score: !!ts.teamVariables.includeOwnPoints || false,
+      include_own_score: ts.teamVariables.includeOwnPoints == "true" || false,
     });
   }
 
