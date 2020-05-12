@@ -97,6 +97,16 @@ describe('!clears', function () {
     assert.equal(result,'<@128> \n ‣You have cleared \'level1\'  by Creator \n ‣You have earned 1 points\n ‣You also have liked this level ')
   })
 
+  it('clear with invalid parameters', async function () {
+    const result = await TEST.mockBotSend({
+      cmd: '!clear XXX-XXX-XXX llike',
+      channel: 'general',
+      discord_id: '128',
+    })
+    assert.equal(result,'You did not provide a valid difficulty vote ')
+  })
+  
+
   it('clear with difficulty', async function () {
     const result = await TEST.mockBotSend({
       cmd: '!clear XXX-XXX-XXX 5',

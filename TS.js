@@ -854,12 +854,13 @@ const TS=function(guild_id,client,gs){ //loaded after gs
     }
     code=code.toUpperCase();
   
+    if(difficulty && isNaN(difficulty)) {
+      ts.userError(ts.message('clear.invalidDifficulty'))
+    }
+
     if(difficulty){
       difficulty=parseFloat(difficulty);
     }
-      
-  
-      
   
   
     if(difficulty!='0' && difficulty && !ts.valid_difficulty(difficulty)){
@@ -1151,6 +1152,7 @@ const TS=function(guild_id,client,gs){ //loaded after gs
     let min=parseFloat(minDifficulty) || 1
     let max=parseFloat(maxDifficulty) || min
     
+
     let _players
     const player=discord_id!=null? await ts.get_user(discord_id) : null
     if(players){
@@ -1163,6 +1165,7 @@ const TS=function(guild_id,client,gs){ //loaded after gs
           ts.userError(ts.message("random.playerNotFound",{player:p.name}));
         }
       })
+      if(_players.length===0) ts.userError(ts.message("random.noPlayersGiven"));
     } else if(player) {
       _players=[player.id]
     }

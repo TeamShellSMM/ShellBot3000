@@ -50,6 +50,7 @@ module.exports={
   'random.noMaxDifficulty':'You didn\'t specify a valid maximum difficulty',
   'random.playerNotFound':'{{player}} is not found in the memory banks',
   'random.outOfLevels':'You have ran out of levels in this range ({{range}})',
+  'random.noPlayersGiven':'You did not provide any players',
 
   'approval.invalidDifficulty':"Invalid difficulty format!",
   'approval.judgementBegin':'The Judgement  has now begun for this level:',
