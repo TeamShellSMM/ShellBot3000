@@ -1,10 +1,10 @@
 describe('judge:processVotes', function () {
   describe('processVotes 1 votes needed', function () {
     before(() => {
-      TEST.ts.teamVariables.VotesNeeded = 1
-      TEST.ts.teamVariables.ApprovalVotesNeeded = 1
-      TEST.ts.teamVariables.RejectVotesNeeded = 1
-      TEST.ts.teamVariables.FixVotesNeeded = 1
+      TEST.ts.teamVariables.VotesNeeded = '1'
+      TEST.ts.teamVariables.ApprovalVotesNeeded = '1'
+      TEST.ts.teamVariables.RejectVotesNeeded = '1'
+      TEST.ts.teamVariables.FixVotesNeeded = '1'
     })
 
     it('1 approve = approved', async () => {
@@ -53,10 +53,10 @@ describe('judge:processVotes', function () {
 
   describe('2 votes needed, same', function () {
     before(() => {
-      TEST.ts.teamVariables.VotesNeeded = 2
-      TEST.ts.teamVariables.ApprovalVotesNeeded = 2
-      TEST.ts.teamVariables.RejectVotesNeeded = 2
-      TEST.ts.teamVariables.FixVotesNeeded = 2
+      TEST.ts.teamVariables.VotesNeeded = '2'
+      TEST.ts.teamVariables.ApprovalVotesNeeded = '2'
+      TEST.ts.teamVariables.RejectVotesNeeded = '2'
+      TEST.ts.teamVariables.FixVotesNeeded = '2'
     })
 
     it('1 approve vote = not enough', async () => {
@@ -136,10 +136,10 @@ describe('judge:processVotes', function () {
   })
   describe('3 approvals, 2 rejects', function () {
     before(() => {
-      TEST.ts.teamVariables.VotesNeeded = 3
-      TEST.ts.teamVariables.ApprovalVotesNeeded = 3
-      TEST.ts.teamVariables.RejectVotesNeeded = 2
-      TEST.ts.teamVariables.FixVotesNeeded = 3
+      TEST.ts.teamVariables.VotesNeeded = '3'
+      TEST.ts.teamVariables.ApprovalVotesNeeded = '3'
+      TEST.ts.teamVariables.RejectVotesNeeded = '2'
+      TEST.ts.teamVariables.FixVotesNeeded = '3'
     })
 
     it('2 rejects = reject', async () => {
@@ -174,6 +174,23 @@ describe('judge:processVotes', function () {
         rejectVotesCount: 2,
         approvalVotesCount: 2,
       }),TEST.ts.LEVEL_STATUS.REJECTED)
+    })
+
+  })
+
+  describe('processVotes 1 votes needed', function () {
+    before(() => {
+      TEST.ts.teamVariables.VotesNeeded = null
+      TEST.ts.teamVariables.ApprovalVotesNeeded = '1'
+      TEST.ts.teamVariables.RejectVotesNeeded = '1'
+      TEST.ts.teamVariables.FixVotesNeeded = null
+    })
+
+    it('1 approve, 2 fix = fixed', async () => {
+      assert.equal(TEST.ts.processVotes({
+        approvalVotesCount: 1,
+        fixVotesCount: 2,
+      }), TEST.ts.LEVEL_STATUS.NEED_FIX)
     })
 
   })

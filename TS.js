@@ -343,6 +343,8 @@ const TS=function(guild_id,client,gs){ //loaded after gs
         levels.code code,
         levels.difficulty,
         levels.level_name,
+        levels.videos,
+        levels.tags,
         creator_table.name creator_name`))
       .join('members',{'plays.player':'members.id'})
       .join('levels',{'plays.code':'levels.id'})

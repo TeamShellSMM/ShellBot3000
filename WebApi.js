@@ -451,22 +451,7 @@ module.exports = async function(config,client){
       group by name
       order by maker_points desc`,{ from_season, to_season, guild_id: ts.guild_id });
 
-
-    for(let mem of json){
-      let comps = [];
-      for(let comp of competition_winners){
-        if(comp[1] === mem.name){
-          comps.push({
-            name: comp[2],
-            rank: comp[3]
-          })
-        }
-      }
-
-      mem['wonComps'] = comps;
-    }
-
-    return {data: json, seasons: seasons};
+    return {data: json, seasons: seasons, competition_winners};
   }
 
   let web_ts=(callback)=>{
