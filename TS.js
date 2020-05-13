@@ -301,7 +301,7 @@ const TS=function(guild_id,client,gs){ //loaded after gs
 
       //should verify that the discord roles id exist in server
       this.ranks=await knex('ranks').where({guild_id:this.team.id}).orderBy('min_points','desc');
-      this.rank_ids=this.ranks.map((r)=>r.discord_roles)
+      this.rank_ids=this.ranks.map((r)=>r.discord_role)
 
       await this.saveSheetToDb(); 
       await this.recalculateAfterUpdate();
@@ -529,28 +529,21 @@ const TS=function(guild_id,client,gs){ //loaded after gs
    * Will sync spreadsheet and discord information to the database. To be called on startup or via a command by mods
    */
   this.saveSheetToDb=async function(){
-    await ts.db.Points.transaction(async(trx)=>{
-
-    let guild=ts.getGuild();
-    let mods=[guild.owner.user.id];
-    if(this.teamVariables.ModName){
-      mods=guild.members
-        .filter((m)=> m.roles.some(role=> role.name==this.teamVariables.ModName))
-        .map((m)=> m.user.id)
-    }
-
-    
-
-    await ts.db.Members.query(trx).patch({is_mod:null}).whereNotIn('discord_id',mods).where({is_mod:1});
-    await ts.db.Members.query(trx).patch({is_mod:1}).whereIn('discord_id',mods).where({is_mod:null});
-      //console.timeEnd('saveToDb')
-    })
-    
+    return await ts.knex.transaction(async(trx)=>{
+      let guild=ts.getGuild();
+      let mods=[guild.owner.user.id];
+      if(this.teamVariables.ModName){
+        mods=guild.members
+          .filter((m)=> m.roles.some(role=> role.name==this.teamVariables.ModName))
+          .map((m)=> m.user.id)
+      }
+      await ts.db.Members.query(trx).patch({is_mod:null}).whereNotIn('discord_id',mods).where({is_mod:1});
+      await ts.db.Members.query(trx).patch({is_mod:1}).whereIn('discord_id',mods).where({is_mod:null});
+    }) 
   }
 
   this.removeRankRoles=async function(discord_id){
     const member=ts.getDiscordMember(discord_id);
-    //if has role
     await member.removeRoles(this.ranks_ids)
   }
 
@@ -613,7 +606,7 @@ const TS=function(guild_id,client,gs){ //loaded after gs
     if(this.messages[type]){
       return this.messages[type](args)
     }
-    throw `"${type}" message string was not found in ts.message`;
+    throw new Error(`"${type}" message string was not found in ts.message`);
   }
 
   /**
@@ -1943,7 +1936,7 @@ TS.teams=(guild_id)=>{
   if(TS.TS_LIST[guild_id]){
     return TS.TS_LIST[guild_id];
   } else {
-    throw `This team, with guild id ${guild_id} has not yet setup it's config, buzzyS`;
+    throw new Error(`This team, with guild id ${guild_id} has not yet setup it's config, buzzyS`);
   }
 }
 

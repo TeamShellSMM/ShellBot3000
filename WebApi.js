@@ -18,7 +18,7 @@ module.exports = async function(config,client){
 
   async function generateSiteJson(args={}){
     const { ts, user , code , name , dashboard } = args;
-    if(!ts) throw `TS not loaded buzzyS`;
+    if(!ts) throw new Error(`TS not loaded buzzyS`);
     let competition_winners = await ts.knex("competition_winners").where({guild_id:ts.team.id});
     let tags=await ts.knex("tags").where({guild_id:ts.team.id});
     let seasons = await ts.knex("seasons").where({guild_id:ts.team.id})
@@ -460,7 +460,6 @@ module.exports = async function(config,client){
             DiscordLog.error(error)
             console.error(error)
             res.send(JSON.stringify({status:'error','message':error}))
-            //throw error;
           }
         }
       } else {
@@ -539,7 +538,6 @@ app.post('/json/worlds',web_ts(async (ts,req)=>{
       let ret={"error":error.stack}
       DiscordLog.error(ret)
       res.send(ts.getWebUserErrorMsg(error))
-      throw error;
     } 
   })
 
