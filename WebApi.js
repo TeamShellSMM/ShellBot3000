@@ -15,16 +15,13 @@ module.exports = async function(config,client){
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({ extended: true }));
   app.use(compression())
-  if(config.json_dev){
-    app.use("/dev", express.static(__dirname + '/json_dev.html'));
-  }
 
   async function generateSiteJson(args={}){
     const { ts, user , code , name , dashboard } = args;
     if(!ts) throw `TS not loaded buzzyS`;
-    let competition_winners = ts.gs.select("Competition Winners");
-    let _tags = ts.gs.select("tags");
-    let _seasons = ts.gs.select("Seasons")
+    let competition_winners = await ts.knex("competition_winners").where({guild_id:ts.team.id});
+    let tags=await ts.knex("tags").where({guild_id:ts.team.id});
+    let seasons = await ts.knex("seasons").where({guild_id:ts.team.id})
 
     let filterSql=''
     if(code){
@@ -56,6 +53,7 @@ module.exports = async function(config,client){
         ,levels.id DR_RowId
         ,levels.code
         ,members.name creator
+        ,members.id creator_id
         ,levels.level_name
         ,levels.status
         ,levels.difficulty
@@ -100,23 +98,8 @@ module.exports = async function(config,client){
       ts.LEVEL_STATUS.NEED_FIX,
     ] })
     
-    let tags={}
-    let seperate=[]
-    for(let i=0;i<_tags.length;i++){
-      if(_tags[i].Seperate=='1'){
-        seperate.push(_tags[i].Tag)
-      }
-      tags[_tags[i].Tag]=_tags[i].Type
-    }
 
-    let seasons=[]
-    for(let i=0;i<_seasons.length;i++){
-      seasons.push({
-        name:_seasons[i].Name,
-        startdate:_seasons[i].StartDate
-      })
-    }
-
+    const seperate=tags.filter( t => t.is_seperate ).map( t => t.name )
     let json={
       levels,
       seasons,
@@ -127,7 +110,7 @@ module.exports = async function(config,client){
 
     if(name){
       const [ makerDetails ]=await knex.raw(`
-      SELECT members.*
+      SELECT members.*,members.id creator_id
         ,sum(round(((likes*2+clears)*score*likes/clears),1)) maker_points
         FROM members 
         LEFT JOIN (
@@ -197,7 +180,7 @@ module.exports = async function(config,client){
   }
 
   async function generateMembersJson(ts,isShellder, data){
-    let competition_winners = ts.gs.select("Competition Winners");
+    let competition_winners = await ts.knex("competition_winners").where({guild_id:ts.team.id});
 
     let members = [];
 
@@ -337,7 +320,7 @@ module.exports = async function(config,client){
 
   async function generateWorldsJson(ts,isShellder, data){
 
-    let competition_winners = ts.gs.select("Competition Winners");
+    let competition_winners = await ts.knex("competition_winners").where({guild_id:ts.team.id});
     
   
     let members = [];
@@ -388,31 +371,18 @@ module.exports = async function(config,client){
 
   async function generateMakersJson(ts,data){
 
-    let competition_winners = ts.gs.select("Competition Winners");
+    let competition_winners = await ts.knex("competition_winners").where({guild_id:ts.team.id});
+    let seasons = await ts.knex('seasons').where({guild_id:ts.team.id}).orderBy('start_date');
 
-    let seasons = ts.gs.select("Seasons");
-
-    data.season = data.season || -1
-    if(data.season == -1){
-      data.season = seasons.length;
+    let end_date='2038-01-19 03:14:08'
+    for(let i=seasons.length-1; i>=0 ;i--){
+      seasons[i].end_date=end_date;
+      end_date=seasons[i].start_date
     }
-
-
-    let current_season = seasons[data.season - 1];
-    let from_season = current_season[0];
-    let to_season = 2147483647;
-    if(seasons.length > data.season){
-      let next_season = seasons[data.season];
-      to_season = parseInt(next_season.StartDate,10);
-    }
-
-    if(!from_season){
-      from_season = 0;
-    } else {
-      from_season = parseInt(from_season,10);
-    }
-
-    let membersSQL='';
+    data.season = data.season || seasons.length
+    
+    const current_season=seasons.length ? seasons[data.season-1] : {}
+    let membersSQL='';  
     if(data.membershipStatus == '1'){
       membersSQL=`AND members.is_member=1`
     } else if(data.membershipStatus == '2'){;
@@ -424,6 +394,7 @@ module.exports = async function(config,client){
     let [ json ]=await knex.raw(`SELECT 
     row_number() over ( order by sum(maker_points)) id
       ,name
+      ,creator_id
 	    ,code
       ,levels_created
       ,sum(clears) clears
@@ -433,6 +404,7 @@ module.exports = async function(config,client){
     FROM (
            SELECT members.name
           ,members.levels_created
+          ,members.id creator_id
           ,levels.code
           ,levels.clears
           ,levels.likes
@@ -444,14 +416,18 @@ module.exports = async function(config,client){
       LEFT JOIN levels ON 
           levels.creator = members.id
       WHERE levels.status IN (0,1)
-          AND levels.created_at between FROM_UNIXTIME(:from_season) AND FROM_UNIXTIME(:to_season)
+          AND levels.created_at between :from_season AND :to_season
           AND teams.guild_id = :guild_id
           ${membersSQL}
       group by levels.code) a
       group by name
-      order by maker_points desc`,{ from_season, to_season, guild_id: ts.guild_id });
+      order by maker_points desc`,{ 
+        from_season:current_season.start_date || '0000-00-00',
+        to_season:current_season.end_date || '3000-01-01',
+        guild_id: ts.guild_id,
+      });
 
-    return {data: json, seasons: seasons, competition_winners};
+    return {data: json, seasons, competition_winners};
   }
 
   let web_ts=(callback)=>{
@@ -495,7 +471,7 @@ module.exports = async function(config,client){
 
   async function generateWorldsJson(ts,isShellder, data){
 
-  let competition_winners = ts.gs.select("Competition Winners");
+  let competition_winners = await ts.knex("competition_winners").where({guild_id:ts.team.id});
   let members = [];
 
   if(data.membershipStatus == '1'){
@@ -531,6 +507,7 @@ module.exports = async function(config,client){
       'id': memberCounter++,
       'wonComps': comps,
       'name': member.name,
+      'creator_id': member.name,
       'maker_id': member.maker_id,
       'maker_name': member.maker_name,
       'world_name': member.world_description,

@@ -79,10 +79,9 @@ class InitChannels extends TSCommand {
             allow:['VIEW_CHANNEL','SEND_MESSAGES','MANAGE_MESSAGES','MANAGE_CHANNELS','READ_MESSAGE_HISTORY','ADD_REACTIONS','USE_EXTERNAL_EMOJIS'],
             deny:[],
         }
-
+/*
         let change=false;
-    
-        let channels=ts.gs.select("Channels");
+        let channels=ts.getSettings('channels');
         let sheet_updates=[];
         for(let i in channels){
             let c=channels[i]
@@ -107,17 +106,9 @@ class InitChannels extends TSCommand {
                 }
                 await newChannelHelp.send(`<@${message.author.id}>`)
                 await newChannelHelp.send(embed)
-
-                let sheet=ts.gs.queryOne('Channels',{
-                    filter:{ Name: c.Name },
-                    update:{ value: "'"+newChannel.id }
-                })
-                sheet_updates=sheet_updates.concat(sheet.update_ranges)
-                change=true;
             }
         }
-
-        if(sheet_updates.length>0) await ts.gs.batchUpdate(sheet_updates);
+*/
 
         await ts.load()
         await message.reply(change?'Commands done':'Nothing was done');

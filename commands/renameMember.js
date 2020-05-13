@@ -35,7 +35,6 @@ class RenameMember extends TSCommand {
 
     async tsexec(ts,message,{ discord_id,new_name }) {
 
-        await ts.gs.loadSheets(["Competition Winners"]);
         if(await ts.db.Members.query().whereRaw('lower(name) = ?',[new_name]).first()){
             ts.userError(`There is already another member with name "${new_name}"`)
         }
@@ -48,26 +47,6 @@ class RenameMember extends TSCommand {
         await ts.db.Members.query()
           .patch({name:new_name})
           .where({discord_id})
-
-
-        let updates=[]
-        let winners=ts.gs.query("Competition Winners", {
-            filter: {"Creator":old_name},
-            update: {"Creator":new_name}
-        },true);
-        if(winners){
-            winners=winners.map((level)=>{
-                return level.update_ranges[0]
-            })
-            updates=updates.concat(winners)
-        }
-
-
-        if(updates){
-            await ts.gs.batchUpdate(updates);
-            
-            await ts.load()
-        }
 
         return await message.reply('"'+old_name+'" has been renamed to "'+new_name+'"');
     }

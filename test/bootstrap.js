@@ -13,49 +13,7 @@ let DiscordLog=require('../DiscordLog');
 DiscordLog.log=(obj,client)=>{}
 DiscordLog.error=(obj,client)=>{ console.log(obj) }
 
-function mockGS(){
-  const data={
-    "Messages":[],
-    "Emotes":[
-      {Name:'think',value:null},
-      {Name:'PigChamp',value:null},
-      {Name:'buzzyS',value:null},
-      {Name:'bam',value:null},
-      {Name:'love',value:null},
-      {Name:'GG',value:null},
-      {Name:'axemuncher',value:null},
-      {Name:'judgement',value:null},
-    ],
-    "Ranks":[
-      {'Min Points':0,Rank:'no rank',Pips:'',discord_roles:''},
-      {'Min Points':5,Rank:'rank1',Pips:'',discord_roles:'703547357182034041'},
-      {'Min Points':20,Rank:'rank2',Pips:'',discord_roles:'703547391948750880'},
-      {'Min Points':40,Rank:'rank3',Pips:'',discord_roles:''},
-      {'Min Points':75,Rank:'rank4',Pips:'',discord_roles:''},
-      {'Min Points':120,Rank:'rank5',Pips:'',discord_roles:''},
-      {'Min Points':175,Rank:'rank6',Pips:'',discord_roles:''},
-      {'Min Points':250,Rank:'rank7',Pips:'',discord_roles:''},
-    ],
-    "Seasons":[
-      {"StartDate":null,Name:'Season 1'},
-    ],
-    "Competition Winners":[
-      //{Code:'',Creator:'','Competition Name':'',Rank:''}
-    ],
-    tags:[
-      {Tag:'tag1',Type:'success',Seperate:null,add_lock:null,remove_lock:null,},
-      {Tag:'tag2',Type:'success',Seperate:null,add_lock:null,remove_lock:null,},
-      {Tag:'seperate',Type:'warning',Seperate:1,add_lock:null,remove_lock:null,},
-      {Tag:'all_locked',Type:'success',Seperate:null,add_lock:1,remove_lock:1,},
-      {Tag:'remove_locked',Type:'success',Seperate:null,add_lock:null,remove_lock:1,},
-    ],
-  }
-  this.loadSheets=()=>{}
-  this.select=(tableName)=>{
-    return data[tableName];
-  }
-  this.clearCache=()=>{};
-}
+
 
 
 after(async()=>{
@@ -79,6 +37,7 @@ before(async()=>{
     SET FOREIGN_KEY_CHECKS = 0; 
     TRUNCATE table teams;
     TRUNCATE table points;
+    TRUNCATE table ranks;
     TRUNCATE table team_settings;
     SET FOREIGN_KEY_CHECKS = 1;
   `);
@@ -214,15 +173,19 @@ const points=[
 {guild_id:1,difficulty:'9.9',score:'9.9'},
 {guild_id:1,difficulty:'10.0',score:'10.0'},
 ];
+const defaultRanks=[{admin_id:1,guild_id:1,min_points:0,rank:'no rank',pips:'',discord_role:''},
+{admin_id:1,guild_id:1,min_points:5,rank:'rank1',pips:'',discord_role:'703547357182034041'},
+{admin_id:1,guild_id:1,min_points:20,rank:'rank2',pips:'',discord_role:'703547391948750880'}];
 
   await TEST.knex.transaction(async(trx)=>{
     await trx('teams').insert(defaultTeam);
     await trx('team_settings').insert(defaultSettings);
     await trx('points').insert(points);
+    await trx('ranks').insert(defaultRanks);
   })
   
 
-  global.TEST.ts=await TS.add(TEST.config.AutomatedTest,global.TEST.client,new mockGS())
+  global.TEST.ts=await TS.add(TEST.config.AutomatedTest,global.TEST.client)
 
   global.app = await WebApi(TEST.config,TEST.client);
 
@@ -260,7 +223,7 @@ const points=[
     `,[table]);
   }
 
-  const all_tables=['plays','pending_votes','levels','members','tokens'];
+  const all_tables=['plays','pending_votes','levels','members','tokens','competition_winners','tags','seasons'];
   global.TEST.clearDb=async(trx)=>{
     for(let table of all_tables){
       await TEST.clearTable(table,trx)

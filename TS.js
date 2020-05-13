@@ -9,7 +9,16 @@ const server_config = require('./config.json')[process.env.NODE_ENV || 'developm
 const DEFAULTMESSAGES=require("./DefaultStrings.js");
 const DiscordLog = require('./DiscordLog');
 
-const GS=require("./GS.js");
+
+const defaultChannels=[
+  {name:'modChannel',default:'bot-mod-channel',description:'The only channel where mod commands will work (approve,rerate). Only mods should be able to send/read channel'},
+  {name:'initiateChannel',default:'bot-makerteam-initiation',description:'The channel where the member will be notified if they officially become a member. This channel should be read only to everybody'},
+  {name:'levelChangeNotification',default:'bot-level-updates',description:'The channel where level approvals,rejections and rerates notifications are posted by the bot. This should be readonly to everyone'},
+  {name:'commandFeed',default:'bot-command-feed',description:'This is where clears/likes and other commands from the web will be shown. This should be read only to everyone'},
+  {name:'pendingReuploadCategory',default:'bot-pending-reupload',description:'The channel where level reuploads are discussed. Only mods should be able to send/read this category'},
+  {name:'feedbackChannel',default:'bot-makerteam-feedback',description:'Channel where the anonymous feedback will be posted. This should be readonly for whoever can read the feedback'},
+  {name:'levelDiscussionCategory',default:'bot-pending-discussion',description:'Channel category where pending channels will be created. Only mods should be able to send/read this category'},
+];
 
 /**
  * Team settable Variables
@@ -182,14 +191,12 @@ const TS=function(guild_id,client,gs){ //loaded after gs
 
 
     /* istanbul ignore next */
-    this.gs=gs?gs:new GS({...server_config,...this.config});
     this.LEVEL_STATUS=LEVEL_STATUS;
     this.PENDING_LEVELS=PENDING_LEVELS;
     this.SHOWN_IN_LIST=SHOWN_IN_LIST;
     this.REMOVED_LEVELS=REMOVED_LEVELS;
     
     ts.knex=knex;
-    ts.gs.clearCache();
     const defaultVars = {
       customStrings:{ //defaults
         "levelInfo":"@@LEVEL_PLACEHOLDER@@",
@@ -201,16 +208,6 @@ const TS=function(guild_id,client,gs){ //loaded after gs
     guild.emojis.forEach((e)=>{
       defaultVars.emotes[e.name]=e.toString()
     });
-
-    const static_vars=[
-      "Ranks",
-      "Seasons",
-      "tags",
-      "Messages",
-      "Competition Winners", //static vars
-      ]; //initial vars to be loaded on bot load
-
-      await this.gs.loadSheets(static_vars) //loading initial sheets
 
 
 
@@ -240,10 +237,10 @@ const TS=function(guild_id,client,gs){ //loaded after gs
       }
 
 
-      this.messages={}
-      this.gs.select("Messages").forEach((v)=>{
-        this.messages[v.Name]=_makeTemplate(v.value||'')
-      });
+      this.messages=this.getSettings('messages')
+      for(const i in this.messages){
+        this.messages[i]=_makeTemplate(this.messages[i]||'')
+      }
 
       TS.defaultMessages={}
       for(var i in DEFAULTMESSAGES){
@@ -303,10 +300,10 @@ const TS=function(guild_id,client,gs){ //loaded after gs
       }
 
       //should verify that the discord roles id exist in server
-      this.ranks=ts.gs.select("Ranks");
+      this.ranks=await knex('ranks').where({guild_id:this.team.id}).orderBy('min_points','desc');
       this.rank_ids=this.ranks.map((r)=>r.discord_roles)
 
-      await this.saveSheetToDb();
+      await this.saveSheetToDb(); 
       await this.recalculateAfterUpdate();
 
       this.pointMap={}
@@ -345,7 +342,8 @@ const TS=function(guild_id,client,gs){ //loaded after gs
         levels.level_name,
         levels.videos,
         levels.tags,
-        creator_table.name creator_name`))
+        creator_table.name creator_name,
+        creator_table.id creator_id`))
       .join('members',{'plays.player':'members.id'})
       .join('levels',{'plays.code':'levels.id'})
       .join('members as creator_table',{'creator_table.id':'levels.creator'})
@@ -1245,7 +1243,7 @@ const TS=function(guild_id,client,gs){ //loaded after gs
     player.created_at=player.created_at.toString()
     player.earned_points= await this.calculatePoints(player.name);
     player.rank=this.get_rank(player.earned_points.clearPoints);
-    player.user_reply="<@"+discord_id+">" + (player.rank.Pips ? player.rank.Pips : "") + " ";
+    player.user_reply="<@"+discord_id+">" + (player.rank.pips ? player.rank.pips : '') + " ";
     return player
   }
 
@@ -1767,7 +1765,7 @@ const TS=function(guild_id,client,gs){ //loaded after gs
 
     var earned_points=await ts.calculatePoints(player.name);
     var rank=ts.get_rank(earned_points.clearPoints);
-    var user_reply="<@"+message.author.id+">"+(rank.Pips ? rank.Pips : "")+" ";
+    var user_reply="<@"+message.author.id+">"+(rank.pips ? rank.pips : "")+" ";
 
     var level=await ts.getLevels().where({code:old_code}).first()
     if(!level) ts.userError(ts.message("error.levelNotFound",{code:old_code}));
@@ -1863,17 +1861,8 @@ const TS=function(guild_id,client,gs){ //loaded after gs
    * @return {Object} The rank row from database
    */
   this.get_rank=function(points){
-    var point_rank=ts.gs.select("Ranks")
-    for(var i=point_rank.length-1;i>=0;i--){
-      if(parseFloat(points)>=parseFloat(point_rank[i]["Min Points"])){
-        let ret={}
-        for(var j in point_rank[i]){
-          ret[j]=point_rank[i][j]?point_rank[i][j]:''
-        }
-        return ret
-      }
-    }
-    return false
+    const ret=this.ranks.find( r=> parseFloat(points)>=parseFloat(r.min_points) );
+    return ret;
   }
 
   /**
