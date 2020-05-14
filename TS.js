@@ -251,7 +251,7 @@ class TS {
       }
 
       const all_levels=await this.getLevels();
-      const all_tags=all_levels.map(l=>l.tags);
+      let all_tags=all_levels.map(l=>l.tags);
       if(all_tags.length!=0) all_tags=all_tags.reduce((total,t)=>total+","+t);
       await knex.transaction(async(trx)=>{
         await this.addTags(all_tags,trx)
