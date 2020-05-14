@@ -148,7 +148,7 @@ module.exports={
   'error.invalidMakerCode':'`{{code}}` is not a valid maker id',
   'error.wrongTokens':'There was something wrong with the secure tokens. Please try again',
 
-  'points.points':'You have {{player.earned_points.clearPoints}} clear points. You have submitted {{player.earned_points.levelsMade}} level(s) {{#if player.earned_points.freeSubmissions}} ({{player.earned_points.freeSubmissions}} free submission(s)){{/if}}.',  
+  'points.points':'You have {{player.earned_points.clearPoints}} clear points. You have submitted {{player.earned_points.levelsMade}} level{{plural player.earned_points.levelsMade}} {{#if player.earned_points.freeSubmissions}} ({{player.earned_points.freeSubmissions}} free submission{{plural player.earned_points.freeSubmissions}}){{/if}}.',  
   'points.canUpload':'You have enough points to upload a level {{{PigChamp}}}',
   'points.cantUpload':'You need {{points_needed}} points to upload a new level {{{buzzyS}}}. Check how the points are mapped on {{teamurl}}',
   'points.rank':' You have earned the rank **{{player.rank.rank}}** {{{player.rank.pips}}}',  

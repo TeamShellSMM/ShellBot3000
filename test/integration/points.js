@@ -1,5 +1,5 @@
 describe('!points', function () {
-  before(async () => {
+  beforeEach(async () => {
     TEST.ts.teamVariables.includeOwnPoints='false'
     await TEST.setupData({
       Members: [{
@@ -38,7 +38,7 @@ describe('!points', function () {
       cmd: '!points',
       channel: 'general',
       discord_id: '128',
-    }),'<@128> You have 0.0 clear points. You have submitted 0 level(s) .You have enough points to upload a level  You have earned the rank **no rank** ')
+    }),'<@128> You have 0.0 clear points. You have submitted 0 levels .You have enough points to upload a level  You have earned the rank **no rank** ')
   })
 
   it('!points creator not include own points', async function () {
@@ -47,7 +47,7 @@ describe('!points', function () {
       cmd: '!points',
       channel: 'general',
       discord_id: '256',
-    }),'<@256> You have 0.0 clear points. You have submitted 2 level(s) .You have enough points to upload a level  You have earned the rank **no rank** ')
+    }),'<@256> You have 0.0 clear points. You have submitted 2 levels .You have enough points to upload a level  You have earned the rank **no rank** ')
   })
 
   it('!points creator include own points', async function () {
@@ -58,9 +58,58 @@ describe('!points', function () {
       cmd: '!points',
       channel: 'general',
       discord_id: '256',
-    }),'<@256> You have 1.0 clear points. You have submitted 2 level(s) .You have enough points to upload a level  You have earned the rank **no rank** ')
+    }),'<@256> You have 1.0 clear points. You have submitted 2 levels .You have enough points to upload a level  You have earned the rank **no rank** ')
     TEST.ts.teamVariables.includeOwnPoints=0
   })
+
+  it('!points creator include own points, 1 free submission', async function () {
+    TEST.ts.teamVariables.includeOwnPoints='true'
+    TEST.ts.teamVariables['Minimum Point']=0
+    await TEST.ts.db.Levels.query().insert({
+      level_name: 'free level',
+      creator: 2,
+      code: 'XXX-XXX-XX3',
+      status: 1,
+      is_free_submission:1,
+      difficulty: 1,
+    });
+    await TEST.ts.recalculateAfterUpdate()
+    assert.equal(await TEST.mockBotSend({
+      cmd: '!points',
+      channel: 'general',
+      discord_id: '256',
+    }),'<@256> You have 2.0 clear points. You have submitted 3 levels  (1 free submission).You have enough points to upload a level  You have earned the rank **no rank** ')
+    TEST.ts.teamVariables.includeOwnPoints=0
+  })
+
+  it('!points creator include own points, 1 free submission', async function () {
+    TEST.ts.teamVariables.includeOwnPoints='true'
+    TEST.ts.teamVariables['Minimum Point']=0
+    await TEST.ts.db.Levels.query().insert({
+      level_name: 'free level',
+      creator: 2,
+      code: 'XXX-XXX-XX3',
+      status: 1,
+      is_free_submission:1,
+      difficulty: 1,
+    });
+    await TEST.ts.db.Levels.query().insert({
+      level_name: 'free level2',
+      creator: 2,
+      code: 'XXX-XXX-XX4',
+      status: 1,
+      is_free_submission:1,
+      difficulty: 1,
+    });
+    await TEST.ts.recalculateAfterUpdate()
+    assert.equal(await TEST.mockBotSend({
+      cmd: '!points',
+      channel: 'general',
+      discord_id: '256',
+    }),'<@256> You have 3.0 clear points. You have submitted 4 levels  (2 free submissions).You have enough points to upload a level  You have earned the rank **no rank** ')
+    TEST.ts.teamVariables.includeOwnPoints=0
+  })
+
 
   it('!points after one clear', async function () {
     TEST.ts.teamVariables['Minimum Point']=0
@@ -74,17 +123,23 @@ describe('!points', function () {
       cmd: '!points',
       channel: 'general',
       discord_id: '128',
-    }),'<@128> You have 1.0 clear points. You have submitted 0 level(s) .You have enough points to upload a level  You have earned the rank **no rank** ')
+    }),'<@128> You have 1.0 clear points. You have submitted 0 levels .You have enough points to upload a level  You have earned the rank **no rank** ')
   })
 
 
   it('!points with minimum level upload=10, not enough to upload', async function () {
     TEST.ts.teamVariables['Minimum Point']=10
     assert.equal(await TEST.mockBotSend({
+      cmd: '!clear XXX-XXX-XXX',
+      channel: 'general',
+      discord_id: '128',
+    }),'<@128> \n ‣You have cleared \'approved level\'  by Creator \n ‣You have earned 1 points')
+    
+    assert.equal(await TEST.mockBotSend({
       cmd: '!points',
       channel: 'general',
       discord_id: '128',
-    }),'<@128> You have 1.0 clear points. You have submitted 0 level(s) .You need  points to upload a new level . Check how the points are mapped on http://localhost:8080//makerteam You have earned the rank **no rank** ')
+    }),'<@128> You have 1.0 clear points. You have submitted 0 levels .You need 9.0 points to upload a new level . Check how the points are mapped on http://localhost:8080//makerteam You have earned the rank **no rank** ')
   })
 
   /* currently doesn't work with how we mock the discord

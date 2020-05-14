@@ -29,7 +29,7 @@ class points extends TSCommand {
            msg+=ts.message("points.canUpload");
         } else {
            msg+=ts.message("points.cantUpload",{
-             points_earned:player.earned_points.pointsNeeded
+             points_needed:player.earned_points.pointsNeeded
            })
         }
         msg+=ts.message("points.rank",{ player })

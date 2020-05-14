@@ -1,6 +1,10 @@
 'use strict'
 const stringSimilarity = require('string-similarity')
 const Handlebars = require("handlebars");
+Handlebars.registerHelper('plural', function(num){
+  return num>1 || num==0 ? 's' : ''
+});
+
 const crypto=require('crypto');
 const moment=require('moment');
 const knex = require('./db/knex');
@@ -1858,7 +1862,6 @@ class TS {
             this.userError(this.message('error.wrongTokens'));
           }
         } catch(error){
-          console.log(error);
           this.userError(this.message('error.wrongTokens'));
         }
       } else {
