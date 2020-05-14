@@ -5,6 +5,12 @@ Handlebars.registerHelper('plural', function(num){
   return num>1 || num==0 ? 's' : ''
 });
 
+Handlebars.registerHelper('1dp', function(num){
+  if(typeof num==='number') return num.toFixed(1)
+  if(typeof num==='string' && !isNaN(num)) return Number(num).toFixed(1)
+  return num
+});
+
 const crypto=require('crypto');
 const moment=require('moment');
 const knex = require('./db/knex');
@@ -1888,10 +1894,10 @@ class TS {
         next,
       });
       return {
-        clearPoints: member.clear_score_sum.toFixed(1),
+        clearPoints: member.clear_score_sum,
         levelsMade: member.levels_created,
         freeSubmissions: member.free_submissions,
-        pointsNeeded: pointsNeeded.toFixed(1),
+        pointsNeeded: pointsNeeded,
         canUpload: pointsNeeded < 0.05,
       };
     }

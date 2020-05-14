@@ -30,6 +30,12 @@ describe('!clears', function () {
         code: 'XXX-XXX-XX3',
         status: 1,
         difficulty: 1,
+      },{
+        level_name: 'level4',
+        creator: 2,
+        code: 'XXX-XXX-XX4',
+        status: 1,
+        difficulty: 2.5,
       }],
     });
   });
@@ -85,7 +91,7 @@ describe('!clears', function () {
       channel: 'general',
       discord_id: '128',
     })
-    assert.equal(result,'<@128> \n ‣You have cleared \'level1\'  by Creator \n ‣You have earned 1 points')
+    assert.equal(result,'<@128> \n ‣You have cleared \'level1\'  by Creator \n ‣You have earned 1.0 point')
   })
 
   it('clear with like', async function () {
@@ -94,7 +100,7 @@ describe('!clears', function () {
       channel: 'general',
       discord_id: '128',
     })
-    assert.equal(result,'<@128> \n ‣You have cleared \'level1\'  by Creator \n ‣You have earned 1 points\n ‣You also have liked this level ')
+    assert.equal(result,'<@128> \n ‣You have cleared \'level1\'  by Creator \n ‣You have earned 1.0 point\n ‣You also have liked this level ')
   })
 
   it('clear with invalid parameters', async function () {
@@ -113,7 +119,7 @@ describe('!clears', function () {
       channel: 'general',
       discord_id: '128',
     })
-    assert.equal(result,'<@128> \n ‣You have cleared \'level1\'  by Creator \n ‣You have earned 1 points\n ‣You also have voted 5 as the difficulty for this level ')
+    assert.equal(result,'<@128> \n ‣You have cleared \'level1\'  by Creator \n ‣You have earned 1.0 point\n ‣You also have voted 5.0 as the difficulty for this level ')
   })
 
   it('remove difficulty', async function () {
@@ -121,7 +127,7 @@ describe('!clears', function () {
       cmd: '!clear XXX-XXX-XXX 5 1',
       channel: 'general',
       discord_id: '128',
-    }),'<@128> \n ‣You have cleared \'level1\'  by Creator \n ‣You have earned 1 points\n ‣You also have voted 5 as the difficulty for this level \n ‣You also have liked this level ');
+    }),'<@128> \n ‣You have cleared \'level1\'  by Creator \n ‣You have earned 1.0 point\n ‣You also have voted 5.0 as the difficulty for this level \n ‣You also have liked this level ');
 
     let play=await TEST.ts.db.Plays.query().where({code:1,player:1}).first()
     assert.exists(play)
@@ -142,7 +148,17 @@ describe('!clears', function () {
       channel: 'general',
       discord_id: '128',
     })
-    assert.equal(result,'<@128> \n ‣You have cleared \'level1\'  by Creator \n ‣You have earned 1 points\n ‣You also have voted 5 as the difficulty for this level ')
+    assert.equal(result,'<@128> \n ‣You have cleared \'level1\'  by Creator \n ‣You have earned 1.0 point\n ‣You also have voted 5.0 as the difficulty for this level ')
+  })
+
+
+  it('clear with like and difficulty 2.5 points earned', async function () {
+    const result = await TEST.mockBotSend({
+      cmd: '!clear XXX-XXX-XX4 5 like',
+      channel: 'general',
+      discord_id: '128',
+    })
+    assert.equal(result,'<@128> \n ‣You have cleared \'level4\'  by Creator \n ‣You have earned 2.5 points\n ‣You also have voted 5.0 as the difficulty for this level ')
   })
 
 })

@@ -58,7 +58,7 @@ describe('!points', function () {
       cmd: '!points',
       channel: 'general',
       discord_id: '256',
-    }),'<@256> You have 1.0 clear points. You have submitted 2 levels .You have enough points to upload a level  You have earned the rank **no rank** ')
+    }),'<@256> You have 1.0 clear point. You have submitted 2 levels .You have enough points to upload a level  You have earned the rank **no rank** ')
     TEST.ts.teamVariables.includeOwnPoints=0
   })
 
@@ -117,13 +117,13 @@ describe('!points', function () {
       cmd: '!clear XXX-XXX-XXX',
       channel: 'general',
       discord_id: '128',
-    }),'<@128> \n ‣You have cleared \'approved level\'  by Creator \n ‣You have earned 1 points')
+    }),'<@128> \n ‣You have cleared \'approved level\'  by Creator \n ‣You have earned 1.0 point')
 
     assert.equal(await TEST.mockBotSend({
       cmd: '!points',
       channel: 'general',
       discord_id: '128',
-    }),'<@128> You have 1.0 clear points. You have submitted 0 levels .You have enough points to upload a level  You have earned the rank **no rank** ')
+    }),'<@128> You have 1.0 clear point. You have submitted 0 levels .You have enough points to upload a level  You have earned the rank **no rank** ')
   })
 
 
@@ -133,13 +133,13 @@ describe('!points', function () {
       cmd: '!clear XXX-XXX-XXX',
       channel: 'general',
       discord_id: '128',
-    }),'<@128> \n ‣You have cleared \'approved level\'  by Creator \n ‣You have earned 1 points')
+    }),'<@128> \n ‣You have cleared \'approved level\'  by Creator \n ‣You have earned 1.0 point')
     
     assert.equal(await TEST.mockBotSend({
       cmd: '!points',
       channel: 'general',
       discord_id: '128',
-    }),'<@128> You have 1.0 clear points. You have submitted 0 levels .You need 9.0 points to upload a new level . Check how the points are mapped on http://localhost:8080//makerteam You have earned the rank **no rank** ')
+    }),'<@128> You have 1.0 clear point. You have submitted 0 levels .You need 9.0 more points to upload a new level . Check how the points are mapped on http://localhost:8080//makerteam You have earned the rank **no rank** ')
   })
 
   /* currently doesn't work with how we mock the discord
@@ -150,7 +150,7 @@ describe('!points', function () {
       cmd: '!points role',
       channel: 'general',
       discord_id: '128',
-    }),'<@128> You have 1.0 clear points. You have submitted 0 level(s) .You need  points to upload a new level . Check how the points are mapped on http://localhost:8080//makerteam You have earned the rank **no rank** ')
+    }),'<@128> You have 1.0 clear point. You have submitted 0 level(s) .You need  points to upload a new level . Check how the points are mapped on http://localhost:8080//makerteam You have earned the rank **no rank** ')
   })
   //*/
 })
