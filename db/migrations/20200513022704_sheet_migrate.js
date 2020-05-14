@@ -59,7 +59,7 @@ exports.up = function(knex) {
         t.dateTime('created_at').notNull().defaultTo(knex.raw('CURRENT_TIMESTAMP'));
         t.dateTime('updated_at').nullable();
         t.dateTime('deleted_at').nullable();
-        t.integer('admin_id').notNull();
+        t.integer('admin_id').nullable();
         t.integer('guild_id').notNull()
 
         t.string('name').notNull();

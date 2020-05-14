@@ -7,6 +7,7 @@ const knex = require('./db/knex');
 const express=require('express');
 const DiscordLog = require('./DiscordLog');
 const TS=require('./TS');
+const deepEqual=require('deep-equal');
 
 
 module.exports = async function(config,client){
@@ -318,6 +319,7 @@ module.exports = async function(config,client){
   }
 
 
+
   async function generateWorldsJson(ts,isShellder, data){
 
     let competition_winners = await ts.knex("competition_winners").where({guild_id:ts.team.id});
@@ -560,6 +562,74 @@ app.post('/json/worlds',web_ts(async (ts,req)=>{
       })
     }
     return {settings:ret}
+  }))
+
+  app.post('/teams/tags',web_ts(async (ts,req) => {
+    if(!req.body.discord_id) ts.userError("website.noToken");
+    if(!await ts.teamAdmin(req.body.discord_id)) ts.userError(ts.message('website.forbidden'));
+    const data=await ts.knex('tags')
+    .select('id','name','synonymous_to','type','color','is_seperate','add_lock','remove_lock','is_hidden')
+    .where({guild_id:ts.team.id});
+    return {data:ts.secure_data(data)}
+  }))
+
+  app.put('/teams/tags',web_ts(async (ts,req) => {
+    if(!req.body.discord_id) ts.userError("website.noToken");
+    if(!await ts.teamAdmin(req.body.discord_id)) ts.userError(ts.message('website.forbidden'));
+    if(!req.body.data) ts.userError('website.noDataSent');
+    const data=ts.verify_data(req.body.data)
+    
+    
+    
+    let updated=false;
+    await ts.knex.transaction(async(trx)=>{
+      const existing_tags=await trx('tags')
+        .select('id','name','synonymous_to','type','color','is_seperate','add_lock','remove_lock','is_hidden')
+        .where({guild_id:ts.team.id});
+
+      //TODO:test this
+      //TODO:tags transformation
+      data.forEach((d=>{
+        if(existing_tags.find((e)=> d.name==e.name && d.id!=e.id)){
+          ts.userError('tags.duplicateTags',{tag:d.name})
+        }
+      }))
+
+      for(let i=0;i<data.length;i++){
+        const current_id=data[i].id
+        const new_data={
+          id:data[i].id,
+          name:data[i].name,
+          synonymous_to:data[i].synonymous_to,
+          type:data[i].type,
+          color:data[i].color,
+          is_seperate:['true','1',1,true].includes(data[i].is_seperate)?1:0,
+          add_lock:['true','1',1,true].includes(data[i].add_lock)?1:0,
+          remove_lock:['true','1',1,true].includes(data[i].remove_lock)?1:0,
+          is_hidden:['true','1',1,true].includes(data[i].is_hidden)?1:0,
+        };
+        if(current_id){
+          const existing=existing_tags.find((t)=>t.id==current_id);
+          if(!existing) ts.userError('error.hadIdButNotInDb');
+          if(!deepEqual(new_data,existing)){
+            new_data.updated_at=moment().format("YYYY-MM-DD HH:mm:ss")
+            new_data.admin_id=req.user.id
+            await trx('tags')
+              .update(new_data)
+              .where({id:new_data.id})
+            updated=true;
+          }
+        } else {
+          delete data[i].id
+          new_data.guild_id=ts.team.id
+          new_data.admin_id=req.user.id
+          await trx('tags').insert(new_data)
+          updated=true;
+        }; 
+      }
+      return trx
+    })
+    return {data:updated?"tags updated":'No tags updated'}; //{data:ts.secure_data(data)}
   }))
 
   app.put('/teams/settings',web_ts(async (ts,req) => {

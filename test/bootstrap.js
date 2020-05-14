@@ -35,6 +35,7 @@ before(async()=>{
 
   await TEST.knex.raw(`
     SET FOREIGN_KEY_CHECKS = 0; 
+    TRUNCATE table tags;
     TRUNCATE table teams;
     TRUNCATE table points;
     TRUNCATE table ranks;
@@ -178,10 +179,12 @@ const defaultRanks=[{admin_id:1,guild_id:1,min_points:0,rank:'no rank',pips:'',d
 {admin_id:1,guild_id:1,min_points:20,rank:'rank2',pips:'',discord_role:'703547391948750880'}];
 
   await TEST.knex.transaction(async(trx)=>{
+    await trx.raw('SET FOREIGN_KEY_CHECKS = 0; ');
     await trx('teams').insert(defaultTeam);
     await trx('team_settings').insert(defaultSettings);
     await trx('points').insert(points);
     await trx('ranks').insert(defaultRanks);
+    await trx.raw('SET FOREIGN_KEY_CHECKS = 1; ');
   })
   
 

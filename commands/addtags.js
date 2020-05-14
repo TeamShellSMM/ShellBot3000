@@ -31,31 +31,13 @@ class TSAddtags extends TSCommand {
       const player=await ts.get_user(message);
       const level=await ts.getExistingLevel(code)
       //First we get all available tags
-      let all_tags = [];
-      let _levels=await ts.getLevels()
-      _levels.forEach((level)=>{
-        if(level.tags){
-          level.tags.split(",").forEach((tag)=>{
-            if(all_tags.indexOf(tag)===-1)all_tags.push(tag);
-          })
-        }
-      });
+      new_tags=await ts.addTags(new_tags)
 
-    //Then we trim the new tags, check if they exist in all tags (lower cased, without spaces inbetween) and if they do we use that writing style instead
-    for(let i = 0; i < new_tags.length; i++){
-      new_tags[i] = new_tags[i].trim();
-      all_tags.forEach((existing_tag)=>{
-        if(new_tags[i].toLowerCase().replace(/[^a-z0-9]/g, "") == existing_tag.toLowerCase().replace(/[^a-z0-9]/g, "")){ //replacing space with all non alphanumeric characters
-          new_tags[i] = existing_tag;
-        }
-      })
-    }
+      let filteredTags=new_tags
+      let old_tags=level.tags?level.tags.split(","):[]
+      let reply;
 
-    let filteredTags=new_tags
-    let old_tags=level.tags?level.tags.split(","):[]
-    let reply;
-
-    if(addCommands.indexOf(command.command)!=-1){ //adding
+      if(addCommands.indexOf(command.command)!=-1){ //adding
       let locked_tags=setTags.filter(t=> t.add_lock).map(t=>t.name)
 
       new_tags=[]

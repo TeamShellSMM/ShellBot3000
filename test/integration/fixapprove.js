@@ -101,7 +101,7 @@ describe('!fixapprove', function () {
       channel: 'XXX-XXX-XX4',
       discord_id: '128',
     })
-    assert.equal(result,'This channel is not in the pending reupload category  ')
+    assert.equal(result,'This channel is not in the pending reupload category ')
   })
 
   it('reject success',async ()=>{
@@ -129,6 +129,6 @@ describe('!fixapprove', function () {
       channel: 'XXX-XXX-XX3',
       discord_id: '128',
     })
-    assert.equal(result,'This level is not in the "Need Fix" status  ')
+    assert.equal(result,'This level is not in the "Need Fix" status ')
   })
 })

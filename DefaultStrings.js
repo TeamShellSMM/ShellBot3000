@@ -6,6 +6,7 @@ module.exports={
   'website.tokenError':'Token expired. Need to relogin',
   'website.authError':'Authentication error',
   'website.noToken':'No token sent',
+  'website.noDataSent':'No data sent',
   'website.forbidden':'forbidden',
 
   'api.noslug':'No url_slug found',
@@ -20,6 +21,7 @@ module.exports={
 
   'level.didYouMean':' Did you mean:```\n{{{level_info}}}```', 
 
+  'error.hadIdButNotInDb':'We got a row id, but we could not find it in the database',
   'error.noDiscordId':'We couldn\'t find your `discord id',
   'clear.noArgs':'There were no arguments in the request',
   'clear.invalidDifficulty':'You did not provide a valid difficulty vote', 
@@ -66,7 +68,7 @@ module.exports={
   'approval.voteChanged':'Your vote was changed in <#{{channel_id}}>!',
   'approval.voteAdded':'Your vote was added to <#{{channel_id}}>!',
   'approval.fixPlayerInstructions':'This level is one step from being approved, we\'d just like to see some fixes!',
-  'approval.comboBreaker':'The votes are the same! {{{buzzyS}}} We need a tiebreaker',
+  'approval.comboBreaker':'The votes are the same! We need a tiebreaker',
   'approval.numVotesNeeded':'The necessary amount of reject/approval votes has not been reached yet!',
   'approval.fixInstructionsCreator':'If you want to fix these issues use **!reupload** (to get it approved really quickly) or if you don\'t want to just use **!refusefix** and the mods will decide if it\'s still acceptable.',
   'approval.channelDeleted':'Justice has been met!',
@@ -78,9 +80,9 @@ module.exports={
   'judge.votedApprove':'{{player}} voted for approval with difficulty {{difficulty_vote}}:',
   'judge.votedReject':'{{player}} voted for rejection:',
   'judge.votedFix':'{{player}} voted for fix with difficulty {{difficulty_vote}}:',
-  'fixApprove.notInChannel':'This channel is not in the pending reupload category {{{buzzyS}}}',
+  'fixApprove.notInChannel':'This channel is not in the pending reupload category',
   'fixApprove.noReason':'You have to provide a message to the creator explaining why this was rejected!',
-  'fixApprove.rejectNotNeedFix':'This level is not in the "Need Fix" status {{{buzzyS}}}',
+  'fixApprove.rejectNotNeedFix':'This level is not in the "Need Fix" status',
 
   'remove.removedBy':'This level has been removed by {{name}}',
   'reupload.noOldCode':'You did not provide a code for the old level. The reupload command is `!reupload <old code> <new code> reason for reuploading`',
@@ -144,6 +146,7 @@ module.exports={
   'error.noCode':'You did not give a level code',
   'error.invalidCode':'You did not provide a valid level code',
   'error.invalidMakerCode':'`{{code}}` is not a valid maker id',
+  'error.wrongTokens':'There was something wrong with the secure tokens. Please try again',
 
   'points.points':'You have {{player.earned_points.clearPoints}} clear points. You have submitted {{player.earned_points.levelsMade}} level(s) {{#if player.earned_points.freeSubmissions}} ({{player.earned_points.freeSubmissions}} free submission(s)){{/if}}.',  
   'points.canUpload':'You have enough points to upload a level {{{PigChamp}}}',
@@ -167,6 +170,7 @@ module.exports={
   'tags.noPermission':'You can\'t remove tags from "{{level_name}}" by "{{creator}}"',
   'tags.cantRemove':'You can\'t remove the tag "{{tag}}"',
   'tags.currentTags':'Current tags:```\n{{tags_str}}```',
+  'tags.duplicateTags':'There were duplicate tags for {{tag}}',
 
   'register.already':'You\'re already registered as **{{name}}**',
   'register.nameTaken':'\'{{name}}\' has already been registered by someone else. Please use another nickname',
