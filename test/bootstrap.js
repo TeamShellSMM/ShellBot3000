@@ -190,7 +190,7 @@ const defaultRanks=[{admin_id:1,guild_id:1,min_points:0,rank:'no rank',pips:'',d
 
   global.TEST.ts=await TS.add(TEST.config.AutomatedTest,global.TEST.client)
 
-  global.app = await WebApi(TEST.config,TEST.client);
+  global.app = await WebApi(TEST.client);
 
   global.TEST.mockMessage=async (template,{ type , discord_id },args)=>{
     let msg=TEST.ts.message(template,args);

@@ -161,4 +161,13 @@ describe('!clears', function () {
     assert.equal(result,'<@128> \n ‣You have cleared \'level4\'  by Creator \n ‣You have earned 2.5 points\n ‣You also have voted 5.0 as the difficulty for this level ')
   })
 
+  it('!difficulty (a !clear with 0 completed and like)',async()=>{
+    const result = await TEST.mockBotSend({
+      cmd: '!difficulty XXX-XXX-XX4 5',
+      channel: 'general',
+      discord_id: '128',
+    })
+    assert.equal(result,'<@128> \n ‣You have voted 5.0 as the difficulty for \'level4\'  by Creator ')
+  })
+
 })

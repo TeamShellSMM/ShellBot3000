@@ -16,12 +16,16 @@ class TSAddvids extends TSCommand {
 
         let command=ts.parse_command(message);
         let code=command.arguments.shift()
-        if(code) code=code.toUpperCase();
-
-        if(!ts.valid_code(code)) ts.userError("You did not provide a valid level code");
+        if(code){
+          code=code.toUpperCase();
+        } else {
+          ts.userError('error.noCode')
+        }
 
         let new_vids=command.arguments.join(" ")
-        if(!new_vids) ts.userError("You didn't give any links");
+        if(!new_vids){
+          ts.userError("You didn't give any links");
+        }
         new_vids=new_vids.split(/[, \n]/)
         let filteredUrl=[]
         let not_urls=[]
@@ -49,13 +53,15 @@ class TSAddvids extends TSCommand {
               new_vids.push(url)
             }
           })
-          if(new_vids.length==0)
-            ts.userError("No new clear video added for \""+level.level_name+"\" by "+level.creator+"\nCurrent Videos:```\n"+old_vids.join("\n")+"```")
+          if(new_vids.length==0){
+            ts.userError("No new clear video added for \""+level.level_name+"\" by "+level.creator+ts.message('addVids.currentVideos',{videos_str:old_vids.join('\n')}))
+          }
           old_vids=old_vids.concat(new_vids)
-          var reply="Clear videos added for  \""+level.level_name+"\" ("+code+")"+(ts.emotes.bam ? ts.emotes.bam : "")+"\nCurrent Videos:```\n"+old_vids.join("\n")+"```"
+          var reply=ts.message('addVids.haveNew',level)+ts.message('addVids.currentVideos',{videos_str:old_vids.join('\n')})
         } else { // removing
-          if(!(level.creator==player.name || player.is_mod=='1'))
-            ts.userError("You can't remove videos from  \""+level.level_name+"\" by "+level.creator);
+          if(!(level.creator==player.name || player.is_mod=='1')){
+            ts.userError('addVids.noPermission',level)
+          }
 
           new_vids=[]
           old_vids.forEach((url)=>{
@@ -63,10 +69,11 @@ class TSAddvids extends TSCommand {
               new_vids.push(url)
             }
           })
-          if(old_vids.length===new_vids.length)
-            ts.userError("No clear videos have been removed for \""+level.level_name+"\" ("+code+")\nCurrent Videos:```\n"+old_vids.join("\n")+"```")
+          if(old_vids.length===new_vids.length){
+            ts.userError(ts.message('addVids.noRemoved',level)+ts.message('addVids.currentVideos',{videos_str:old_vids.join('\n')}))
+          }
           old_vids=new_vids
-          var reply="Clear videos removed for  \""+level.level_name+"\" ("+code+")"+(ts.emotes.bam ? ts.emotes.bam : "")+"\nCurrent Videos:```\n"+old_vids.join("\n")+"```"
+          var reply=ts.message('addVids.haveRemoved',level)+ts.message('addVids.currentVideos',{videos_str:old_vids.join('\n')})
         }
 
       await ts.db.Levels.query().patch({videos:old_vids.join(',')})

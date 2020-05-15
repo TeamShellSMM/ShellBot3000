@@ -15,7 +15,7 @@ module.exports={
   'feedback.noMessage':'No message was sent!',
   'feedback.tooLong':'The supplied message is too long, please keep it lower than 1000 characters!',
 
-  'login.invalidToken':'Your one time password was incorrect. You can DM {{BotName}} with !login to get another code',
+  'login.invalidToken':'Your one time password was incorrect. You can run !login in {{TeamName}}\'s discord server to get another code',
   'login.expiredOTP':'The OTP password given is already expired',
   'login.noOTP':'No OTP provided',
 
@@ -165,12 +165,19 @@ module.exports={
   'tags.cantAdd':'You can\'t add the tag \'{{tag}}\'',
   'tags.noNew':'No new tags added for "{{level_name}}" by "{{creator}}"\n',
   'tags.noRemoved':'No tags have been removed for "{{level_name}}" by "{{creator}}"\n',
-  'tags.haveNew':'Tags added for "{{level_name}}" by "{{creator}} {{{bam}}}"\n',
+  'tags.haveNew':'Tags added for "{{level_name}}" by "{{creator}}" {{{bam}}}\n',
   'tags.haveRemoved':'Tags removed for "{{level_name}}" by "{{creator}} {{{bam}}}"\n',
   'tags.noPermission':'You can\'t remove tags from "{{level_name}}" by "{{creator}}"',
   'tags.cantRemove':'You can\'t remove the tag "{{tag}}"',
   'tags.currentTags':'Current tags:```\n{{tags_str}}```',
   'tags.duplicateTags':'There were duplicate tags for {{tag}}',
+
+  'addVids.noPermission':'You can\'t remove videos from "{{level_name}}" by "{{creator}}"',
+  'addVids.haveNew':'Clear videos added for "{{level_name}}" by "{{creator}}" {{{bam}}}\n',
+  'addVids.currentVideos':'Current videos:```\n{{videos_str}}```',
+  'addVids.haveRemoved':'Clear videos removed for "{{level_name}}" by "{{creator}}" {{{bam}}}\n',
+  'addVids.noNew':'No new videos added for "{{level_name}}" by "{{creator}}"\n',
+  'addVids.noRemoved':'No videos have been removed for "{{level_name}}" by "{{creator}}"\n',
 
   'register.already':'You\'re already registered as **{{name}}**',
   'register.nameTaken':'\'{{name}}\' has already been registered by someone else. Please use another nickname',

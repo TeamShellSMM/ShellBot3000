@@ -65,7 +65,7 @@ describe('!addtags,!removetags',()=>{
       cmd: '!addtags xxx-xxx-xxx tag1,tag2,tag3',
       channel: 'general',
       discord_id: '256',
-    }),'<@256> Tags added for "approved level" by "Creator "\nCurrent tags:```\ntag1\ntag2\ntag3```')
+    }),'<@256> Tags added for "approved level" by "Creator" \nCurrent tags:```\ntag1\ntag2\ntag3```')
     const level=await TEST.ts.db.Levels.query().where({code:'XXX-XXX-XXX'}).first()
     assert.equal(level.tags,'tag1,tag2,tag3')
   })

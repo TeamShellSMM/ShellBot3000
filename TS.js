@@ -1,25 +1,26 @@
 'use strict'
+const crypto=require('crypto');
+const moment=require('moment');
+const knex = require('./db/knex');
+const jwt = require('jsonwebtoken');
+const DEFAULTMESSAGES=require("./DefaultStrings.js");
+const DiscordLog = require('./DiscordLog');
 const stringSimilarity = require('string-similarity')
 const Handlebars = require("handlebars");
+/* istanbul ignore next */
 Handlebars.registerHelper('plural', function(num){
   return num>1 || num==0 ? 's' : ''
 });
 
+/* istanbul ignore next */
 Handlebars.registerHelper('1dp', function(num){
   if(typeof num==='number') return num.toFixed(1)
   if(typeof num==='string' && !isNaN(num)) return Number(num).toFixed(1)
   return num
 });
 
-const crypto=require('crypto');
-const moment=require('moment');
-const knex = require('./db/knex');
-const jwt = require('jsonwebtoken');
 /* istanbul ignore next */
 const server_config = require('./config.json')[process.env.NODE_ENV || 'development'];
-const DEFAULTMESSAGES=require("./DefaultStrings.js");
-const DiscordLog = require('./DiscordLog');
-
 
 const defaultChannels=[
   {name:'modChannel',default:'bot-mod-channel',description:'The only channel where mod commands will work (approve,rerate). Only mods should be able to send/read channel'},

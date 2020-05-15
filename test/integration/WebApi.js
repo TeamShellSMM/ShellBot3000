@@ -10,6 +10,7 @@ describe('Web Apis', function () {
           name: 'Creator',
           discord_id: '256',
           maker_id:'111-111-111',
+          is_member:1,
           maker_name:'SMM2',
           world_description:'Super Maker World',
           world_world_count:5,
@@ -51,12 +52,22 @@ describe('Web Apis', function () {
 
         assert.lengthOf(body.levels,1,'one levels in db')
 
-        delete body.levels[0].created_at
-        delete body.levels[0].id
         assert.equal(body.levels[0].code,"XXX-XXX-XXX")
         assert.equal(body.levels[0].level_name,"EZ GG")
         assert.equal(body.levels[0].creator,"Creator")
 
+      })
+
+      it('POST /json/login', async function (){
+        const {body} =await TEST.request(app)
+          .post('/json/login')
+          .send({ url_slug:TEST.ts.url_slug,otp:'wrong token'})
+          .expect('Content-Type', /json/)
+          .expect(200)
+          assert.deepEqual(body,{
+            status: 'error',
+            message: 'Your one time password was incorrect. You can run !login in AutoTest\'s discord server to get another code',
+          })
       })
 
       it('POST /json, level details', async function (){
@@ -97,7 +108,7 @@ describe('Web Apis', function () {
 
       })
 
-      it('POST /json/worlds', async function (){
+      it('POST /json/worlds all', async function (){
         const { body } = await TEST.request(app)
           .post('/json/worlds')
           .send({ url_slug:TEST.ts.url_slug})
@@ -111,7 +122,57 @@ describe('Web Apis', function () {
         assert.equal(body.data[0].world_name,'Super Maker World');
       })
 
-      it('POST /json/members', async function (){
+      it('POST /json/worlds members', async function (){
+        const { body } = await TEST.request(app)
+          .post('/json/worlds')
+          .send({ 
+            url_slug:TEST.ts.url_slug, 
+            membershipStatus:'1',
+          })
+          .expect('Content-Type', /json/)
+          .expect(200)
+
+        assert.notEqual(body.status,'error')
+
+        assert.exists(body.data)
+        assert.lengthOf(body.data,1)
+        assert.equal(body.data[0].world_name,'Super Maker World');
+      })
+
+      it('POST /json/worlds mods', async function (){
+        const { body } = await TEST.request(app)
+          .post('/json/worlds')
+          .send({ 
+            url_slug:TEST.ts.url_slug, 
+            membershipStatus:'2',
+          })
+          .expect('Content-Type', /json/)
+          .expect(200)
+
+        assert.notEqual(body.status,'error')
+
+        assert.exists(body.data)
+        assert.lengthOf(body.data,0)
+      })
+
+      it('POST /json/worlds unoffical', async function (){
+        const { body } = await TEST.request(app)
+          .post('/json/worlds')
+          .send({ 
+            url_slug:TEST.ts.url_slug, 
+            membershipStatus:'4',
+          })
+          .expect('Content-Type', /json/)
+          .expect(200)
+
+        assert.notEqual(body.status,'error')
+
+        assert.exists(body.data)
+        assert.lengthOf(body.data,0)
+        //assert.equal(body.data[0].world_name,'Super Maker World');
+      })
+
+      it('POST /json/members ', async function (){
         //const user=await TEST.ts.get_user(discord_id)
         const { body } = await TEST.request(app)
           .post('/json/members')
@@ -233,6 +294,17 @@ describe('Web Apis', function () {
       assert.equal(body.levels[0].code,"XXX-XXX-XXX")
       assert.equal(body.levels[0].level_name,"EZ GG")
       assert.equal(body.levels[0].creator,"Creator")
+
+    })
+
+    it('POST /feedback', async function (){
+      const { body } = await TEST.request(app)
+        .post('/feedback')
+        .send({ url_slug:TEST.ts.url_slug, token:'123',message:'yes'})
+        .expect('Content-Type', /json/)
+        .expect(200)
+
+      assert.deepEqual(body,{ status: 'successful', url_slug: 'makerteam' })
 
     })
   })

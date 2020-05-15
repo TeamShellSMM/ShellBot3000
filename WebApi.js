@@ -10,7 +10,7 @@ const TS=require('./TS');
 const deepEqual=require('deep-equal');
 
 
-module.exports = async function(config,client){
+module.exports = async function(client){
   if(!client) throw new Error(`DiscordClient is not defined`);
   const app = express();
   app.use(bodyParser.json());
@@ -753,7 +753,7 @@ app.post('/json/worlds',web_ts(async (ts,req)=>{
 
     let ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
     let discordId = req.body.discord_id;
-    await ts.putFeedback(ip, discordId, ts.config.config.feedback_salt, req.body.message);
+    await ts.putFeedback(ip, discordId, ts.config.feedback_salt, req.body.message);
     return { status: "successful"}
 
   }))
@@ -763,10 +763,10 @@ app.post('/json/worlds',web_ts(async (ts,req)=>{
       if(!req.body.otp) ts.userError(ts.message("login.noOTP"));
 
 
-      let token=await ts.db.Tokens.query()
+      let token=await ts.db.Tokens
+        .query()
         .where('token','=',req.body.otp)
-
-      if(token.length){
+      if(token && token.length>0){
         token=token[0]
         let tokenExpireAt=moment(token.created_at).add(30,'m').valueOf()
         let now=moment().valueOf()
