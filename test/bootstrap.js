@@ -227,11 +227,19 @@ const defaultRanks=[{admin_id:1,guild_id:1,min_points:0,rank:'no rank',pips:'',d
     `,[table]);
   }
 
-  const all_tables=['plays','pending_votes','levels','members','tokens','competition_winners','tags','seasons'];
   global.TEST.clearDb=async(trx)=>{
-    for(let table of all_tables){
-      await TEST.clearTable(table,trx)
-    }
+    return await (trx || TEST.knex).raw(`
+      SET FOREIGN_KEY_CHECKS = 0; 
+      TRUNCATE table plays;
+      TRUNCATE table pending_votes;
+      TRUNCATE table levels;
+      TRUNCATE table members;
+      TRUNCATE table tokens;
+      TRUNCATE table competition_winners;
+      TRUNCATE table tags;
+      TRUNCATE table seasons;
+      SET FOREIGN_KEY_CHECKS = 1;
+    `);
   }
 
 
@@ -305,11 +313,11 @@ const defaultRanks=[{admin_id:1,guild_id:1,min_points:0,rank:'no rank',pips:'',d
       function fulfill(){
         clearTimeout(clearId);
         TEST.message.author.id=TEST.bot_id
-        TEST.ts.promisedCallback=null
+        TEST.TS.promisedCallback=null
         _fulfill(result());
       }
       clearId=setTimeout(fulfill,waitFor)
-      TEST.ts.promisedCallback=fulfill
+      TEST.TS.promisedCallback=fulfill
       TEST.ts.promisedReject=reject
     })
   }

@@ -37,10 +37,11 @@ describe('misc-integration',()=>{
   });
 
   it('!refresh', async ()=>{
+    await TEST.ts.db.Members.query().patch({is_mod:1}).where({discord_id:128})
     assert.equal(await TEST.mockBotSend({
       cmd: '!refresh',
       channel: 'general',
-      discord_id: '256',
+      discord_id: '128',
     }),'Reloaded data!');
   })
 
@@ -51,5 +52,24 @@ describe('misc-integration',()=>{
       discord_id: '256',
     }),'You can find all the commands at <https://makerteams.net/features>');
   })
+
+  /* 
+  it('tscommand wrong guild', async (done)=>{
+    const old=TEST.message.guild.id
+    TEST.message.guild.id='invalid'
+    const test=await TEST.mockBotSend({
+      cmd: '!commands',
+      channel: 'general',
+      discord_id: '256',
+    }).catch((e)=>{
+      console.log('here')
+      assert.instanceOf(e,Error)
+      assert.equal(e.message,'yes')
+    })
+    TEST.message.guild.id=old  
+    
+  })
+
+  */
 
 })

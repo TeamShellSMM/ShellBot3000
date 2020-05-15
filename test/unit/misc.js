@@ -227,5 +227,37 @@ describe('misc-unit', function () {
     assert.isFalse(await TEST.ts.is_smm1())
   })
   
+  it('ts.randomLevel invalid difficulty',async ()=>{
+    const level=await TEST.ts.randomLevel({
+      minDifficulty:'invalid',
+    })
+    .catch((e)=>{
+      assert.instanceOf(e,TEST.TS.UserError)
+      assert.equal(e.message,'You didn\'t specify a valid difficulty')
+    })
+    assert.notExists(level)
+  })
 
+  it('ts.randomLevel invalid difficulty with max difficulty',async ()=>{
+    const level=await TEST.ts.randomLevel({
+      minDifficulty:'invalid',
+      maxDifficulty:5,
+    })
+    .catch((e)=>{
+      assert.instanceOf(e,TEST.TS.UserError)
+      assert.equal(e.message,'You didn\'t specify a valid minimum difficulty')
+    })
+    assert.notExists(level)
+  })
+  it('ts.randomLevel invalid max difficulty',async ()=>{
+    const level=await TEST.ts.randomLevel({
+      minDifficulty:1,
+      maxDifficulty:'invalid',
+    })
+    .catch((e)=>{
+      assert.instanceOf(e,TEST.TS.UserError)
+      assert.equal(e.message,'You didn\'t specify a valid maximum difficulty')
+    })
+    assert.notExists(level)
+  })
 })
