@@ -1,6 +1,7 @@
 const TSCommand = require('../TSCommand.js');
 /* istanbul ignore next */
-const config = require('../config.json')[process.env.NODE_ENV || 'development']
+var environment = process.env.NODE_ENV || 'development'
+const config = require('../config.json')[environment]
 class AmmendCode extends TSCommand {
   constructor() {
   super('ammendcode', {
