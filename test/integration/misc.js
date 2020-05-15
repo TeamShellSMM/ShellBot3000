@@ -1,4 +1,4 @@
-describe('!addtags,!removetags',()=>{
+describe('misc-integration',()=>{
   beforeEach(async () => {
     await TEST.setupData({
       Members: [{

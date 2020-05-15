@@ -8,10 +8,10 @@ global.TEST.knex= require('../db/knex');
 global.TEST.request = require('supertest');
 global.TEST.config = require('../config.json')['test']; //force testing TEST.config
 global.TEST.config.defaultCooldown=0;
-global.TS=require('../TS.js')
+global.TEST.TS=require('../TS.js')
 let DiscordLog=require('../DiscordLog');
-DiscordLog.log=(obj,client)=>{}
-DiscordLog.error=(obj,client)=>{ console.log(obj) }
+DiscordLog.log=()=>{}
+DiscordLog.error=(obj)=>{ console.log(obj) }
 
 
 
@@ -188,7 +188,7 @@ const defaultRanks=[{admin_id:1,guild_id:1,min_points:0,rank:'no rank',pips:'',d
   })
   
 
-  global.TEST.ts=await TS.add(TEST.config.AutomatedTest,global.TEST.client)
+  global.TEST.ts=await TEST.TS.add(TEST.config.AutomatedTest,global.TEST.client)
 
   global.app = await WebApi(TEST.client);
 

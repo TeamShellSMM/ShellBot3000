@@ -156,7 +156,7 @@ app.post('/json/login', web_ts(async (ts,req) => {
     assert.equal(dbResult[0].authenticated,0,"shouldn't be logged in yet")
     assert.lengthOf(dbResult[0].token,16,'check length of token')
     otp=dbResult[0].token
-    assert.deepEqual(body,{"status":"error","message":TS.message('api.noslug')},'Error with no slug')
+    assert.deepEqual(body,{"status":"error","message":TEST.TS.message('api.noslug')},'Error with no slug')
   })
 
   /*

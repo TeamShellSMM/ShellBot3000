@@ -1078,13 +1078,13 @@ class TS {
     this.get_user = async function (message) {
       let discord_id = message && message.author ? message.author.id : message;
       if (!discord_id) {
-        ts.userError(ts.message('error.noDiscordId'));
+        ts.userError('error.noDiscordId');
       }
       var player = await ts.db.Members.query().where({ discord_id }).first();
       if (!player)
-        ts.userError(ts.message("error.notRegistered"));
+        ts.userError("error.notRegistered");
       if (player.is_banned)
-        ts.userError(ts.message("error.userBanned"));
+        ts.userError("error.userBanned");
       player.created_at = player.created_at.toString();
       player.earned_points = await this.calculatePoints(player.name);
       player.rank = this.get_rank(player.earned_points.clearPoints);
@@ -1153,17 +1153,13 @@ class TS {
     this.approve = async function (args) {
       //Check if vote already exists
       const shellder = await ts.get_user(args.discord_id);
-      const level = await ts.getExistingLevel(args.code);
-      const author = await ts.db.Members.query().where({ id: level.creator_id }).first();
+      const level = await ts.getExistingLevel(args.code,true);
       var vote = await ts.getPendingVotes().where("levels.id", level.id).where("player", shellder.id).first();
       if (!vote) {
         //We only check reason if we have no vote yet
         if (!args.reason) {
           ts.userError(ts.message("approval.changeReason"));
         }
-      }
-      if (!author) {
-        ts.userError(ts.message("approval.creatorNotFound"));
       }
       //Check if level is approved, if it's approved only allow rejection
       if (level.status === ts.LEVEL_STATUS.APPROVED) {
@@ -1189,10 +1185,12 @@ class TS {
         let updateJson = {
           type: args.type,
         };
-        if (args.reason)
+        if (args.reason){
           updateJson.reason = args.reason;
-        if (args.difficulty)
-          updateJson.difficulty_vote = args.difficulty || null;
+        }
+        if (args.difficulty){
+          updateJson.difficulty_vote = args.difficulty;
+        }
         await ts.db.PendingVotes.query().findById(vote.id).patch(updateJson);
       }
       //generate judgement embed
@@ -1234,8 +1232,9 @@ class TS {
         }
       }
       if (!discussionChannel) {
-        if (guild.channels.get(parentID).children.size === 50)
+        if (guild.channels.get(parentID).children.size === 50){
           ts.userError(tooManyChannelsError);
+        }
         discussionChannel = await guild.createChannel(channel_name, {
           type: 'text',
           parent: guild.channels.get(parentID)
@@ -1395,8 +1394,6 @@ class TS {
     this.judge = async function (code, fromFix = false) {
       const level = await ts.getExistingLevel(code, fromFix);
       const author = await ts.db.Members.query().where({ name: level.creator }).first();
-      if (!author)
-        ts.userError(ts.message("approval.creatorNotFound"));
       if (!PENDING_LEVELS.includes(level.status)) {
         ts.userError(ts.message("approval.levelNotPending"));
       }
@@ -1436,7 +1433,7 @@ class TS {
         }
         difficulty = Math.round((diffSum / diffCounter) * 2) / 2;
       }
-      if (statusUpdate != null && statusUpdate !== 0) {
+
         await ts.db.Levels.query()
           .patch({ status: statusUpdate, difficulty })
           .where({ code });
@@ -1450,10 +1447,6 @@ class TS {
         await client.channels.get(ts.channels.levelChangeNotification).send(judgeEmbed);
         //Remove Discussion Channel
         await ts.deleteDiscussionChannel(level.code, ts.message("approval.channelDeleted"));
-      }
-      else {
-        throw new Error('status updated was null or 0 but was not thrown before');
-      }
     };
     this.rejectLevelWithReason = async function (code, shellder, message) {
       let level = await ts.getLevels().where({ code }).first();
@@ -1514,10 +1507,10 @@ class TS {
           (vidStr ? "Clear Video: " + vidStr : ""));
       if (title)
         embed.setAuthor(ts.message(title, titleArgs));
-      if (image)
+      if (image){
         image = this.getEmoteUrl(image);
-      if (image)
         embed.setThumbnail(image);
+      }
       if (!noLink) {
         embed.setURL(server_config.page_url + ts.url_slug + "/level/" + level.code);
       }
@@ -1576,8 +1569,9 @@ class TS {
       if (!new_level && !(ts.SHOWN_IN_LIST.includes(level.status) ||
         !ts.SHOWN_IN_LIST.includes(level.status) && creator_points.canUpload))
         ts.userError(ts.message("reupload.notEnoughPoints"));
-      if (!(level.creator_id == player.id || player.is_mod))
+      if (!(level.creator_id == player.id || player.is_mod)){
         ts.userError(ts.message("reupload.noPermission", level));
+      }
       await ts.db.Levels.query().patch({
         status: level.status == ts.LEVEL_STATUS.APPROVED ? ts.LEVEL_STATUS.REUPLOADED : ts.LEVEL_STATUS.REMOVED,
         old_status: level.status,
@@ -1627,8 +1621,9 @@ class TS {
         await channel.send(`Reupload Request for <@${author.discord_id}>'s level with message: ${reason}`);
       }
       let reply = ts.message("reupload.success", { level, new_code });
-      if (!new_level)
+      if (!new_level){
         reply += ts.message("reupload.renamingInstructions");
+      }
       if (newStatus !== ts.LEVEL_STATUS.PENDING)
         reply += ts.message("reupload.inReuploadQueue");
       await ts.recalculateAfterUpdate();
@@ -1930,7 +1925,7 @@ class TS {
     if (TS.defaultMessages[type]) {
       return TS.defaultMessages[type](args);
     }
-    throw `"${type}" message string was not found in ts.message`;
+    throw new Error(`"${type}" message string was not found in ts.message`);
   }
   /**
    * Get a team
@@ -1947,6 +1942,7 @@ class TS {
   /**
    * Registers a new team when they run it in a discord server that is not registered
    */
+  /*
   static async create(args, client, gs) {
     if (!args)
       throw new Error(`No arguments passed to TS.create`);
@@ -1956,16 +1952,14 @@ class TS {
     if (!existingTeam) {
       await Team.query().insert(args);
       let existingTeam = await Team.query().where({ guild_id }).first();
-      if (!existingTeam)
-        new Error(`Can't get get row after inserting`);
       return await TS.add(existingTeam.guild_id, existingTeam, client, gs);
     }
     else {
       throw new Error(`Server already registered as ${existingTeam.guild_name}`);
     }
   }
+  */
 }
-//points,levelsUploaded,freeLevels,min,next
 TS.TS_LIST={}
 TS.UserError=UserError;
 

@@ -22,7 +22,7 @@ module.exports={
   'level.didYouMean':' Did you mean:```\n{{{level_info}}}```', 
 
   'error.hadIdButNotInDb':'We got a row id, but we could not find it in the database',
-  'error.noDiscordId':'We couldn\'t find your `discord id',
+  'error.noDiscordId':'We couldn\'t find your discord id',
   'clear.noArgs':'There were no arguments in the request',
   'clear.invalidDifficulty':'You did not provide a valid difficulty vote', 
   'clear.ownLevel':'You can\'t submit a clear for your own level', 
