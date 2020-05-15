@@ -647,8 +647,6 @@ class TS {
      * Helper function to convert a long text and embeds them as fields to a DiscordEmbed
      */
     this.embedAddLongField = function (embed, body, header = "\u200b") {
-      if (!header)
-        header = "\u200b";
       var bodyArr = body ? body.split(".") : [];
       var bodyStr = [""];
       for (var k = 0, l = 0; k < bodyArr.length; k++) {
@@ -693,7 +691,9 @@ class TS {
      * @param {...TsClearParam} args Arguments to be supplied from either !clear or the website
      * @return {string} A response string to be sent to the user.
      */
-    this.clear = async ({ discord_id, code, completed, liked, difficulty, strOnly }) => {
+    this.clear = async (args={}) => {
+      let { discord_id, code, completed, liked, difficulty, strOnly }=args
+
       if (!discord_id)
         ts.userError(ts.message("error.noDiscordId"));
       if (difficulty === "like") {
@@ -704,7 +704,9 @@ class TS {
         difficulty = null;
         liked = 0;
       }
+
       if (liked === "like") {
+        
         liked = 1;
       }
       if (liked === "unlike") {

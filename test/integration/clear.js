@@ -150,15 +150,42 @@ describe('!clears', function () {
     }),'<@128> \n ‣You have cleared \'level2\'  by Creator \n ‣This level is still pending')
   })
 
-  it('clear with like and difficulty', async function () {
-    const result = await TEST.mockBotSend({
+  it('!clear like/unlike argument',async()=>{
+    assert.equal(await TEST.mockBotSend({
       cmd: '!clear XXX-XXX-XXX 5 like',
       channel: 'general',
       discord_id: '128',
-    })
-    assert.equal(result,'<@128> \n ‣You have cleared \'level1\'  by Creator \n ‣You have earned 1.0 point\n ‣You also have voted 5.0 as the difficulty for this level ')
+    }),'<@128> \n ‣You have cleared \'level1\'  by Creator \n ‣You have earned 1.0 point\n ‣You also have voted 5.0 as the difficulty for this level \n ‣You also have liked this level ')
+
+    assert.equal(await TEST.mockBotSend({
+      cmd: '!clear XXX-XXX-XXX 5 unlike',
+      channel: 'general',
+      discord_id: '128',
+    }),'<@128> \n ‣You have already submitted a clear for \'level1\'  by Creator\n ‣You have already voted 5 for this level \n‣You also have unliked this level ')
   })
 
+  it('!clear like/unlike argument',async()=>{
+    assert.equal(await TEST.mockBotSend({
+      cmd: '!clear XXX-XXX-XXX like',
+      channel: 'general',
+      discord_id: '128',
+    }),'<@128> \n ‣You have cleared \'level1\'  by Creator \n ‣You have earned 1.0 point\n ‣You also have liked this level ')
+
+    assert.equal(await TEST.mockBotSend({
+      cmd: '!clear XXX-XXX-XXX unlike',
+      channel: 'general',
+      discord_id: '128',
+    }),'<@128> \n ‣You have already submitted a clear for \'level1\'  by Creator\n‣You have unliked this level ')
+  })
+
+  it('!clear with creator having atme',async()=>{
+    await TEST.ts.db.Members.query().patch({atme:1}).where({discord_id:'256'});
+    assert.equal(await TEST.mockBotSend({
+      cmd: '!clear XXX-XXX-XXX 5 like',
+      channel: 'general',
+      discord_id: '128',
+    }),'<@128> \n ‣You have cleared \'level1\'  by <@256> \n ‣You have earned 1.0 point\n ‣You also have voted 5.0 as the difficulty for this level \n ‣You also have liked this level ')
+  })
 
   it('clear with like and difficulty 2.5 points earned', async function () {
     const result = await TEST.mockBotSend({
@@ -166,7 +193,7 @@ describe('!clears', function () {
       channel: 'general',
       discord_id: '128',
     })
-    assert.equal(result,'<@128> \n ‣You have cleared \'level4\'  by Creator \n ‣You have earned 2.5 points\n ‣You also have voted 5.0 as the difficulty for this level ')
+    assert.equal(result,'<@128> \n ‣You have cleared \'level4\'  by Creator \n ‣You have earned 2.5 points\n ‣You also have voted 5.0 as the difficulty for this level \n ‣You also have liked this level ')
   })
 
   it('!difficulty (a !clear with 0 completed and like)',async()=>{

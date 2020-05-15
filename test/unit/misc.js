@@ -116,12 +116,38 @@ describe('misc-unit', function () {
   })
 
   it('ts.get_USER no discord_id ',async ()=>{
-    await TEST.ts.get_user()
+    const user=await TEST.ts.get_user()
     .catch((e)=>{
       assert.instanceOf(e,TEST.TS.UserError)
       assert.equal(e.message,'We couldn\'t find your discord id')
     })
+    assert.notExists(user)
   })
+
+  it('ts.clear no argument',async ()=>{
+    const reply=await TEST.ts.clear()
+    .catch((e)=>{
+      assert.instanceOf(e,TEST.TS.UserError)
+      assert.equal(e.message,'We couldn\'t find your discord id')
+    })
+    assert.notExists(reply)
+  })
+
+  it('ts.commandPassedBoolean invalid value',async ()=>{
+    assert.isNull(await TEST.ts.commandPassedBoolean('invalid'))
+    assert.isNull(await TEST.ts.commandPassedBoolean(''))
+  })
+  
+
+  it('ts.clear no argument',async ()=>{
+    const reply=await TEST.ts.clear({discord_id:'256',difficulty:''})
+    .catch((e)=>{
+      assert.instanceOf(e,TEST.TS.UserError)
+      assert.equal(e.message,'There were no arguments in the request')
+    })
+    assert.notExists(reply)
+  })
+
   it('ts.updatePinned no parameters',async ()=>{
     await TEST.ts.updatePinned()
     .catch((e)=>{
@@ -176,6 +202,29 @@ describe('misc-unit', function () {
       assert.equal(e.message,'You did not give a level code')
     })
     assert.notExists(level)
+  })
+
+  it('ts.embedAddLongField',async ()=>{
+    const level=await TEST.ts.getExistingLevel('XXX-XXX-XX2')
+    const embed=await TEST.ts.levelEmbed(level)
+    TEST.ts.embedAddLongField(embed,'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent id ligula mauris. Cras vulputate ullamcorper tortor, a congue ante aliquet venenatis. Pellentesque pulvinar ultrices eros sed blandit. Nullam vulputate efficitur libero, quis commodo diam malesuada id. Nulla posuere ut mauris in pellentesque. Vivamus volutpat urna ut tincidunt tincidunt. Donec gravida posuere odio, rhoncus mollis ligula accumsan non. Proin ut pellentesque nunc. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Curabitur in vulputate metus. Maecenas auctor imperdiet mollis. Aenean vitae luctus sapien. Nunc pharetra quis ligula et viverra. Nunc quis dolor luctus, molestie ex sed, porttitor ligula. Suspendisse non pharetra dolor. Praesent justo lorem, imperdiet et dictum et, vestibulum quis lacus. Nulla sollicitudin mollis lacus a efficitur. Etiam tristique varius nibh, id venenatis erat interdum eu. Curabitur pharetra risus sit amet dictum condimentum. Phasellus neque purus, ullamcorper id lectus ac, tempus rhoncus felis. Praesent nec est neque. Sed tincidunt mauris id est placerat scelerisque. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Aliquam eu sagittis lectus. Vestibulum quis nibh lacinia, scelerisque quam ut, vestibulum velit. Nulla eu viverra massa. Phasellus sed elementum est, eu tristique mauris. In dapibus urna metus, dapibus porttitor nunc elementum ac.');
+    assert.lengthOf(embed.fields,2)
+  })
+
+  it('ts.getEmoteUrl no arguments',async ()=>{
+    assert.equal(await TEST.ts.getEmoteUrl(),'')
+  })
+  
+  it('ts.valid_code no arguments',async ()=>{
+    assert.isFalse(await TEST.ts.valid_code())
+  })
+
+  it('ts.is_smm2 no arguments',async ()=>{
+    assert.isFalse(await TEST.ts.is_smm2())
+  })
+
+  it('ts.is_smm1 no arguments',async ()=>{
+    assert.isFalse(await TEST.ts.is_smm1())
   })
   
 

@@ -14,7 +14,7 @@ class TSClear extends TSCommand {
                     default: null,
                 },{
                     id: 'liked',
-                    type: 'integer',
+                    type: 'string',
                     default: null
                 }],
            channelRestriction: 'guild'
