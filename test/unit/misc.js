@@ -59,4 +59,20 @@ describe('misc-unit', function () {
     })
   })
 
+  it('ts.getWebUserError not user error',async ()=>{
+    assert.deepEqual(await TEST.ts.getWebUserErrorMsg(new Error('not user error')),{ status: 'error', message: 'something went wrong buzzyS' })
+  })
+
+  it('ts.getUserError not user error',async ()=>{
+    assert.deepEqual(await TEST.ts.getUserErrorMsg(new Error('not user error'),{
+      content:'mock',
+      author:{
+        username:'mock',
+      },
+      channel:{
+        id:1,
+      },
+    }),'something went wrong buzzyS')
+  })
+
 })

@@ -1505,8 +1505,9 @@ class TS {
           ("Difficulty: " + level.difficulty + ", Clears: " + level.clears + ", Likes: " + level.likes + "\n") +
           (tagStr ? "Tags: " + tagStr + "\n" : "") +
           (vidStr ? "Clear Video: " + vidStr : ""));
-      if (title)
+      if (title){
         embed.setAuthor(ts.message(title, titleArgs));
+      }
       if (image){
         image = this.getEmoteUrl(image);
         embed.setThumbnail(image);
@@ -1530,8 +1531,9 @@ class TS {
       else {
         ts.userError(ts.message("reupload.noOldCode"));
       }
-      if (!ts.valid_code(old_code))
+      if (!ts.valid_code(old_code)) {
         ts.userError(ts.message("reupload.invalidOldCode"));
+      }
       let new_code = command.arguments.shift();
       if (new_code) {
         new_code = new_code.toUpperCase();
@@ -1567,8 +1569,9 @@ class TS {
       if (level.new_code)
         ts.userError(ts.message("reupload.haveReuploaded", { code: level.new_code }));
       if (!new_level && !(ts.SHOWN_IN_LIST.includes(level.status) ||
-        !ts.SHOWN_IN_LIST.includes(level.status) && creator_points.canUpload))
+        !ts.SHOWN_IN_LIST.includes(level.status) && creator_points.canUpload)){
         ts.userError(ts.message("reupload.notEnoughPoints"));
+      }
       if (!(level.creator_id == player.id || player.is_mod)){
         ts.userError(ts.message("reupload.noPermission", level));
       }

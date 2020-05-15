@@ -95,7 +95,7 @@ module.exports={
   'reupload.wrongApprovedStatus':'The new level is not approved, pending or in a fix request',
   'reupload.notEnoughPoints':'Creator doesn\'t have enough points to upload a new level',
   'reupload.haveReuploaded':'Old level has already been reuploaded with Code {{code}}',
-  'reupload.noPermission':'You can\'t reupload \'{{{level.level_name}}}\' by {{level.creator}}',
+  'reupload.noPermission':'You can\'t reupload \'{{{level_name}}}\' by {{creator}}',
   'reupload.tooManyReuploadChannels':'Can\'t handle the request right now because there are already 50 open reupload requests (this should really never happen)!',
   'reupload.reuploadNotify':'This level has been reuploaded from {{old_code}} to {{new_code}}.',
   'reupload.success':'You have reuploaded \'{{{level.level_name}}}\' by {{level.creator}} with code `{{new_code}}`. {{{bam}}}',

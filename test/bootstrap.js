@@ -11,7 +11,7 @@ global.TEST.config.defaultCooldown=0;
 global.TEST.TS=require('../TS.js')
 let DiscordLog=require('../DiscordLog');
 DiscordLog.log=()=>{}
-DiscordLog.error=(obj)=>{ console.log(obj) }
+DiscordLog.error=()=>{}
 
 
 
@@ -69,6 +69,7 @@ before(async()=>{
     {guild_id:1,name:'feedbackChannel',value:'704991254072786944',type:'channels',admin_id:1},
     {guild_id:1,name:'pendingReuploadCategory',value:'709534212306239489',type:'channels',admin_id:1},
     {guild_id:1,name:'levelDiscussionCategory',value:'709534284905709578',type:'channels',admin_id:1},
+    {guild_id:1,name:'approvedEmote',value:'<:test:123>',type:'settings',admin_id:1},
   ];
 
 const points=[
