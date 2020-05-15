@@ -34,7 +34,7 @@ describe('!add/remove vids',()=>{
       cmd: '!addvids xxx-xxx-xxx https://youtube.com,https://clips.twitch.tv',
       channel: 'general',
       discord_id: '256',
-    }),'<@256> Clear videos added for  "approved level" (XXX-XXX-XXX)\nCurrent Videos:```\nhttps://youtube.com\nhttps://clips.twitch.tv```')
+    }),'<@256> Clear videos added for "approved level" by "Creator" \nCurrent videos:```\nhttps://youtube.com\nhttps://clips.twitch.tv```')
   })
   
   it('!addvid success, delimited with \\n', async ()=>{
@@ -42,7 +42,7 @@ describe('!add/remove vids',()=>{
       cmd: '!addvids xxx-xxx-xxx \nhttps://youtube.com\nhttps://clips.twitch.tv',
       channel: 'general',
       discord_id: '256',
-    }),'<@256> Clear videos added for  "approved level" (XXX-XXX-XXX)\nCurrent Videos:```\nhttps://youtube.com\nhttps://clips.twitch.tv```')
+    }),'<@256> Clear videos added for "approved level" by "Creator" \nCurrent videos:```\nhttps://youtube.com\nhttps://clips.twitch.tv```')
   })
 
   it('!addvid success, delimited with space', async ()=>{
@@ -50,8 +50,25 @@ describe('!add/remove vids',()=>{
       cmd: '!addvids xxx-xxx-xxx https://youtube.com https://clips.twitch.tv',
       channel: 'general',
       discord_id: '256',
-    }),'<@256> Clear videos added for  "approved level" (XXX-XXX-XXX)\nCurrent Videos:```\nhttps://youtube.com\nhttps://clips.twitch.tv```')
+    }),'<@256> Clear videos added for "approved level" by "Creator" \nCurrent videos:```\nhttps://youtube.com\nhttps://clips.twitch.tv```')
   })
+
+  it('!addvid no code', async ()=>{
+    assert.equal(await TEST.mockBotSend({
+      cmd: '!addvids',
+      channel: 'general',
+      discord_id: '256',
+    }),'You did not give a level code ')
+  })
+  
+  it('!addvid no vids', async ()=>{
+    assert.equal(await TEST.mockBotSend({
+      cmd: '!addvids xxx-xxx-xxx',
+      channel: 'general',
+      discord_id: '256',
+    }),'You didn\'t give any links ')
+  })
+  
 
   it('!addvid not valid url', async ()=>{
     assert.equal(await TEST.mockBotSend({
@@ -66,7 +83,7 @@ describe('!add/remove vids',()=>{
       cmd: '!addvids XXX-XXX-XX2 https://youtube.com',
       channel: 'general',
       discord_id: '256',
-    }),'No new clear video added for "pending level" by Creator\nCurrent Videos:```\nhttps://youtube.com\nhttps://twitch.tv``` ')
+    }),'No new clear video added for "pending level" by CreatorCurrent videos:```\nhttps://youtube.com\nhttps://twitch.tv``` ')
   })
 
   it('!removevid success', async ()=>{
@@ -74,7 +91,7 @@ describe('!add/remove vids',()=>{
       cmd: '!removevids XXX-XXX-XX2 https://youtube.com',
       channel: 'general',
       discord_id: '256',
-    }),'<@256> Clear videos removed for  "pending level" (XXX-XXX-XX2)\nCurrent Videos:```\nhttps://twitch.tv```')
+    }),'<@256> Clear videos removed for "pending level" by "Creator" \nCurrent videos:```\nhttps://twitch.tv```')
   })
 
   it('!removevid success by mod', async ()=>{
@@ -82,7 +99,7 @@ describe('!add/remove vids',()=>{
       cmd: '!removevids XXX-XXX-XX2 https://youtube.com',
       channel: 'general',
       discord_id: '128',
-    }),'<@128> Clear videos removed for  "pending level" (XXX-XXX-XX2)\nCurrent Videos:```\nhttps://twitch.tv```')
+    }),'<@128> Clear videos removed for "pending level" by "Creator" \nCurrent videos:```\nhttps://twitch.tv```')
   })
 
   it('!removevid fail by other player', async ()=>{
@@ -90,7 +107,7 @@ describe('!add/remove vids',()=>{
       cmd: '!removevids XXX-XXX-XX2 https://youtube.com',
       channel: 'general',
       discord_id: '512',
-    }),'You can\'t remove videos from  "pending level" by Creator ')
+    }),'You can\'t remove videos from "pending level" by "Creator" ')
   })
 
   it('!removevid none', async ()=>{
@@ -98,7 +115,7 @@ describe('!add/remove vids',()=>{
       cmd: '!removevids XXX-XXX-XX2 https://clips.twitch.tv',
       channel: 'general',
       discord_id: '256',
-    }),'No clear videos have been removed for "pending level" (XXX-XXX-XX2)\nCurrent Videos:```\nhttps://youtube.com\nhttps://twitch.tv``` ')
+    }),'No videos have been removed for "pending level" by "Creator"\nCurrent videos:```\nhttps://youtube.com\nhttps://twitch.tv``` ')
   })
 
 })

@@ -9,7 +9,7 @@ exports.up = function(knex) {
     t.integer('guild_id').notNull()
     t.string('type').notNull();
     t.string('name').notNull();
-    t.string('value').nullable();
+    t.text('value').nullable();
     t.integer('admin_id').notNull();
 
     t.foreign('admin_id').references('id').inTable('members');

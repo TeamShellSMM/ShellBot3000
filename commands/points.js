@@ -19,8 +19,8 @@ class points extends TSCommand {
         if(role=="role" || role=="norole"){
           await message.member.removeRoles(ts.rank_ids)
         }
-        if(role=="role" && player.rank.discord_roles && player.rank.discord_roles.length > 0){
-          await message.member.addRole(player.rank.discord_roles)
+        if(role=="role" && player.rank.discord_role && player.rank.discord_role.length > 0){
+          await message.member.addRole(player.rank.discord_role)
         }
 
         var msg=ts.message("points.points",{ player })
@@ -29,7 +29,7 @@ class points extends TSCommand {
            msg+=ts.message("points.canUpload");
         } else {
            msg+=ts.message("points.cantUpload",{
-             points_earned:player.earned_points.pointsNeeded
+             points_needed:player.earned_points.pointsNeeded
            })
         }
         msg+=ts.message("points.rank",{ player })

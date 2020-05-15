@@ -1,6 +1,7 @@
 const TSCommand = require('../TSCommand.js');
 /* istanbul ignore next */
-const config = require('../config.json')[process.env.NODE_ENV || 'development']
+var environment = process.env.NODE_ENV || 'development'
+const config = require('../config.json')[environment]
 class AmmendCode extends TSCommand {
   constructor() {
   super('ammendcode', {
@@ -36,40 +37,15 @@ class AmmendCode extends TSCommand {
     ts.userError(ts.message('reupload.sameCode'))
   }
 
-  await ts.gs.loadSheets(["Competition Winners"]);
-
   const existing_level=await ts.getExistingLevel(old_code,true)
   const new_code_check=await ts.getLevels().where({code:new_code}).first();
   if(new_code_check){
     ts.userError(ts.message('add.levelExisting',{ level: new_code_check}))
   }
   
-  await ts.db.Levels.query().patch({code:new_code})
+  await ts.db.Levels.query()
+    .patch({code:new_code})
     .where({code:old_code});
-
-
-  //For now not testing GS stuff as we're deprecating it soon
-  /* istanbul ignore if */
-  if(process.env.NODE_ENV!=='test'){
-      let updates=[]
-      let winners=ts.gs.query("Competition Winners", {
-        filter: {Code:old_code},
-        update: {Code:new_code}
-      },true);
-
-      if(winners){
-        winners=winners.map((level)=>{
-        return level.update_ranges[0]
-        })
-        updates=updates.concat(winners)
-      }
-
-    if(updates){
-      await ts.gs.batchUpdate(updates);
-      await ts.gs.loadSheets(["Competition Winners"]);
-    }
-  } 
-  
 
   let guild=ts.getGuild();
   let existingChannel=guild.channels.find(channel => channel.name === old_code.toLowerCase() && channel.parentID == ts.channels.levelDiscussionCategory)

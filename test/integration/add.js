@@ -1,5 +1,5 @@
 describe('!add', function () {
-  before(async () => {
+  beforeEach(async () => {
     await TEST.setupData({
       Members: [{
         name: 'Mod',
@@ -111,6 +111,14 @@ describe('!add', function () {
     }),await TEST.mockMessage('error.specialDiscordString',{type:'userError'}))
   })
 
+  it('space after the !', async function () {
+    assert.deepEqual(await TEST.mockBotSend({
+      cmd: '! add XXX-XXX-XX4 this is some long text',
+      channel: 'general',
+      discord_id: '256',
+    }),'<@256> The level this is some long text (XXX-XXX-XX4) has been added ');
+  })
+
   it('no points', async function () {
     await TEST.clearTable('levels');
     TEST.ts.teamVariables['Minimum Point']=10
@@ -139,7 +147,7 @@ describe('!add', function () {
     assert.equal(result,await TEST.mockMessage('error.invalidCode',{type:'userError'},{code:'0791-0000-03DD-2D52'}))
   })
 
-  it('Submit SMM1 code with allowSMM1 flag on', async function () {
+  it('Submit SMM1 code with allowSMM1 flag on #dev', async function () {
     TEST.ts.teamVariables.allowSMM1='true'
     const result = await TEST.mockBotSend({
       cmd: '!add 0791-0000-03DD-2D52 The Ultimate Road of Shell',
@@ -150,12 +158,12 @@ describe('!add', function () {
       level_name:'The Ultimate Road of Shell',
       code:'0791-0000-03DD-2D52',
     }))
-    const levels=await TEST.ts.getLevels();
-    assert.lengthOf(levels,1)
-    assert.equal(levels[0].code,'0791-0000-03DD-2D52')
-    assert.equal(levels[0].creator,'Mod')
-    assert.equal(levels[0].status,0)
-    assert.equal(levels[0].difficulty,0)
+    const level=await TEST.ts.getLevels().where({code:'0791-0000-03DD-2D52'}).first();
+    assert.exists(level)
+    assert.equal(level.code,'0791-0000-03DD-2D52')
+    assert.equal(level.creator,'Mod')
+    assert.equal(level.status,0)
+    assert.equal(level.difficulty,0)
   })
 
 })

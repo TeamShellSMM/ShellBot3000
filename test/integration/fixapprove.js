@@ -67,7 +67,7 @@ describe('!fixapprove', function () {
       channel: 'XXX-XXX-XXX',
       discord_id: '128',
     })
-    assert.equal(result[1].fields[0].name,'Mod1 voted for approval with difficulty 2:')
+    assert.equal(result[1].fields[0].name,'Mod1 voted for approval with difficulty 2.0:')
     const votes=await TEST.ts.db.PendingVotes.query().where({code:1}).first()
     assert.equal(votes.type,'approve')
     const level=await TEST.ts.db.Levels.query().where({code:'XXX-XXX-XXX'}).first()
@@ -86,7 +86,7 @@ describe('!fixapprove', function () {
       channel: 'XXX-XXX-XX3',
       discord_id: '128',
     })
-    assert.equal(result[1].fields[0].name,'Mod1 voted for approval with difficulty 2:')
+    assert.equal(result[1].fields[0].name,'Mod1 voted for approval with difficulty 2.0:')
     const level=await TEST.ts.db.Levels.query().where({code:'XXX-XXX-XX3'}).first()
     assert.isOk(level)
     assert.equal(level.status,TEST.ts.LEVEL_STATUS.APPROVED)
@@ -101,7 +101,7 @@ describe('!fixapprove', function () {
       channel: 'XXX-XXX-XX4',
       discord_id: '128',
     })
-    assert.equal(result,'This channel is not in the pending reupload category  ')
+    assert.equal(result,'This channel is not in the pending reupload category ')
   })
 
   it('reject success',async ()=>{
@@ -129,6 +129,6 @@ describe('!fixapprove', function () {
       channel: 'XXX-XXX-XX3',
       discord_id: '128',
     })
-    assert.equal(result,'This level is not in the "Need Fix" status  ')
+    assert.equal(result,'This level is not in the "Need Fix" status ')
   })
 })

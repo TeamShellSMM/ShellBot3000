@@ -19,6 +19,19 @@ describe('!approve', function () {
       code: 'XXX-XXX-XXX',
       status: 0,
       difficulty: 0,
+      videos:'http://twitch.tv,http://youtube.com'
+    },{
+      level_name: 'approved level',
+      creator: 1,
+      code: 'XXX-XXX-XX2',
+      status: 1,
+      difficulty: 1,
+    },{
+      level_name: 'removed level',
+      creator: 1,
+      code: 'XXX-XXX-XX3',
+      status: -1,
+      difficulty: 1,
     }],
   };
   beforeEach(async () => {
@@ -67,6 +80,33 @@ describe('!approve', function () {
     assert.equal(level.status,TEST.ts.LEVEL_STATUS.APPROVED)
     assert.equal(level.difficulty,3.5)
 
+  })
+
+  it('approve already approved level', async function () {
+    const result = await TEST.mockBotSend({
+      cmd: '!approve XXX-XXX-XX2 5 "is good level"',
+      channel: TEST.ts.channels.modChannel,
+      discord_id: '256',
+    })
+    assert.equal(result,'Level is already approved! ')
+  })
+
+  it('approve no reason', async function () {
+    const result = await TEST.mockBotSend({
+      cmd: '!approve XXX-XXX-XXX 5',
+      channel: TEST.ts.channels.modChannel,
+      discord_id: '256',
+    })
+    assert.equal(result,'You need to give a reason for the change (in quotation marks)! ')
+  })
+
+  it('approve not pending level', async function () {
+    const result = await TEST.mockBotSend({
+      cmd: '!approve XXX-XXX-XX3 5 "is good level"',
+      channel: TEST.ts.channels.modChannel,
+      discord_id: '256',
+    })
+    assert.equal(result,'Level is not pending! ')
   })
 
   it('reject', async function () {
@@ -146,4 +186,20 @@ describe('!approve', function () {
     assert.equal(level.status,TEST.ts.LEVEL_STATUS.NEED_FIX)
     assert.equal(level.difficulty,0)
   })
+
+  it('approve', async function () {
+    await TEST.mockBotSend({
+      cmd: '!approve XXX-XXX-XXX 5 "is good level"',
+      channel: TEST.ts.channels.modChannel,
+      discord_id: '256',
+    })
+    const result=await TEST.mockBotSend({
+      cmd: '!approve XXX-XXX-XXX 2 "i changed my mind"',
+      channel: TEST.ts.channels.modChannel,
+      discord_id: '256',
+    })
+    let channel=await TEST.ts.getGuild().channels.find((c)=>c.name==="xxx-xxx-xxx")
+    assert.equal(result[1],`Your vote was changed in <#${channel.id}>!`)
+  })
+
 })

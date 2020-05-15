@@ -35,7 +35,7 @@ client.on("ready", async () => {
   let app;
   try {
     await client.login(config.discord_access_token);
-    app = await WebApi(config,client);
+    app = await WebApi(client);
     await app.listen(config.webPort, () => DiscordLog.log(config.botName+':WebApi now listening on '+config.webPort,client));
  } catch(error) {
    DiscordLog.error(error.stack,client)

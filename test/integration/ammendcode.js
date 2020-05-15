@@ -44,7 +44,7 @@ describe('!ammendcode', function () {
       channel: 'general',
       discord_id: '128',
     })
-    assert.equal(result,await TEST.mockMessage('reupload.noOldCode',{type:'userError'},{name:'Creator'}))
+    assert.equal(result,await TEST.mockMessage('reupload.noNewCode',{type:'userError'},{name:'Creator'}))
   })
 
   it('invalid old code', async function () {

@@ -93,8 +93,16 @@ describe('!reupload', function () {
     })
     assert.equal(result,await TEST.mockMessage('reupload.noNewCode',{type:'userError'},{name:'Creator'}))
   })
+  it('invalid old code',async()=>{
+    const result = await TEST.mockBotSend({
+      cmd: '!reupload XXX-XX-XXX',
+      channel: 'general',
+      discord_id: '64',
+    })
+    assert.equal(result,await TEST.mockMessage('reupload.invalidOldCode',{type:'userError'},{name:'Creator'}))
+  })
 
-  it('no new code given',async()=>{
+  it('invalid new code',async()=>{
     const result = await TEST.mockBotSend({
       cmd: '!reupload XXX-XXX-XXX YYY-YYY',
       channel: 'general',
@@ -112,7 +120,7 @@ describe('!reupload', function () {
     assert.equal(result,await TEST.mockMessage('reupload.sameCode',{type:'userError'},{name:'Creator'}))
   })
 
-  it('same code',async()=>{
+  it('no reason',async()=>{
     const result = await TEST.mockBotSend({
       cmd: '!reupload XXX-XXX-XXX YYY-YYY-YYY',
       channel: 'general',
@@ -171,6 +179,14 @@ describe('!reupload', function () {
 
   })
 
+  it('no permission',async()=>{
+    const result = await TEST.mockBotSend({
+      cmd: '!reupload XXX-XXX-XX1 XXX-XXX-YYY long reason',
+      channel: 'general',
+      discord_id: '256',
+    })
+    assert.equal(result,'You can\'t reupload \'pending level\' by Creator ')
+  })
 
   it('not enough points, but reuploading approved=can',async()=>{
     TEST.ts.teamVariables['New Level']=5;

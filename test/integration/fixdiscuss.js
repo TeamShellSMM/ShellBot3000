@@ -71,18 +71,8 @@ describe('!fixdiscuss', function () {
   });
 
 
-/*
-await TEST.createChannel({
-      name:'XXX-XXX-XX1',
-      parent:TEST.ts.channels.levelDiscussionCategory,
-    })
 
-      assert.notExists(await TEST.findChannel({
-      name:'XXX-XXX-XX1',
-      parentID:TEST.ts.channels.levelDiscussionCategory
-    }),"old channel shouuldn't exist");
 
-*/
   it('nothing given',async()=>{
     await TEST.ts.db.Members.query().where({discord_id:'128'}).patch({is_mod:1});
     assert.equal(await TEST.mockBotSend({
@@ -114,6 +104,5 @@ await TEST.createChannel({
       parentID:TEST.ts.channels.pendingReuploadCategory,
     }),"a pending fix reupload channel should be created");
   })
-
 
 })

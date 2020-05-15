@@ -34,6 +34,13 @@ describe('!addtags,!removetags',()=>{
         tags:'tag2',
       }],
     });
+    await TEST.knex('tags').insert([
+      {guild_id:1,admin_id:1,name:'tag1',type:'success',is_seperate:null,add_lock:null,remove_lock:null,},
+      {guild_id:1,admin_id:1,name:'tag2',type:'success',is_seperate:null,add_lock:null,remove_lock:null,},
+      {guild_id:1,admin_id:1,name:'seperate',type:'warning',is_seperate:1,add_lock:null,remove_lock:null,},
+      {guild_id:1,admin_id:1,name:'all_locked',type:'success',is_seperate:null,add_lock:1,remove_lock:1,},
+      {guild_id:1,admin_id:1,name:'remove_locked',type:'success',is_seperate:null,add_lock:null,remove_lock:1,},
+    ])
   });
 
   it('!addtag no code given', async ()=>{
@@ -58,7 +65,7 @@ describe('!addtags,!removetags',()=>{
       cmd: '!addtags xxx-xxx-xxx tag1,tag2,tag3',
       channel: 'general',
       discord_id: '256',
-    }),'<@256> Tags added for "approved level" by "Creator "\nCurrent tags:```\ntag1\ntag2\ntag3```')
+    }),'<@256> Tags added for "approved level" by "Creator" \nCurrent tags:```\ntag1\ntag2\ntag3```')
     const level=await TEST.ts.db.Levels.query().where({code:'XXX-XXX-XXX'}).first()
     assert.equal(level.tags,'tag1,tag2,tag3')
   })

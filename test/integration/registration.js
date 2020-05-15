@@ -156,7 +156,7 @@ app.post('/json/login', web_ts(async (ts,req) => {
     assert.equal(dbResult[0].authenticated,0,"shouldn't be logged in yet")
     assert.lengthOf(dbResult[0].token,16,'check length of token')
     otp=dbResult[0].token
-    assert.deepEqual(body,{"status":"error","message":TS.message('api.noslug')},'Error with no slug')
+    assert.deepEqual(body,{"status":"error","message":TEST.TS.message('api.noslug')},'Error with no slug')
   })
 
   /*
@@ -179,14 +179,8 @@ app.post('/json/login', web_ts(async (ts,req) => {
       token=await TEST.ts.db.Tokens.query().where({ discord_id })
       assert.lengthOf(token,1,'only has one record')
       token=token[0].token
-      assert.deepEqual(body,{
-        status:"logged_in",
-        type:"bearer",
-        url_slug:'makerteam',
-        "discord_id":user.discord_id,
-        token,
-        "user_info":user
-      },"returned login details")
+      assert.equal(body.status,"logged_in")
+      assert.equal(body.token,token)
     })
 
     it('POST /json registered', async function (){

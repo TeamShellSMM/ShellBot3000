@@ -8,7 +8,7 @@ class UnsetWorld extends TSCommand {
         });
     }
 
-    async tsexec(ts,message,{ world_count, level_count, world_name }) {
+    async tsexec(ts,message) {
       const player=await ts.get_user(message);
 
       await ts.db.Members
