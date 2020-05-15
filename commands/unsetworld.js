@@ -1,8 +1,8 @@
 const TSCommand = require('../TSCommand.js');
 class UnsetWorld extends TSCommand {
     constructor() {
-        super('unset', {
-           aliases: ['unset'],
+        super('unsetworld', {
+           aliases: ['unsetworld'],
             args: [],
            channelRestriction: 'guild'
         });
@@ -16,7 +16,7 @@ class UnsetWorld extends TSCommand {
         .patch({world_world_count:0, world_level_count:0, world_description: ""})
         .where({discord_id:message.author.id})
 
-      message.channel.send(player.user_reply+ts.message("unsetworld.success",{ code }))
+      message.channel.send(player.user_reply+ts.message("unsetworld.success"))
     }
 }
 module.exports = UnsetWorld;
