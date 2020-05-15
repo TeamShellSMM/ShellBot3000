@@ -760,8 +760,9 @@ class TS {
           updated_row.liked = liked;
           updated.liked = true;
         }
-        if ((difficulty || difficulty === 0) &&
-          existing_play.difficulty_vote != difficulty) { //difficulty update
+        if ( (difficulty === 0 && existing_play.difficulty_vote !=null) ||
+             (difficulty &&existing_play.difficulty_vote != difficulty)
+          ) { //difficulty update
           updated_row.difficulty_vote = difficulty === 0 ? null : difficulty; //0 difficulty will remove your vote
           updated.difficulty = true;
         }
@@ -806,10 +807,6 @@ class TS {
           msg.push(ts.message(completed ? "clear.alreadyCleared" : "clear.alreadyUncleared"));
         }
       }
-      else {
-        if (completed !== null)
-          DiscordLog.log('ts.clear, completed was not null,1 or 0');
-      }
       if (updated.difficulty) {
         msg.push(difficulty === 0 ?
           ts.message("clear.removeDifficulty", { level }) :
@@ -818,7 +815,7 @@ class TS {
             difficulty_vote: difficulty,
           }));
       }
-      else if (difficulty || difficulty === '0') {
+      else if (difficulty || difficulty === 0) {
         msg.push(difficulty === 0 ?
           ts.message("clear.alreadyDifficulty", { level }) :
           ts.message("clear.alreadyNoDifficulty", {
@@ -833,10 +830,6 @@ class TS {
         else {
           msg.push(ts.message(liked ? "clear.alreadyLiked" : "clear.alreadyUnliked", { level }));
         }
-      }
-      else {
-        if (liked !== null)
-          DiscordLog.log('ts.clear, liked was not null,1 or 0');
       }
       return (strOnly ? '' : player.user_reply) + ts.processClearMessage({ msg, creator_str, level });
     };
@@ -873,8 +866,9 @@ class TS {
      *  @throws {ts.UserError} Will throw a UserError if level code is not pending or approved, noting either it's need fixing or removed
      */
     this.getExistingLevel = async function (code, includeRemoved = false) {
-      if (!code)
+      if (!code){
         ts.userError(ts.message('error.noCode'));
+      }
       var level = await ts.getLevels().where({ code }).first();
       if (!level) { //level doesn't exist
         let notDeletedLevels = {};
@@ -898,9 +892,6 @@ class TS {
         ts.userError(ts.message("error.levelNotFound", { code }) + matchStr);
       }
       if (!includeRemoved && ts.REMOVED_LEVELS.includes(level.status)) { //level is removed. not pending/accepted
-        if (level.status == ts.LEVEL_STATUS.NEED_FIX) {
-          ts.userError(ts.message("error.levelIsFixing", { level }));
-        }
         ts.userError(ts.message("error.levelIsRemoved", { level }));
       }
       return level;
@@ -1839,31 +1830,30 @@ class TS {
   /**
    * Helper function to help secure data being send for updating/editing
    * @param {RowPacket[]} data Rows of data probably from the database. expects to contain an id and a guild_id
-   * @returns {RowPacket[]} returns the same data but with signed values to verify id and guild_id later
+   * @returns {RowPacket[]} returns the same data but with signed values to verify id
    */
   secure_data(data){
     return data.map((d)=>{
       d.__secure=jwt.sign({
         id:d.id,
-        //guild_id:d.guild_id,
       },this.config.key);
       return d
     });
   }
 
   /**
-   * Helper function to help verified secure data being recieved. Checks for id and guild_id
+   * Helper function to help verified secure data being recieved. Checks for id 
    * @param {RowPacket[]} data Rows of data recieved from user. each row should contain __secure created in secure_data
    * @returns {RowPacket[]} returns the same data but removes __secure after verifying it.
    * @throws {UserError} returns an error if the id in the row does not match the one in __secure
    */
-  verify_data(data,key){
+  verify_data(data){
     return data.map( (d)=>{
       if(d.id){
         if(!d.__secure) this.userError(this.message('error.wrongTokens'));
         try {
           const decoded=jwt.verify(d.__secure,this.config.key);
-          if(decoded.id!=d.id){ //|| decoded.guild_id !=d.guild_id
+          if(decoded.id!=d.id){
             this.userError(this.message('error.wrongTokens'));
           }
         } catch(error){

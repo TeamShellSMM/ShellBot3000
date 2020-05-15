@@ -11,7 +11,7 @@ global.TEST.config.defaultCooldown=0;
 global.TEST.TS=require('../TS.js')
 let DiscordLog=require('../DiscordLog');
 DiscordLog.log=()=>{}
-DiscordLog.error=()=>{}
+DiscordLog.error=(e)=>{}
 
 
 

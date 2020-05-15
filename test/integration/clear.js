@@ -142,6 +142,14 @@ describe('!clears', function () {
     assert.isNull(play.difficulty_vote)
   })
 
+  it('!clear pending',async()=>{
+    assert.equal(await TEST.mockBotSend({
+      cmd: '!clear XXX-XXX-XX2',
+      channel: 'general',
+      discord_id: '128',
+    }),'<@128> \n ‣You have cleared \'level2\'  by Creator \n ‣This level is still pending')
+  })
+
   it('clear with like and difficulty', async function () {
     const result = await TEST.mockBotSend({
       cmd: '!clear XXX-XXX-XXX 5 like',
@@ -162,12 +170,87 @@ describe('!clears', function () {
   })
 
   it('!difficulty (a !clear with 0 completed and like)',async()=>{
-    const result = await TEST.mockBotSend({
+    assert.equal(await TEST.mockBotSend({
       cmd: '!difficulty XXX-XXX-XX4 5',
       channel: 'general',
       discord_id: '128',
-    })
-    assert.equal(result,'<@128> \n ‣You have voted 5.0 as the difficulty for \'level4\'  by Creator ')
+    }),'<@128> \n ‣You have voted 5.0 as the difficulty for \'level4\'  by Creator ')
+
+    assert.equal(await TEST.mockBotSend({
+      cmd: '!difficulty XXX-XXX-XX4 5',
+      channel: 'general',
+      discord_id: '128',
+    }),'<@128> \n ‣You have already voted 5 for \'level4\'  by Creator ')
+
+    assert.equal(await TEST.mockBotSend({
+      cmd: '!difficulty XXX-XXX-XX4 0',
+      channel: 'general',
+      discord_id: '128',
+    }),'<@128> \n‣You have removed your difficulty vote for \'level4\'  by Creator ')
+
+    assert.equal(await TEST.mockBotSend({
+      cmd: '!difficulty XXX-XXX-XX4 0',
+      channel: 'general',
+      discord_id: '128',
+    }),'<@128> \n ‣You haven\'t submitted a difficulty vote for \'level4\'  by Creator ')
   })
+
+  it('!like and unlike',async()=>{
+    assert.equal(await TEST.mockBotSend({
+      cmd: '!like XXX-XXX-XX4',
+      channel: 'general',
+      discord_id: '128',
+    }),'<@128> \n ‣You have liked \'level4\'  by Creator ')
+
+    assert.equal(await TEST.mockBotSend({
+      cmd: '!like XXX-XXX-XX4',
+      channel: 'general',
+      discord_id: '128',
+    }),'<@128> \n ‣You have already liked \'level4\'  by Creator ')
+
+    assert.equal(await TEST.mockBotSend({
+      cmd: '!unlike XXX-XXX-XX4',
+      channel: 'general',
+      discord_id: '128',
+    }),'<@128> \n‣You have unliked \'level4\'  by Creator ')
+
+    assert.equal(await TEST.mockBotSend({
+      cmd: '!unlike XXX-XXX-XX4',
+      channel: 'general',
+      discord_id: '128',
+    }),'<@128> \n ‣You have not added a like for \'level4\'  by Creator ')
+  })
+
+  it('!clear and remove clear',async()=>{
+    assert.equal(await TEST.mockBotSend({
+      cmd: '!clear XXX-XXX-XX4',
+      channel: 'general',
+      discord_id: '128',
+    }),'<@128> \n ‣You have cleared \'level4\'  by Creator \n ‣You have earned 2.5 points','clear')
+
+    assert.equal(await TEST.mockBotSend({
+      cmd: '!clear XXX-XXX-XX4',
+      channel: 'general',
+      discord_id: '128',
+    }),'<@128> \n ‣You have already submitted a clear for \'level4\'  by Creator','already cleared')
+
+    assert.equal(await TEST.mockBotSend({
+      cmd: '!removeclear XXX-XXX-XX4',
+      channel: 'general',
+      discord_id: '128',
+    }),'<@128> \nYou have removed your clear for \'level4\'  by Creator','remove clear')
+
+    assert.equal(await TEST.mockBotSend({
+      cmd: '!removeclear XXX-XXX-XX4',
+      channel: 'general',
+      discord_id: '128',
+    }),'<@128> \n ‣You have not submited a clear for \'level4\'  by Creator','already removed clear')
+  })
+
+  
+
+  
+
+  
 
 })

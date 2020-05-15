@@ -9,6 +9,8 @@ module.exports={
   'website.noDataSent':'No data sent',
   'website.forbidden':'forbidden',
 
+
+
   'api.noslug':'No url_slug found',
   'api.slugNotFound':'url slug provided was not found',
 
@@ -108,6 +110,12 @@ module.exports={
   'initiation.userNotInDiscord':'{{name}} was not found in {{TeamName}}\'s discord',
 
   'general.heyListen':'**<@{{discord_id}}>, we got some news for you: **',
+
+
+
+  'renameMember.noDiscordId':'No discord_id provided',
+  'renameMember.noMemberFound':'No member found with discord_id `{{discord_id}}`',
+  'renameMember.noNewName':'You didn\'t give a new name',
 
   'rename.noNewName':'You didn\'t give a new level name',
   'rename.alreadyName':'Level name is already "{{{level_name}}}"',
