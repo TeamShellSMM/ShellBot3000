@@ -1542,7 +1542,7 @@ class TS {
       if (!level)
         ts.userError(ts.message("error.levelNotFound", { code: old_code }));
       var new_level = await ts.getLevels().where({ code: new_code }).first();
-      let oldApproved = level.status;
+      let oldApproved = level.status===ts.LEVEL_STATUS.USER_REMOVED ? level.old_status : level.status;
       //level.status==ts.LEVEL_STATUS.APPROVED || level.status==ts.LEVEL_STATUS.PENDING
       if (new_level && level.creator != new_level.creator)
         ts.userError(ts.message("reupload.differentCreator"));

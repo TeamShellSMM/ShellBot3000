@@ -68,6 +68,13 @@ describe('!reupload', function () {
         code: 'XXX-XXX-X11',
         status: TEST.ts.LEVEL_STATUS.USER_REMOVED,
         difficulty: 2,
+      },{
+        level_name: 'User removed neex fix',
+        creator: 1,
+        code: 'XXX-XXX-X12',
+        status: TEST.ts.LEVEL_STATUS.USER_REMOVED,
+        old_status:TEST.ts.LEVEL_STATUS.NEED_FIX,
+        difficulty: 2,
       }],
     };
 
@@ -273,6 +280,34 @@ describe('!reupload', function () {
 
     assert.exists(await TEST.findChannel({
       name:'XXX-XXX-YYY',
+      parentID:TEST.ts.channels.pendingReuploadCategory
+    }),"a channel created in the pending reupload list");
+  
+  })
+
+  it('reupload a user removed needfix level with a pending level. status should be correct @curr',async()=>{
+    await TEST.clearChannels()
+    await TEST.ts.db.Members.query().patch({is_mod:1}).where({discord_id:'128'})
+    //check can upload a new level with current points
+    assert.equal(
+      await TEST.mockBotSend({
+        cmd: '!reupload XXX-XXX-X12 XXX-XXX-XX1 long reason',
+        channel: 'general',
+        discord_id: '128',
+      }),'<@128> You have reuploaded \'User removed neex fix\' by Creator with code `XXX-XXX-XX1`.  Your level has also been put in the reupload queue, we\'ll get back to you shortly.'
+    );
+
+    const old_level=await TEST.ts.getLevels().where({code:'XXX-XXX-X12'}).first()
+    const new_level=await TEST.ts.getLevels().where({code:'XXX-XXX-XX1'}).first()
+
+    assert.exists(old_level)
+    assert.exists(new_level)
+
+    assert.equal(old_level.status,TEST.ts.LEVEL_STATUS.REMOVED)
+    assert.equal(new_level.status,TEST.ts.LEVEL_STATUS.PENDING_FIXED_REUPLOAD)
+
+    assert.exists(await TEST.findChannel({
+      name:'XXX-XXX-XX1',
       parentID:TEST.ts.channels.pendingReuploadCategory
     }),"a channel created in the pending reupload list");
   
