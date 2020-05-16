@@ -35,6 +35,7 @@ describe('!approve', function () {
     }],
   };
   beforeEach(async () => {
+    await TEST.clearChannels()
     await TEST.setupData(initData);
   });
 
@@ -82,6 +83,39 @@ describe('!approve', function () {
 
   })
 
+  it('approve+cl', async function () {
+    const result = await TEST.mockBotSend({
+      cmd: '!approve+cl XXX-XXX-XXX 5 "is good level"',
+      channel: TEST.ts.channels.modChannel,
+      discord_id: '128',
+    })
+
+
+    const plays=await TEST.ts.getPlays().where({player:2}).first()
+    assert.deepInclude(plays,{
+      liked:1,
+      completed:1,
+      code:'XXX-XXX-XXX'
+    });
+
+  })
+
+  it('approve+c', async function () {
+    const result = await TEST.mockBotSend({
+      cmd: '!approve+c XXX-XXX-XXX 5 "is good level"',
+      channel: TEST.ts.channels.modChannel,
+      discord_id: '128',
+    })
+
+    const plays=await TEST.ts.getPlays().where({player:2}).first()
+    assert.deepInclude(plays,{
+      liked:0,
+      completed:1,
+      code:'XXX-XXX-XXX'
+    });
+
+  }) 
+
   it('approve already approved level', async function () {
     const result = await TEST.mockBotSend({
       cmd: '!approve XXX-XXX-XX2 5 "is good level"',
@@ -91,6 +125,15 @@ describe('!approve', function () {
     assert.equal(result,'Level is already approved! ')
   })
 
+  it('approve no code', async function () {
+    const result = await TEST.mockBotSend({
+      cmd: '!approve',
+      channel: TEST.ts.channels.modChannel,
+      discord_id: '256',
+    })
+    assert.equal(result,'You did not give a level code ')
+  })
+
   it('approve no reason', async function () {
     const result = await TEST.mockBotSend({
       cmd: '!approve XXX-XXX-XXX 5',
@@ -98,6 +141,15 @@ describe('!approve', function () {
       discord_id: '256',
     })
     assert.equal(result,'You need to give a reason for the change (in quotation marks)! ')
+  })
+
+  it('approve invalid difficulty', async function () {
+    const result = await TEST.mockBotSend({
+      cmd: '!approve XXX-XXX-XXX invalid long reason',
+      channel: TEST.ts.channels.modChannel,
+      discord_id: '256',
+    })
+    assert.equal(result,'Invalid difficulty format! ')
   })
 
   it('approve not pending level', async function () {

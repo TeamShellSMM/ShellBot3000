@@ -50,12 +50,11 @@ class TSApprove extends TSCommand {
         args.reason = args.difficulty;
         args.difficulty = args.code;
         args.code = message.channel.name.toUpperCase();
-      } else{
-        if(args.code){
-          args.code = args.code.toUpperCase();
-        }
+      } else if(!args.code){
+        ts.userError('error.noCode');
       }
 
+      args.code = args.code.toUpperCase();
       if(!(
         message.channel.id === ts.channels.modChannel  //only in shellder-bot channel
         || message.channel.id === ts.channels.pendingShellbot  //or in pending-shellbot channel
@@ -90,9 +89,10 @@ class TSApprove extends TSCommand {
 
       //clear
       if(clearCommands.indexOf(command.command) !== -1){
-          args.completed=1;
-        if(likeCommands.indexOf(command.command) !==-1)
+        args.completed=1;
+        if(likeCommands.indexOf(command.command) !==-1){
           args.liked=1;
+        }
         var clearMessage=await ts.clear(args)
         await this.client.channels.get(ts.channels.commandFeed).send(clearMessage)
       }

@@ -104,6 +104,15 @@ describe('!fixapprove', function () {
     assert.equal(result,'This channel is not in the pending reupload category ')
   })
 
+  it('not in a valid code format channel ',async ()=>{
+    assert.lengthOf(await TEST.mockBotSend({
+      cmd: '!fixreject "unfortunately no"',
+      channel: 'general',
+      waitFor:500,
+      discord_id: '128',
+    }),0)
+  })
+
   it('reject success',async ()=>{
     await TEST.createChannel({
       name:'XXX-XXX-XX4',
@@ -117,6 +126,18 @@ describe('!fixapprove', function () {
     assert.equal(result[0],'**<@64>, we got some news for you: **')
     //TODO: make helper test fuction to check field titles
     assert.equal(result[1].author.name,'We\'re really sorry, but this level was rejected after you refused to reupload.')
+  })
+
+  it('reject success ',async ()=>{
+    await TEST.createChannel({
+      name:'XXX-XXX-XX4',
+      parent:TEST.ts.channels.pendingReuploadCategory,
+    })
+    assert.equal(await TEST.mockBotSend({
+      cmd: '!fixreject',
+      channel: 'XXX-XXX-XX4',
+      discord_id: '128',
+    }),'You have to provide a message to the creator explaining why this was rejected! ')
   })
 
   it('reject level not need_fix',async ()=>{

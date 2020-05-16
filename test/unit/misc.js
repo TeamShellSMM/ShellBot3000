@@ -242,6 +242,15 @@ describe('misc-unit', function () {
   it('ts.is_smm1 no arguments',async ()=>{
     assert.isFalse(await TEST.ts.is_smm1())
   })
+
+  it('ts.getSettings',async ()=>{
+    await assert.deepInclude(await TEST.ts.getSettings('settings'),{
+      TeamName:'AutoTest',
+      BotName:'Autobot',
+    })
+  })
+
+  
   
   it('ts.randomLevel invalid difficulty',async ()=>{
     const level=await TEST.ts.randomLevel({

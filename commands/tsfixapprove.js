@@ -35,16 +35,11 @@ class TSFixApprove extends TSCommand {
       } else {
         //Check the code only if not in discussion channel
       }
+      if(!inReuploadChannel ) return false; //silently fail
+
       if(message.channel.parentID!==ts.channels.pendingReuploadCategory) ts.userError(ts.message('fixApprove.notInChannel',{code}));
 
-
-      if(!(
-        inReuploadChannel //should also work in the discussion channel for that level
-      )) return false; //silently fail
-
-      if(code){
-        code = code.toUpperCase();
-      }
+      
 
       let approving = false;
 

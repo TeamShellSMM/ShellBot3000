@@ -206,6 +206,11 @@ module.exports={
   'setworld.success':'Your world was successfully set and should now show up on the worlds page',
   'setworld.noMakerId':'You need to set your Maker ID and Name first with !makerid XXX-XXX-XXX Name',
 
+  'pendingStatus.approves':'{{approves}} approval{{plural approves}}',
+  'pendingStatus.rejects':'{{rejects}} rejects{{plural rejects}}',
+  'pendingStatus.wantFixes':'{{want_fixes}} fix request{{plural want_fixes}}',
+  'pendingStatus.noVotes':'No votes has been cast yet',
+  'pendingStatus.none':'You have no levels pending',
 
 
   'unsetworld.success':'Your world was successfully removed',
@@ -219,6 +224,9 @@ module.exports={
 
   'help.basic':'You can find all the commands at <https://makerteams.net/features>',
   'mock.userSuccess':"You're now {{name}}. Identity theft is not a joke, Jim!", 
+  'mock.noTargetGiven':'You didn\'t give any names',
+  'mock.already':'You\'re already them',
+  'mock.notFound':'No user found',
   'resetStatus.alreadyPending':'This level is already pending. This command only resets a level\'s status to PENDING',
   'resetStatus.succesful':'"{{{level_name}}}" by {{{creator}}} has been reset to PENDING',
 }

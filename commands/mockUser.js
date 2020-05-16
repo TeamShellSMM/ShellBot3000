@@ -1,4 +1,3 @@
-const config = require('../config.json')[process.env.NODE_ENV || 'development']
 const TSCommand = require('../TSCommand.js');
 class mockUser extends TSCommand {
     constructor() {
@@ -20,11 +19,12 @@ class mockUser extends TSCommand {
 
     async tsexec(ts,message,args) {
 
+        if(!args.user) ts.userError('mock.noTargetGiven')
         let player=await ts.get_user(message)
         let target=await ts.db.Members.query().where({ name:args.user }).first()
 
-        if(!target) ts.userError('No user found');
-        if(target.name==player.name) ts.userError('You\'re already them');
+        if(!target) ts.userError('mock.notFound');
+        if(target.name==player.name) ts.userError('mock.already');
         
         await ts.db.Members
           .query()

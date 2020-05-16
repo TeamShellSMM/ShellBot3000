@@ -30,10 +30,8 @@ class MakerId extends TSCommand {
       }
 
       let existing_member=await ts.db.Members.query().where({maker_id:code}).first()
-      if(existing_member){
-        if(existing_member.discord_id!=player.discord_id){
-            ts.userError(ts.message("makerid.existing",{ code , name:existing_member.name }))
-        }
+      if(existing_member && existing_member.discord_id!=player.discord_id){
+        ts.userError(ts.message("makerid.existing",{ code , name:existing_member.name }))
       }
 
       await ts.db.Members

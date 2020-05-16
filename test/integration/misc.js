@@ -53,6 +53,25 @@ describe('misc-integration',()=>{
     }),'You can find all the commands at <https://makerteams.net/features>');
   })
 
+  it('!random', async ()=>{
+    const result=await TEST.mockBotSend({
+      cmd: '!random',
+      channel: 'general',
+      discord_id: '128',
+    });
+    assert.equal(result[1].title,'approved level (XXX-XXX-XXX)');
+  })
+
+  it('!playersRandom', async ()=>{
+    const result=await TEST.mockBotSend({
+      cmd: '!playersRandom Mod,Other',
+      channel: 'general',
+      discord_id: '256',
+    });
+    assert.equal(result[1].author.name,'Autobot rolled a d97 and found this level for Mod,Other');
+    assert.equal(result[1].title,'approved level (XXX-XXX-XXX)');
+  })
+
   /* 
   it('tscommand wrong guild', async (done)=>{
     const old=TEST.message.guild.id

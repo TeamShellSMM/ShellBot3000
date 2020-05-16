@@ -1,4 +1,4 @@
-describe('!refusefix @curr', function () {
+describe('!refusefix', function () {
   beforeEach(async () => {
     const initData={
       Members: [ {

@@ -82,6 +82,15 @@ describe('!fixdiscuss', function () {
     }),await TEST.mockMessage('error.noCode',{type:'userError'}))
   })
 
+  it('code not found',async()=>{
+    await TEST.ts.db.Members.query().where({discord_id:'128'}).patch({is_mod:1});
+    assert.equal(await TEST.mockBotSend({
+      cmd: '!fixdiscuss yyy-yyy-yyy',
+      channel: 'general',
+      discord_id: '128',
+    }),'The code `YYY-YYY-YYY` was not found in AutoTest\'s list. ')
+  })
+
   it('not mod',async()=>{
     assert.lengthOf(await TEST.mockBotSend({
       cmd: '!fixdiscuss xxx-xxx-xx3',
@@ -96,6 +105,39 @@ describe('!fixdiscuss', function () {
     await TEST.mockBotSend({
       cmd: '!fixdiscuss xxx-xxx-xx3',
       channel: 'general',
+      discord_id: '128',
+    });
+
+    assert.exists(await TEST.findChannel({
+      name:'XXX-XXX-XX3',
+      parentID:TEST.ts.channels.pendingReuploadCategory,
+    }),"a pending fix reupload channel should be created");
+  })
+
+  it('fixdiscuss pending channel',async()=>{
+    await TEST.ts.db.Members.query().where({discord_id:'128'}).patch({is_mod:1});
+    await TEST.mockBotSend({
+      cmd: '!fixdiscuss xxx-xxx-xx1',
+      channel: 'general',
+      discord_id: '128',
+    });
+
+    assert.exists(await TEST.findChannel({
+      name:'XXX-XXX-XX1',
+      parent:TEST.ts.channels.levelDiscussionCategory,
+    }),"a pending channel should be created");
+  })
+
+  it('check in in discussion channel channel',async()=>{
+    await TEST.createChannel({
+      name:'XXX-XXX-XX3',
+      parent:TEST.ts.channels.levelDiscussionCategory,
+    })
+
+    await TEST.ts.db.Members.query().where({discord_id:'128'}).patch({is_mod:1});
+    await TEST.mockBotSend({
+      cmd: '!fixdiscuss',
+      channel: 'xxx-xxx-xx3',
       discord_id: '128',
     });
 
