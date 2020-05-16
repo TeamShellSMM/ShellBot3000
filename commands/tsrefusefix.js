@@ -26,6 +26,9 @@ class TSRefuseFix extends TSCommand {
         let level=await ts.getLevels().where({code}).first();
         const author = await ts.db.Members.query().where({name:level.creator}).first();
 
+        if(level.status===ts.LEVEL_STATUS.PENDING_NOT_FIXED_REUPLOAD)
+          ts.userError("You already sent this reupload request back!");
+
         if(level.status!==ts.LEVEL_STATUS.NEED_FIX)
           ts.userError("This level is not currently in a fix request!");
 
@@ -42,10 +45,10 @@ class TSRefuseFix extends TSCommand {
         await ts.db.Levels.query().where({code}).patch({status:ts.LEVEL_STATUS.PENDING_NOT_FIXED_REUPLOAD})
         level.status=ts.LEVEL_STATUS.PENDING_NOT_FIXED_REUPLOAD;
         //TODO: put author comment in pending_votes
-        discussionChannel = guild.channels.find(channel => channel.name === level.code.toLowerCase() && channel.parent.id == ts.channels.pendingReuploadCategory); //not sure should specify guild/server
+        discussionChannel = ts.findChannel({name:level.code.toLowerCase(),parendID:ts.channels.pendingReuploadCategory}); //not sure should specify guild/server
 
-        if(!discussionChannel){
           //Create new channel and set parent to category
+          /* istanbul ignore next */
           if(guild.channels.get(ts.channels.pendingReuploadCategory).children.size===50){
             ts.userError("Can't handle the request right now because there are already 50 open reupload requests (this should really never happen)!")
           }
@@ -59,9 +62,6 @@ class TSRefuseFix extends TSCommand {
           overviewMessage = await discussionChannel.send(voteEmbed);
           overviewMessage = await overviewMessage.pin();
 
-        } else {
-          ts.userError("You already sent this reupload request back!");
-        }
 
         var replyMessage = "Your level was put in the reupload queue, we'll get back to you in a bit!";
 

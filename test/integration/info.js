@@ -1,4 +1,4 @@
-describe('!info @curr', function () {
+describe('!info', function () {
   beforeEach(async () => {
     await TEST.setupData({
       Members: [{
