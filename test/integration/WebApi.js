@@ -32,6 +32,7 @@ describe('Web Apis', function () {
           player: 1,
           type: 'approve',
           difficulty_vote: 4,
+          reason:'is good',
         }],
         Tokens:[{
           discord_id:'128',
@@ -268,6 +269,7 @@ describe('Web Apis', function () {
           code: 1,
           player: 1,
           type: 'approve',
+          reason:'yes',
           difficulty_vote: 4,
         }],
         Tokens:[{
