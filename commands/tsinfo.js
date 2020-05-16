@@ -12,10 +12,11 @@ class tsinfo extends TSCommand {
         });
     }
 
-    async tsexec(ts,message,args) {
-      args.code=args.code.toUpperCase();
+    async tsexec(ts,message,{code}) {
+      if(!code) ts.userError('error.noCode')
+      code=code.toUpperCase();
       const player=await ts.get_user(message);
-      var level=await ts.getExistingLevel(args.code)
+      var level=await ts.getExistingLevel(code)
 
       var randomEmbed=ts.levelEmbed(level)
 

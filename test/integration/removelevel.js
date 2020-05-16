@@ -92,6 +92,5 @@ describe('!removelevel', function () {
     assert.exists(level)
     assert.equal(level.status,TEST.ts.LEVEL_STATUS.REMOVED)
   })
-
-  it('Check if a channel has been deleted before sending a reply');
+  
 })

@@ -164,6 +164,7 @@ module.exports={
   'difficulty.updated':'Difficulty rating updated from {{1dp old_difficulty}} - {{1dp new_difficulty}}',
   'difficulty.success':'Difficulty was successfully changed!',
   'difficulty.noReason':'You need to give a reason for the change (in quotation marks)!',
+  'difficulty.noDifficulty':'You need to give a difficulty',
 
   'add.noName':'You didn\'t give a level name', 
   'add.levelExisting':'`{{level.code}}` has already been submitted as \'{{{level.level_name}}}\' by {{level.creator}}',

@@ -35,11 +35,14 @@ class TSRerate extends TSCommand {
       }
 
       //Check all the args first
+      if(!difficulty) ts.userError('difficulty.noDifficulty')
       if(!ts.valid_difficulty(difficulty)) ts.userError("Invalid difficulty format!");
-      if(!reason) ts.userError(ts.message('difficulty.noReason'));
+      if(!reason) ts.userError('difficulty.noReason');
 
-      const level=await ts.getExistingLevel(code);
-      if(level.status!== ts.LEVEL_STATUS.APPROVED) ts.userError(ts.message('error.notApproved'));
+      const level=await ts.getExistingLevel(code,true);
+      if(level.status!== ts.LEVEL_STATUS.APPROVED){
+        ts.userError('error.notApproved');
+      }
 
       
       
@@ -59,10 +62,8 @@ class TSRerate extends TSCommand {
 
       var levelChangeChannel=await this.client.channels.get(ts.channels.levelChangeNotification)
 
-      if(author){ //edge case of no discord_id
-        var mention = "**<@" + author.discord_id + ">, we got some news for you: **";
-        await levelChangeChannel.send(mention);
-      }
+      var mention = "**<@" + author.discord_id + ">, we got some news for you: **";
+      await levelChangeChannel.send(mention);
       await levelChangeChannel.send(rerateEmbed);
       await message.reply(ts.message('difficulty.success'));
   }

@@ -285,7 +285,7 @@ describe('!reupload', function () {
   
   })
 
-  it('reupload a user removed needfix level with a pending level. status should be correct @curr',async()=>{
+  it('reupload a user removed needfix level with a pending level. status should be correct',async()=>{
     await TEST.clearChannels()
     await TEST.ts.db.Members.query().patch({is_mod:1}).where({discord_id:'128'})
     //check can upload a new level with current points

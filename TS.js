@@ -1754,10 +1754,7 @@ class TS {
     var sb_command = raw_command.shift().toLowerCase().substring(1); //remove first character
     if(!sb_command) raw_command.shift().toLowerCase();
     var filtered = [];
-    raw_command.forEach((s) => {
-      if (s)
-        filtered.push(s);
-    });
+    filtered=raw_command.filter(s=>s);
     return {
       command: sb_command,
       arguments: filtered,
