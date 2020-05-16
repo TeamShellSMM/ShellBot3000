@@ -77,6 +77,22 @@ describe('misc-unit', function () {
     TEST.ts.teamVariables['New Level']=0;
   });
 
+  it('new TS no arguments', async function () {
+    //assert.isFalse(await TEST.ts.modOnly())
+    assert.throws(()=>new TEST.TS(),Error,'No guild_id was passed to TS()')
+  })
+
+  it('new TS no client', async function () {
+    //assert.isFalse(await TEST.ts.modOnly())
+    assert.throws(()=>new TEST.TS('guild_id'),Error,'No client passed to TS()')
+  })
+
+  it('new TS no guild found', async function () {
+    //assert.isFalse(await TEST.ts.modOnly())
+    assert.throws(()=>new TEST.TS('guild_id',TEST.client),Error,'Cannot find discord server. Invalid guild_id or ShellBot is not on this server.')
+  })
+
+
 
   it('Check team model loading without guild_id', async function () {
     //assert.isFalse(await TEST.ts.modOnly())

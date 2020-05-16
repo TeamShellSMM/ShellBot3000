@@ -703,7 +703,8 @@ app.post('/json/worlds',web_ts(async (ts,req)=>{
   app.post('/clear',web_ts(async (ts,req)=>{
     if(!req.body || !req.body.token) ts.userError("website.noToken");
 
-    req.body.discord_id=await ts.checkBearerToken(req.body.token)
+    req.body.discord_id=await ts.checkBearerToken(req.body.token);
+    req.body.player_atme=true;
     await ts.get_user(req.body.discord_id)
 
     let msg=await ts.clear(req.body)

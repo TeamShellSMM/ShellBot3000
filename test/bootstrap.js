@@ -47,7 +47,7 @@ before(async()=>{
       guild_id:TEST.config.AutomatedTest,
       guild_name:"MakerTeam",
       url_slug:"makerteam",
-      config:"{\"feedback_salt\": \"123\"}",
+      config:null,
     },
   ]
   const defaultSettings=[

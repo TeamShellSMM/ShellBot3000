@@ -148,12 +148,17 @@ class UserError extends Error {
  */
 class TS {
   constructor(guild_id, client) {
-    if (!client) {
-      throw new Error(`No client passed to TS()`);
-    }
     if (!guild_id) {
       throw new Error(`No guild_id was passed to TS()`);
     }
+    if (!client) {
+      throw new Error(`No client passed to TS()`);
+    }
+    this.guild_id=guild_id
+    this.client=client
+
+    const guild=this.getGuild()
+    if (!guild) throw new Error('Cannot find discord server. Invalid guild_id or ShellBot is not on this server.');
 
     this.getSettings = async (type) => {
       const rows = await knex('team_settings')
@@ -171,8 +176,6 @@ class TS {
     const ts = this;
     this.load = async function () {
       const guild = ts.getGuild(guild_id);
-      if (!guild)
-        throw new Error('Cannot find discord server. Invalid guild_id');
       await guild.fetchMembers(); //just load up all members
       const Teams = require('./models/Teams.js')(guild_id);
       this.team = await Teams.query().select().first();
@@ -386,23 +389,16 @@ class TS {
     this.isSpecialDiscordString = (str) => {
       return /<(@[!&]?|#|a?:[a-zA-Z0-9_]{2,}:)[0-9]{16,20}>/.test(str);
     };
+    
     this.teamAdmin = (discord_id) => {
-      if (!discord_id)
-        return false;
-      if (server_config.devs && server_config.devs.indexOf(discord_id) !== -1) { //devs can help to troubleshoot
-        return true;
-      }
+      if (!discord_id) return false;
       const guild = ts.getGuild();
-      if (guild.owner.user.id == discord_id) { //owner can do anything
-        return true;
-      }
-      //if yes, any discord mods can do team administrative stuff but won't officially appear in the "Mod" list
       const discord_user = guild.members.get(discord_id);
-      if (discord_user && discord_user.hasPermission("ADMINISTRATOR")) {
-        return true;
-      }
-      return false;
+      return (Array.isArray(server_config.devs) && server_config.devs.includes(discord_id))
+      || (guild.owner.user.id == discord_id)
+      || (discord_user && discord_user.hasPermission("ADMINISTRATOR"));
     };
+
     this.modOnly = async (discord_id) => {
       if (!discord_id)
         return false;
@@ -507,13 +503,6 @@ class TS {
         return this.messages[type](args);
       }
       throw new Error(`"${type}" message string was not found in ts.message`);
-    };
-    /**
-     * Helper function to get the Discord Guild object
-     * @returns {Guild}
-     */
-    this.getGuild = function () {
-      return client.guilds.get(guild_id);
     };
     /**
      * Generates a login link to be DM-ed to the user to login to the website
@@ -692,7 +681,7 @@ class TS {
      * @return {string} A response string to be sent to the user.
      */
     this.clear = async (args={}) => {
-      let { discord_id, code, completed, liked, difficulty, strOnly }=args
+      let { discord_id, code, completed, liked, difficulty, strOnly, player_atme }=args
 
       if (!discord_id)
         ts.userError(ts.message("error.noDiscordId"));
@@ -833,7 +822,8 @@ class TS {
           msg.push(ts.message(liked ? "clear.alreadyLiked" : "clear.alreadyUnliked", { level }));
         }
       }
-      return (strOnly ? '' : player.user_reply) + ts.processClearMessage({ msg, creator_str, level });
+      const user_reply = player_atme ? player.user_reply_atme : player.user_reply
+      return (strOnly ? '' : user_reply) + ts.processClearMessage({ msg, creator_str, level });
     };
     /**
      * Processes the array of messages made by clear and replace repeating items with pronouns
@@ -1071,17 +1061,21 @@ class TS {
     this.get_user = async function (message) {
       let discord_id = message && message.author ? message.author.id : message;
       if (!discord_id) {
-        ts.userError('error.noDiscordId');
+        this.userError('error.noDiscordId');
       }
-      var player = await ts.db.Members.query().where({ discord_id }).first();
+      var player = await this.db.Members.query().where({ discord_id }).first();
       if (!player)
-        ts.userError("error.notRegistered");
+        this.userError("error.notRegistered");
       if (player.is_banned)
-        ts.userError("error.userBanned");
+        this.userError("error.userBanned");
       player.created_at = player.created_at.toString();
       player.earned_points = await this.calculatePoints(player.name);
       player.rank = this.get_rank(player.earned_points.clearPoints);
-      player.user_reply = "<@" + discord_id + ">" + (player.rank.pips ? player.rank.pips : '') + " ";
+      player.rank.pips = player.rank.pips || ''
+      player.atme_str = player.atme ? `<@${player.discord_id}>` : player.name;
+      player.user_reply = `<@${player.discord_id}>` + player.rank.pips + " ";
+      player.user_reply_atme = player.atme_str + player.rank.pips + " ";
+      
       return player;
     };
     /**
@@ -1627,6 +1621,14 @@ class TS {
     }
   
   }
+
+    /**
+   * Helper function to get the Discord Guild object
+   * @returns {Guild}
+   */
+    getGuild() {
+      return this.client.guilds.get(this.guild_id);
+    };
 
       /**
      * Function that recalculates and updates the stored calculated information in the database. To be called everytime relevant data is added/updated/deleted.
