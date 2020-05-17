@@ -20,11 +20,6 @@ Handlebars.registerHelper('1dp', function (num) {
   return num;
 });
 
-/* istanbul ignore next */
-const server_config = require('../config.json')[
-  process.env.NODE_ENV || 'development'
-];
-
 const defaultChannels = [
   {
     name: 'modChannel',
@@ -390,6 +385,8 @@ class TS {
         'Cannot find discord server. Invalid guild_id or ShellBot is not on this server.',
       );
 
+    this.devs = process.env.DEVS.split(',');
+    this.page_url = process.env.PAGE_URL;
     this.getSettings = async (type) => {
       const rows = await knex('team_settings')
         .where({ guild_id: this.team.id })
@@ -461,7 +458,7 @@ class TS {
       const defaultVars = {
         customStrings: {
           levelInfo: '@@LEVEL_PLACEHOLDER@@',
-          teamurl: `${server_config.page_url}/${this.url_slug}`,
+          teamurl: `${ts.page_url}/${this.url_slug}`,
           BotName: 'ShellBot3000',
         },
         emotes: {},
@@ -656,8 +653,8 @@ class TS {
       const guild = ts.getGuild();
       const discord_user = guild.members.get(discord_id);
       return (
-        (Array.isArray(server_config.devs) &&
-          server_config.devs.includes(discord_id)) ||
+        (Array.isArray(this.devs) &&
+          this.devs.includes(discord_id)) ||
         guild.owner.user.id == discord_id ||
         (discord_user && discord_user.hasPermission('ADMINISTRATOR'))
       );
@@ -665,10 +662,7 @@ class TS {
 
     this.modOnly = async (discord_id) => {
       if (!discord_id) return false;
-      if (
-        server_config.devs &&
-        server_config.devs.indexOf(discord_id) !== -1
-      ) {
+      if (this.devs && this.devs.indexOf(discord_id) !== -1) {
         // devs can help to troubleshoot
         return true;
       }
@@ -811,7 +805,7 @@ class TS {
      * @returns {string} login link
      */
     this.generateLoginLink = function (otp) {
-      return `${server_config.page_url + ts.url_slug}/login/${otp}`;
+      return `${ts.page_url + ts.url_slug}/login/${otp}`;
     };
     /**
      * A helper function to generate the tokens. Will be mocked in tests
@@ -2076,7 +2070,7 @@ class TS {
       level.tags.split(',').forEach((tag) => {
         if (tag)
           tagStr.push(
-            `[${tag}](${server_config.page_url}${
+            `[${tag}](${ts.page_url}${
               ts.url_slug
             }/levels/${encodeURIComponent(tag)})`,
           );
@@ -2090,7 +2084,7 @@ class TS {
           `made by ${
             noLink
               ? level.creator
-              : `[${level.creator}](${server_config.page_url}${
+              : `[${level.creator}](${ts.page_url}${
                   ts.url_slug
                 }/maker/${encodeURIComponent(level.creator)})`
           }\n${
@@ -2112,9 +2106,7 @@ class TS {
       }
       if (!noLink) {
         embed.setURL(
-          `${server_config.page_url + ts.url_slug}/level/${
-            level.code
-          }`,
+          `${ts.page_url + ts.url_slug}/level/${level.code}`,
         );
       }
       embed = embed.setTimestamp();

@@ -1,5 +1,3 @@
-'use strict';
-
 global.TEST = {};
 const chai = require('chai');
 const { AkairoClient } = require('discord-akairo');
@@ -8,9 +6,7 @@ const WebApi = require('../src/WebApi');
 global.assert = chai.assert;
 global.TEST.knex = require('../src/db/knex');
 global.TEST.request = require('supertest');
-global.TEST.config = require('../config.json').test;
 // force testing TEST.config
-global.TEST.config.defaultCooldown = 0;
 global.TEST.TS = require('../src/TS.js');
 const DiscordLog = require('../src/DiscordLog');
 
@@ -23,21 +19,19 @@ after(async () => {
 });
 
 before(async () => {
-  global.TEST.client = new AkairoClient(TEST.config, {
+  global.TEST.client = new AkairoClient({
     disableEveryone: true,
+    commandDirectory: 'src/commands/',
+    blockBots: false,
+    blockClient: false,
+    defaultCooldown: 0,
   });
-  await TEST.client.login(TEST.config.discord_access_token);
+
+  await TEST.client.login(process.env.DISCORD_TEST_TOKEN);
   assert.exists(
     global.TEST.client,
-    'should have dicord client right now',
+    'should have discord client right now',
   );
-
-  TEST.bot_id = TEST.client.user.id;
-  TEST.userBot = global.TEST.config.userBot;
-  global.TEST.message = await TEST.client.channels
-    .get(TEST.config.initTestChannel)
-    .send('ShellBotted');
-  await global.TEST.message.delete();
 
   await TEST.knex.raw(`
     SET FOREIGN_KEY_CHECKS = 0; 
@@ -51,7 +45,7 @@ before(async () => {
 
   const defaultTeam = [
     {
-      guild_id: TEST.config.AutomatedTest,
+      guild_id: process.env.TEST_GUILD,
       guild_name: 'MakerTeam',
       url_slug: 'makerteam',
       config: null,
@@ -333,9 +327,24 @@ before(async () => {
   });
 
   global.TEST.ts = await TEST.TS.add(
-    TEST.config.AutomatedTest,
+    process.env.TEST_GUILD,
     global.TEST.client,
   );
+
+  global.TEST.findChannel = ({ name, parentID }) => {
+    const guild = global.TEST.ts.getGuild();
+    return guild.channels.find(
+      (channel) =>
+        (!parentID || (parentID && channel.parentID === parentID)) &&
+        channel.name === name.toLowerCase(),
+    );
+  };
+
+  TEST.bot_id = TEST.client.user.id;
+  global.TEST.message = await TEST.findChannel({
+    name: 'general',
+  }).send('ShellBotted');
+  await global.TEST.message.delete();
 
   global.app = await WebApi(TEST.client);
 
@@ -449,30 +458,6 @@ before(async () => {
     });
   };
 
-  global.TEST.clearUserBot = async () => {
-    const guild = global.TEST.ts.getGuild();
-    const allRoles = guild.roles
-      .filter(
-        (r) => r.name !== 'TestUser' && r.name !== 'ShellBot Testing',
-      )
-      .map((r) => r.id);
-    const member = guild.members.get(TEST.userBot);
-    await member.removeRoles(allRoles);
-  };
-
-  global.TEST.getUserBot = async () => {
-    const guild = global.TEST.ts.getGuild();
-    const member = guild.members.get(TEST.userBot);
-    return member;
-  };
-  global.TEST.findChannel = ({ name, parentID }) => {
-    const guild = global.TEST.ts.getGuild();
-    return guild.channels.find(
-      (channel) =>
-        (!parentID || (parentID && channel.parentID === parentID)) &&
-        channel.name === name.toLowerCase(),
-    );
-  };
   global.TEST.expectReply = (waitFor = 10000) => {
     return new Promise(function (_fulfill, reject) {
       let clearId;

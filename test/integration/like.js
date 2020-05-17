@@ -9,7 +9,7 @@ describe('!like', function () {
         },
         {
           name: 'Creator',
-          discord_id: global.TEST.userBot,
+          discord_id: '256',
         },
         {
           name: 'Banned',

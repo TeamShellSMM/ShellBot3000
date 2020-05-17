@@ -1,15 +1,26 @@
 'use strict';
 
-const config = require('../config.json')[
-  process.env.NODE_ENV || 'development'
-];
 const { AkairoClient } = require('discord-akairo');
 const TS = require('./TS.js');
 const DiscordLog = require('./DiscordLog');
 const WebApi = require('./WebApi');
 
-const client = new AkairoClient(config, {
+const devVars =
+  process.NODE_ENV !== 'production'
+    ? {
+        debug: true,
+        blockBots: false,
+        blockClient: false,
+        defaultCooldown: 0,
+      }
+    : {};
+
+const client = new AkairoClient({
+  prefix: '!',
   disableEveryone: true,
+  defaultCooldown: 500,
+  commandDirectory: 'src/commands/',
+  ...devVars,
 });
 
 client.on('guildCreate', async (guild) => {
@@ -18,7 +29,7 @@ client.on('guildCreate', async (guild) => {
 
 client.on('ready', async () => {
   await DiscordLog.log(
-    `${config.botName} has started , with ${client.users.size} users, in ${client.channels.size} channels of ${client.guilds.size} guilds. environment: ${process.env.NODE_ENV}`,
+    `ShellBot3000 (${process.env.NODE_ENV}) has started , with ${client.users.size} users, in ${client.channels.size} channels of ${client.guilds.size} guilds.`,
     client,
   );
   const Teams = require('./models/Teams')();
@@ -33,23 +44,16 @@ client.on('ready', async () => {
       await TS.add(guild.id, client);
     }
   }
-
-  if (config.initTestChannel && config.initCommand) {
-    await client.channels
-      .get(config.initTestChannel)
-      .send(config.initCommand);
-  }
 });
 
 (async () => {
   // main thread
-  let app;
   try {
-    await client.login(config.discord_access_token);
-    app = await WebApi(client);
-    await app.listen(config.webPort, () =>
+    await client.login(process.env.DISCORD_TOKEN);
+    const app = await WebApi(client);
+    await app.listen(process.env.WEB_PORT, () =>
       DiscordLog.log(
-        `${config.botName}:WebApi now listening on ${config.webPort}`,
+        `ShellBot3000 (${process.env.NODE_ENV}):WebApi now listening on ${process.env.WEB_PORT}`,
         client,
       ),
     );

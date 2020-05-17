@@ -9,7 +9,7 @@ describe('!resetstatus', function () {
         },
         {
           name: 'Creator',
-          discord_id: global.TEST.userBot,
+          discord_id: '256',
         },
         {
           name: 'Banned',
@@ -57,7 +57,7 @@ describe('!resetstatus', function () {
       cmd: '!resetstatus xxx-xxx-xxx',
       channel: 'general',
       waitFor: 100,
-      discord_id: global.TEST.userBot,
+      discord_id: '256',
     });
     assert.notEqual(
       result,

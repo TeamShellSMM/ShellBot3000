@@ -9,6 +9,7 @@
     "deep-equal": "^2.0.3",
     "discord-akairo": "^7.5.6",
     "discord.js": "^11.5.1",
+    "dotenv-flow": "3.1.0",
     "express": "^4.17.1",
     "handlebars": "^4.7.6",
     "jsonwebtoken": "^8.5.1",
@@ -38,7 +39,7 @@
   },
   "scripts": {
     "migrate": "node_modules/.bin/knex migrate:latest",
-    "start": "node src/app.js",
+    "start": "node -r dotenv-flow/config src/app.js",
     "test": "env NODE_ENV=test mocha",
     "coverage": "nyc --reporter=lcov --reporter=text npm test",
     "format": "node_modules/.bin/prettier-eslint —eslint-config-path ./.eslintrc.js --write '$(pwd)/**/*.js'",

@@ -2,11 +2,6 @@
 
 'use strict';
 
-// This will send errors to a configured error channel to alert the devs
-const config = require('../config.json')[
-  process.env.NODE_ENV || 'development'
-];
-
 module.exports = {
   clientCache: null,
   async log(info, discord_client) {
@@ -17,10 +12,10 @@ module.exports = {
     if (
       discord_client &&
       process.env.NODE_ENV === 'production' &&
-      config.error_channel
+      process.env.ERROR_CHANNEL
     ) {
       const channel = await discord_client.channels.get(
-        config.error_channel,
+        process.env.ERROR_CHANNEL,
       );
       const dev = info.channel ? ` at ${info.channel}` : '';
       info = JSON.stringify(info, null, 2).replace(/\\n/g, '\n');
@@ -35,16 +30,19 @@ module.exports = {
     if (
       discord_client &&
       process.env.NODE_ENV === 'production' &&
-      config.error_channel
+      process.env.ERROR_CHANNEL
     ) {
       const channel = await discord_client.channels.get(
-        config.error_channel,
+        process.env.ERROR_CHANNEL,
       );
-      const dev = `<@${config.devs.join('>,<@')}> ${
+      const devs = process.env.DEVS
+        ? process.env.DEVS.split(',')
+        : [];
+      const devStr = `<@${devs.join('>,<@')}> ${
         error.channel ? ` at ${error.channel}` : ''
       }`;
       error = JSON.stringify(error, null, 2).replace(/\\n/g, '\n');
-      channel.send(`${dev}\`\`\`fix\n${error}\`\`\``);
+      channel.send(`${devStr}\`\`\`fix\n${error}\`\`\``);
     }
   },
 };

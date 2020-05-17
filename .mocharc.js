@@ -12,15 +12,14 @@ module.exports = {
   'inline-diffs': false,
   recursive: true,
   reporter: 'spec',
-  //require: 'test/bootstrap.js'
+  require: 'dotenv-flow/config',
   retries: 0,
   slow: 75,
   sort: false,
-  // spec: 'test/**/*.spec.js' // the positional arguments!
   timeout: 10000, // same as "no-timeout: true" or "timeout: 0"
   'trace-warnings': true, // node flags ok
   ui: 'bdd',
   watch: false,
-  'watch-files': ['lib/**/*.js', 'test/**/*.js'],
+  'watch-files': ['src/**/*.js', 'test/**/*.js'],
   'watch-ignore': ['lib/vendor'],
 };
