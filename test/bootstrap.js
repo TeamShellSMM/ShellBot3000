@@ -3,16 +3,16 @@
 global.TEST = {};
 const chai = require('chai');
 const { AkairoClient } = require('discord-akairo');
-const WebApi = require('../WebApi');
+const WebApi = require('../src/WebApi');
 
 global.assert = chai.assert;
-global.TEST.knex = require('../db/knex');
+global.TEST.knex = require('../src/db/knex');
 global.TEST.request = require('supertest');
 global.TEST.config = require('../config.json').test;
 // force testing TEST.config
 global.TEST.config.defaultCooldown = 0;
-global.TEST.TS = require('../TS.js');
-const DiscordLog = require('../DiscordLog');
+global.TEST.TS = require('../src/TS.js');
+const DiscordLog = require('../src/DiscordLog');
 
 DiscordLog.log = () => {};
 DiscordLog.error = (e) => {};

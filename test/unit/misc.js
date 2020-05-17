@@ -119,7 +119,7 @@ describe('misc-unit', function () {
 
   it('Check team model loading without guild_id', async function () {
     // assert.isFalse(await TEST.ts.modOnly())
-    const Teams = require('../../models/Teams')();
+    const Teams = require('../../src/models/Teams')();
     assert.exists(Teams);
     assert.doesNotThrow(async () => await Teams.query().select());
   });

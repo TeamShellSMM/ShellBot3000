@@ -3,7 +3,7 @@
 'use strict';
 
 // This will send errors to a configured error channel to alert the devs
-const config = require('./config.json')[
+const config = require('../config.json')[
   process.env.NODE_ENV || 'development'
 ];
 

@@ -1,5 +1,3 @@
-'use strict';
-
 const crypto = require('crypto');
 const moment = require('moment');
 const jwt = require('jsonwebtoken');
@@ -10,7 +8,8 @@ const DEFAULTMESSAGES = require('./DefaultStrings.js');
 const DiscordLog = require('./DiscordLog');
 /* istanbul ignore next */
 Handlebars.registerHelper('plural', function (num) {
-  return num > 1 || num == 0 ? 's' : '';
+  num = Number(num);
+  return num > 1 || num === 0 ? 's' : '';
 });
 
 /* istanbul ignore next */
@@ -22,7 +21,7 @@ Handlebars.registerHelper('1dp', function (num) {
 });
 
 /* istanbul ignore next */
-const server_config = require('./config.json')[
+const server_config = require('../config.json')[
   process.env.NODE_ENV || 'development'
 ];
 
