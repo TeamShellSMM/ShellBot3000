@@ -6,9 +6,6 @@ addons:
   mariadb: '10.4'
 env:
   - DB_HOST=localhost DB_PASS=travis DB_USER=travis DB_NAME=travis PAGE_URL=http://localhost:8080/ DEVS=1024
-before_install:
-  - mysql -e 'create database travis  DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci;'
-  - sudo mysql -e "CREATE USER travis IDENTIFIED BY 'travis'; GRANT ALL ON travis.* to travis;"
 install:
   - npm install
 before_script:
