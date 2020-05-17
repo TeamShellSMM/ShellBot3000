@@ -1,90 +1,114 @@
-describe('setworld',()=>{
+describe('setworld', () => {
   beforeEach(async () => {
     await TEST.setupData({
-      Members: [{
-        name: 'Mod',
-        discord_id: '128',
-        is_mod:1,
-      }, {
-        name: 'Creator',
-        maker_id:'123',
-        maker_name:'Creator',
-        discord_id: '256',
-      }, {
-        name: 'Other',
-        discord_id: '512',
-      }],
-      Levels: [{
-        level_name: 'approved level',
-        creator: 2,
-        code: 'XXX-XXX-XXX',
-        status: 1,
-        difficulty: 1,
-      },{
-        level_name: 'pending level',
-        creator: 2,
-        code: 'XXX-XXX-XX2',
-        status: 0,
-        difficulty: 0,
-        tags:'removetag1,tag2,removetag3,all_locked,remove_locked',
-      },{
-        level_name: 'pending level2',
-        creator: 2,
-        code: 'XXX-XXX-XX3',
-        status: 0,
-        difficulty: 0,
-        tags:'tag2',
-      }],
+      Members: [
+        {
+          name: 'Mod',
+          discord_id: '128',
+          is_mod: 1,
+        },
+        {
+          name: 'Creator',
+          maker_id: '123',
+          maker_name: 'Creator',
+          discord_id: '256',
+        },
+        {
+          name: 'Other',
+          discord_id: '512',
+        },
+      ],
+      Levels: [
+        {
+          level_name: 'approved level',
+          creator: 2,
+          code: 'XXX-XXX-XXX',
+          status: 1,
+          difficulty: 1,
+        },
+        {
+          level_name: 'pending level',
+          creator: 2,
+          code: 'XXX-XXX-XX2',
+          status: 0,
+          difficulty: 0,
+          tags: 'removetag1,tag2,removetag3,all_locked,remove_locked',
+        },
+        {
+          level_name: 'pending level2',
+          creator: 2,
+          code: 'XXX-XXX-XX3',
+          status: 0,
+          difficulty: 0,
+          tags: 'tag2',
+        },
+      ],
     });
   });
 
-  it('no arguments', async ()=>{
-    assert.equal(await TEST.mockBotSend({
-      cmd: '!setworld',
-      channel: 'general',
-      discord_id: '256',
-    }),'You didn\'t provide a valid world count ');
-  })
+  it('no arguments', async () => {
+    assert.equal(
+      await TEST.mockBotSend({
+        cmd: '!setworld',
+        channel: 'general',
+        discord_id: '256',
+      }),
+      "You didn't provide a valid world count ",
+    );
+  });
 
-  it('no level_count', async ()=>{
-    assert.equal(await TEST.mockBotSend({
-      cmd: '!setworld 1',
-      channel: 'general',
-      discord_id: '256',
-    }),'You didn\'t provide a valid level count ');
-  })
+  it('no level_count', async () => {
+    assert.equal(
+      await TEST.mockBotSend({
+        cmd: '!setworld 1',
+        channel: 'general',
+        discord_id: '256',
+      }),
+      "You didn't provide a valid level count ",
+    );
+  });
 
-    it('no world name', async ()=>{
-      assert.equal(await TEST.mockBotSend({
+  it('no world name', async () => {
+    assert.equal(
+      await TEST.mockBotSend({
         cmd: '!setworld 1 4',
         channel: 'general',
         discord_id: '256',
-      }),'You didn\'t provide a world name ');
+      }),
+      "You didn't provide a world name ",
+    );
+  });
 
-    })
-
-    it('no maker id set', async ()=>{
-      assert.equal(await TEST.mockBotSend({
+  it('no maker id set', async () => {
+    assert.equal(
+      await TEST.mockBotSend({
         cmd: '!setworld 1 4 super auto world',
         channel: 'general',
         discord_id: '128',
-      }),'You need to set your Maker ID and Name first with !makerid XXX-XXX-XXX Name ');
-    })
+      }),
+      'You need to set your Maker ID and Name first with !makerid XXX-XXX-XXX Name ',
+    );
+  });
 
-    it('success', async ()=>{
-      assert.equal(await TEST.mockBotSend({
+  it('success', async () => {
+    assert.equal(
+      await TEST.mockBotSend({
         cmd: '!setworld 1 4 super auto world',
         channel: 'general',
         discord_id: '256',
-      }),'<@256> Your world was successfully set and should now show up on the worlds page');
-    })
+      }),
+      '<@256> Your world was successfully set and should now show up on the worlds page',
+    );
+  });
 
-    it('!unsetworld', async ()=>{
-      assert.equal(await TEST.mockBotSend({
+  it('!unsetworld', async () => {
+    assert.equal(
+      await TEST.mockBotSend({
         cmd: '!unset',
         channel: 'general',
         discord_id: '256',
-      }),'<@256> Your world was successfully removed');
-    })
-
-})
+      }),
+      '<@256> Your world was successfully removed',
+    );
+  });
+});

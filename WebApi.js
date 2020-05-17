@@ -1,53 +1,66 @@
-'use strict'
+'use strict';
+
 const bodyParser = require('body-parser');
 const compression = require('compression');
-const Teams=require('./models/Teams');
 const moment = require('moment');
+const express = require('express');
+const deepEqual = require('deep-equal');
+const Teams = require('./models/Teams');
 const knex = require('./db/knex');
-const express=require('express');
 const DiscordLog = require('./DiscordLog');
-const TS=require('./TS');
-const deepEqual=require('deep-equal');
+const TS = require('./TS');
 
-
-module.exports = async function(client){
-  if(!client) throw new Error(`DiscordClient is not defined`);
+module.exports = async function (client) {
+  if (!client) throw new Error(`DiscordClient is not defined`);
   const app = express();
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({ extended: true }));
-  app.use(compression())
+  app.use(compression());
 
-  async function generateSiteJson(args={}){
-    const { ts, user , code , name , dashboard } = args;
-    if(!ts) throw new Error(`TS not loaded buzzyS`);
-    let competition_winners = await ts.knex("competition_winners").where({guild_id:ts.team.id});
-    let tags=await ts.knex("tags").where({guild_id:ts.team.id});
-    let seasons = await ts.knex("seasons").where({guild_id:ts.team.id})
+  async function generateSiteJson(args = {}) {
+    const { ts, user, code, name, dashboard } = args;
+    if (!ts) throw new Error(`TS not loaded buzzyS`);
+    const competition_winners = await ts
+      .knex('competition_winners')
+      .where({ guild_id: ts.team.id });
+    const tags = await ts
+      .knex('tags')
+      .where({ guild_id: ts.team.id });
+    const seasons = await ts
+      .knex('seasons')
+      .where({ guild_id: ts.team.id });
 
-    let filterSql=''
-    if(code){
-      filterSql= 'AND levels.code=:code';
-    } else if(name){
-      filterSql= 'AND members.name=:name';
+    let filterSql = '';
+    if (code) {
+      filterSql = 'AND levels.code=:code';
+    } else if (name) {
+      filterSql = 'AND members.name=:name';
     }
 
-    let registeredColumns=(!dashboard && user)?`
+    const registeredColumns =
+      !dashboard && user
+        ? `
     ,registered_plays.completed
     ,registered_plays.liked
     ,registered_plays.difficulty_vote
-    `:`
+    `
+        : `
     ,'-' completed
     ,'-' liked
     ,'-' difficulty_vote`;
 
-    let registeredSql=(!dashboard && user)?`
+    const registeredSql =
+      !dashboard && user
+        ? `
       LEFT JOIN plays registered_plays ON
         levels.guild_id=registered_plays.guild_id
         AND levels.id=registered_plays.code
         AND registered_plays.player=:player_id
-    `:``
+    `
+        : ``;
 
-    let [ levels ]= await knex.raw(`
+    const [levels] = await knex.raw(
+      `
       SELECT 
         levels.row_num no
         ,levels.id
@@ -88,17 +101,20 @@ module.exports = async function(client){
         ${filterSql}
       GROUP BY levels.id
       order by levels.id
-    `, { 
-      guild_id:ts.guild_id,
-      code,
-      name,
-      player_id: user ? user.id : -1,
-      statuses: ts.SHOWN_IN_LIST, 
-    })
-    
+    `,
+      {
+        guild_id: ts.guild_id,
+        code,
+        name,
+        player_id: user ? user.id : -1,
+        statuses: ts.SHOWN_IN_LIST,
+      },
+    );
 
-    const seperate=tags.filter( t => t.is_seperate ).map( t => t.name )
-    let json={
+    const seperate = tags
+      .filter((t) => t.is_seperate)
+      .map((t) => t.name);
+    const json = {
       levels,
       seasons,
       competition_winners,
@@ -106,8 +122,9 @@ module.exports = async function(client){
       seperate,
     };
 
-    if(name){
-      const [ makerDetails ]=await knex.raw(`
+    if (name) {
+      const [makerDetails] = await knex.raw(
+        `
       SELECT members.*,members.id creator_id
         ,sum(round(((likes*2+clears)*score*likes/clears),1)) maker_points
         FROM members 
@@ -138,259 +155,342 @@ module.exports = async function(client){
           AND members.id=a.creator
         WHERE members.name=:name 
         AND members.guild_id=:guild_id
-      `, { 
-        guild_id:ts.team.id,
-        name,
-        status:ts.LEVEL_STATUS.APPROVED 
-      })
-      if(makerDetails){
-        json.maker=makerDetails
-        if(json.maker.length>0){
-          json.maker=json.maker[0]
-          delete json.maker.discord_id
-          delete json.maker.guild_id
-          json.plays=await ts.getPlays().where('player',json.maker.id)
+      `,
+        {
+          guild_id: ts.team.id,
+          name,
+          status: ts.LEVEL_STATUS.APPROVED,
+        },
+      );
+      if (makerDetails) {
+        json.maker = makerDetails;
+        if (json.maker.length > 0) {
+          json.maker = json.maker[0];
+          delete json.maker.discord_id;
+          delete json.maker.guild_id;
+          json.plays = await ts
+            .getPlays()
+            .where('player', json.maker.id);
         }
       }
     }
 
-    if(dashboard){
-        const [ memberStats , fields ]=await knex.raw(`
+    if (dashboard) {
+      const [memberStats, fields] = await knex.raw(
+        `
         SELECT sum(members.is_member) official
           ,count(members.id)-sum(members.is_member) unoffocial
           ,sum(members.is_mod) mods
         FROM members
         where guild_id=:guild_id
-      `, { guild_id:ts.team.id});
-      json.dashboard={
-        members:memberStats[0],
-      }
+      `,
+        { guild_id: ts.team.id },
+      );
+      json.dashboard = {
+        members: memberStats[0],
+      };
     }
 
-    if(code && levels && levels[0]){
-      json.plays=await ts.getPlays().where('levels.id',levels[0].id)
-      if(user && user.is_mod && [ts.LEVEL_STATUS.PENDING,ts.LEVEL_STATUS.NEED_FIX].includes(levels[0].status)){
-        json.pending_comments=await ts.getPendingVotes().where('levels.id',levels[0].id)
+    if (code && levels && levels[0]) {
+      json.plays = await ts
+        .getPlays()
+        .where('levels.id', levels[0].id);
+      if (
+        user &&
+        user.is_mod &&
+        [ts.LEVEL_STATUS.PENDING, ts.LEVEL_STATUS.NEED_FIX].includes(
+          levels[0].status,
+        )
+      ) {
+        json.pending_comments = await ts
+          .getPendingVotes()
+          .where('levels.id', levels[0].id);
       }
     }
 
     return json;
   }
 
-  async function generateMembersJson(ts,isShellder, data){
-    let competition_winners = await ts.knex("competition_winners").where({guild_id:ts.team.id});
+  async function generateMembersJson(ts, isShellder, data) {
+    const competition_winners = await ts
+      .knex('competition_winners')
+      .where({ guild_id: ts.team.id });
 
     let members = [];
 
-    if(data.membershipStatus == '1'){
-      members = await ts.db.Members.query().select().where("is_member", 1).orderBy("clear_score_sum", "desc");
-    } else if(data.membershipStatus == '2'){
-      members = await ts.db.Members.query().select().where("is_mod",1).orderBy("clear_score_sum", "desc");
-    } else if(data.membershipStatus == '4'){
-      members = await ts.db.Members.query().select().where(q=> q.where("is_member", 0).orWhere("is_member", null)).orderBy("clear_score_sum", "desc");
+    if (data.membershipStatus == '1') {
+      members = await ts.db.Members.query()
+        .select()
+        .where('is_member', 1)
+        .orderBy('clear_score_sum', 'desc');
+    } else if (data.membershipStatus == '2') {
+      members = await ts.db.Members.query()
+        .select()
+        .where('is_mod', 1)
+        .orderBy('clear_score_sum', 'desc');
+    } else if (data.membershipStatus == '4') {
+      members = await ts.db.Members.query()
+        .select()
+        .where((q) =>
+          q.where('is_member', 0).orWhere('is_member', null),
+        )
+        .orderBy('clear_score_sum', 'desc');
     } else {
-      members = await ts.db.Members.query().select().orderBy("clear_score_sum", "desc");
+      members = await ts.db.Members.query()
+        .select()
+        .orderBy('clear_score_sum', 'desc');
     }
     let json = [];
 
-    if(data.timePeriod == '1' && data.timePeriod2 == '1'){
+    if (data.timePeriod == '1' && data.timePeriod2 == '1') {
       let memberCounter = 1;
-      for(let member of members){
-        let comps = [];
-        for(let comp of competition_winners){
-          if(comp[1] === member.name){
+      for (const member of members) {
+        const comps = [];
+        for (const comp of competition_winners) {
+          if (comp[1] === member.name) {
             comps.push({
               name: comp[2],
-              rank: comp[3]
-            })
+              rank: comp[3],
+            });
           }
         }
 
-        let memberObj = {
-          "id": memberCounter,
-          "name": member.name,
-          "wonComps": comps,
-          "levels_created": member.levels_created,
-          "levels_cleared": member.levels_cleared,
-          "clear_score_sum": member.clear_score_sum
-        }
+        const memberObj = {
+          id: memberCounter,
+          name: member.name,
+          wonComps: comps,
+          levels_created: member.levels_created,
+          levels_cleared: member.levels_cleared,
+          clear_score_sum: member.clear_score_sum,
+        };
         json.push(memberObj);
 
         memberCounter++;
       }
       return json;
-    } else {
-
-      //TODO: fix 
-      let membersObj = {};
-
-      let memberNames = Array.from(members, x => x.id);
-
-      for(let memName of memberNames){
-        membersObj[memName] = {
-          "name": memName,
-          "levels_created": 0,
-          "levels_cleared": 0,
-          "clear_score_sum": 0.0,
-          "wonComps": []
-        };
-      }
-
-      let lCountQueryBuilder = ts.db.Levels.query().whereIn('creator',memberNames);
-      if (data.timePeriod == '2') {
-        lCountQueryBuilder = lCountQueryBuilder.whereRaw("strftime('%m-%Y', created_at) = strftime('%m-%Y', CURRENT_TIMESTAMP)")
-      } else if (data.timePeriod == '3') {
-        lCountQueryBuilder = lCountQueryBuilder.whereRaw("strftime('%W-%Y', created_at) = strftime('%W-%Y', CURRENT_TIMESTAMP)");
-      } else if (data.timePeriod == '4') {
-        lCountQueryBuilder = lCountQueryBuilder.whereRaw("strftime('%j-%Y', created_at) = strftime('%j-%Y', CURRENT_TIMESTAMP)");
-      }
-      let lCountResult = await lCountQueryBuilder.groupBy('creator').select('creator').count('id as count_created');
-
-      for(let row of lCountResult){
-        membersObj[row.creator]["levels_created"] = row.count_created;
-      }
-
-      let cCountQueryBuilder = ts.db.Plays.query().join('levels', function() {
-        this.on('plays.code', '=', 'levels.code').on('plays.guild_id', '=', 'levels.guild_id')
-      }).join('points', function() {
-        this.on('levels.difficulty', '=', 'points.difficulty').on('levels.guild_id', '=', 'points.guild_id')
-      }).whereIn('plays.player', memberNames).where('plays.completed', '=', '1');
-
-      if (data.timePeriod == '2') {
-        cCountQueryBuilder = cCountQueryBuilder.whereRaw("strftime('%m-%Y', levels.created_at) = strftime('%m-%Y', CURRENT_TIMESTAMP)")
-      } else if (data.timePeriod == '3') {
-        cCountQueryBuilder = cCountQueryBuilder.whereRaw("strftime('%W-%Y', levels.created_at) = strftime('%W-%Y', CURRENT_TIMESTAMP)");
-      } else if (data.timePeriod == '4') {
-        cCountQueryBuilder = cCountQueryBuilder.whereRaw("strftime('%j-%Y', levels.created_at) = strftime('%j-%Y', CURRENT_TIMESTAMP)");
-      }
-      if (data.timePeriod2 == '2') {
-        cCountQueryBuilder = cCountQueryBuilder.whereRaw("strftime('%m-%Y', plays.created_at) = strftime('%m-%Y', CURRENT_TIMESTAMP)")
-      } else if (data.timePeriod2 == '3') {
-        cCountQueryBuilder = cCountQueryBuilder.whereRaw("strftime('%W-%Y', plays.created_at) = strftime('%W-%Y', CURRENT_TIMESTAMP)");
-      } else if (data.timePeriod2 == '4') {
-        cCountQueryBuilder = cCountQueryBuilder.whereRaw("strftime('%j-%Y', plays.created_at) = strftime('%j-%Y', CURRENT_TIMESTAMP)");
-      }
-      let cCountResult = await cCountQueryBuilder.groupBy('plays.player').select('plays.player').count('plays.id as count_cleared').sum('points.score as score_sum');
-
-      for(let row of cCountResult){
-        let memName = row['player'];
-        membersObj[memName]["levels_cleared"] = row.count_cleared;
-        membersObj[memName]["clear_score_sum"] = row.score_sum;
-      }
-
-      let memberArr = Object.values(membersObj);
-
-      for(let mem of memberArr){
-        let comps = [];
-        for(let comp of competition_winners){
-          if(comp[1] === mem.name){
-            comps.push({
-              name: comp[2],
-              rank: comp[3]
-            })
-          }
-        }
-
-        mem['wonComps'] = comps;
-      }
-
-      json = memberArr;
-
-      let memberCounter = 1;
-      json.sort(function(a,b){
-        if(a.clear_score_sum > b.clear_score_sum){
-          return -1;
-        }
-        if(a.clear_score_sum < b.clear_score_sum){
-          return 1;
-        }
-        return 0;
-      });
-
-      for(let obj of json){
-        obj.id = memberCounter++;
-      }
-
-      return json;
     }
-  }
+    // TODO: fix
+    const membersObj = {};
 
+    const memberNames = Array.from(members, (x) => x.id);
 
-
-  async function generateWorldsJson(ts,isShellder, data){
-
-    let competition_winners = await ts.knex("competition_winners").where({guild_id:ts.team.id});
-    
-  
-    let members = [];
-  
-    if(data.membershipStatus == '1'){
-      members = await ts.db.Members.query().select().where("is_member", 1).where('world_level_count', '>', 0);
-    } else if(data.membershipStatus == '2'){
-      members = await ts.db.Members.query().select().where('world_level_count', '>', 0);
-      members = members.filter(member => member.is_mod);
-    } else if(data.membershipStatus == '4'){
-      members = await ts.db.Members.query().select().where('world_level_count', '>', 0).where(function () {
-        this
-          .where("is_member", 0)
-          .orWhere("is_member", null)
-      });
-    } else {
-      members = await ts.db.Members.query().select().where('world_level_count', '>', 0);
+    for (const memName of memberNames) {
+      membersObj[memName] = {
+        name: memName,
+        levels_created: 0,
+        levels_cleared: 0,
+        clear_score_sum: 0.0,
+        wonComps: [],
+      };
     }
-  
-    let json = [];
-  
-    let memberCounter = 1;
-    for(let member of members){
-      let comps = [];
-      for(let comp of competition_winners){
-        if(comp[1] === member.name){
+
+    let lCountQueryBuilder = ts.db.Levels.query().whereIn(
+      'creator',
+      memberNames,
+    );
+    if (data.timePeriod == '2') {
+      lCountQueryBuilder = lCountQueryBuilder.whereRaw(
+        "strftime('%m-%Y', created_at) = strftime('%m-%Y', CURRENT_TIMESTAMP)",
+      );
+    } else if (data.timePeriod == '3') {
+      lCountQueryBuilder = lCountQueryBuilder.whereRaw(
+        "strftime('%W-%Y', created_at) = strftime('%W-%Y', CURRENT_TIMESTAMP)",
+      );
+    } else if (data.timePeriod == '4') {
+      lCountQueryBuilder = lCountQueryBuilder.whereRaw(
+        "strftime('%j-%Y', created_at) = strftime('%j-%Y', CURRENT_TIMESTAMP)",
+      );
+    }
+    const lCountResult = await lCountQueryBuilder
+      .groupBy('creator')
+      .select('creator')
+      .count('id as count_created');
+
+    for (const row of lCountResult) {
+      membersObj[row.creator].levels_created = row.count_created;
+    }
+
+    let cCountQueryBuilder = ts.db.Plays.query()
+      .join('levels', function () {
+        this.on('plays.code', '=', 'levels.code').on(
+          'plays.guild_id',
+          '=',
+          'levels.guild_id',
+        );
+      })
+      .join('points', function () {
+        this.on('levels.difficulty', '=', 'points.difficulty').on(
+          'levels.guild_id',
+          '=',
+          'points.guild_id',
+        );
+      })
+      .whereIn('plays.player', memberNames)
+      .where('plays.completed', '=', '1');
+
+    if (data.timePeriod == '2') {
+      cCountQueryBuilder = cCountQueryBuilder.whereRaw(
+        "strftime('%m-%Y', levels.created_at) = strftime('%m-%Y', CURRENT_TIMESTAMP)",
+      );
+    } else if (data.timePeriod == '3') {
+      cCountQueryBuilder = cCountQueryBuilder.whereRaw(
+        "strftime('%W-%Y', levels.created_at) = strftime('%W-%Y', CURRENT_TIMESTAMP)",
+      );
+    } else if (data.timePeriod == '4') {
+      cCountQueryBuilder = cCountQueryBuilder.whereRaw(
+        "strftime('%j-%Y', levels.created_at) = strftime('%j-%Y', CURRENT_TIMESTAMP)",
+      );
+    }
+    if (data.timePeriod2 == '2') {
+      cCountQueryBuilder = cCountQueryBuilder.whereRaw(
+        "strftime('%m-%Y', plays.created_at) = strftime('%m-%Y', CURRENT_TIMESTAMP)",
+      );
+    } else if (data.timePeriod2 == '3') {
+      cCountQueryBuilder = cCountQueryBuilder.whereRaw(
+        "strftime('%W-%Y', plays.created_at) = strftime('%W-%Y', CURRENT_TIMESTAMP)",
+      );
+    } else if (data.timePeriod2 == '4') {
+      cCountQueryBuilder = cCountQueryBuilder.whereRaw(
+        "strftime('%j-%Y', plays.created_at) = strftime('%j-%Y', CURRENT_TIMESTAMP)",
+      );
+    }
+    const cCountResult = await cCountQueryBuilder
+      .groupBy('plays.player')
+      .select('plays.player')
+      .count('plays.id as count_cleared')
+      .sum('points.score as score_sum');
+
+    for (const row of cCountResult) {
+      const memName = row.player;
+      membersObj[memName].levels_cleared = row.count_cleared;
+      membersObj[memName].clear_score_sum = row.score_sum;
+    }
+
+    const memberArr = Object.values(membersObj);
+
+    for (const mem of memberArr) {
+      const comps = [];
+      for (const comp of competition_winners) {
+        if (comp[1] === mem.name) {
           comps.push({
             name: comp[2],
-            rank: comp[3]
-          })
+            rank: comp[3],
+          });
         }
       }
-  
-      json.push({
-        'id': memberCounter++,
-        'wonComps': comps,
-        'name': member.name,
-        'maker_id': member.maker_id,
-        'maker_name': member.maker_name,
-        'world_name': member.world_description,
-        'world_world_count': member.world_world_count,
-        'world_level_count': member.world_level_count
-      });
+
+      mem.wonComps = comps;
     }
-  
-    return {data: json};
+
+    json = memberArr;
+
+    let memberCounter = 1;
+    json.sort(function (a, b) {
+      if (a.clear_score_sum > b.clear_score_sum) {
+        return -1;
+      }
+      if (a.clear_score_sum < b.clear_score_sum) {
+        return 1;
+      }
+      return 0;
+    });
+
+    for (const obj of json) {
+      obj.id = memberCounter++;
+    }
+
+    return json;
   }
 
-  async function generateMakersJson(ts,data){
+  async function generateWorldsJson(ts, isShellder, data) {
+    const competition_winners = await ts
+      .knex('competition_winners')
+      .where({ guild_id: ts.team.id });
 
-    let competition_winners = await ts.knex("competition_winners").where({guild_id:ts.team.id});
-    let seasons = await ts.knex('seasons').where({guild_id:ts.team.id}).orderBy('start_date');
+    let members = [];
 
-    let end_date='2038-01-19 03:14:08'
-    for(let i=seasons.length-1; i>=0 ;i--){
-      seasons[i].end_date=end_date;
-      end_date=seasons[i].start_date
+    if (data.membershipStatus == '1') {
+      members = await ts.db.Members.query()
+        .select()
+        .where('is_member', 1)
+        .where('world_level_count', '>', 0);
+    } else if (data.membershipStatus == '2') {
+      members = await ts.db.Members.query()
+        .select()
+        .where('world_level_count', '>', 0);
+      members = members.filter((member) => member.is_mod);
+    } else if (data.membershipStatus == '4') {
+      members = await ts.db.Members.query()
+        .select()
+        .where('world_level_count', '>', 0)
+        .where(function () {
+          this.where('is_member', 0).orWhere('is_member', null);
+        });
+    } else {
+      members = await ts.db.Members.query()
+        .select()
+        .where('world_level_count', '>', 0);
     }
-    data.season = data.season || seasons.length
-    
-    const current_season=seasons.length ? seasons[data.season-1] : {}
-    let membersSQL='';  
-    if(data.membershipStatus == '1'){
-      membersSQL=`AND members.is_member=1`
-    } else if(data.membershipStatus == '2'){;
-      membersSQL=`AND members.is_mod=1`
-    } else if(data.membershipStatus == '4'){
-      membersSQL=`AND members.is_member!=1`
+
+    const json = [];
+
+    let memberCounter = 1;
+    for (const member of members) {
+      const comps = [];
+      for (const comp of competition_winners) {
+        if (comp[1] === member.name) {
+          comps.push({
+            name: comp[2],
+            rank: comp[3],
+          });
+        }
+      }
+
+      json.push({
+        id: memberCounter++,
+        wonComps: comps,
+        name: member.name,
+        maker_id: member.maker_id,
+        maker_name: member.maker_name,
+        world_name: member.world_description,
+        world_world_count: member.world_world_count,
+        world_level_count: member.world_level_count,
+      });
     }
 
-    let [ json ]=await knex.raw(`SELECT 
+    return { data: json };
+  }
+
+  async function generateMakersJson(ts, data) {
+    const competition_winners = await ts
+      .knex('competition_winners')
+      .where({ guild_id: ts.team.id });
+    const seasons = await ts
+      .knex('seasons')
+      .where({ guild_id: ts.team.id })
+      .orderBy('start_date');
+
+    let end_date = '2038-01-19 03:14:08';
+    for (let i = seasons.length - 1; i >= 0; i--) {
+      seasons[i].end_date = end_date;
+      end_date = seasons[i].start_date;
+    }
+    data.season = data.season || seasons.length;
+
+    const current_season = seasons.length
+      ? seasons[data.season - 1]
+      : {};
+    let membersSQL = '';
+    if (data.membershipStatus == '1') {
+      membersSQL = `AND members.is_member=1`;
+    } else if (data.membershipStatus == '2') {
+      membersSQL = `AND members.is_mod=1`;
+    } else if (data.membershipStatus == '4') {
+      membersSQL = `AND members.is_member!=1`;
+    }
+
+    const [json] = await knex.raw(
+      `SELECT 
     row_number() over ( order by sum(maker_points)) id
       ,name
       ,creator_id
@@ -420,365 +520,514 @@ module.exports = async function(client){
           ${membersSQL}
       group by levels.code) a
       group by name
-      order by maker_points desc`,{ 
-        from_season:current_season.start_date || '0000-00-00',
-        to_season:current_season.end_date || '3000-01-01',
+      order by maker_points desc`,
+      {
+        from_season: current_season.start_date || '0000-00-00',
+        to_season: current_season.end_date || '3000-01-01',
         guild_id: ts.guild_id,
-      });
+      },
+    );
 
-    return {data: json, seasons, competition_winners};
+    return { data: json, seasons, competition_winners };
   }
 
-  let web_ts=(callback)=>{
-    //let refer=req.headers.referer.split(req.host)[1].split('/')
+  const web_ts = (callback) => {
+    // let refer=req.headers.referer.split(req.host)[1].split('/')
     return async (req, res) => {
-      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.setHeader(
+        'Content-Type',
+        'application/json; charset=utf-8',
+      );
       let ts;
-      if(req.body && req.body.url_slug ){
+      if (req.body && req.body.url_slug) {
         try {
-          ts=TS.teamFromUrl(req.body.url_slug)
-          if(!ts){
+          ts = TS.teamFromUrl(req.body.url_slug);
+          if (!ts) {
             res.status(404).send('Not found');
             DiscordLog.error(`"${req.body.url_slug}" not found`);
           } else {
-            if(req.body && req.body.token){
-              req.body.discord_id=await ts.checkBearerToken(req.body.token)
-              req.user=await ts.get_user(req.body.discord_id)
+            if (req.body && req.body.token) {
+              req.body.discord_id = await ts.checkBearerToken(
+                req.body.token,
+              );
+              req.user = await ts.get_user(req.body.discord_id);
             }
-            let data=await callback(ts,req,res)
-            data.url_slug=ts.url_slug;
-            if(ts.teamAdmin(req.body.discord_id)){
-              data.teamAdmin=true;
+            const data = await callback(ts, req, res);
+            data.url_slug = ts.url_slug;
+            if (ts.teamAdmin(req.body.discord_id)) {
+              data.teamAdmin = true;
             }
             res.send(JSON.stringify(data));
           }
-        } catch(error){
-          if(ts){
-            res.send(ts.getWebUserErrorMsg(error))
+        } catch (error) {
+          if (ts) {
+            res.send(ts.getWebUserErrorMsg(error));
           } else {
-            DiscordLog.error(error)
-            console.error(error)
-            res.send(JSON.stringify({status:'error','message':error}))
+            DiscordLog.error(error);
+            console.error(error);
+            res.send(
+              JSON.stringify({ status: 'error', message: error }),
+            );
           }
         }
       } else {
-        res.send(JSON.stringify({status:'error',message: TS.message('api.noslug')}))
+        res.send(
+          JSON.stringify({
+            status: 'error',
+            message: TS.message('api.noslug'),
+          }),
+        );
       }
+    };
+  };
+
+  async function generateWorldsJson(ts, isShellder, data) {
+    const competition_winners = await ts
+      .knex('competition_winners')
+      .where({ guild_id: ts.team.id });
+    let members = [];
+
+    if (data.membershipStatus == '1') {
+      members = await ts.db.Members.query()
+        .select()
+        .where('is_member', 1)
+        .where('world_level_count', '>', 0);
+    } else if (data.membershipStatus == '2') {
+      members = await ts.db.Members.query()
+        .select()
+        .where('world_level_count', '>', 0);
+      members = members.filter((member) => member.is_mod);
+    } else if (data.membershipStatus == '4') {
+      members = await ts.db.Members.query()
+        .select()
+        .where('world_level_count', '>', 0)
+        .where(function () {
+          this.where('is_member', 0).orWhere('is_member', null);
+        });
+    } else {
+      members = await ts.db.Members.query()
+        .select()
+        .where('world_level_count', '>', 0);
     }
-  }
 
-  async function generateWorldsJson(ts,isShellder, data){
+    const json = [];
 
-  let competition_winners = await ts.knex("competition_winners").where({guild_id:ts.team.id});
-  let members = [];
-
-  if(data.membershipStatus == '1'){
-    members = await ts.db.Members.query().select().where("is_member", 1).where('world_level_count', '>', 0);
-  } else if(data.membershipStatus == '2'){
-    members = await ts.db.Members.query().select().where('world_level_count', '>', 0);
-    members = members.filter(member => member.is_mod);
-  } else if(data.membershipStatus == '4'){
-    members = await ts.db.Members.query().select().where('world_level_count', '>', 0).where(function () {
-      this
-        .where("is_member", 0)
-        .orWhere("is_member", null)
-    });
-  } else {
-    members = await ts.db.Members.query().select().where('world_level_count', '>', 0);
-  }
-
-  let json = [];
-
-  let memberCounter = 1;
-  for(let member of members){
-    let comps = [];
-    for(let comp of competition_winners){
-      if(comp[1] === member.name){
-        comps.push({
-          name: comp[2],
-          rank: comp[3]
-        })
+    let memberCounter = 1;
+    for (const member of members) {
+      const comps = [];
+      for (const comp of competition_winners) {
+        if (comp[1] === member.name) {
+          comps.push({
+            name: comp[2],
+            rank: comp[3],
+          });
+        }
       }
+
+      json.push({
+        id: memberCounter++,
+        wonComps: comps,
+        name: member.name,
+        creator_id: member.name,
+        maker_id: member.maker_id,
+        maker_name: member.maker_name,
+        world_name: member.world_description,
+        world_world_count: member.world_world_count,
+        world_level_count: member.world_level_count,
+      });
     }
 
-    json.push({
-      'id': memberCounter++,
-      'wonComps': comps,
-      'name': member.name,
-      'creator_id': member.name,
-      'maker_id': member.maker_id,
-      'maker_name': member.maker_name,
-      'world_name': member.world_description,
-      'world_world_count': member.world_world_count,
-      'world_level_count': member.world_level_count
-    });
+    return { data: json };
   }
 
-  return {data: json};
-}
+  app.post(
+    '/json/worlds',
+    web_ts(async (ts, req) => {
+      if (req.body.token) {
+        req.body.discord_id = await ts.checkBearerToken(
+          req.body.token,
+        );
+        var user = await ts.get_user(req.body.discord_id);
+      }
 
+      const json = await generateWorldsJson(
+        ts,
+        user && user.is_mod,
+        req.body,
+      );
+      return json;
+    }),
+  );
 
-app.post('/json/worlds',web_ts(async (ts,req)=>{
-  if(req.body.token){
-    req.body.discord_id=await ts.checkBearerToken(req.body.token)
-    var user=await ts.get_user(req.body.discord_id)
-  }
-
-  let json = await generateWorldsJson(ts,user && user.is_mod,req.body)
-  return json;
-}))
-
-  app.post('/teams',async (req, res) => {
+  app.post('/teams', async (req, res) => {
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
     try {
-      let teams=await Teams.query().select('guild_name','url_slug','web_config').where({public:1})
+      const teams = await Teams.query()
+        .select('guild_name', 'url_slug', 'web_config')
+        .where({ public: 1 });
       res.send(JSON.stringify(data));
-    } catch(error){
-      let ret={"error":error.stack}
-      DiscordLog.error(ret)
-      res.send(ts.getWebUserErrorMsg(error))
-    } 
-  })
-
-  app.post('/teams/settings',web_ts(async (ts,req) => {
-    if(!req.body.discord_id) ts.userError("website.noToken");
-    if(!await ts.teamAdmin(req.body.discord_id)) ts.userError(ts.message('website.forbidden'));
-
-    const settings=await ts.getSettings('settings')
-    const ret=[]
-    for(let i=0;i<ts.defaultVariables.length;i++){
-      let value=settings[ts.defaultVariables[i].name] || ts.defaultVariables[i].default;
-      if(ts.defaultVariables[i].type==="boolean"){
-        value= value=='true'
-      } else if(ts.defaultVariables[i].type==="number"){
-        value=Number(value)
-      }
-      ret.push({
-        ...ts.defaultVariables[i],
-        value,
-      })
+    } catch (error) {
+      const ret = { error: error.stack };
+      DiscordLog.error(ret);
+      res.send(ts.getWebUserErrorMsg(error));
     }
-    return {settings:ret}
-  }))
+  });
 
-  app.post('/teams/tags',web_ts(async (ts,req) => {
-    if(!req.body.discord_id) ts.userError("website.noToken");
-    if(!await ts.teamAdmin(req.body.discord_id)) ts.userError(ts.message('website.forbidden'));
-    const data=await ts.knex('tags')
-    .select('id','name','synonymous_to','type','color','is_seperate','add_lock','remove_lock','is_hidden')
-    .where({guild_id:ts.team.id});
-    return {data:ts.secure_data(data)}
-  }))
+  app.post(
+    '/teams/settings',
+    web_ts(async (ts, req) => {
+      if (!req.body.discord_id) ts.userError('website.noToken');
+      if (!(await ts.teamAdmin(req.body.discord_id)))
+        ts.userError(ts.message('website.forbidden'));
 
-  app.put('/teams/tags',web_ts(async (ts,req) => {
-    if(!req.body.discord_id) ts.userError("website.noToken");
-    if(!await ts.teamAdmin(req.body.discord_id)) ts.userError(ts.message('website.forbidden'));
-    if(!req.body.data) ts.userError('website.noDataSent');
-    const data=ts.verify_data(req.body.data)
-    
-    
-    
-    let updated=false;
-    await ts.knex.transaction(async(trx)=>{
-      const existing_tags=await trx('tags')
-        .select('id','name','synonymous_to','type','color','is_seperate','add_lock','remove_lock','is_hidden')
-        .where({guild_id:ts.team.id});
-
-      //TODO:test this
-      //TODO:tags transformation
-      data.forEach((d=>{
-        if(existing_tags.find((e)=> d.name==e.name && d.id!=e.id)){
-          ts.userError('tags.duplicateTags',{tag:d.name})
+      const settings = await ts.getSettings('settings');
+      const ret = [];
+      for (let i = 0; i < ts.defaultVariables.length; i++) {
+        let value =
+          settings[ts.defaultVariables[i].name] ||
+          ts.defaultVariables[i].default;
+        if (ts.defaultVariables[i].type === 'boolean') {
+          value = value == 'true';
+        } else if (ts.defaultVariables[i].type === 'number') {
+          value = Number(value);
         }
-      }))
-
-      for(let i=0;i<data.length;i++){
-        const current_id=data[i].id
-        const new_data={
-          id:data[i].id,
-          name:data[i].name,
-          synonymous_to:data[i].synonymous_to,
-          type:data[i].type,
-          color:data[i].color,
-          is_seperate:['true','1',1,true].includes(data[i].is_seperate)?1:0,
-          add_lock:['true','1',1,true].includes(data[i].add_lock)?1:0,
-          remove_lock:['true','1',1,true].includes(data[i].remove_lock)?1:0,
-          is_hidden:['true','1',1,true].includes(data[i].is_hidden)?1:0,
-        };
-        if(current_id){
-          const existing=existing_tags.find((t)=>t.id==current_id);
-          if(!existing) ts.userError('error.hadIdButNotInDb');
-          if(!deepEqual(new_data,existing)){
-            new_data.updated_at=moment().format("YYYY-MM-DD HH:mm:ss")
-            new_data.admin_id=req.user.id
-            await trx('tags')
-              .update(new_data)
-              .where({id:new_data.id})
-            updated=true;
-          }
-        } else {
-          delete data[i].id
-          new_data.guild_id=ts.team.id
-          new_data.admin_id=req.user.id
-          await trx('tags').insert(new_data)
-          updated=true;
-        }; 
+        ret.push({
+          ...ts.defaultVariables[i],
+          value,
+        });
       }
-      return trx
-    })
-    return {data:updated?"tags updated":'No tags updated'}; //{data:ts.secure_data(data)}
-  }))
+      return { settings: ret };
+    }),
+  );
 
-  app.put('/teams/settings',web_ts(async (ts,req) => {
-    if(!req.body || !req.body.token) ts.userError("website.noToken");
-    req.body.discord_id=await ts.checkBearerToken(req.body.token)
-    if(!await ts.teamAdmin(req.body.discord_id)) ts.userError(ts.message('website.forbidden'));
-    const user=await ts.get_user(req.body.discord_id)
-    const varName=ts.defaultVariables.map((v)=> v.name)
-    await knex.transaction(async(trx)=>{
-      for(const row of req.body.data){
-        if(varName.includes(row.name)){
-          const existing=await trx('team_settings')
-            .where({'guild_id':ts.team.id})
-            .where({type:'settings'})
-            .where({name:row.name}).first()
-          if(existing){
-            if(existing.value!==row.value){
-              await trx('team_settings')
-              .update({value:row.value,admin_id:user.id})
-              .where({'guild_id':ts.team.id})
-              .where({type:'settings'})
-              .where({name:row.name})
+  app.post(
+    '/teams/tags',
+    web_ts(async (ts, req) => {
+      if (!req.body.discord_id) ts.userError('website.noToken');
+      if (!(await ts.teamAdmin(req.body.discord_id)))
+        ts.userError(ts.message('website.forbidden'));
+      const data = await ts
+        .knex('tags')
+        .select(
+          'id',
+          'name',
+          'synonymous_to',
+          'type',
+          'color',
+          'is_seperate',
+          'add_lock',
+          'remove_lock',
+          'is_hidden',
+        )
+        .where({ guild_id: ts.team.id });
+      return { data: ts.secure_data(data) };
+    }),
+  );
+
+  app.put(
+    '/teams/tags',
+    web_ts(async (ts, req) => {
+      if (!req.body.discord_id) ts.userError('website.noToken');
+      if (!(await ts.teamAdmin(req.body.discord_id)))
+        ts.userError(ts.message('website.forbidden'));
+      if (!req.body.data) ts.userError('website.noDataSent');
+      const data = ts.verify_data(req.body.data);
+
+      let updated = false;
+      await ts.knex.transaction(async (trx) => {
+        const existing_tags = await trx('tags')
+          .select(
+            'id',
+            'name',
+            'synonymous_to',
+            'type',
+            'color',
+            'is_seperate',
+            'add_lock',
+            'remove_lock',
+            'is_hidden',
+          )
+          .where({ guild_id: ts.team.id });
+
+        // TODO:test this
+        // TODO:tags transformation
+        data.forEach((d) => {
+          if (
+            existing_tags.find(
+              (e) => d.name == e.name && d.id != e.id,
+            )
+          ) {
+            ts.userError('tags.duplicateTags', { tag: d.name });
+          }
+        });
+
+        for (let i = 0; i < data.length; i++) {
+          const current_id = data[i].id;
+          const new_data = {
+            id: data[i].id,
+            name: data[i].name,
+            synonymous_to: data[i].synonymous_to,
+            type: data[i].type,
+            color: data[i].color,
+            is_seperate: ['true', '1', 1, true].includes(
+              data[i].is_seperate,
+            )
+              ? 1
+              : 0,
+            add_lock: ['true', '1', 1, true].includes(
+              data[i].add_lock,
+            )
+              ? 1
+              : 0,
+            remove_lock: ['true', '1', 1, true].includes(
+              data[i].remove_lock,
+            )
+              ? 1
+              : 0,
+            is_hidden: ['true', '1', 1, true].includes(
+              data[i].is_hidden,
+            )
+              ? 1
+              : 0,
+          };
+          if (current_id) {
+            const existing = existing_tags.find(
+              (t) => t.id == current_id,
+            );
+            if (!existing) ts.userError('error.hadIdButNotInDb');
+            if (!deepEqual(new_data, existing)) {
+              new_data.updated_at = moment().format(
+                'YYYY-MM-DD HH:mm:ss',
+              );
+              new_data.admin_id = req.user.id;
+              await trx('tags')
+                .update(new_data)
+                .where({ id: new_data.id });
+              updated = true;
             }
           } else {
-            await trx('team_settings')
-            .insert({
-              guild_id:ts.team.id,
-              admin_id:user.id,
-              name:row.name,
-              value:row.value,
-              type:'settings',
-            })
+            delete data[i].id;
+            new_data.guild_id = ts.team.id;
+            new_data.admin_id = req.user.id;
+            await trx('tags').insert(new_data);
+            updated = true;
           }
-
         }
+        return trx;
+      });
+      return { data: updated ? 'tags updated' : 'No tags updated' }; // {data:ts.secure_data(data)}
+    }),
+  );
+
+  app.put(
+    '/teams/settings',
+    web_ts(async (ts, req) => {
+      if (!req.body || !req.body.token)
+        ts.userError('website.noToken');
+      req.body.discord_id = await ts.checkBearerToken(req.body.token);
+      if (!(await ts.teamAdmin(req.body.discord_id)))
+        ts.userError(ts.message('website.forbidden'));
+      const user = await ts.get_user(req.body.discord_id);
+      const varName = ts.defaultVariables.map((v) => v.name);
+      await knex.transaction(async (trx) => {
+        for (const row of req.body.data) {
+          if (varName.includes(row.name)) {
+            const existing = await trx('team_settings')
+              .where({ guild_id: ts.team.id })
+              .where({ type: 'settings' })
+              .where({ name: row.name })
+              .first();
+            if (existing) {
+              if (existing.value !== row.value) {
+                await trx('team_settings')
+                  .update({ value: row.value, admin_id: user.id })
+                  .where({ guild_id: ts.team.id })
+                  .where({ type: 'settings' })
+                  .where({ name: row.name });
+              }
+            } else {
+              await trx('team_settings').insert({
+                guild_id: ts.team.id,
+                admin_id: user.id,
+                name: row.name,
+                value: row.value,
+                type: 'settings',
+              });
+            }
+          }
+        }
+      });
+      await ts.load();
+      return { status: 'successful' };
+    }),
+  );
+
+  app.post(
+    '/json',
+    web_ts(async (ts, req) => {
+      if (req.body && req.body.token) {
+        req.body.discord_id = await ts.checkBearerToken(
+          req.body.token,
+        );
+        var user = await ts.get_user(req.body.discord_id);
       }
-    })
-    await ts.load()
-    return { status: "successful"}
-  }))
 
-  app.post('/json',web_ts(async (ts,req)=>{
-      
-      if(req.body && req.body.token){
-        req.body.discord_id=await ts.checkBearerToken(req.body.token)
-        var user=await ts.get_user(req.body.discord_id)
+      const json = await generateSiteJson({ ts, user, ...req.body });
+      return json;
+    }),
+  );
+
+  app.post(
+    '/json/members',
+    web_ts(async (ts, req) => {
+      if (req.body && req.body.token) {
+        req.body.discord_id = await ts.checkBearerToken(
+          req.body.token,
+        );
+        var user = await ts.get_user(req.body.discord_id);
       }
 
-    let json = await generateSiteJson({ts , user ,...req.body })
-    return json;
-  }))
+      const json = await generateMembersJson(
+        ts,
+        user && user.is_mod,
+        req.body,
+      );
+      return json;
+    }),
+  );
 
-  app.post('/json/members',web_ts(async (ts,req)=>{
-    if(req.body && req.body.token){
-      req.body.discord_id=await ts.checkBearerToken(req.body.token)
-      var user=await ts.get_user(req.body.discord_id)
-    }
+  app.post(
+    '/json/makers',
+    web_ts(async (ts, req) => {
+      if (req.body && req.body.token) {
+        req.body.discord_id = await ts.checkBearerToken(
+          req.body.token,
+        );
+      }
+      const json = await generateMakersJson(ts, req.body);
+      return json;
+    }),
+  );
 
-    let json = await generateMembersJson(ts,user && user.is_mod, req.body)
-    return json;
-  }))
+  app.post(
+    '/clear',
+    web_ts(async (ts, req) => {
+      if (!req.body || !req.body.token)
+        ts.userError('website.noToken');
 
-  app.post('/json/makers',web_ts(async (ts,req)=>{
-    if(req.body && req.body.token){
-      req.body.discord_id=await ts.checkBearerToken(req.body.token)
-    }
-    let json = await generateMakersJson(ts,req.body)
-    return json;
-  }))
+      req.body.discord_id = await ts.checkBearerToken(req.body.token);
+      req.body.player_atme = true;
+      await ts.get_user(req.body.discord_id);
 
-  app.post('/clear',web_ts(async (ts,req)=>{
-    if(!req.body || !req.body.token) ts.userError("website.noToken");
+      const msg = await ts.clear(req.body);
+      await client.channels.get(ts.channels.commandFeed).send(msg);
+      const json = { status: 'sucessful', msg: msg };
+      return json;
+    }),
+  );
 
-    req.body.discord_id=await ts.checkBearerToken(req.body.token);
-    req.body.player_atme=true;
-    await ts.get_user(req.body.discord_id)
+  app.post(
+    '/approve',
+    web_ts(async (ts, req) => {
+      if (!req.body || !req.body.token)
+        ts.userError('website.noToken');
 
-    let msg=await ts.clear(req.body)
-    await client.channels.get(ts.channels.commandFeed).send(msg)
-    let json = {status:"sucessful",msg:msg}
-    return json;
-  }))
+      req.body.discord_id = await ts.checkBearerToken(req.body.token);
+      const user = await ts.get_user(req.body.discord_id);
 
-  app.post('/approve',web_ts(async (ts,req)=>{
-    if(!req.body || !req.body.token) ts.userError("website.noToken");
+      if (user.is_mod) ts.userError('Forbidden');
 
-    req.body.discord_id=await ts.checkBearerToken(req.body.token)
-    let user=await ts.get_user(req.body.discord_id)
+      req.body.reason = req.body.comment;
 
-    if(user.is_mod) ts.userError("Forbidden");
+      const msg = await ts.approve(req.body);
+      const clearmsg = await ts.clear(req.body);
 
-    req.body.reason=req.body.comment
+      await client.channels
+        .get(ts.channels.commandFeed)
+        .send(clearmsg);
+      json = { status: 'sucessful', msg: msg };
+      return json;
+    }),
+  );
 
-    let msg=await ts.approve(req.body)
-    let clearmsg=await ts.clear(req.body)
+  app.post(
+    '/random',
+    web_ts(async (ts, req) => {
+      if (req.body && req.body.token) {
+        req.body.discord_id = await ts.checkBearerToken(
+          req.body.token,
+        );
+      }
 
-    await client.channels.get(ts.channels.commandFeed).send(clearmsg)
-    json = {status:"sucessful",msg:msg}
-    return json
-  }))
+      const rand = await ts.randomLevel(req.body);
+      rand.status = 'sucessful';
+      return rand;
+    }),
+  );
 
-  app.post('/random',web_ts(async (ts,req)=>{
-    if(req.body && req.body.token){
-      req.body.discord_id=await ts.checkBearerToken(req.body.token)
-    }
+  app.post(
+    '/feedback',
+    web_ts(async (ts, req) => {
+      if (!req.body || !req.body.token)
+        ts.userError('website.noToken');
 
-    let rand=await ts.randomLevel(req.body)
-    rand.status="sucessful"
-    return rand
-  }))
+      req.body.discord_id = await ts.checkBearerToken(req.body.token); // checks if logged in
+      await ts.get_user(req.body.discord_id); // just checks if registered
 
-  app.post('/feedback',web_ts(async (ts,req)=>{
+      if (req.body.message == null)
+        ts.userError(ts.message('feedback.noMessage'));
+      if (req.body.message.length > 1000)
+        ts.userError(ts.message('feedback.tooLong'));
 
-    if(!req.body || !req.body.token)
-      ts.userError("website.noToken");
+      const ip =
+        req.headers['x-forwarded-for'] ||
+        req.connection.remoteAddress;
+      const discordId = req.body.discord_id;
+      await ts.putFeedback(
+        ip,
+        discordId,
+        ts.config.feedback_salt,
+        req.body.message,
+      );
+      return { status: 'successful' };
+    }),
+  );
 
-    req.body.discord_id=await ts.checkBearerToken(req.body.token) //checks if logged in
-    await ts.get_user(req.body.discord_id) //just checks if registered
+  app.post(
+    '/json/login',
+    web_ts(async (ts, req) => {
+      let returnObj = {};
+      if (!req.body.otp) ts.userError(ts.message('login.noOTP'));
 
-    if(req.body.message == null) ts.userError(ts.message("feedback.noMessage"));
-    if(req.body.message.length > 1000) ts.userError(ts.message("feedback.tooLong"));
-
-    let ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-    let discordId = req.body.discord_id;
-    await ts.putFeedback(ip, discordId, ts.config.feedback_salt, req.body.message);
-    return { status: "successful"}
-
-  }))
-
-  app.post('/json/login', web_ts(async (ts,req) => {
-      let returnObj={}
-      if(!req.body.otp) ts.userError(ts.message("login.noOTP"));
-
-
-      let token=await ts.db.Tokens
-        .query()
-        .where('token','=',req.body.otp)
-      if(token && token.length>0){
-        token=token[0]
-        let tokenExpireAt=moment(token.created_at).add(30,'m').valueOf()
-        let now=moment().valueOf()
-        if(tokenExpireAt<now)
-          ts.userError(ts.message("login.expiredOTP"))
-        let user=await ts.get_user(token.discord_id);
-        let bearer=await ts.login(token.discord_id,token.id)
-        returnObj={status:"logged_in",type:"bearer","discord_id":user.discord_id,"token":bearer,"user_info":user}
+      let token = await ts.db.Tokens.query().where(
+        'token',
+        '=',
+        req.body.otp,
+      );
+      if (token && token.length > 0) {
+        token = token[0];
+        const tokenExpireAt = moment(token.created_at)
+          .add(30, 'm')
+          .valueOf();
+        const now = moment().valueOf();
+        if (tokenExpireAt < now)
+          ts.userError(ts.message('login.expiredOTP'));
+        const user = await ts.get_user(token.discord_id);
+        const bearer = await ts.login(token.discord_id, token.id);
+        returnObj = {
+          status: 'logged_in',
+          type: 'bearer',
+          discord_id: user.discord_id,
+          token: bearer,
+          user_info: user,
+        };
       } else {
-        ts.userError(ts.message("login.invalidToken"))
+        ts.userError(ts.message('login.invalidToken'));
       }
 
-      return returnObj
-  }));
+      return returnObj;
+    }),
+  );
 
-  return app
-}
+  return app;
+};

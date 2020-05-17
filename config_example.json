@@ -1,39 +1,37 @@
 {
+  "botName": "PLACEHOLDER",
 
-  "botName":"PLACEHOLDER",
+  "//": "copy your google service account here. add it to the sheet to edit",
+  "type": "PLACEHOLDER",
+  "project_id": "PLACEHOLDER",
+  "private_key_id": "PLACEHOLDER",
+  "private_key": "PLACEHOLDER",
+  "client_email": "PLACEHOLDER",
+  "client_id": "PLACEHOLDER",
+  "auth_uri": "PLACEHOLDER",
+  "token_uri": "PLACEHOLDER",
+  "auth_provider_x509_cert_url": "PLACEHOLDER",
+  "client_x509_cert_url": "PLACEHOLDER",
 
-  "//":"copy your google service account here. add it to the sheet to edit",
-  "type":"PLACEHOLDER",
-  "project_id":"PLACEHOLDER",
-  "private_key_id":"PLACEHOLDER",
-  "private_key":"PLACEHOLDER",
-  "client_email":"PLACEHOLDER",
-  "client_id":"PLACEHOLDER",
-  "auth_uri":"PLACEHOLDER",
-  "token_uri":"PLACEHOLDER",
-  "auth_provider_x509_cert_url":"PLACEHOLDER",
-  "client_x509_cert_url":"PLACEHOLDER",
-
-  "//":"Discord bot settings",
-  "discord_acces_token":"PLACEHOLDER",
-  "feedback_salt":"PLACEHOLDER",
-  "prefix":"!",
-  "ownerID":["DISCORD_ID","DISCORD_ID"],
+  "//": "Discord bot settings",
+  "discord_acces_token": "PLACEHOLDER",
+  "feedback_salt": "PLACEHOLDER",
+  "prefix": "!",
+  "ownerID": ["DISCORD_ID", "DISCORD_ID"],
   "defaultCooldown": 1000,
-  "//":"Point the command directory to where it is",
-  "commandDirectory":"commands/",
+  "//": "Point the command directory to where it is",
+  "commandDirectory": "commands/",
 
+  "spreadsheetId": "PLACEHOLDER",
+  "webPort": 3000,
 
-  "spreadsheetId":"PLACEHOLDER",
-  "webPort":3000,
+  "//": "If you run the vue.js site change this to point to your domain",
+  "login_url": "http://YOURDOMAIN/login/",
+  "//": "Set to true if you want to develop and test the json endpoints",
+  "json_dev": false,
 
-  "//":"If you run the vue.js site change this to point to your domain",
-  "login_url":"http://YOURDOMAIN/login/",
-  "//":"Set to true if you want to develop and test the json endpoints",
-  "json_dev":false,
-
-  "//":"You can leave the configuration below alone",
-  "development":{
+  "//": "You can leave the configuration below alone",
+  "development": {
     "client": "sqlite3",
     "connection": {
       "filename": "./data.sqlite3"
@@ -45,9 +43,9 @@
     "seeds": {
       "directory": "./db/seeds/development"
     },
-    "useNullAsDefault":1
+    "useNullAsDefault": 1
   },
-    "staging":{
+  "staging": {
     "client": "sqlite3",
     "connection": {
       "filename": "./data.sqlite3"
@@ -60,7 +58,7 @@
       "directory": "./db/seeds/staging"
     }
   },
-    "testing":{
+  "testing": {
     "client": "sqlite3",
     "connection": {
       "filename": "./data.sqlite3"
@@ -73,7 +71,7 @@
       "directory": "./db/seeds/testing"
     }
   },
-    "production":{
+  "production": {
     "client": "sqlite3",
     "connection": {
       "filename": "./data.sqlite3"

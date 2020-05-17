@@ -1,5 +1,5 @@
 'use strict';
-process.env.NODE_ENV='test'; //for now we force the node_env to be test
+process.env.NODE_ENV = 'test'; //for now we force the node_env to be test
 module.exports = {
   'allow-uncaught': true,
   'async-only': true,
@@ -8,7 +8,7 @@ module.exports = {
   delay: false,
   diff: true,
   'full-trace': false,
-  global: ['TEST','app'],
+  global: ['TEST', 'app'],
   'inline-diffs': false,
   recursive: true,
   reporter: 'spec',
@@ -21,6 +21,6 @@ module.exports = {
   'trace-warnings': true, // node flags ok
   ui: 'bdd',
   watch: false,
-  'watch-files':['lib/**/*.js','test/**/*.js'],
-  'watch-ignore':['lib/vendor'],
+  'watch-files': ['lib/**/*.js', 'test/**/*.js'],
+  'watch-ignore': ['lib/vendor'],
 };

@@ -1,85 +1,102 @@
 const TSCommand = require('../TSCommand.js');
+
 class InitChannels extends TSCommand {
-    constructor() {
-        super('initchannels', {
-            aliases: ['initchannels'],
-        });
+  constructor() {
+    super('initchannels', {
+      aliases: ['initchannels'],
+    });
+  }
+
+  async canRun(ts, message) {
+    if (message.member.hasPermission('ADMINISTRATOR')) {
+      return true;
     }
+    return false;
+  }
 
-    async canRun(ts,message){
-        if(message.member.hasPermission("ADMINISTRATOR")){
-            return true
-        }
-        return false
-    }
+  async tsexec(ts, message, args) {
+    const defaultChannels = {
+      modChannel: {
+        permissionOverwrites: [
+          {
+            id: message.guild.id,
+            allow: [],
+            deny: ['VIEW_CHANNEL', 'SEND_MESSAGES'],
+          },
+        ],
+      },
+      initiateChannel: {
+        permissionOverwrites: [
+          {
+            id: message.guild.id,
+            allow: ['VIEW_CHANNEL'],
+            deny: ['SEND_MESSAGES'],
+          },
+        ],
+      },
+      levelChangeNotification: {
+        permissionOverwrites: [
+          {
+            id: message.guild.id,
+            allow: ['VIEW_CHANNEL'],
+            deny: ['SEND_MESSAGES'],
+          },
+        ],
+      },
+      commandFeed: {
+        permissionOverwrites: [
+          {
+            id: message.guild.id,
+            allow: ['VIEW_CHANNEL'],
+            deny: ['SEND_MESSAGES'],
+          },
+        ],
+      },
+      levelDiscussionCategory: {
+        type: 'category',
+        permissionOverwrites: [
+          {
+            id: message.guild.id,
+            allow: [],
+            deny: ['VIEW_CHANNEL', 'SEND_MESSAGES'],
+          },
+        ],
+      },
+      pendingReuploadCategory: {
+        type: 'category',
+        permissionOverwrites: [
+          {
+            id: message.guild.id,
+            allow: [],
+            deny: ['VIEW_CHANNEL', 'SEND_MESSAGES'],
+          },
+        ],
+      },
+      feedbackChannel: {
+        permissionOverwrites: [
+          {
+            id: message.guild.id,
+            allow: [],
+            deny: ['VIEW_CHANNEL', 'SEND_MESSAGES'],
+          },
+        ],
+      },
+    };
 
-    async tsexec(ts,message, args) {        
-        const defaultChannels={
-          'modChannel':{
-              permissionOverwrites:[
-                  {
-                  id:message.guild.id,
-                  allow:[],
-                  deny:['VIEW_CHANNEL','SEND_MESSAGES'],
-              },
-            ],
-          },
-          'initiateChannel':{
-              permissionOverwrites:[
-                  {
-                    id:message.guild.id,
-                    allow:['VIEW_CHANNEL'],
-                    deny:['SEND_MESSAGES'],
-                },
-            ],
-          },
-          'levelChangeNotification':{
-              permissionOverwrites:[
-                  {
-                id:message.guild.id,
-                allow:['VIEW_CHANNEL'],
-                deny:['SEND_MESSAGES'],
-            }],
-              
-          },
-        'commandFeed':{
-              permissionOverwrites:[{
-                id:message.guild.id,
-                allow:['VIEW_CHANNEL'],
-                deny:['SEND_MESSAGES'],
-            }],
-          },
-        'levelDiscussionCategory':{
-            type:'category',
-            permissionOverwrites:[{
-              id:message.guild.id,
-              allow:[],
-              deny:['VIEW_CHANNEL','SEND_MESSAGES'],
-          }],
-        },
-          'pendingReuploadCategory':{
-              type:'category',
-              permissionOverwrites:[{
-                id:message.guild.id,
-                allow:[],
-                deny:['VIEW_CHANNEL','SEND_MESSAGES'],
-            }],
-          },
-          'feedbackChannel':{
-              permissionOverwrites:[{
-                id:message.guild.id,
-                allow:[],
-                deny:['VIEW_CHANNEL','SEND_MESSAGES'],
-            }],
-          },
-        }
-
-        let botPermissions={
-            id:ts.client.user.id,
-            allow:['VIEW_CHANNEL','SEND_MESSAGES','MANAGE_MESSAGES','MANAGE_CHANNELS','READ_MESSAGE_HISTORY','ADD_REACTIONS','USE_EXTERNAL_EMOJIS'],
-            deny:[],
-        }
-/*
+    const botPermissions = {
+      id: ts.client.user.id,
+      allow: [
+        'VIEW_CHANNEL',
+        'SEND_MESSAGES',
+        'MANAGE_MESSAGES',
+        'MANAGE_CHANNELS',
+        'READ_MESSAGE_HISTORY',
+        'ADD_REACTIONS',
+        'USE_EXTERNAL_EMOJIS',
+      ],
+      deny: [],
+    };
+    /*
         let change=false;
         let channels=ts.getSettings('channels');
         let sheet_updates=[];
@@ -110,9 +127,11 @@ class InitChannels extends TSCommand {
         }
 */
 
-        await ts.load()
-        await message.reply(change?'Commands done':'Nothing was done');
-    }
+    await ts.load();
+    await message.reply(
+      change ? 'Commands done' : 'Nothing was done',
+    );
+  }
 }
 
 module.exports = InitChannels;

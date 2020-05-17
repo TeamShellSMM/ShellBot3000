@@ -1,14 +1,15 @@
-const { Model,QueryBuilder } = require('objection');
+const { Model, QueryBuilder } = require('objection');
 const moment = require('moment');
-const knex = require('./db/knex')
-Model.knex(knex)
+const knex = require('./db/knex');
 
-module.exports = (guild_id,ts) => {
+Model.knex(knex);
+
+module.exports = (guild_id, ts) => {
   class TSQueryBuilder extends QueryBuilder {
     constructor(...args) {
       super(...args);
-      this.onBuild(builder => {
-        builder.where(this.tableName() + '.guild_id',guild_id);
+      this.onBuild((builder) => {
+        builder.where(`${this.tableName()}.guild_id`, guild_id);
       });
     }
   }
@@ -16,10 +17,9 @@ module.exports = (guild_id,ts) => {
   class TSModel extends Model {
     async $beforeInsert(queryContext) {
       await super.$beforeInsert(queryContext);
-      this.guild_id=guild_id
+      this.guild_id = guild_id;
     }
-
   }
-  TSModel.QueryBuilder = TSQueryBuilder
+  TSModel.QueryBuilder = TSQueryBuilder;
   return TSModel;
-}
+};

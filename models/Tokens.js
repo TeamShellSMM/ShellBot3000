@@ -1,6 +1,7 @@
-const { Model,QueryBuilder } = require('objection');
-const knex = require('../db/knex')
-Model.knex(knex)
+const { Model, QueryBuilder } = require('objection');
+const knex = require('../db/knex');
+
+Model.knex(knex);
 
 class Tokens extends Model {
   static get tableName() {

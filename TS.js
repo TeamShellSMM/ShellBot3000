@@ -1,104 +1,332 @@
-'use strict'
-const crypto=require('crypto');
-const moment=require('moment');
-const knex = require('./db/knex');
+'use strict';
+
+const crypto = require('crypto');
+const moment = require('moment');
 const jwt = require('jsonwebtoken');
-const DEFAULTMESSAGES=require("./DefaultStrings.js");
+const stringSimilarity = require('string-similarity');
+const Handlebars = require('handlebars');
+const knex = require('./db/knex');
+const DEFAULTMESSAGES = require('./DefaultStrings.js');
 const DiscordLog = require('./DiscordLog');
-const stringSimilarity = require('string-similarity')
-const Handlebars = require("handlebars");
 /* istanbul ignore next */
-Handlebars.registerHelper('plural', function(num){
-  return num>1 || num==0 ? 's' : ''
+Handlebars.registerHelper('plural', function (num) {
+  return num > 1 || num == 0 ? 's' : '';
 });
 
 /* istanbul ignore next */
-Handlebars.registerHelper('1dp', function(num){
-  if(typeof num==='number') return num.toFixed(1)
-  if(typeof num==='string' && !isNaN(num)) return Number(num).toFixed(1)
-  return num
+Handlebars.registerHelper('1dp', function (num) {
+  if (typeof num === 'number') return num.toFixed(1);
+  if (typeof num === 'string' && !isNaN(num))
+    return Number(num).toFixed(1);
+  return num;
 });
 
 /* istanbul ignore next */
-const server_config = require('./config.json')[process.env.NODE_ENV || 'development'];
+const server_config = require('./config.json')[
+  process.env.NODE_ENV || 'development'
+];
 
-const defaultChannels=[
-  {name:'modChannel',default:'bot-mod-channel',description:'The only channel where mod commands will work (approve,rerate). Only mods should be able to send/read channel'},
-  {name:'initiateChannel',default:'bot-makerteam-initiation',description:'The channel where the member will be notified if they officially become a member. This channel should be read only to everybody'},
-  {name:'levelChangeNotification',default:'bot-level-updates',description:'The channel where level approvals,rejections and rerates notifications are posted by the bot. This should be readonly to everyone'},
-  {name:'commandFeed',default:'bot-command-feed',description:'This is where clears/likes and other commands from the web will be shown. This should be read only to everyone'},
-  {name:'pendingReuploadCategory',default:'bot-pending-reupload',description:'The channel where level reuploads are discussed. Only mods should be able to send/read this category'},
-  {name:'feedbackChannel',default:'bot-makerteam-feedback',description:'Channel where the anonymous feedback will be posted. This should be readonly for whoever can read the feedback'},
-  {name:'levelDiscussionCategory',default:'bot-pending-discussion',description:'Channel category where pending channels will be created. Only mods should be able to send/read this category'},
+const defaultChannels = [
+  {
+    name: 'modChannel',
+    default: 'bot-mod-channel',
+    description:
+      'The only channel where mod commands will work (approve,rerate). Only mods should be able to send/read channel',
+  },
+  {
+    name: 'initiateChannel',
+    default: 'bot-makerteam-initiation',
+    description:
+      'The channel where the member will be notified if they officially become a member. This channel should be read only to everybody',
+  },
+  {
+    name: 'levelChangeNotification',
+    default: 'bot-level-updates',
+    description:
+      'The channel where level approvals,rejections and rerates notifications are posted by the bot. This should be readonly to everyone',
+  },
+  {
+    name: 'commandFeed',
+    default: 'bot-command-feed',
+    description:
+      'This is where clears/likes and other commands from the web will be shown. This should be read only to everyone',
+  },
+  {
+    name: 'pendingReuploadCategory',
+    default: 'bot-pending-reupload',
+    description:
+      'The channel where level reuploads are discussed. Only mods should be able to send/read this category',
+  },
+  {
+    name: 'feedbackChannel',
+    default: 'bot-makerteam-feedback',
+    description:
+      'Channel where the anonymous feedback will be posted. This should be readonly for whoever can read the feedback',
+  },
+  {
+    name: 'levelDiscussionCategory',
+    default: 'bot-pending-discussion',
+    description:
+      'Channel category where pending channels will be created. Only mods should be able to send/read this category',
+  },
 ];
 
 /**
  * Team settable Variables
  */
-const defaultVariables=[
-  {name:'TeamName',caption:'Team Name',default:'A Maker Team',type:'text',description:'Will be used by the bot in the reponses'},
-  {name:'ModName',caption:'Mod Name',default:'Admin',type:'text',description:'Will be refered to by the bot\'s response'},
-  {name:'BotName',caption:'Bot Name',default:'ShellBot 3000',type:'text',description:'What the bot will refer to itself in it\'s responses'},
-  {name:'Minimum Point',caption:'First Level Points',default:0,type:'number',description:'Minimum no. of points needed to submit their first level'},
-  {name:'New Level',caption:'New Level Points',default:0,type:'number',description:'How many points needed to submit another level'},
-  {name:'memberRole',caption:'Member Role',default:'',type:'text',description:'Roles assigned when a member gets an approved level (name)'},
-  {name:'memberRoleId',caption:'Member Role Id',default:'',type:'text',description:'Roles assigned when a member gets an approved level'},
+const defaultVariables = [
+  {
+    name: 'TeamName',
+    caption: 'Team Name',
+    default: 'A Maker Team',
+    type: 'text',
+    description: 'Will be used by the bot in the reponses',
+  },
+  {
+    name: 'ModName',
+    caption: 'Mod Name',
+    default: 'Admin',
+    type: 'text',
+    description: "Will be refered to by the bot's response",
+  },
+  {
+    name: 'BotName',
+    caption: 'Bot Name',
+    default: 'ShellBot 3000',
+    type: 'text',
+    description:
+      "What the bot will refer to itself in it's responses",
+  },
+  {
+    name: 'Minimum Point',
+    caption: 'First Level Points',
+    default: 0,
+    type: 'number',
+    description:
+      'Minimum no. of points needed to submit their first level',
+  },
+  {
+    name: 'New Level',
+    caption: 'New Level Points',
+    default: 0,
+    type: 'number',
+    description: 'How many points needed to submit another level',
+  },
+  {
+    name: 'memberRole',
+    caption: 'Member Role',
+    default: '',
+    type: 'text',
+    description:
+      'Roles assigned when a member gets an approved level (name)',
+  },
+  {
+    name: 'memberRoleId',
+    caption: 'Member Role Id',
+    default: '',
+    type: 'text',
+    description:
+      'Roles assigned when a member gets an approved level',
+  },
 
-  
-  {name:'maxDifficulty',caption:'Maximum Difficulty',default:10,type:'number',description:'The maximum allowed difficulty for this team.'},
-  {name:'VotesNeeded',caption:'Votes Needed',default:1,type:'number',description:'How many mods needed to approve/reject  level'},
-  {name:'ApprovalVotesNeeded',caption:'Approval Votes',default:null,type:'number',description:'How many mods needed to approve a level'},
-  {name:'RejectVotesNeeded',caption:'Reject Votes',default:null,type:'number',description:'How many mods are needed to reject a level'},
-  {name:'AgreeingVotesNeeded',caption:'Agreeing Votes',default:null,type:'number',description:'How many approval/fix votes are needed in agreement (within the max difference of difficulty, and with no rejects) to allow judging'},
-  {name:'AgreeingMaxDifference',caption:'Aggreeing Votes Difference',default:null,type:'number',step:'0.1',description:'How far apart the approval/fix votes can be to count as in agreement'},
+  {
+    name: 'maxDifficulty',
+    caption: 'Maximum Difficulty',
+    default: 10,
+    type: 'number',
+    description: 'The maximum allowed difficulty for this team.',
+  },
+  {
+    name: 'VotesNeeded',
+    caption: 'Votes Needed',
+    default: 1,
+    type: 'number',
+    description: 'How many mods needed to approve/reject  level',
+  },
+  {
+    name: 'ApprovalVotesNeeded',
+    caption: 'Approval Votes',
+    default: null,
+    type: 'number',
+    description: 'How many mods needed to approve a level',
+  },
+  {
+    name: 'RejectVotesNeeded',
+    caption: 'Reject Votes',
+    default: null,
+    type: 'number',
+    description: 'How many mods are needed to reject a level',
+  },
+  {
+    name: 'AgreeingVotesNeeded',
+    caption: 'Agreeing Votes',
+    default: null,
+    type: 'number',
+    description:
+      'How many approval/fix votes are needed in agreement (within the max difference of difficulty, and with no rejects) to allow judging',
+  },
+  {
+    name: 'AgreeingMaxDifference',
+    caption: 'Aggreeing Votes Difference',
+    default: null,
+    type: 'number',
+    step: '0.1',
+    description:
+      'How far apart the approval/fix votes can be to count as in agreement',
+  },
 
-  {name:'includeOwnPoints',caption:'Own Points',default:false,type:'boolean',description:'Allow creator made levels to count with own points?'},
-  {name:'allowSMM1',caption:'Allow SMM1',default:false,type:'boolean',description:'Allow submissions of SMM1 levels'},
-  {name:'discordAdminCanMod',caption:'Discord Admin Mod',default:false,type:'boolean',description:'Allows anyone with admin role to mod for the team'},
+  {
+    name: 'includeOwnPoints',
+    caption: 'Own Points',
+    default: false,
+    type: 'boolean',
+    description:
+      'Allow creator made levels to count with own points?',
+  },
+  {
+    name: 'allowSMM1',
+    caption: 'Allow SMM1',
+    default: false,
+    type: 'boolean',
+    description: 'Allow submissions of SMM1 levels',
+  },
+  {
+    name: 'discordAdminCanMod',
+    caption: 'Discord Admin Mod',
+    default: false,
+    type: 'boolean',
+    description: 'Allows anyone with admin role to mod for the team',
+  },
 
-  {name:'userErrorEmote',caption:'User Error Emote',default:null,type:'text',description:'The default emote that will show when a user error occurs.'},
-  {name:'criticalErrorEmote',caption:'Critical Error Emote',default:null,type:'text',description:'The default emote of an error you should tell the devs about buzzyS'},
-  {name:'updateEmote',caption:'Update Emote',default:null,type:'text',description:'The default emote that will show when an update appears'},
-  {name:'pogEmote',caption:'Pog Emote',default:null,type:'text',description:'The default emote that will show when pog things happen'},
-  {name:'loveEmote',caption:'Love Emote',default:null,type:'text',description:'The default love emote used in some messages'},
-  {name:'GGEmote',caption:'GG Emote',default:null,type:'text',description:'GG emote shown in clear messages'},
+  {
+    name: 'userErrorEmote',
+    caption: 'User Error Emote',
+    default: null,
+    type: 'text',
+    description:
+      'The default emote that will show when a user error occurs.',
+  },
+  {
+    name: 'criticalErrorEmote',
+    caption: 'Critical Error Emote',
+    default: null,
+    type: 'text',
+    description:
+      'The default emote of an error you should tell the devs about buzzyS',
+  },
+  {
+    name: 'updateEmote',
+    caption: 'Update Emote',
+    default: null,
+    type: 'text',
+    description:
+      'The default emote that will show when an update appears',
+  },
+  {
+    name: 'pogEmote',
+    caption: 'Pog Emote',
+    default: null,
+    type: 'text',
+    description:
+      'The default emote that will show when pog things happen',
+  },
+  {
+    name: 'loveEmote',
+    caption: 'Love Emote',
+    default: null,
+    type: 'text',
+    description: 'The default love emote used in some messages',
+  },
+  {
+    name: 'GGEmote',
+    caption: 'GG Emote',
+    default: null,
+    type: 'text',
+    description: 'GG emote shown in clear messages',
+  },
 
-  {name:'rejectedEmote',caption:'Rejected Level Emote',default:null,type:'text',description:'Emote to be shown in level rejected messages'},
-  {name:'approvedEmote',caption:'Approved Level Emote',default:null,type:'text',description:'Emote to be shown in level approved messages'},
-  {name:'needFixEmote',caption:'Fix Request Emote',default:null,type:'text',description:'Emote to be shown in need fix messages'},
-  {name:'judgementEmote',caption:'Judgement Emote',default:null,type:'text',description:'Emote to be shown in approval votes embed for mods'},
-  {name:'removeEmote',caption:'Remove Level Emote',default:null,type:'text',description:'Emote to be shown in remove level messages'},
-  {name:'undoEmote',caption:'Undo Remove Emote',default:null,type:'text',description:'Emote to be shown in undo remove level messages'},
-  {name:'rerateEmote',caption:'Level Rerate Emote',default:null,type:'text',description:'Emote to be shown in rerate level messages'},
-  {name:'randomEmote',caption:'Random Level Emote',default:null,type:'text',description:'Emote to be shown in random level messages'},
-  
+  {
+    name: 'rejectedEmote',
+    caption: 'Rejected Level Emote',
+    default: null,
+    type: 'text',
+    description: 'Emote to be shown in level rejected messages',
+  },
+  {
+    name: 'approvedEmote',
+    caption: 'Approved Level Emote',
+    default: null,
+    type: 'text',
+    description: 'Emote to be shown in level approved messages',
+  },
+  {
+    name: 'needFixEmote',
+    caption: 'Fix Request Emote',
+    default: null,
+    type: 'text',
+    description: 'Emote to be shown in need fix messages',
+  },
+  {
+    name: 'judgementEmote',
+    caption: 'Judgement Emote',
+    default: null,
+    type: 'text',
+    description: 'Emote to be shown in approval votes embed for mods',
+  },
+  {
+    name: 'removeEmote',
+    caption: 'Remove Level Emote',
+    default: null,
+    type: 'text',
+    description: 'Emote to be shown in remove level messages',
+  },
+  {
+    name: 'undoEmote',
+    caption: 'Undo Remove Emote',
+    default: null,
+    type: 'text',
+    description: 'Emote to be shown in undo remove level messages',
+  },
+  {
+    name: 'rerateEmote',
+    caption: 'Level Rerate Emote',
+    default: null,
+    type: 'text',
+    description: 'Emote to be shown in rerate level messages',
+  },
+  {
+    name: 'randomEmote',
+    caption: 'Random Level Emote',
+    default: null,
+    type: 'text',
+    description: 'Emote to be shown in random level messages',
+  },
 ];
-
 
 /**
  * Level statuses
  * @type {object}
  */
-const LEVEL_STATUS={
-  PENDING:0,
-  PENDING_APPROVED_REUPLOAD:3,
-  PENDING_FIXED_REUPLOAD:4,
-  PENDING_NOT_FIXED_REUPLOAD:5,
+const LEVEL_STATUS = {
+  PENDING: 0,
+  PENDING_APPROVED_REUPLOAD: 3,
+  PENDING_FIXED_REUPLOAD: 4,
+  PENDING_NOT_FIXED_REUPLOAD: 5,
 
-  NEED_FIX:-10,
-  APPROVED:1,
-  REJECTED:-1,
+  NEED_FIX: -10,
+  APPROVED: 1,
+  REJECTED: -1,
 
-  REUPLOADED:2,
-  REMOVED:-2, 
-  USER_REMOVED:-3,
+  REUPLOADED: 2,
+  REMOVED: -2,
+  USER_REMOVED: -3,
 };
 
 /**
  * Level status that are pending
  * @type {number[]}
  */
-const PENDING_LEVELS=[
+const PENDING_LEVELS = [
   LEVEL_STATUS.PENDING,
   LEVEL_STATUS.PENDING_NOT_FIXED_REUPLOAD,
   LEVEL_STATUS.PENDING_APPROVED_REUPLOAD,
@@ -109,7 +337,7 @@ const PENDING_LEVELS=[
  * Level status that appears in the list
  * @type {number[]}
  */
-const SHOWN_IN_LIST=[
+const SHOWN_IN_LIST = [
   ...PENDING_LEVELS,
   LEVEL_STATUS.NEED_FIX,
   LEVEL_STATUS.APPROVED,
@@ -119,7 +347,7 @@ const SHOWN_IN_LIST=[
  * Level status that doesn't appear in the list
  * @type {number[]}
  */
-const REMOVED_LEVELS=[
+const REMOVED_LEVELS = [
   LEVEL_STATUS.REUPLOADED,
   LEVEL_STATUS.REJECTED,
   LEVEL_STATUS.REMOVED,
@@ -133,9 +361,9 @@ const REMOVED_LEVELS=[
 class UserError extends Error {
   constructor(message) {
     super(message);
-    this.type='user'
-    this.msg=message
-    this.name = "UserError"; // (2)
+    this.type = 'user';
+    this.msg = message;
+    this.name = 'UserError'; // (2)
   }
 }
 
@@ -154,18 +382,21 @@ class TS {
     if (!client) {
       throw new Error(`No client passed to TS()`);
     }
-    this.guild_id=guild_id
-    this.client=client
+    this.guild_id = guild_id;
+    this.client = client;
 
-    const guild=this.getGuild()
-    if (!guild) throw new Error('Cannot find discord server. Invalid guild_id or ShellBot is not on this server.');
+    const guild = this.getGuild();
+    if (!guild)
+      throw new Error(
+        'Cannot find discord server. Invalid guild_id or ShellBot is not on this server.',
+      );
 
     this.getSettings = async (type) => {
       const rows = await knex('team_settings')
-        .where({ 'guild_id': this.team.id })
+        .where({ guild_id: this.team.id })
         .where({ type });
       const ret = {};
-      rows.forEach(r => {
+      rows.forEach((r) => {
         ret[r.name] = r.value;
       });
       return ret;
@@ -176,14 +407,17 @@ class TS {
     const ts = this;
     this.load = async function () {
       const guild = ts.getGuild(guild_id);
-      await guild.fetchMembers(); //just load up all members
+      await guild.fetchMembers(); // just load up all members
       const Teams = require('./models/Teams.js')(guild_id);
       this.team = await Teams.query().select().first();
       this.db = {
         Teams,
         Tokens: require('./models/Tokens'),
         Plays: require('./models/Plays')(this.team.id, ts),
-        PendingVotes: require('./models/PendingVotes')(this.team.id, ts),
+        PendingVotes: require('./models/PendingVotes')(
+          this.team.id,
+          ts,
+        ),
         Members: require('./models/Members')(this.team.id, ts),
         Levels: require('./models/Levels')(this.team.id, ts),
         Points: require('./models/Points')(this.team.id, ts),
@@ -191,26 +425,30 @@ class TS {
       this.defaultVariables = defaultVariables;
       this.url_slug = this.team.url_slug;
       /* istanbul ignore next */
-      this.config = this.team.config ?
-        (typeof this.team.config === "string" ? JSON.parse(this.team.config) : this.team.config)
+      this.config = this.team.config
+        ? typeof this.team.config === 'string'
+          ? JSON.parse(this.team.config)
+          : this.team.config
         : {};
-      this.web_config = this.team.web_config ? JSON.parse(this.team.web_config) : {};
-      let update_config=false;
-      if(this.config.key){
-        this.secure_key=this.config.key
+      this.web_config = this.team.web_config
+        ? JSON.parse(this.team.web_config)
+        : {};
+      let update_config = false;
+      if (this.config.key) {
+        this.secure_key = this.config.key;
       } else {
-        this.secure_key=this.generateToken(512)
-        this.config.key=this.secure_key;
-        update_config=true
+        this.secure_key = this.generateToken(512);
+        this.config.key = this.secure_key;
+        update_config = true;
       }
-      if(!this.config.feedback_salt){
-        this.config.feedback_salt=this.generateToken(512)
-        update_config=true;
+      if (!this.config.feedback_salt) {
+        this.config.feedback_salt = this.generateToken(512);
+        update_config = true;
       }
-      if(update_config){
+      if (update_config) {
         await this.db.Teams.query().patch({
-          config:JSON.stringify(this.config),
-        }) //generate secure key if doesn't exist
+          config: JSON.stringify(this.config),
+        }); // generate secure key if doesn't exist
       }
       this.client = client;
       this.guild_id = guild_id;
@@ -223,9 +461,9 @@ class TS {
 
       const defaultVars = {
         customStrings: {
-          "levelInfo": "@@LEVEL_PLACEHOLDER@@",
-          "teamurl": server_config.page_url + "/" + this.url_slug,
-          "BotName": "ShellBot3000",
+          levelInfo: '@@LEVEL_PLACEHOLDER@@',
+          teamurl: `${server_config.page_url}/${this.url_slug}`,
+          BotName: 'ShellBot3000',
         },
         emotes: {},
       };
@@ -234,16 +472,16 @@ class TS {
         defaultVars.emotes[e.name] = e.toString();
       });
 
-      let dbToMap = {
+      const dbToMap = {
         teamVariables: 'settings',
         channels: 'channels',
         customStrings: 'strings',
       };
 
-      for (let key in dbToMap) {
+      for (const key in dbToMap) {
         this[key] = { ...defaultVars[key] };
         const data = await knex('team_settings')
-          .where({ 'guild_id': this.team.id })
+          .where({ guild_id: this.team.id })
           .where({ type: dbToMap[key] });
         data.forEach((d) => {
           this[key][d.name] = d.value;
@@ -259,26 +497,29 @@ class TS {
       };
 
       this.validDifficulty = [];
-      const maxDifficulty = Math.round(parseFloat(this.teamVariables.maxDifficulty)*10) || 100;
-      for(let i=0;i<=maxDifficulty;i+=1){
-        this.validDifficulty.push(i/10)
+      const maxDifficulty =
+        Math.round(
+          parseFloat(this.teamVariables.maxDifficulty) * 10,
+        ) || 100;
+      for (let i = 0; i <= maxDifficulty; i += 1) {
+        this.validDifficulty.push(i / 10);
       }
 
-      const all_levels=await this.getLevels();
-      let all_tags=all_levels.map(l=>l.tags);
-      if(all_tags.length!=0){
-        all_tags=all_tags.reduce((total,t)=>total+","+t);
+      const all_levels = await this.getLevels();
+      let all_tags = all_levels.map((l) => l.tags);
+      if (all_tags.length != 0) {
+        all_tags = all_tags.reduce((total, t) => `${total},${t}`);
       }
-      await knex.transaction(async(trx)=>{
-        await this.addTags(all_tags,trx)
-      })
+      await knex.transaction(async (trx) => {
+        await this.addTags(all_tags, trx);
+      });
 
       this.messages = this.getSettings('messages');
       for (const i in this.messages) {
         this.messages[i] = _makeTemplate(this.messages[i] || '');
       }
       TS.defaultMessages = {};
-      for (var i in DEFAULTMESSAGES) {
+      for (const i in DEFAULTMESSAGES) {
         TS.defaultMessages[i] = _makeTemplate(DEFAULTMESSAGES[i]);
         if (this.messages[i] === undefined) {
           this.messages[i] = _makeTemplate(DEFAULTMESSAGES[i]);
@@ -288,7 +529,7 @@ class TS {
       this.embedStyle = {
         [ts.LEVEL_STATUS.REJECTED]: {
           color: this.teamVariables.rejectColor || '#dc3545',
-          title: "judge.levelRejected",
+          title: 'judge.levelRejected',
           image: this.teamVariables.rejectedEmote,
           noLink: true,
         },
@@ -314,38 +555,43 @@ class TS {
           noLink: true,
         },
         rerate: {
-          color: "#17a2b8",
+          color: '#17a2b8',
           title: 'difficulty.updated',
           image: ts.teamVariables.rerateEmote,
         },
         random: {
-          color: "#17a2b8",
+          color: '#17a2b8',
           title: 'random.embedTitle',
           image: ts.teamVariables.randomEmote,
         },
         randoms: {
           title: 'random.embedTitlePlayers',
-          image: ts.teamVariables.randomEmote
+          image: ts.teamVariables.randomEmote,
         },
         undo: {
-          color: "#17a2b8",
+          color: '#17a2b8',
           title: 'undoRemoveLevel.title',
           image: ts.teamVariables.undoEmote || ts.emotes.bam,
-        }
+        },
       };
-      //should verify that the discord roles id exist in server
-      this.ranks = await knex('ranks').where({ guild_id: this.team.id }).orderBy('min_points', 'desc');
+      // should verify that the discord roles id exist in server
+      this.ranks = await knex('ranks')
+        .where({ guild_id: this.team.id })
+        .orderBy('min_points', 'desc');
       this.rank_ids = this.ranks.map((r) => r.discord_role);
       await this.saveSheetToDb();
       await this.recalculateAfterUpdate();
       this.pointMap = {};
-      var _points = await ts.db.Points.query().select();
+      const _points = await ts.db.Points.query().select();
       for (let i = 0; i < _points.length; i++) {
         this.pointMap[_points[i].difficulty] = _points[i].score;
       }
       /* istanbul ignore if */
       if (process.env.NODE_ENV !== 'test') {
-        await DiscordLog.log(`Data loaded for ${this.teamVariables.TeamName}`, this.client);
+        await DiscordLog.log(
+          `Data loaded for ${this.teamVariables.TeamName}`,
+          this.client,
+        );
       }
     };
     this.getPoints = function (difficulty) {
@@ -353,13 +599,18 @@ class TS {
     };
     this.getLevels = () => {
       return knex('levels')
-        .select(knex.raw(`levels.*, members.id creator_id,members.name creator`))
+        .select(
+          knex.raw(
+            `levels.*, members.id creator_id,members.name creator`,
+          ),
+        )
         .join('members', { 'levels.creator': 'members.id' })
         .where('levels.guild_id', this.team.id);
     };
     this.getPlays = () => {
       return knex('plays')
-        .select(knex.raw(`
+        .select(
+          knex.raw(`
         ROW_NUMBER() OVER ( ORDER BY plays.id ) as no,
         plays.*,
         members.id player_id,
@@ -371,16 +622,23 @@ class TS {
         levels.videos,
         levels.tags,
         creator_table.name creator_name,
-        creator_table.id creator_id`))
+        creator_table.id creator_id`),
+        )
         .join('members', { 'plays.player': 'members.id' })
         .join('levels', { 'plays.code': 'levels.id' })
-        .join('members as creator_table', { 'creator_table.id': 'levels.creator' })
+        .join('members as creator_table', {
+          'creator_table.id': 'levels.creator',
+        })
         .whereIn('levels.status', ts.SHOWN_IN_LIST)
         .where('plays.guild_id', this.team.id);
     };
     this.getPendingVotes = () => {
       return knex('pending_votes')
-        .select(knex.raw(`pending_votes.*, members.id player_id,members.name player,levels.id level_id,levels.code code`))
+        .select(
+          knex.raw(
+            `pending_votes.*, members.id player_id,members.name player,levels.id level_id,levels.code code`,
+          ),
+        )
         .join('members', { 'pending_votes.player': 'members.id' })
         .join('levels', { 'pending_votes.code': 'levels.id' })
         .where('pending_votes.guild_id', this.team.id);
@@ -389,37 +647,51 @@ class TS {
      * This checks if a string contains a special discord string.
      */
     this.isSpecialDiscordString = (str) => {
-      return /<(@[!&]?|#|a?:[a-zA-Z0-9_]{2,}:)[0-9]{16,20}>/.test(str);
+      return /<(@[!&]?|#|a?:[a-zA-Z0-9_]{2,}:)[0-9]{16,20}>/.test(
+        str,
+      );
     };
-    
+
     this.teamAdmin = (discord_id) => {
       if (!discord_id) return false;
       const guild = ts.getGuild();
       const discord_user = guild.members.get(discord_id);
-      return (Array.isArray(server_config.devs) && server_config.devs.includes(discord_id))
-      || (guild.owner.user.id == discord_id)
-      || (discord_user && discord_user.hasPermission("ADMINISTRATOR"));
+      return (
+        (Array.isArray(server_config.devs) &&
+          server_config.devs.includes(discord_id)) ||
+        guild.owner.user.id == discord_id ||
+        (discord_user && discord_user.hasPermission('ADMINISTRATOR'))
+      );
     };
 
     this.modOnly = async (discord_id) => {
-      if (!discord_id)
-        return false;
-      if (server_config.devs && server_config.devs.indexOf(discord_id) !== -1) { //devs can help to troubleshoot
+      if (!discord_id) return false;
+      if (
+        server_config.devs &&
+        server_config.devs.indexOf(discord_id) !== -1
+      ) {
+        // devs can help to troubleshoot
         return true;
       }
       const guild = await ts.getGuild();
-      if (guild.owner.user.id == discord_id) { //owner can do anything
+      if (guild.owner.user.id == discord_id) {
+        // owner can do anything
         return true;
       }
       if (ts.teamVariables.discordAdminCanMod === 'yes') {
-        //if yes, any discord mods can do team administrative stuff but won't officially appear in the "Mod" list
+        // if yes, any discord mods can do team administrative stuff but won't officially appear in the "Mod" list
         const discord_user = guild.members.get(discord_id);
-        if (discord_user && discord_user.hasPermission("ADMINISTRATOR")) {
+        if (
+          discord_user &&
+          discord_user.hasPermission('ADMINISTRATOR')
+        ) {
           return true;
         }
       }
-      //specified, listed mods can do anything
-      const member = await ts.db.Members.query().where({ discord_id }).first();
+      // specified, listed mods can do anything
+      const member = await ts.db.Members.query()
+        .where({ discord_id })
+        .first();
       if (member && member.is_mod) {
         return true;
       }
@@ -431,15 +703,25 @@ class TS {
      */
     this.saveSheetToDb = async function () {
       return await ts.knex.transaction(async (trx) => {
-        let guild = ts.getGuild();
+        const guild = ts.getGuild();
         let mods = [guild.owner.user.id];
         if (this.teamVariables.ModName) {
           mods = guild.members
-            .filter((m) => m.roles.some(role => role.name == this.teamVariables.ModName))
+            .filter((m) =>
+              m.roles.some(
+                (role) => role.name == this.teamVariables.ModName,
+              ),
+            )
             .map((m) => m.user.id);
         }
-        await ts.db.Members.query(trx).patch({ is_mod: null }).whereNotIn('discord_id', mods).where({ is_mod: 1 });
-        await ts.db.Members.query(trx).patch({ is_mod: 1 }).whereIn('discord_id', mods).where({ is_mod: null });
+        await ts.db.Members.query(trx)
+          .patch({ is_mod: null })
+          .whereNotIn('discord_id', mods)
+          .where({ is_mod: 1 });
+        await ts.db.Members.query(trx)
+          .patch({ is_mod: 1 })
+          .whereIn('discord_id', mods)
+          .where({ is_mod: null });
       });
     };
     this.removeRankRoles = async function (discord_id) {
@@ -448,7 +730,7 @@ class TS {
     };
     this.addRankRoles = async function (discord_id, role_id) {
       const member = ts.getDiscordMember(discord_id);
-      //if not has role
+      // if not has role
       ts.removeRankRoles(discord_id);
       await member.addRole(role_id);
     };
@@ -456,31 +738,44 @@ class TS {
      * Method to add a level to MakerTeams
      */
     this.addLevel = async ({ code, level_name, discord_id }) => {
-      if (!code)
-        ts.userError(ts.message('error.noCode'));
+      if (!code) ts.userError(ts.message('error.noCode'));
       if (!ts.valid_code(code))
-        ts.userError(ts.message("error.invalidCode"));
-      if (!level_name)
-        ts.userError(ts.message("add.noName"));
+        ts.userError(ts.message('error.invalidCode'));
+      if (!level_name) ts.userError(ts.message('add.noName'));
       if (ts.isSpecialDiscordString(level_name))
         ts.userError(ts.message('error.specialDiscordString'));
       const player = await ts.get_user(discord_id);
-      var existing_level = await ts.getLevels().where({ code }).first();
+      const existing_level = await ts
+        .getLevels()
+        .where({ code })
+        .first();
       if (existing_level)
-        ts.userError(ts.message("add.levelExisting", { level: existing_level }));
+        ts.userError(
+          ts.message('add.levelExisting', { level: existing_level }),
+        );
       if (!player.earned_points.canUpload) {
-        ts.userError(ts.message("points.cantUpload", { points_needed: player.earned_points.pointsNeeded }));
+        ts.userError(
+          ts.message('points.cantUpload', {
+            points_needed: player.earned_points.pointsNeeded,
+          }),
+        );
       }
       await ts.db.Levels.query().insert({
         code,
         level_name,
         creator: player.id,
         difficulty: 0,
-        tags: ts.teamVariables.allowSMM1 == "true" && ts.is_smm1(code) ? 'SMM1' : '',
+        tags:
+          ts.teamVariables.allowSMM1 == 'true' && ts.is_smm1(code)
+            ? 'SMM1'
+            : '',
         status: 0,
       });
       await ts.recalculateAfterUpdate({ name: player.name });
-      return { reply: ts.message("add.success", { level_name, code }), player };
+      return {
+        reply: ts.message('add.success', { level_name, code }),
+        player,
+      };
     };
     /**
      * internal function that encapsulates Handlebars which automatically passes all the user set variables and defaults to the strings
@@ -488,9 +783,13 @@ class TS {
     function _makeTemplate(template) {
       var template = Handlebars.compile(template);
       return function (args) {
-        if (!args)
-          args = {};
-        let obj = { ...ts.emotes, ...ts.customStrings, ...ts.teamVariables, ...args };
+        if (!args) args = {};
+        const obj = {
+          ...ts.emotes,
+          ...ts.customStrings,
+          ...ts.teamVariables,
+          ...args,
+        };
         return template(obj);
       };
     }
@@ -504,14 +803,16 @@ class TS {
       if (this.messages[type]) {
         return this.messages[type](args);
       }
-      throw new Error(`"${type}" message string was not found in ts.message`);
+      throw new Error(
+        `"${type}" message string was not found in ts.message`,
+      );
     };
     /**
      * Generates a login link to be DM-ed to the user to login to the website
      * @returns {string} login link
      */
     this.generateLoginLink = function (otp) {
-      return server_config.page_url + ts.url_slug + "/login/" + otp;
+      return `${server_config.page_url + ts.url_slug}/login/${otp}`;
     };
     /**
      * A helper function to generate the tokens. Will be mocked in tests
@@ -527,10 +828,14 @@ class TS {
      */
     this.generateOtp = async function (discord_id) {
       let newOtp = this.generateToken();
-      let existing = await ts.db.Tokens.query().where({ token: newOtp }); //need to add check for only within expiry time (30 minutes)
+      let existing = await ts.db.Tokens.query().where({
+        token: newOtp,
+      }); // need to add check for only within expiry time (30 minutes)
       while (!existing) {
         newOtp = this.generateToken();
-        existing = await ts.db.Tokens.query().where({ token: newOtp });
+        existing = await ts.db.Tokens.query().where({
+          token: newOtp,
+        });
       }
       await ts.db.Tokens.query().insert({
         discord_id: discord_id,
@@ -543,25 +848,30 @@ class TS {
      */
     this.login = async function (discord_id, row_id) {
       let bearer = this.generateToken(16);
-      let existing = await ts.db.Tokens.query().where({ token: bearer }); //need to add check for only within expiry time (30 minutes)
+      let existing = await ts.db.Tokens.query().where({
+        token: bearer,
+      }); // need to add check for only within expiry time (30 minutes)
       while (!existing) {
         bearer = this.generateToken(16);
-        existing = await ts.db.Tokens.query().where({ token: bearer });
-      }
-      await ts.db.Tokens.query()
-        .findById(row_id)
-        .patch({
+        existing = await ts.db.Tokens.query().where({
           token: bearer,
-          authenticated: 1
         });
-      this.sendDM(discord_id, ts.message("website.loggedin"));
+      }
+      await ts.db.Tokens.query().findById(row_id).patch({
+        token: bearer,
+        authenticated: 1,
+      });
+      this.sendDM(discord_id, ts.message('website.loggedin'));
       return bearer;
     };
     /**
      * A helper function to help DM a discord user. To be mocked in tests
      */
     this.sendDM = async function (discord_id, message) {
-      await client.guilds.get(guild_id).members.get(discord_id).send(message);
+      await client.guilds
+        .get(guild_id)
+        .members.get(discord_id)
+        .send(message);
     };
     /**
      * A function that checks if a token is valid and returns the discord_id
@@ -571,15 +881,18 @@ class TS {
      * @throws {UserError} - When the token is not found in the database
      */
     this.checkBearerToken = async function (token) {
-      token = await ts.db.Tokens.query().where('token', '=', token).first();
+      token = await ts.db.Tokens.query()
+        .where('token', '=', token)
+        .first();
       if (token) {
-        const tokenExpireAt = moment(token.created_at).add(30, 'days').valueOf();
+        const tokenExpireAt = moment(token.created_at)
+          .add(30, 'days')
+          .valueOf();
         const now = moment().valueOf();
         if (tokenExpireAt < now)
-          ts.userError(ts.message("website.tokenError"));
-      }
-      else {
-        ts.userError(ts.message("website.authError"));
+          ts.userError(ts.message('website.tokenError'));
+      } else {
+        ts.userError(ts.message('website.authError'));
       }
       return token.discord_id;
     };
@@ -589,9 +902,10 @@ class TS {
      * @returns {boolean} is SMM1 code
      */
     this.is_smm1 = function (code) {
-      if (!code)
-        return false;
-      return /^[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}$/.test(code.toUpperCase());
+      if (!code) return false;
+      return /^[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}$/.test(
+        code.toUpperCase(),
+      );
     };
     /**
      * Checks if the code is an SMM2 code
@@ -599,9 +913,10 @@ class TS {
      * @returns {boolean} is SMM1 code
      */
     this.is_smm2 = function (code) {
-      if (!code)
-        return false;
-      return /^[1234567890QWERTYUPASDFGHJKLXCVBNM]{3}-[1234567890QWERTYUPASDFGHJKLXCVBNM]{3}-[1234567890QWERTYUPASDFGHJKLXCVBNM]{3}$/.test(code.toUpperCase());
+      if (!code) return false;
+      return /^[1234567890QWERTYUPASDFGHJKLXCVBNM]{3}-[1234567890QWERTYUPASDFGHJKLXCVBNM]{3}-[1234567890QWERTYUPASDFGHJKLXCVBNM]{3}$/.test(
+        code.toUpperCase(),
+      );
     };
     /**
      * Checks if the passed code is a valid code or not. Takes into account of ts.teamVariables.allowSMM1
@@ -609,18 +924,19 @@ class TS {
      * @returns {boolean}
      */
     this.valid_code = function (code) {
-      if (code == null)
-        return false;
-      return this.is_smm2(code) || this.teamVariables.allowSMM1 == "true" && this.is_smm1(code);
+      if (code == null) return false;
+      return (
+        this.is_smm2(code) ||
+        (this.teamVariables.allowSMM1 == 'true' && this.is_smm1(code))
+      );
     };
     /**
      * Helper function to get the direct Discord emote image url to be used for discord embeds
      */
     this.getEmoteUrl = function (emote) {
-      if (!emote)
-        return "";
-      let id = emote.split(":")[2].slice(0, -1);
-      return "https://cdn.discordapp.com/emojis/" + id + "?v=100";
+      if (!emote) return '';
+      const id = emote.split(':')[2].slice(0, -1);
+      return `https://cdn.discordapp.com/emojis/${id}?v=100`;
     };
     /**
      * Function to check if the user supplied difficulty is a valid difficulty. to be refactored
@@ -628,44 +944,46 @@ class TS {
      * @return {boolean}
      */
     this.valid_difficulty = function (diff) {
-      for (var i = 0; i < this.validDifficulty.length; i++) {
-        if (this.validDifficulty[i] == diff)
-          return true;
+      for (let i = 0; i < this.validDifficulty.length; i++) {
+        if (this.validDifficulty[i] == diff) return true;
       }
       return false;
     };
     /**
      * Helper function to convert a long text and embeds them as fields to a DiscordEmbed
      */
-    this.embedAddLongField = function (embed, body, header = "\u200b") {
-      var bodyArr = body ? body.split(".") : [];
-      var bodyStr = [""];
+    this.embedAddLongField = function (
+      embed,
+      body,
+      header = '\u200b',
+    ) {
+      const bodyArr = body ? body.split('.') : [];
+      const bodyStr = [''];
       for (var k = 0, l = 0; k < bodyArr.length; k++) {
         if (bodyArr[k]) {
-          if ((bodyStr[l].length + bodyArr[k].length + 1) > 980) {
+          if (bodyStr[l].length + bodyArr[k].length + 1 > 980) {
             l++;
-            bodyStr[l] = "";
+            bodyStr[l] = '';
           }
-          bodyStr[l] += bodyArr[k] + ".";
+          bodyStr[l] += `${bodyArr[k]}.`;
         }
       }
       for (var k = 0; k < bodyStr.length; k++) {
         embed.addField(header, bodyStr[k]);
-        header = "\u200b";
+        header = '\u200b';
       }
     };
     /**
      * Helper function to coerce/validate passed parameter from user is the boolean format used
      */
     this.commandPassedBoolean = (value) => {
-      if (value === '')
-        return null;
-      if (['1', 1, true].includes(value))
-        return 1;
-      if (['0', 0, false].includes(value))
-        return 0;
+      if (value === '') return null;
+      if (['1', 1, true].includes(value)) return 1;
+      if (['0', 0, false].includes(value)) return 0;
       if (value != null)
-        DiscordLog.error(`"${value}" was passed to this.commandPassedBoolean.`);
+        DiscordLog.error(
+          `"${value}" was passed to this.commandPassedBoolean.`,
+        );
       return null;
     };
     /**
@@ -682,33 +1000,37 @@ class TS {
      * @param {...TsClearParam} args Arguments to be supplied from either !clear or the website
      * @return {string} A response string to be sent to the user.
      */
-    this.clear = async (args={}) => {
-      let { discord_id, code, completed, liked, difficulty, strOnly, player_atme }=args
+    this.clear = async (args = {}) => {
+      let {
+        discord_id,
+        code,
+        completed,
+        liked,
+        difficulty,
+        strOnly,
+        player_atme,
+      } = args;
 
-      if (!discord_id)
-        ts.userError(ts.message("error.noDiscordId"));
-      if (difficulty === "like") {
+      if (!discord_id) ts.userError(ts.message('error.noDiscordId'));
+      if (difficulty === 'like') {
         difficulty = null;
         liked = 1;
       }
-      if (difficulty === "unlike") {
+      if (difficulty === 'unlike') {
         difficulty = null;
         liked = 0;
       }
 
-      if (liked === "like") {
-        
+      if (liked === 'like') {
         liked = 1;
       }
-      if (liked === "unlike") {
+      if (liked === 'unlike') {
         liked = 0;
       }
       liked = ts.commandPassedBoolean(liked);
       completed = ts.commandPassedBoolean(completed);
-      if (difficulty === '')
-        difficulty = null;
-      if (difficulty == null)
-        difficulty = null;
+      if (difficulty === '') difficulty = null;
+      if (difficulty == null) difficulty = null;
       if (completed == null && liked == null && difficulty == null) {
         ts.userError(ts.message('clear.noArgs'));
       }
@@ -722,110 +1044,142 @@ class TS {
       if (difficulty) {
         difficulty = parseFloat(difficulty);
       }
-      if (difficulty != '0' && difficulty && !ts.valid_difficulty(difficulty)) {
+      if (
+        difficulty != '0' &&
+        difficulty &&
+        !ts.valid_difficulty(difficulty)
+      ) {
         ts.userError(ts.message('clear.invalidDifficulty'));
       }
       const player = await ts.get_user(discord_id);
-      var level = await ts.getExistingLevel(code);
+      const level = await ts.getExistingLevel(code);
       if (level.creator_id == player.id)
-        ts.userError(ts.message("clear.ownLevel"));
-      var existing_play = await ts.db.Plays.query()
+        ts.userError(ts.message('clear.ownLevel'));
+      const existing_play = await ts.db.Plays.query()
         .where('code', '=', level.id)
         .where('player', '=', player.id)
         .first();
-      var creator = await ts.db.Members.query().where({ id: level.creator_id }).first(); //oddface/taika is only non registered member with a level
+      const creator = await ts.db.Members.query()
+        .where({ id: level.creator_id })
+        .first(); // oddface/taika is only non registered member with a level
       if (creator && creator.atme && creator.discord_id && !strOnly) {
-        var creator_str = "<@" + creator.discord_id + ">";
-      }
-      else {
+        var creator_str = `<@${creator.discord_id}>`;
+      } else {
         var creator_str = creator.name;
       }
-      var msg = [], updated = {};
+      const msg = [];
+      const updated = {};
       if (existing_play) {
-        var updated_row = {};
-        if ([1, 0].includes(completed) &&
-          existing_play.completed !== completed) { //update completed
+        const updated_row = {};
+        if (
+          [1, 0].includes(completed) &&
+          existing_play.completed !== completed
+        ) {
+          // update completed
           updated_row.completed = completed ? 1 : 0;
           updated.completed = true;
         }
-        if ([1, 0].includes(liked) &&
-          existing_play.liked !== liked) { //like updated
+        if ([1, 0].includes(liked) && existing_play.liked !== liked) {
+          // like updated
           updated_row.liked = liked;
           updated.liked = true;
         }
-        if ( (difficulty === 0 && existing_play.difficulty_vote !=null) ||
-             (difficulty &&existing_play.difficulty_vote != difficulty)
-          ) { //difficulty update
-          updated_row.difficulty_vote = difficulty === 0 ? null : difficulty; //0 difficulty will remove your vote
+        if (
+          (difficulty === 0 &&
+            existing_play.difficulty_vote != null) ||
+          (difficulty && existing_play.difficulty_vote != difficulty)
+        ) {
+          // difficulty update
+          updated_row.difficulty_vote =
+            difficulty === 0 ? null : difficulty; // 0 difficulty will remove your vote
           updated.difficulty = true;
         }
         if (updated_row)
-          await ts.db.Plays.query().findById(existing_play.id).patch(updated_row);
-      }
-      else {
+          await ts.db.Plays.query()
+            .findById(existing_play.id)
+            .patch(updated_row);
+      } else {
         await ts.db.Plays.query().insert({
           code: level.id,
           player: player.id,
           completed: completed || 0,
           liked: liked || 0,
           is_shellder: player.is_mod || 0,
-          difficulty_vote: difficulty === 0 ? null : difficulty
+          difficulty_vote: difficulty === 0 ? null : difficulty,
         });
-        if (completed != null)
-          updated.completed = true;
-        if (liked != null)
-          updated.liked = true;
-        if (difficulty != null)
-          updated.difficulty = true;
+        if (completed != null) updated.completed = true;
+        if (liked != null) updated.liked = true;
+        if (difficulty != null) updated.difficulty = true;
         await ts.recalculateAfterUpdate({ name: player.name });
       }
       if ([0, 1].includes(completed)) {
         if (updated.completed) {
           if (completed) {
-            msg.push(ts.message("clear.addClear", { level }));
+            msg.push(ts.message('clear.addClear', { level }));
             if (level.status === ts.LEVEL_STATUS.APPROVED) {
-              msg.push(ts.message("clear.earnedPoints", {
-                earned_points: ts.getPoints(level.difficulty),
-              }));
+              msg.push(
+                ts.message('clear.earnedPoints', {
+                  earned_points: ts.getPoints(level.difficulty),
+                }),
+              );
+            } else {
+              msg.push(ts.message('clear.pendingLevel'));
             }
-            else {
-              msg.push(ts.message("clear.pendingLevel"));
-            }
+          } else {
+            msg.push(ts.message('clear.removedClear', { level }));
           }
-          else {
-            msg.push(ts.message("clear.removedClear", { level }));
-          }
-        }
-        else {
-          msg.push(ts.message(completed ? "clear.alreadyCleared" : "clear.alreadyUncleared"));
+        } else {
+          msg.push(
+            ts.message(
+              completed
+                ? 'clear.alreadyCleared'
+                : 'clear.alreadyUncleared',
+            ),
+          );
         }
       }
       if (updated.difficulty) {
-        msg.push(difficulty === 0 ?
-          ts.message("clear.removeDifficulty", { level }) :
-          ts.message("clear.addDifficulty", {
-            level: level,
-            difficulty_vote: difficulty,
-          }));
-      }
-      else if (difficulty || difficulty === 0) {
-        msg.push(difficulty === 0 ?
-          ts.message("clear.alreadyDifficulty", { level }) :
-          ts.message("clear.alreadyNoDifficulty", {
-            level: level,
-            difficulty_vote: difficulty,
-          }));
+        msg.push(
+          difficulty === 0
+            ? ts.message('clear.removeDifficulty', { level })
+            : ts.message('clear.addDifficulty', {
+                level: level,
+                difficulty_vote: difficulty,
+              }),
+        );
+      } else if (difficulty || difficulty === 0) {
+        msg.push(
+          difficulty === 0
+            ? ts.message('clear.alreadyDifficulty', { level })
+            : ts.message('clear.alreadyNoDifficulty', {
+                level: level,
+                difficulty_vote: difficulty,
+              }),
+        );
       }
       if ([0, 1].includes(liked)) {
         if (updated.liked) {
-          msg.push(ts.message(liked ? "clear.addLike" : "clear.removeLike", { level }));
-        }
-        else {
-          msg.push(ts.message(liked ? "clear.alreadyLiked" : "clear.alreadyUnliked", { level }));
+          msg.push(
+            ts.message(liked ? 'clear.addLike' : 'clear.removeLike', {
+              level,
+            }),
+          );
+        } else {
+          msg.push(
+            ts.message(
+              liked ? 'clear.alreadyLiked' : 'clear.alreadyUnliked',
+              { level },
+            ),
+          );
         }
       }
-      const user_reply = player_atme ? player.user_reply_atme : player.user_reply
-      return (strOnly ? '' : user_reply) + ts.processClearMessage({ msg, creator_str, level });
+      const user_reply = player_atme
+        ? player.user_reply_atme
+        : player.user_reply;
+      return (
+        (strOnly ? '' : user_reply) +
+        ts.processClearMessage({ msg, creator_str, level })
+      );
     };
     /**
      * Processes the array of messages made by clear and replace repeating items with pronouns
@@ -836,21 +1190,27 @@ class TS {
      * @param {Object} args.level - A level object, with creator being a name instead of id
      * @return {string} Returns the formatted string
      */
-    this.processClearMessage = function ({ msg, creator_str, level }) {
-      let level_placeholder = this.customStrings["levelInfo"];
-      let level_str = ts.message("clear.levelInfo", { level, creator: creator_str });
-      let singleHave = ts.message("clear.singleHave");
-      let manyHave = ts.message("clear.manyHave");
-      let levelPronoun = ts.message("clear.levelPronoun");
+    this.processClearMessage = function ({
+      msg,
+      creator_str,
+      level,
+    }) {
+      const level_placeholder = this.customStrings.levelInfo;
+      let level_str = ts.message('clear.levelInfo', {
+        level,
+        creator: creator_str,
+      });
+      const singleHave = ts.message('clear.singleHave');
+      const manyHave = ts.message('clear.manyHave');
+      const levelPronoun = ts.message('clear.levelPronoun');
       for (let i = 0; i < msg.length; i++) {
         if (msg[i]) {
           msg[i] = msg[i].replace(level_placeholder, level_str);
-          if (i > 1)
-            msg[i] = msg[i].replace(singleHave, manyHave);
+          if (i > 1) msg[i] = msg[i].replace(singleHave, manyHave);
           level_str = levelPronoun;
         }
       }
-      return '\n' + msg.join('\n');
+      return `\n${msg.join('\n')}`;
     };
     /**
      * Gets an existing and does checks if they exist or not, also offering possible levels if the code was a mistake
@@ -859,34 +1219,57 @@ class TS {
      *  @throws {ts.UserError} Will throw a UserError if level code is not found. Will provide a possible level suggestion
      *  @throws {ts.UserError} Will throw a UserError if level code is not pending or approved, noting either it's need fixing or removed
      */
-    this.getExistingLevel = async function (code, includeRemoved = false) {
-      if (!code){
+    this.getExistingLevel = async function (
+      code,
+      includeRemoved = false,
+    ) {
+      if (!code) {
         ts.userError(ts.message('error.noCode'));
       }
-      var level = await ts.getLevels().where({ code }).first();
-      if (!level) { //level doesn't exist
-        let notDeletedLevels = {};
-        let allLevels = {};
+      const level = await ts.getLevels().where({ code }).first();
+      if (!level) {
+        // level doesn't exist
+        const notDeletedLevels = {};
+        const allLevels = {};
         const _levels = await ts.getLevels().select();
         _levels.forEach((level) => {
-          if (level && (level.status == ts.LEVEL_STATUS.PENDING || level.status == ts.LEVEL_STATUS.APPROVED)) {
-            notDeletedLevels[level.code] = level.code + " - \"" + level.level_name + "\" by " + level.creator;
+          if (
+            level &&
+            (level.status == ts.LEVEL_STATUS.PENDING ||
+              level.status == ts.LEVEL_STATUS.APPROVED)
+          ) {
+            notDeletedLevels[
+              level.code
+            ] = `${level.code} - "${level.level_name}" by ${level.creator}`;
           }
-          allLevels[level.code] = level.code + " - \"" + level.level_name + "\" by " + level.creator;
+          allLevels[
+            level.code
+          ] = `${level.code} - "${level.level_name}" by ${level.creator}`;
         });
         let listUsed = includeRemoved ? allLevels : notDeletedLevels;
         listUsed = Object.keys(listUsed);
-        let matchStr = "";
+        let matchStr = '';
         if (listUsed.length > 0) {
-          const match = stringSimilarity.findBestMatch(code, listUsed);
+          const match = stringSimilarity.findBestMatch(
+            code,
+            listUsed,
+          );
           if (match.bestMatch && match.bestMatch.rating >= 0.6) {
-            matchStr = ts.message('level.didYouMean', { level_info: allLevels[match.bestMatch.target] });
+            matchStr = ts.message('level.didYouMean', {
+              level_info: allLevels[match.bestMatch.target],
+            });
           }
         }
-        ts.userError(ts.message("error.levelNotFound", { code }) + matchStr);
+        ts.userError(
+          ts.message('error.levelNotFound', { code }) + matchStr,
+        );
       }
-      if (!includeRemoved && ts.REMOVED_LEVELS.includes(level.status)) { //level is removed. not pending/accepted
-        ts.userError(ts.message("error.levelIsRemoved", { level }));
+      if (
+        !includeRemoved &&
+        ts.REMOVED_LEVELS.includes(level.status)
+      ) {
+        // level is removed. not pending/accepted
+        ts.userError(ts.message('error.levelIsRemoved', { level }));
       }
       return level;
     };
@@ -902,10 +1285,18 @@ class TS {
      * @returns {Number} Will return the points needed rounded to the nearest 1 decimal point
      */
     this.pointsNeededForLevel = function (args) {
-      const { points, levelsUploaded, freeLevels = 0, min, next } = args;
-      let nextLevel = levelsUploaded + 1 - (freeLevels || 0);
-      let nextPoints = (nextLevel == 1 ? min : min) + (nextLevel - 1) * next;
-      var pointsDifference = Math.round((nextPoints - parseFloat(points)) * 10) / 10;
+      const {
+        points,
+        levelsUploaded,
+        freeLevels = 0,
+        min,
+        next,
+      } = args;
+      const nextLevel = levelsUploaded + 1 - (freeLevels || 0);
+      const nextPoints =
+        (nextLevel == 1 ? min : min) + (nextLevel - 1) * next;
+      const pointsDifference =
+        Math.round((nextPoints - parseFloat(points)) * 10) / 10;
       return Math.max(pointsDifference, 0);
     };
     this.UserError = UserError;
@@ -913,9 +1304,9 @@ class TS {
     /**
      * Helper function to throw the user error
      */
-    this.userError = function (errorStr,args) {
-      if(this.messages[errorStr]){
-        errorStr=this.messages[errorStr](args)
+    this.userError = function (errorStr, args) {
+      if (this.messages[errorStr]) {
+        errorStr = this.messages[errorStr](args);
       }
       throw new UserError(errorStr);
     };
@@ -929,36 +1320,41 @@ class TS {
         url_slug: this.team.url_slug,
         content: message.content,
         user: message.author.username,
-        channel: "<#" + message.channel.id + ">"
+        channel: `<#${message.channel.id}>`,
       };
     };
-    
+
     /**
      * To be used to parse a thrown exception and check if it's a user error in discord. User error can be passed to the user. any other error, we will throw a non descript error message to the user and log the actual error
      */
     this.getUserErrorMsg = function (obj, message) {
-      if (typeof obj == "object" && obj.type == "user") {
-        return obj.msg + ts.message("error.afterUserDiscord");
+      if (typeof obj === 'object' && obj.type == 'user') {
+        return obj.msg + ts.message('error.afterUserDiscord');
       }
-      else {
-        DiscordLog.error(ts.makeErrorObj(obj, message), ts.client);
-        return ts.message("error.unknownError");
-      }
+      DiscordLog.error(ts.makeErrorObj(obj, message), ts.client);
+      return ts.message('error.unknownError');
     };
     /**
      * To be used to parse a thrown exception and check if it's a user error in the JSON endpoint. User error can be passed to the user. any other error, we will throw a non descript error message to the user and log the actual error
      */
     this.getWebUserErrorMsg = function (obj) {
-      if (typeof obj == "object" && obj.type == "user") {
-        return { status: "error", message: obj.msg + ts.message("error.afterUserWeb") };
+      if (typeof obj === 'object' && obj.type == 'user') {
+        return {
+          status: 'error',
+          message: obj.msg + ts.message('error.afterUserWeb'),
+        };
       }
-      else {
-        DiscordLog.error({
+      DiscordLog.error(
+        {
           error: obj.stack ? obj.stack : obj,
-          url_slug: this.url_slug
-        }, ts.client);
-        return { status: "error", message: ts.message("error.unknownError") };
-      }
+          url_slug: this.url_slug,
+        },
+        ts.client,
+      );
+      return {
+        status: 'error',
+        message: ts.message('error.unknownError'),
+      };
     };
     /**
      * Helper function to get a random integer for ts.random
@@ -966,61 +1362,78 @@ class TS {
     this.getRandomInt = (min, max) => {
       min = Math.ceil(min);
       max = Math.floor(max);
-      return Math.floor(Math.random() * (max - min)) + min; //The maximum is exclusive and the minimum is inclusive
+      return Math.floor(Math.random() * (max - min)) + min; // The maximum is exclusive and the minimum is inclusive
     };
     /**
      * Gets a random level based on plays of the player/passed players and difficulty
      */
-    this.randomLevel = async function ({ discord_id, players, minDifficulty, maxDifficulty }) {
+    this.randomLevel = async function ({
+      discord_id,
+      players,
+      minDifficulty,
+      maxDifficulty,
+    }) {
       if (minDifficulty && !ts.valid_difficulty(minDifficulty)) {
-        ts.userError(maxDifficulty ? ts.message("random.noMinDifficulty") : ts.message("random.noDifficulty"));
+        ts.userError(
+          maxDifficulty
+            ? ts.message('random.noMinDifficulty')
+            : ts.message('random.noDifficulty'),
+        );
       }
       if (maxDifficulty) {
         if (!ts.valid_difficulty(maxDifficulty))
-          ts.userError(ts.message("random.noMaxDifficulty"));
-      }
-      else {
-        if (minDifficulty) {
-          maxDifficulty = minDifficulty;
-        }
+          ts.userError(ts.message('random.noMaxDifficulty'));
+      } else if (minDifficulty) {
+        maxDifficulty = minDifficulty;
       }
       if (parseFloat(minDifficulty) > parseFloat(maxDifficulty)) {
-        let temp = maxDifficulty;
+        const temp = maxDifficulty;
         maxDifficulty = minDifficulty;
         minDifficulty = temp;
       }
-      let min = parseFloat(minDifficulty) || 1;
-      let max = parseFloat(maxDifficulty) || min;
+      const min = parseFloat(minDifficulty) || 1;
+      const max = parseFloat(maxDifficulty) || min;
       let _players;
-      const player = discord_id != null ? await ts.get_user(discord_id) : null;
+      const player =
+        discord_id != null ? await ts.get_user(discord_id) : null;
       if (players) {
-        let playerNames = players.split(",");
-        let rawPlayers = await ts.db.Members.query().whereIn('name', playerNames);
+        const playerNames = players.split(',');
+        const rawPlayers = await ts.db.Members.query().whereIn(
+          'name',
+          playerNames,
+        );
         _players = [];
-        rawPlayers.forEach(p => {
+        rawPlayers.forEach((p) => {
           _players.push(p.id);
           if (playerNames.indexOf(p.name) === -1) {
-            ts.userError(ts.message("random.playerNotFound", { player: p.name }));
+            ts.userError(
+              ts.message('random.playerNotFound', { player: p.name }),
+            );
           }
         });
         if (_players.length === 0)
-          ts.userError(ts.message("random.noPlayersGiven"));
-      }
-      else if (player) {
+          ts.userError(ts.message('random.noPlayersGiven'));
+      } else if (player) {
         _players = [player.id];
       }
-      const playsSQL1 = _players ? `
+      const playsSQL1 = _players
+        ? `
     left join plays on levels.id=plays.code
     and plays.player in (:players:)
-    and completed=1` : '';
-      const playsSQL2 = _players ? `and creator not in (:players:)` : '';
+    and completed=1`
+        : '';
+      const playsSQL2 = _players
+        ? `and creator not in (:players:)`
+        : '';
       const playsSQL3 = _players ? `and plays.id is null` : '';
       const par = {
         team_id: ts.team.id,
-        min, max,
-        players: _players
+        min,
+        max,
+        players: _players,
       };
-      let [filtered_levels] = await knex.raw(`
+      const [filtered_levels] = await knex.raw(
+        `
     SELECT levels.*,members.name creator from 
     levels
     inner join members on levels.creator=members.id
@@ -1032,105 +1445,145 @@ class TS {
     and levels.difficulty between :min and :max
     ${playsSQL3}
     group by levels.id
-    order by likes;`, par);
+    order by likes;`,
+        par,
+      );
       if (filtered_levels.length == 0) {
-        ts.userError(ts.message("random.outOfLevels", {
-          range: (min == max ? min : min + "-" + max)
-        }));
+        ts.userError(
+          ts.message('random.outOfLevels', {
+            range: min == max ? min : `${min}-${max}`,
+          }),
+        );
       }
-      var borderLine = Math.floor(filtered_levels.length * 0.6);
+      const borderLine = Math.floor(filtered_levels.length * 0.6);
       if (Math.random() < 0.2) {
         var randNum = ts.getRandomInt(0, borderLine);
+      } else {
+        var randNum = ts.getRandomInt(
+          borderLine,
+          filtered_levels.length,
+        );
       }
-      else {
-        var randNum = ts.getRandomInt(borderLine, filtered_levels.length);
-      }
-      var level = filtered_levels[randNum];
+      const level = filtered_levels[randNum];
       return {
         player: player,
-        level: level
+        level: level,
       };
     };
     this.assign_rank_role = async function (discord_id, rank) {
-      //check if rank exists, if not skip
-      //load all rank roles
-      //remove all rank roles
-      //assign set role
+      // check if rank exists, if not skip
+      // load all rank roles
+      // remove all rank roles
+      // assign set role
     };
     /**
      * A function that will get the user object based on the discord_id/message passed. Will do the necessary authentication checks and throw the necessary UserErrors
      */
     this.get_user = async function (message) {
-      let discord_id = message && message.author ? message.author.id : message;
+      const discord_id =
+        message && message.author ? message.author.id : message;
       if (!discord_id) {
         this.userError('error.noDiscordId');
       }
-      var player = await this.db.Members.query().where({ discord_id }).first();
-      if (!player)
-        this.userError("error.notRegistered");
-      if (player.is_banned)
-        this.userError("error.userBanned");
+      const player = await this.db.Members.query()
+        .where({ discord_id })
+        .first();
+      if (!player) this.userError('error.notRegistered');
+      if (player.is_banned) this.userError('error.userBanned');
       player.created_at = player.created_at.toString();
       player.earned_points = await this.calculatePoints(player.name);
       player.rank = this.get_rank(player.earned_points.clearPoints);
-      player.rank.pips = player.rank.pips || ''
-      player.atme_str = player.atme ? `<@${player.discord_id}>` : player.name;
-      player.user_reply = `<@${player.discord_id}>` + player.rank.pips + " ";
-      player.user_reply_atme = player.atme_str + player.rank.pips + " ";
-      
+      player.rank.pips = player.rank.pips || '';
+      player.atme_str = player.atme
+        ? `<@${player.discord_id}>`
+        : player.name;
+      player.user_reply = `<@${player.discord_id}>${player.rank.pips} `;
+      player.user_reply_atme = `${
+        player.atme_str + player.rank.pips
+      } `;
+
       return player;
     };
     /**
      * This extends the levelEmbed and add all the pending votes associated with this level. to be used in the level discussion channels
      */
     this.makeVoteEmbed = async function (level, reupload_comment) {
-      var approveVotes = await ts.getPendingVotes().where("levels.id", level.id).where({ type: 'approve' });
-      var fixVotes = await ts.getPendingVotes().where("levels.id", level.id).where({ type: 'fix' });
-      var rejectVotes = await ts.getPendingVotes().where("levels.id", level.id).where({ type: 'reject' });
-      var voteEmbed = ts.levelEmbed(level, this.embedStyle.judgement);
-      if (level.status === ts.LEVEL_STATUS.PENDING_APPROVED_REUPLOAD) {
-        voteEmbed.setAuthor(ts.message("pending.pendingTitle"))
-          .setDescription(ts.message("pending.alreadyApprovedBefore"));
-      }
-      else if (level.status === ts.LEVEL_STATUS.PENDING_NOT_FIXED_REUPLOAD) {
-        voteEmbed.setAuthor(ts.message("pending.refuseTitle"))
-          .setDescription(ts.message("pending.refuseDescription"));
-      }
-      else if (level.status === ts.LEVEL_STATUS.PENDING_FIXED_REUPLOAD) {
-        voteEmbed.setAuthor(ts.message("pending.reuploadedTitle"))
-          .setDescription(ts.message("pending.fixReuploadDescription"));
+      const approveVotes = await ts
+        .getPendingVotes()
+        .where('levels.id', level.id)
+        .where({ type: 'approve' });
+      const fixVotes = await ts
+        .getPendingVotes()
+        .where('levels.id', level.id)
+        .where({ type: 'fix' });
+      const rejectVotes = await ts
+        .getPendingVotes()
+        .where('levels.id', level.id)
+        .where({ type: 'reject' });
+      const voteEmbed = ts.levelEmbed(
+        level,
+        this.embedStyle.judgement,
+      );
+      if (
+        level.status === ts.LEVEL_STATUS.PENDING_APPROVED_REUPLOAD
+      ) {
+        voteEmbed
+          .setAuthor(ts.message('pending.pendingTitle'))
+          .setDescription(
+            ts.message('pending.alreadyApprovedBefore'),
+          );
+      } else if (
+        level.status === ts.LEVEL_STATUS.PENDING_NOT_FIXED_REUPLOAD
+      ) {
+        voteEmbed
+          .setAuthor(ts.message('pending.refuseTitle'))
+          .setDescription(ts.message('pending.refuseDescription'));
+      } else if (
+        level.status === ts.LEVEL_STATUS.PENDING_FIXED_REUPLOAD
+      ) {
+        voteEmbed
+          .setAuthor(ts.message('pending.reuploadedTitle'))
+          .setDescription(
+            ts.message('pending.fixReuploadDescription'),
+          );
       }
       if (reupload_comment) {
-        voteEmbed.addField(`Creator (${level.creator_name}) reupload comment:`, '```\n' + reupload_comment + '\n```');
+        voteEmbed.addField(
+          `Creator (${level.creator_name}) reupload comment:`,
+          `\`\`\`\n${reupload_comment}\n\`\`\``,
+        );
       }
-      var postString = ts.message("approval.approvalVotes");
+      let postString = ts.message('approval.approvalVotes');
       if (approveVotes == undefined || approveVotes.length == 0) {
-        postString += ts.message("approval.noVotes");
-      }
-      else {
+        postString += ts.message('approval.noVotes');
+      } else {
         for (var i = 0; i < approveVotes.length; i++) {
-          const curShellder = await ts.db.Members.query().where({ name: approveVotes[i].player }).first();
-          postString += "<@" + curShellder.discord_id + "> - Difficulty: " + approveVotes[i].difficulty_vote + ", Reason: " + approveVotes[i].reason + "\n";
+          const curShellder = await ts.db.Members.query()
+            .where({ name: approveVotes[i].player })
+            .first();
+          postString += `<@${curShellder.discord_id}> - Difficulty: ${approveVotes[i].difficulty_vote}, Reason: ${approveVotes[i].reason}\n`;
         }
       }
-      postString += ts.message("approval.fixVotes");
+      postString += ts.message('approval.fixVotes');
       if (fixVotes == undefined || fixVotes.length == 0) {
-        postString += "> None\n";
-      }
-      else {
+        postString += '> None\n';
+      } else {
         for (var i = 0; i < fixVotes.length; i++) {
-          const curShellder = await ts.db.Members.query().where({ name: fixVotes[i].player }).first();
-          postString += "<@" + curShellder.discord_id + "> - Difficulty: " + fixVotes[i].difficulty_vote + ", Requested fixes: " + fixVotes[i].reason + "\n";
+          const curShellder = await ts.db.Members.query()
+            .where({ name: fixVotes[i].player })
+            .first();
+          postString += `<@${curShellder.discord_id}> - Difficulty: ${fixVotes[i].difficulty_vote}, Requested fixes: ${fixVotes[i].reason}\n`;
         }
       }
-      postString += ts.message("approval.rejectVotes");
+      postString += ts.message('approval.rejectVotes');
       if (rejectVotes == undefined || rejectVotes.length == 0) {
-        postString += "None\n";
-      }
-      else {
+        postString += 'None\n';
+      } else {
         for (var i = 0; i < rejectVotes.length; i++) {
-          const curShellder = await ts.db.Members.query().where({ name: rejectVotes[i].player }).first();
-          postString += "<@" + curShellder.discord_id + "> - Reason: " + rejectVotes[i].reason + "\n";
+          const curShellder = await ts.db.Members.query()
+            .where({ name: rejectVotes[i].player })
+            .first();
+          postString += `<@${curShellder.discord_id}> - Reason: ${rejectVotes[i].reason}\n`;
         }
       }
       ts.embedAddLongField(voteEmbed, postString);
@@ -1140,24 +1593,27 @@ class TS {
      * This method is called and will process an approval vote. The method will generate the necessary discord channels if needed
      */
     this.approve = async function (args) {
-      //Check if vote already exists
+      // Check if vote already exists
       const shellder = await ts.get_user(args.discord_id);
-      const level = await ts.getExistingLevel(args.code,true);
-      var vote = await ts.getPendingVotes().where("levels.id", level.id).where("player", shellder.id).first();
+      const level = await ts.getExistingLevel(args.code, true);
+      const vote = await ts
+        .getPendingVotes()
+        .where('levels.id', level.id)
+        .where('player', shellder.id)
+        .first();
       if (!vote) {
-        //We only check reason if we have no vote yet
+        // We only check reason if we have no vote yet
         if (!args.reason) {
-          ts.userError(ts.message("approval.changeReason"));
+          ts.userError(ts.message('approval.changeReason'));
         }
       }
-      //Check if level is approved, if it's approved only allow rejection
+      // Check if level is approved, if it's approved only allow rejection
       if (level.status === ts.LEVEL_STATUS.APPROVED) {
-        if (args.type === "approve") {
-          ts.userError(ts.message("approval.levelAlreadyApproved"));
+        if (args.type === 'approve') {
+          ts.userError(ts.message('approval.levelAlreadyApproved'));
         }
-      }
-      else if (!PENDING_LEVELS.includes(level.status)) {
-        ts.userError(ts.message("approval.levelNotPending"));
+      } else if (!PENDING_LEVELS.includes(level.status)) {
+        ts.userError(ts.message('approval.levelNotPending'));
       }
       let replyMsg = 'approval.voteAdded';
       if (!vote) {
@@ -1165,27 +1621,34 @@ class TS {
           code: level.id,
           player: shellder.id,
           type: args.type,
-          difficulty_vote: (args.type === 'approve' || args.type == 'fix') ? args.difficulty : null,
-          reason: args.reason
+          difficulty_vote:
+            args.type === 'approve' || args.type == 'fix'
+              ? args.difficulty
+              : null,
+          reason: args.reason,
         });
-      }
-      else {
+      } else {
         replyMsg = 'approval.voteChanged';
-        let updateJson = {
+        const updateJson = {
           type: args.type,
         };
-        if (args.reason){
+        if (args.reason) {
           updateJson.reason = args.reason;
         }
-        if (args.difficulty){
+        if (args.difficulty) {
           updateJson.difficulty_vote = args.difficulty;
         }
-        await ts.db.PendingVotes.query().findById(vote.id).patch(updateJson);
+        await ts.db.PendingVotes.query()
+          .findById(vote.id)
+          .patch(updateJson);
       }
-      //generate judgement embed
+      // generate judgement embed
       if (!args.skip_update) {
-        let voteEmbed = await ts.makeVoteEmbed(level);
-        const { channel } = await ts.discussionChannel(level.code, ts.channels.levelDiscussionCategory);
+        const voteEmbed = await ts.makeVoteEmbed(level);
+        const { channel } = await ts.discussionChannel(
+          level.code,
+          ts.channels.levelDiscussionCategory,
+        );
         await ts.updatePinned(channel, voteEmbed);
         return ts.message(replyMsg, { channel_id: channel.id });
       }
@@ -1198,39 +1661,52 @@ class TS {
      * @param {LevelRow} level
      * @return {Channel} returns a Discord Channel or either the created or found channel
      */
-    this.discussionChannel = async (channel_name, parentID, old_channel_name, level) => {
+    this.discussionChannel = async (
+      channel_name,
+      parentID,
+      old_channel_name,
+      level,
+    ) => {
       if (!channel_name)
         throw new TypeError('undefined channel_name');
-      if (!parentID)
-        throw new TypeError('undefined parentID');
+      if (!parentID) throw new TypeError('undefined parentID');
       const guild = ts.getGuild();
       let created = false;
-      const tooManyChannelsError = ts.message(parentID === ts.channels.levelDiscussionCategory ? 'approval.tooManyDiscussionChannels' : 'reupload.tooManyReuploadChannels');
-      let discussionChannel = guild.channels.find(channel => channel.name === channel_name.toLowerCase());
+      const tooManyChannelsError = ts.message(
+        parentID === ts.channels.levelDiscussionCategory
+          ? 'approval.tooManyDiscussionChannels'
+          : 'reupload.tooManyReuploadChannels',
+      );
+      let discussionChannel = guild.channels.find(
+        (channel) => channel.name === channel_name.toLowerCase(),
+      );
       if (old_channel_name) {
-        let old_channel = guild.channels.find(channel => channel.name === old_channel_name.toLowerCase());
+        const old_channel = guild.channels.find(
+          (channel) =>
+            channel.name === old_channel_name.toLowerCase(),
+        );
         if (old_channel) {
           if (!discussionChannel) {
             await old_channel.setName(channel_name.toLowerCase());
             discussionChannel = old_channel;
-          }
-          else {
+          } else {
             await old_channel.delete('duplicate channel');
-            DiscordLog.error('Duplicate channel found for `old_channel_name` reupload to `channel_name`. deleting `old_channel_name`');
+            DiscordLog.error(
+              'Duplicate channel found for `old_channel_name` reupload to `channel_name`. deleting `old_channel_name`',
+            );
           }
         }
       }
       if (!discussionChannel) {
-        if (guild.channels.get(parentID).children.size === 50){
+        if (guild.channels.get(parentID).children.size === 50) {
           ts.userError(tooManyChannelsError);
         }
         discussionChannel = await guild.createChannel(channel_name, {
           type: 'text',
-          parent: guild.channels.get(parentID)
+          parent: guild.channels.get(parentID),
         });
         created = true;
-      }
-      else if (discussionChannel.parentID != parentID) {
+      } else if (discussionChannel.parentID != parentID) {
         if (guild.channels.get(parentID).children.size === 50)
           ts.userError(tooManyChannelsError);
         await discussionChannel.setParent(parentID);
@@ -1244,43 +1720,56 @@ class TS {
      * @throws {TypeError} Will throw type errors if the arguments are not provided
      */
     this.updatePinned = async (channel, embed) => {
-      //console.time('pinned')
-      if (!channel)
-        throw new TypeError('channel_name undefined');
-      if (!embed)
-        throw new TypeError('embed not defined');
-      let overviewMessage = (process.env.NODE_ENV !== 'test') ? (await channel.fetchPinnedMessages()).last() : null;
+      // console.time('pinned')
+      if (!channel) throw new TypeError('channel_name undefined');
+      if (!embed) throw new TypeError('embed not defined');
+      let overviewMessage =
+        process.env.NODE_ENV !== 'test'
+          ? (await channel.fetchPinnedMessages()).last()
+          : null;
       if (!overviewMessage) {
         overviewMessage = await channel.send(embed);
-        if (overviewMessage)
-          await overviewMessage.pin();
-      }
-      else {
+        if (overviewMessage) await overviewMessage.pin();
+      } else {
         await overviewMessage.edit(embed);
       }
-      //console.timeEnd('pinned')
+      // console.timeEnd('pinned')
     };
     /**
      * @description This function will initiate any passed discord member object. Will set is_member=1 in the database and assign the member role. An initiation message will also be sent to the initiation channel
      */
     this.initiate = async (author) => {
-      let guild = ts.getGuild();
+      const guild = ts.getGuild();
       if (author.is_member != 1) {
         await ts.db.Members.query()
           .patch({ is_member: 1 })
           .where({ discord_id: author.discord_id });
         /* istanbul ignore if */
-        if (author.discord_id) { //TODO: something broke here
-          //doesn't work with mocked user method here.
-          let curr_user = await guild.members.get(author.discord_id);
-          if (curr_user) { //assign role
+        if (author.discord_id) {
+          // TODO: something broke here
+          // doesn't work with mocked user method here.
+          const curr_user = await guild.members.get(
+            author.discord_id,
+          );
+          if (curr_user) {
+            // assign role
             await curr_user.addRole(ts.teamVariables.memberRoleId);
-            await client.channels.get(ts.channels.initiateChannel).send(ts.message("initiation.message", { discord_id: author.discord_id }));
-          }
-          else {
+            await client.channels
+              .get(ts.channels.initiateChannel)
+              .send(
+                ts.message('initiation.message', {
+                  discord_id: author.discord_id,
+                }),
+              );
+          } else {
             /* istanbul ignore if */
-            if (process.env.NODE_ENV === "production")
-              DiscordLog.error(ts.message("initiation.userNotInDiscord", { name: author.name }), ts.client); //not a breaking error.
+            if (process.env.NODE_ENV === 'production')
+              DiscordLog.error(
+                ts.message('initiation.userNotInDiscord', {
+                  name: author.name,
+                }),
+                ts.client,
+              ); // not a breaking error.
           }
         }
       }
@@ -1290,17 +1779,15 @@ class TS {
      */
     this.embedComments = (embed, comments) => {
       for (let i = 0; i < comments.length; i++) {
-        let msgString = "";
-        if (comments[i].type == "fix") {
+        let msgString = '';
+        if (comments[i].type == 'fix') {
           msgString = 'judge.votedFix';
-        }
-        else if (comments[i].type == "approve") {
+        } else if (comments[i].type == 'approve') {
           msgString = 'judge.votedApprove';
-        }
-        else {
+        } else {
           msgString = 'judge.votedReject';
         }
-        let embedHeader = ts.message(msgString, { ...comments[i] });
+        const embedHeader = ts.message(msgString, { ...comments[i] });
         ts.embedAddLongField(embed, comments[i].reason, embedHeader);
       }
     };
@@ -1313,45 +1800,70 @@ class TS {
      * @throws {UserError} if there is a tie
      * @throws {UserError} if there is not enough votes
      */
-    this.processVotes = ({ approvalVotesNeeded = 0, fixVotesNeeded = 0, approvalVotesCount = 0, fixVotesCount = 0, rejectVotesCount = 0, is_fix = false }) => {
-      const fixAndApproveVoteCount = fixVotesCount + approvalVotesCount;
+    this.processVotes = ({
+      approvalVotesNeeded = 0,
+      fixVotesNeeded = 0,
+      approvalVotesCount = 0,
+      fixVotesCount = 0,
+      rejectVotesCount = 0,
+      is_fix = false,
+    }) => {
+      const fixAndApproveVoteCount =
+        fixVotesCount + approvalVotesCount;
       const VotesNeeded = parseInt(ts.teamVariables.VotesNeeded, 10);
-      approvalVotesNeeded = approvalVotesNeeded || parseInt(ts.teamVariables.ApprovalVotesNeeded, 10) || VotesNeeded || 1;
-      const rejectVotesNeeded = parseInt(ts.teamVariables.RejectVotesNeeded, 10) || VotesNeeded || 1;
-      fixVotesNeeded = fixVotesNeeded || parseInt(ts.teamVariables.FixVotesNeeded, 10) || approvalVotesNeeded || VotesNeeded || 1;
+      approvalVotesNeeded =
+        approvalVotesNeeded ||
+        parseInt(ts.teamVariables.ApprovalVotesNeeded, 10) ||
+        VotesNeeded ||
+        1;
+      const rejectVotesNeeded =
+        parseInt(ts.teamVariables.RejectVotesNeeded, 10) ||
+        VotesNeeded ||
+        1;
+      fixVotesNeeded =
+        fixVotesNeeded ||
+        parseInt(ts.teamVariables.FixVotesNeeded, 10) ||
+        approvalVotesNeeded ||
+        VotesNeeded ||
+        1;
       const approvalRatio = approvalVotesCount / approvalVotesNeeded;
       const rejectionRatio = rejectVotesCount / rejectVotesNeeded;
       const fixRatio = fixVotesCount / fixVotesNeeded;
       const fixApproveRatio = fixAndApproveVoteCount / fixVotesNeeded;
-      const approvalFixRatio = fixAndApproveVoteCount / approvalVotesNeeded;
+      const approvalFixRatio =
+        fixAndApproveVoteCount / approvalVotesNeeded;
       let statusUpdate;
-      if (!is_fix
-        && approvalRatio >= 1
-        && approvalRatio > rejectionRatio
-        && approvalRatio >= fixRatio
-        || is_fix
-        && approvalFixRatio >= 1
-        && approvalFixRatio > rejectionRatio) {
+      if (
+        (!is_fix &&
+          approvalRatio >= 1 &&
+          approvalRatio > rejectionRatio &&
+          approvalRatio >= fixRatio) ||
+        (is_fix &&
+          approvalFixRatio >= 1 &&
+          approvalFixRatio > rejectionRatio)
+      ) {
         statusUpdate = ts.LEVEL_STATUS.APPROVED;
-      }
-      else if (rejectionRatio >= 1
-        && rejectionRatio > approvalRatio
-        && rejectionRatio > fixApproveRatio) {
+      } else if (
+        rejectionRatio >= 1 &&
+        rejectionRatio > approvalRatio &&
+        rejectionRatio > fixApproveRatio
+      ) {
         statusUpdate = ts.LEVEL_STATUS.REJECTED;
-      }
-      else if (!is_fix //never reassign fix vote
-        && fixApproveRatio >= 1
-        && fixApproveRatio !== rejectionRatio
-        && (approvalRatio < 1 ||
-          approvalRatio >= 1 && approvalRatio !== fixRatio)) {
+      } else if (
+        !is_fix && // never reassign fix vote
+        fixApproveRatio >= 1 &&
+        fixApproveRatio !== rejectionRatio &&
+        (approvalRatio < 1 ||
+          (approvalRatio >= 1 && approvalRatio !== fixRatio))
+      ) {
         statusUpdate = ts.LEVEL_STATUS.NEED_FIX;
-      }
-      else if (rejectVotesCount !== 0
-        && (fixApproveRatio == rejectionRatio
-          || approvalRatio == rejectionRatio)) {
-        ts.userError(ts.message("approval.comboBreaker"));
-      }
-      else {
+      } else if (
+        rejectVotesCount !== 0 &&
+        (fixApproveRatio == rejectionRatio ||
+          approvalRatio == rejectionRatio)
+      ) {
+        ts.userError(ts.message('approval.comboBreaker'));
+      } else {
         ts.userError(ts.message('approval.numVotesNeeded'));
       }
       return statusUpdate;
@@ -1366,32 +1878,54 @@ class TS {
      * @param {object} args.rejectVotes
      * @return {boolean}
      */
-    this.checkForAgreement = ({ AgreeingVotesNeeded, AgreeingMaxDifference, approvalVotes = [], fixVotes = [], rejectVotes = [] }) => {
+    this.checkForAgreement = ({
+      AgreeingVotesNeeded,
+      AgreeingMaxDifference,
+      approvalVotes = [],
+      fixVotes = [],
+      rejectVotes = [],
+    }) => {
       if (!(AgreeingVotesNeeded && AgreeingMaxDifference))
         return false;
-      if ((approvalVotes.length + fixVotes.length) < AgreeingVotesNeeded)
+      if (
+        approvalVotes.length + fixVotes.length <
+        AgreeingVotesNeeded
+      )
         return false;
-      if (rejectVotes.length > 0)
-        return false;
-      let min = 99, max = -1;
-      [...approvalVotes, ...fixVotes].forEach(v => {
+      if (rejectVotes.length > 0) return false;
+      let min = 99;
+      let max = -1;
+      [...approvalVotes, ...fixVotes].forEach((v) => {
         min = Math.min(min, v.difficulty_vote);
         max = Math.max(max, v.difficulty_vote);
       });
-      return (max - min) <= AgreeingMaxDifference;
+      return max - min <= AgreeingMaxDifference;
     };
     this.judge = async function (code, fromFix = false) {
       const level = await ts.getExistingLevel(code, fromFix);
-      const author = await ts.db.Members.query().where({ name: level.creator }).first();
+      const author = await ts.db.Members.query()
+        .where({ name: level.creator })
+        .first();
       if (!PENDING_LEVELS.includes(level.status)) {
-        ts.userError(ts.message("approval.levelNotPending"));
+        ts.userError(ts.message('approval.levelNotPending'));
       }
-      //Get all current votes for this level
-      const approvalVotes = await ts.getPendingVotes().where('levels.id', level.id).where("type", "approve");
-      const fixVotes = await ts.getPendingVotes().where('levels.id', level.id).where("type", "fix");
-      const rejectVotes = await ts.getPendingVotes().where('levels.id', level.id).where("type", "reject");
-      const AgreeingVotesNeeded = ts.teamVariables.AgreeingVotesNeeded || 0;
-      const AgreeingMaxDifference = ts.teamVariables.AgreeingMaxDifference || 0;
+      // Get all current votes for this level
+      const approvalVotes = await ts
+        .getPendingVotes()
+        .where('levels.id', level.id)
+        .where('type', 'approve');
+      const fixVotes = await ts
+        .getPendingVotes()
+        .where('levels.id', level.id)
+        .where('type', 'fix');
+      const rejectVotes = await ts
+        .getPendingVotes()
+        .where('levels.id', level.id)
+        .where('type', 'reject');
+      const AgreeingVotesNeeded =
+        ts.teamVariables.AgreeingVotesNeeded || 0;
+      const AgreeingMaxDifference =
+        ts.teamVariables.AgreeingMaxDifference || 0;
       const inAgreement = ts.checkForAgreement({
         AgreeingVotesNeeded,
         AgreeingMaxDifference,
@@ -1410,11 +1944,11 @@ class TS {
       let difficulty;
       if (statusUpdate == ts.LEVEL_STATUS.APPROVED) {
         ts.initiate(author);
-        let difficultyArr = [...approvalVotes, ...fixVotes];
+        const difficultyArr = [...approvalVotes, ...fixVotes];
         let diffCounter = 0;
         let diffSum = 0;
         for (let i = 0; i < difficultyArr.length; i++) {
-          let diff = parseFloat(difficultyArr[i].difficulty_vote);
+          const diff = parseFloat(difficultyArr[i].difficulty_vote);
           if (!Number.isNaN(diff)) {
             diffCounter++;
             diffSum += diff;
@@ -1423,157 +1957,270 @@ class TS {
         difficulty = Math.round((diffSum / diffCounter) * 2) / 2;
       }
 
-        await ts.db.Levels.query()
-          .patch({ status: statusUpdate, difficulty })
-          .where({ code });
-        await ts.recalculateAfterUpdate({ code });
-        const mention = this.message("general.heyListen", { discord_id: author.discord_id });
-        const judgeEmbed = this.levelEmbed(level, this.embedStyle[statusUpdate], { difficulty });
-        if (statusUpdate === this.LEVEL_STATUS.NEED_FIX)
-          judgeEmbed.setDescription(ts.message("approval.fixInstructionsCreator"));
-        this.embedComments(judgeEmbed, [...approvalVotes, ...fixVotes, ...rejectVotes]);
-        await client.channels.get(ts.channels.levelChangeNotification).send(mention);
-        await client.channels.get(ts.channels.levelChangeNotification).send(judgeEmbed);
-        //Remove Discussion Channel
-        await ts.deleteDiscussionChannel(level.code, ts.message("approval.channelDeleted"));
+      await ts.db.Levels.query()
+        .patch({ status: statusUpdate, difficulty })
+        .where({ code });
+      await ts.recalculateAfterUpdate({ code });
+      const mention = this.message('general.heyListen', {
+        discord_id: author.discord_id,
+      });
+      const judgeEmbed = this.levelEmbed(
+        level,
+        this.embedStyle[statusUpdate],
+        { difficulty },
+      );
+      if (statusUpdate === this.LEVEL_STATUS.NEED_FIX)
+        judgeEmbed.setDescription(
+          ts.message('approval.fixInstructionsCreator'),
+        );
+      this.embedComments(judgeEmbed, [
+        ...approvalVotes,
+        ...fixVotes,
+        ...rejectVotes,
+      ]);
+      await client.channels
+        .get(ts.channels.levelChangeNotification)
+        .send(mention);
+      await client.channels
+        .get(ts.channels.levelChangeNotification)
+        .send(judgeEmbed);
+      // Remove Discussion Channel
+      await ts.deleteDiscussionChannel(
+        level.code,
+        ts.message('approval.channelDeleted'),
+      );
     };
-    this.rejectLevelWithReason = async function (code, shellder, message) {
-      let level = await ts.getLevels().where({ code }).first();
-      if (level.status !== ts.LEVEL_STATUS.PENDING_FIXED_REUPLOAD && level.status !== ts.LEVEL_STATUS.PENDING_NOT_FIXED_REUPLOAD)
-        ts.userError(ts.message('fixApprove.rejectNotNeedFix', { code }));
-      let allVotes = await ts.getPendingVotes().where({ 'levels.id': level.id }).orderBy('type');
-      await ts.db.Levels.query().patch({ status: ts.LEVEL_STATUS.REJECTED, old_status: level.status }).where({ code });
-      const author = await ts.db.Members.query().where({ id: level.creator_id }).first();
-      var mention = ts.message("general.heyListen", { discord_id: author.discord_id });
-      var embed = ts.levelEmbed(level, this.embedStyle[ts.LEVEL_STATUS.REJECTED])
-        .setAuthor(ts.message("approval.rejectAfterRefuse"));
-      embed.setDescription("Rejected by <@" + shellder.id + ">: ```\n" + message + '\n```');
+    this.rejectLevelWithReason = async function (
+      code,
+      shellder,
+      message,
+    ) {
+      const level = await ts.getLevels().where({ code }).first();
+      if (
+        level.status !== ts.LEVEL_STATUS.PENDING_FIXED_REUPLOAD &&
+        level.status !== ts.LEVEL_STATUS.PENDING_NOT_FIXED_REUPLOAD
+      )
+        ts.userError(
+          ts.message('fixApprove.rejectNotNeedFix', { code }),
+        );
+      const allVotes = await ts
+        .getPendingVotes()
+        .where({ 'levels.id': level.id })
+        .orderBy('type');
+      await ts.db.Levels.query()
+        .patch({
+          status: ts.LEVEL_STATUS.REJECTED,
+          old_status: level.status,
+        })
+        .where({ code });
+      const author = await ts.db.Members.query()
+        .where({ id: level.creator_id })
+        .first();
+      const mention = ts.message('general.heyListen', {
+        discord_id: author.discord_id,
+      });
+      const embed = ts
+        .levelEmbed(level, this.embedStyle[ts.LEVEL_STATUS.REJECTED])
+        .setAuthor(ts.message('approval.rejectAfterRefuse'));
+      embed.setDescription(
+        `Rejected by <@${shellder.id}>: \`\`\`\n${message}\n\`\`\``,
+      );
       this.embedComments(embed, allVotes);
-      await client.channels.get(ts.channels.levelChangeNotification).send(mention);
-      await client.channels.get(ts.channels.levelChangeNotification).send(embed);
-      //Remove Discussion Channel
-      await ts.deleteDiscussionChannel(code, ts.message("approval.channelDeleted"));
+      await client.channels
+        .get(ts.channels.levelChangeNotification)
+        .send(mention);
+      await client.channels
+        .get(ts.channels.levelChangeNotification)
+        .send(embed);
+      // Remove Discussion Channel
+      await ts.deleteDiscussionChannel(
+        code,
+        ts.message('approval.channelDeleted'),
+      );
     };
     this.deleteDiscussionChannel = async function (code, reason) {
       if (!code)
-        throw new Error('No code given to this.deleteDiscussionChannel');
+        throw new Error(
+          'No code given to this.deleteDiscussionChannel',
+        );
       if (this.valid_code(code.toUpperCase())) {
-        const levelChannel = this.getGuild().channels.find(channel => channel.name === code.toLowerCase());
+        const levelChannel = this.getGuild().channels.find(
+          (channel) => channel.name === code.toLowerCase(),
+        );
         if (levelChannel) {
           await levelChannel.delete(reason);
         }
       }
     };
     this.putFeedback = async function (ip, discordId, salt, message) {
-      let hash = crypto.createHmac('sha512', salt);
-      hash.update(ip + " - " + discordId);
-      let value = hash.digest('hex');
-      await client.channels.get(ts.channels.feedbackChannel).send("**[" + value.slice(0, 8) + "]**\n> " + message.replace(/\n/g, "\n> "));
+      const hash = crypto.createHmac('sha512', salt);
+      hash.update(`${ip} - ${discordId}`);
+      const value = hash.digest('hex');
+      await client.channels
+        .get(ts.channels.feedbackChannel)
+        .send(
+          `**[${value.slice(0, 8)}]**\n> ${message.replace(
+            /\n/g,
+            '\n> ',
+          )}`,
+        );
     };
     this.levelEmbed = function (level, args = {}, titleArgs) {
       let { color, title, image, noLink } = args;
-      var vidStr = [];
-      level.videos.split(",").forEach((vid, i) => {
-        if (vid)
-          vidStr.push("[ 🎬 ](" + vid + ")");
+      let vidStr = [];
+      level.videos.split(',').forEach((vid, i) => {
+        if (vid) vidStr.push(`[ 🎬 ](${vid})`);
       });
-      vidStr = vidStr.join(",");
-      var tagStr = [];
-      level.tags = level.tags ? level.tags : "";
-      level.tags.split(",").forEach((tag) => {
+      vidStr = vidStr.join(',');
+      let tagStr = [];
+      level.tags = level.tags ? level.tags : '';
+      level.tags.split(',').forEach((tag) => {
         if (tag)
-          tagStr.push("[" + tag + "](" + server_config.page_url + ts.url_slug + "/levels/" + encodeURIComponent(tag) + ")");
+          tagStr.push(
+            `[${tag}](${server_config.page_url}${
+              ts.url_slug
+            }/levels/${encodeURIComponent(tag)})`,
+          );
       });
-      tagStr = tagStr.join(",");
-      var embed = client.util.embed()
-        .setColor(color || "#007bff")
-        .setTitle(level.level_name + " (" + level.code + ")")
-        .setDescription("made by " +
-          (noLink ? level.creator : "[" + level.creator + "](" + server_config.page_url + ts.url_slug + "/maker/" + encodeURIComponent(level.creator) + ")") + "\n" +
-          (ts.is_smm1(level.code) ? `Links: [Bookmark Page](https://supermariomakerbookmark.nintendo.net/courses/${level.code})\n` : '') +
-          ("Difficulty: " + level.difficulty + ", Clears: " + level.clears + ", Likes: " + level.likes + "\n") +
-          (tagStr ? "Tags: " + tagStr + "\n" : "") +
-          (vidStr ? "Clear Video: " + vidStr : ""));
-      if (title){
+      tagStr = tagStr.join(',');
+      let embed = client.util
+        .embed()
+        .setColor(color || '#007bff')
+        .setTitle(`${level.level_name} (${level.code})`)
+        .setDescription(
+          `made by ${
+            noLink
+              ? level.creator
+              : `[${level.creator}](${server_config.page_url}${
+                  ts.url_slug
+                }/maker/${encodeURIComponent(level.creator)})`
+          }\n${
+            ts.is_smm1(level.code)
+              ? `Links: [Bookmark Page](https://supermariomakerbookmark.nintendo.net/courses/${level.code})\n`
+              : ''
+          }Difficulty: ${level.difficulty}, Clears: ${
+            level.clears
+          }, Likes: ${level.likes}\n${
+            tagStr ? `Tags: ${tagStr}\n` : ''
+          }${vidStr ? `Clear Video: ${vidStr}` : ''}`,
+        );
+      if (title) {
         embed.setAuthor(ts.message(title, titleArgs));
       }
-      if (image){
+      if (image) {
         image = this.getEmoteUrl(image);
         embed.setThumbnail(image);
       }
       if (!noLink) {
-        embed.setURL(server_config.page_url + ts.url_slug + "/level/" + level.code);
+        embed.setURL(
+          `${server_config.page_url + ts.url_slug}/level/${
+            level.code
+          }`,
+        );
       }
       embed = embed.setTimestamp();
       return embed;
     };
 
     this.reuploadLevel = async function (message) {
-      var player = await ts.db.Members.query().where({ discord_id: message.author.id }).first();
-      if (!player)
-        ts.userError(ts.message("error.notRegistered"));
-      let command = ts.parse_command(message);
+      const player = await ts.db.Members.query()
+        .where({ discord_id: message.author.id })
+        .first();
+      if (!player) ts.userError(ts.message('error.notRegistered'));
+      const command = ts.parse_command(message);
       let old_code = command.arguments.shift();
       if (old_code) {
         old_code = old_code.toUpperCase();
-      }
-      else {
-        ts.userError(ts.message("reupload.noOldCode"));
+      } else {
+        ts.userError(ts.message('reupload.noOldCode'));
       }
       if (!ts.valid_code(old_code)) {
-        ts.userError(ts.message("reupload.invalidOldCode"));
+        ts.userError(ts.message('reupload.invalidOldCode'));
       }
       let new_code = command.arguments.shift();
       if (new_code) {
         new_code = new_code.toUpperCase();
-      }
-      else {
-        ts.userError(ts.message("reupload.noNewCode"));
+      } else {
+        ts.userError(ts.message('reupload.noNewCode'));
       }
       if (!ts.valid_code(new_code))
-        ts.userError(ts.message("reupload.invalidNewCode"));
-      const reason = command.arguments.join(" ");
+        ts.userError(ts.message('reupload.invalidNewCode'));
+      const reason = command.arguments.join(' ');
       if (old_code == new_code)
-        ts.userError(ts.message("reupload.sameCode"));
-      if (!reason)
-        ts.userError(ts.message("reupload.giveReason"));
-      var earned_points = await ts.calculatePoints(player.name);
-      var rank = ts.get_rank(earned_points.clearPoints);
-      var user_reply = "<@" + message.author.id + ">" + (rank.pips ? rank.pips : "") + " ";
-      var level = await ts.getLevels().where({ code: old_code }).first();
+        ts.userError(ts.message('reupload.sameCode'));
+      if (!reason) ts.userError(ts.message('reupload.giveReason'));
+      const earned_points = await ts.calculatePoints(player.name);
+      const rank = ts.get_rank(earned_points.clearPoints);
+      const user_reply = `<@${message.author.id}>${
+        rank.pips ? rank.pips : ''
+      } `;
+      const level = await ts
+        .getLevels()
+        .where({ code: old_code })
+        .first();
       if (!level)
-        ts.userError(ts.message("error.levelNotFound", { code: old_code }));
-      var new_level = await ts.getLevels().where({ code: new_code }).first();
-      let oldApproved = level.status===ts.LEVEL_STATUS.USER_REMOVED ? level.old_status : level.status;
-      //level.status==ts.LEVEL_STATUS.APPROVED || level.status==ts.LEVEL_STATUS.PENDING
+        ts.userError(
+          ts.message('error.levelNotFound', { code: old_code }),
+        );
+      let new_level = await ts
+        .getLevels()
+        .where({ code: new_code })
+        .first();
+      const oldApproved =
+        level.status === ts.LEVEL_STATUS.USER_REMOVED
+          ? level.old_status
+          : level.status;
+      // level.status==ts.LEVEL_STATUS.APPROVED || level.status==ts.LEVEL_STATUS.PENDING
       if (new_level && level.creator != new_level.creator)
-        ts.userError(ts.message("reupload.differentCreator"));
-      if (new_level
-        && new_level.status != ts.LEVEL_STATUS.PENDING
-        && new_level.status != ts.LEVEL_STATUS.APPROVED
-        && new_level.status != ts.LEVEL_STATUS.NEED_FIX)
-        ts.userError(ts.message("reupload.wrongApprovedStatus"));
-      //Reupload means you're going to replace the old one so need to do that for upload check
-      let creator_points = await ts.calculatePoints(level.creator, ts.SHOWN_IN_LIST.includes(level.status));
+        ts.userError(ts.message('reupload.differentCreator'));
+      if (
+        new_level &&
+        new_level.status != ts.LEVEL_STATUS.PENDING &&
+        new_level.status != ts.LEVEL_STATUS.APPROVED &&
+        new_level.status != ts.LEVEL_STATUS.NEED_FIX
+      )
+        ts.userError(ts.message('reupload.wrongApprovedStatus'));
+      // Reupload means you're going to replace the old one so need to do that for upload check
+      const creator_points = await ts.calculatePoints(
+        level.creator,
+        ts.SHOWN_IN_LIST.includes(level.status),
+      );
       if (level.new_code)
-        ts.userError(ts.message("reupload.haveReuploaded", { code: level.new_code }));
-      if (!new_level && !(ts.SHOWN_IN_LIST.includes(level.status) ||
-        !ts.SHOWN_IN_LIST.includes(level.status) && creator_points.canUpload)){
-        ts.userError(ts.message("reupload.notEnoughPoints"));
+        ts.userError(
+          ts.message('reupload.haveReuploaded', {
+            code: level.new_code,
+          }),
+        );
+      if (
+        !new_level &&
+        !(
+          ts.SHOWN_IN_LIST.includes(level.status) ||
+          (!ts.SHOWN_IN_LIST.includes(level.status) &&
+            creator_points.canUpload)
+        )
+      ) {
+        ts.userError(ts.message('reupload.notEnoughPoints'));
       }
-      if (!(level.creator_id == player.id || player.is_mod)){
-        ts.userError(ts.message("reupload.noPermission", level));
+      if (!(level.creator_id == player.id || player.is_mod)) {
+        ts.userError(ts.message('reupload.noPermission', level));
       }
-      await ts.db.Levels.query().patch({
-        status: level.status == ts.LEVEL_STATUS.APPROVED ? ts.LEVEL_STATUS.REUPLOADED : ts.LEVEL_STATUS.REMOVED,
-        old_status: level.status,
-        new_code,
-      })
+      await ts.db.Levels.query()
+        .patch({
+          status:
+            level.status == ts.LEVEL_STATUS.APPROVED
+              ? ts.LEVEL_STATUS.REUPLOADED
+              : ts.LEVEL_STATUS.REMOVED,
+          old_status: level.status,
+          new_code,
+        })
         .where({
           code: old_code,
         });
-      await ts.db.Levels.query().patch({ new_code }).where({ new_code: old_code });
-      if (!new_level) { //if no new level was found create a new level copying over the old data
+      await ts.db.Levels.query()
+        .patch({ new_code })
+        .where({ new_code: old_code });
+      if (!new_level) {
+        // if no new level was found create a new level copying over the old data
         await ts.db.Levels.query().insert({
           code: new_code,
           level_name: level.level_name,
@@ -1582,62 +2229,83 @@ class TS {
           status: 0,
           tags: level.tags,
         });
-        new_level = await ts.getLevels().where({ code: new_code }).first();
+        new_level = await ts
+          .getLevels()
+          .where({ code: new_code })
+          .first();
       }
       await ts.db.PendingVotes.query()
         .patch({ code: new_level.id })
         .where({ code: level.id });
       let newStatus = 0;
       if (oldApproved === ts.LEVEL_STATUS.NEED_FIX) {
-        newStatus = ts.LEVEL_STATUS.PENDING_FIXED_REUPLOAD; //should make another one
-      }
-      else if (oldApproved === ts.LEVEL_STATUS.APPROVED) {
+        newStatus = ts.LEVEL_STATUS.PENDING_FIXED_REUPLOAD; // should make another one
+      } else if (oldApproved === ts.LEVEL_STATUS.APPROVED) {
         newStatus = ts.LEVEL_STATUS.PENDING_APPROVED_REUPLOAD;
       }
       if (newStatus) {
         await ts.db.Levels.query()
-          .patch({ status: newStatus }) //new level doesn't need old_status
+          .patch({ status: newStatus }) // new level doesn't need old_status
           .where({ code: new_code });
         new_level.status = newStatus;
       }
       const author = await ts.db.Members.query()
         .where({ id: new_level.creator_id })
         .first();
-      if (newStatus !== 0 || newStatus === 0 && ts.findChannel({ name: level.code })) {
-        //TODO:FIX HERE
-        //  
-        const { channel } = await ts.discussionChannel(new_code, newStatus === ts.LEVEL_STATUS.PENDING ? ts.channels.levelDiscussionCategory : ts.channels.pendingReuploadCategory, level.code);
-        const voteEmbed = await ts.makeVoteEmbed(new_level, reason || "");
+      if (
+        newStatus !== 0 ||
+        (newStatus === 0 && ts.findChannel({ name: level.code }))
+      ) {
+        // TODO:FIX HERE
+        //
+        const { channel } = await ts.discussionChannel(
+          new_code,
+          newStatus === ts.LEVEL_STATUS.PENDING
+            ? ts.channels.levelDiscussionCategory
+            : ts.channels.pendingReuploadCategory,
+          level.code,
+        );
+        const voteEmbed = await ts.makeVoteEmbed(
+          new_level,
+          reason || '',
+        );
         await ts.updatePinned(channel, voteEmbed);
-        await channel.send(ts.message("reupload.reuploadNotify", { old_code, new_code }));
-        await channel.send(`Reupload Request for <@${author.discord_id}>'s level with message: ${reason}`);
+        await channel.send(
+          ts.message('reupload.reuploadNotify', {
+            old_code,
+            new_code,
+          }),
+        );
+        await channel.send(
+          `Reupload Request for <@${author.discord_id}>'s level with message: ${reason}`,
+        );
       }
-      let reply = ts.message("reupload.success", { level, new_code });
-      if (!new_level){
-        reply += ts.message("reupload.renamingInstructions");
+      let reply = ts.message('reupload.success', { level, new_code });
+      if (!new_level) {
+        reply += ts.message('reupload.renamingInstructions');
       }
       if (newStatus !== ts.LEVEL_STATUS.PENDING)
-        reply += ts.message("reupload.inReuploadQueue");
+        reply += ts.message('reupload.inReuploadQueue');
       await ts.recalculateAfterUpdate();
       return user_reply + reply;
-    }
-  
+    };
   }
 
-    /**
+  /**
    * Helper function to get the Discord Guild object
    * @returns {Guild}
    */
-    getGuild() {
-      return this.client.guilds.get(this.guild_id);
-    };
+  getGuild() {
+    return this.client.guilds.get(this.guild_id);
+  }
 
-      /**
-     * Function that recalculates and updates the stored calculated information in the database. To be called everytime relevant data is added/updated/deleted.
-     * Relevant updates: level difficulty update, level removal, clear add/updates/delete, point/score update, likes, difficulty vote, votes
-     */
-    async recalculateAfterUpdate () {
-      return await knex.raw(`UPDATE levels 
+  /**
+   * Function that recalculates and updates the stored calculated information in the database. To be called everytime relevant data is added/updated/deleted.
+   * Relevant updates: level difficulty update, level removal, clear add/updates/delete, point/score update, likes, difficulty vote, votes
+   */
+  async recalculateAfterUpdate() {
+    return await knex.raw(
+      `UPDATE levels 
       inner join (SELECT *
     ,if(clears=0,0,round(((likes*2+clears)*score*likes/clears),1)) maker_points
     ,if(clears=0,0,round(likes/clears*100,1)) clear_like_ratio
@@ -1737,13 +2405,15 @@ class TS {
         members.free_submissions=COALESCE(own_levels.free_submissions,0),
         members.maker_points=COALESCE(own_levels.maker_points,0)
       WHERE members.guild_id=:guild_id;
-  `, {
+  `,
+      {
         guild_id: this.team.id,
         SHOWN_IN_LIST: knex.raw(SHOWN_IN_LIST),
-        include_own_score: this.teamVariables.includeOwnPoints == "true" || false,
-      });
-    };
-
+        include_own_score:
+          this.teamVariables.includeOwnPoints == 'true' || false,
+      },
+    );
+  }
 
   /**
    * Parses a message from discord and converts it to an array of words
@@ -1751,16 +2421,16 @@ class TS {
    * @returns {object} returns command
    */
   parse_command(message) {
-    var raw_command = message.content.trim();
-    raw_command = raw_command.split(" ");
-    var sb_command = raw_command.shift().toLowerCase().substring(1); //remove first character
-    if(!sb_command) raw_command.shift().toLowerCase();
-    var filtered = [];
-    filtered=raw_command.filter(s=>s);
+    let raw_command = message.content.trim();
+    raw_command = raw_command.split(' ');
+    const sb_command = raw_command.shift().toLowerCase().substring(1); // remove first character
+    if (!sb_command) raw_command.shift().toLowerCase();
+    let filtered = [];
+    filtered = raw_command.filter((s) => s);
     return {
       command: sb_command,
       arguments: filtered,
-      argumentString: filtered.join(" "),
+      argumentString: filtered.join(' '),
     };
   }
 
@@ -1768,8 +2438,10 @@ class TS {
    * Get the specified rank for a user by comparing achived score and the list or ranks from database
    * @return {Object} The rank row from database
    */
-  get_rank(points){
-    const ret = this.ranks.find(r => parseFloat(points) >= parseFloat(r.min_points));
+  get_rank(points) {
+    const ret = this.ranks.find(
+      (r) => parseFloat(points) >= parseFloat(r.min_points),
+    );
     return ret;
   }
 
@@ -1779,19 +2451,23 @@ class TS {
    * @param {Snowflake} obj.parentID Category ID
    * @returns {boolean} channel found or not
    */
-  findChannel({ name, parentID }){
+  findChannel({ name, parentID }) {
     const guild = this.getGuild();
-    const channel = guild.channels.find((channel) => (!parentID || parentID && channel.parentID === parentID) && channel.name === name.toLowerCase());
+    const channel = guild.channels.find(
+      (channel) =>
+        (!parentID || (parentID && channel.parentID === parentID)) &&
+        channel.name === name.toLowerCase(),
+    );
     return channel;
-  };
+  }
 
   /**
    * Function to convert a tag to lowercase, and stripped of all special characters for comparison
    * @param {string} str tag to be tranformed
    * @returns {string}
    */
-  transformTag(str){
-    return str.toLowerCase().replace(/[^a-z0-9]/g,'')
+  transformTag(str) {
+    return str.toLowerCase().replace(/[^a-z0-9]/g, '');
   }
 
   /**
@@ -1800,99 +2476,118 @@ class TS {
    * @param {knex} [trx] a transaction object
    * @returns {string[]}  returns an array of tags
    */
-  async addTags(tags,trx=knex){
-    if(!Array.isArray(tags) && typeof tags === "string") tags=tags.split(/[,\n]/)
-    if(!Array.isArray(tags)) throw TypeError("not a string or array of strings")
-    
+  async addTags(tags, trx = knex) {
+    if (!Array.isArray(tags) && typeof tags === 'string')
+      tags = tags.split(/[,\n]/);
+    if (!Array.isArray(tags))
+      throw TypeError('not a string or array of strings');
 
-    let existing_tags=await trx('tags').where({guild_id:this.team.id})
-    let that=this
-    existing_tags=existing_tags.map((t)=>{
-      return { value:t.name,compare:that.transformTag(t.name)}
-    })
-    const newTags=[]
-    for(let i=0;i<tags.length;i++){
-      if(tags[i]){
-        const same_tag=existing_tags.find((t)=>this.transformTag(tags[i])===t.compare);
-        if(same_tag){
-          tags[i]=same_tag.value
+    let existing_tags = await trx('tags').where({
+      guild_id: this.team.id,
+    });
+    const that = this;
+    existing_tags = existing_tags.map((t) => {
+      return { value: t.name, compare: that.transformTag(t.name) };
+    });
+    const newTags = [];
+    for (let i = 0; i < tags.length; i++) {
+      if (tags[i]) {
+        const same_tag = existing_tags.find(
+          (t) => this.transformTag(tags[i]) === t.compare,
+        );
+        if (same_tag) {
+          tags[i] = same_tag.value;
         } else {
-          existing_tags.push({value:tags[i].trim(),compare:this.transformTag(tags[i])})
-          newTags.push({name:tags[i].trim(),guild_id:this.team.id})
+          existing_tags.push({
+            value: tags[i].trim(),
+            compare: this.transformTag(tags[i]),
+          });
+          newTags.push({
+            name: tags[i].trim(),
+            guild_id: this.team.id,
+          });
         }
       }
     }
-    if(newTags.length!==0){
+    if (newTags.length !== 0) {
       await trx('tags').insert(newTags);
     }
 
     return tags;
   }
 
-
   /**
    * Helper function to help secure data being send for updating/editing
    * @param {RowPacket[]} data Rows of data probably from the database. expects to contain an id and a guild_id
    * @returns {RowPacket[]} returns the same data but with signed values to verify id
    */
-  secure_data(data){
-    return data.map((d)=>{
-      d.__secure=jwt.sign({
-        id:d.id,
-      },this.config.key);
-      return d
+  secure_data(data) {
+    return data.map((d) => {
+      d.__secure = jwt.sign(
+        {
+          id: d.id,
+        },
+        this.config.key,
+      );
+      return d;
     });
   }
 
   /**
-   * Helper function to help verified secure data being recieved. Checks for id 
+   * Helper function to help verified secure data being recieved. Checks for id
    * @param {RowPacket[]} data Rows of data recieved from user. each row should contain __secure created in secure_data
    * @returns {RowPacket[]} returns the same data but removes __secure after verifying it.
    * @throws {UserError} returns an error if the id in the row does not match the one in __secure
    */
-  verify_data(data){
-    return data.map( (d)=>{
-      if(d.id){
-        if(!d.__secure) this.userError(this.message('error.wrongTokens'));
+  verify_data(data) {
+    return data.map((d) => {
+      if (d.id) {
+        if (!d.__secure)
+          this.userError(this.message('error.wrongTokens'));
         try {
-          const decoded=jwt.verify(d.__secure,this.config.key);
-          if(decoded.id!=d.id){
+          const decoded = jwt.verify(d.__secure, this.config.key);
+          if (decoded.id != d.id) {
             this.userError(this.message('error.wrongTokens'));
           }
-        } catch(error){
+        } catch (error) {
           this.userError(this.message('error.wrongTokens'));
         }
       } else {
-        delete d.id
-        delete d.guild_id
+        delete d.id;
+        delete d.guild_id;
       }
       delete d.__secure;
-      return d
-    })
+      return d;
+    });
   }
 
-    /**
-     * This will gather the necessary data to generate the points achived by the player
-     */
-    async calculatePoints(name, if_remove_check) {
-      let member = await this.db.Members.query().where({ name }).first();
-      let min = parseFloat(this.get_variable("Minimum Point") || 0);
-      let next = parseFloat(this.get_variable("New Level") || 0);
-      let pointsNeeded = this.pointsNeededForLevel({
-        points: member.clear_score_sum,
-        levelsUploaded: Math.max(0, member.levels_created - (if_remove_check ? 1 : 0)),
-        freeLevels: member.free_submissions,
-        min,
-        next,
-      });
-      return {
-        clearPoints: member.clear_score_sum,
-        levelsMade: member.levels_created,
-        freeSubmissions: member.free_submissions,
-        pointsNeeded: pointsNeeded,
-        canUpload: pointsNeeded < 0.05,
-      };
-    }
+  /**
+   * This will gather the necessary data to generate the points achived by the player
+   */
+  async calculatePoints(name, if_remove_check) {
+    const member = await this.db.Members.query()
+      .where({ name })
+      .first();
+    const min = parseFloat(this.get_variable('Minimum Point') || 0);
+    const next = parseFloat(this.get_variable('New Level') || 0);
+    const pointsNeeded = this.pointsNeededForLevel({
+      points: member.clear_score_sum,
+      levelsUploaded: Math.max(
+        0,
+        member.levels_created - (if_remove_check ? 1 : 0),
+      ),
+      freeLevels: member.free_submissions,
+      min,
+      next,
+    });
+    return {
+      clearPoints: member.clear_score_sum,
+      levelsMade: member.levels_created,
+      freeSubmissions: member.free_submissions,
+      pointsNeeded: pointsNeeded,
+      canUpload: pointsNeeded < 0.05,
+    };
+  }
 
   /**
    * call to add a TS into the list.
@@ -1902,18 +2597,20 @@ class TS {
     await TS.TS_LIST[guild_id].load();
     return TS.TS_LIST[guild_id];
   }
+
   /**
    * Get a TS object from a url_slug
    */
   static teamFromUrl(url_slug) {
-    for (let i in TS.TS_LIST) {
-      let team = TS.TS_LIST[i];
+    for (const i in TS.TS_LIST) {
+      const team = TS.TS_LIST[i];
       if (team.config && team.url_slug == url_slug) {
         return team;
       }
     }
     return false;
   }
+
   /**
    * default makerteam messages for use above the team layer
    */
@@ -1921,8 +2618,11 @@ class TS {
     if (TS.defaultMessages[type]) {
       return TS.defaultMessages[type](args);
     }
-    throw new Error(`"${type}" message string was not found in ts.message`);
+    throw new Error(
+      `"${type}" message string was not found in ts.message`,
+    );
   }
+
   /**
    * Get a team
    * @param {Snowflake} guild_id
@@ -1931,9 +2631,9 @@ class TS {
     if (TS.TS_LIST[guild_id]) {
       return TS.TS_LIST[guild_id];
     }
-    else {
-      throw new Error(`This team, with guild id ${guild_id} has not yet setup it's config, buzzyS`);
-    }
+    throw new Error(
+      `This team, with guild id ${guild_id} has not yet setup it's config, buzzyS`,
+    );
   }
   /**
    * Registers a new team when they run it in a discord server that is not registered
@@ -1956,7 +2656,7 @@ class TS {
   }
   */
 }
-TS.TS_LIST={}
-TS.UserError=UserError;
+TS.TS_LIST = {};
+TS.UserError = UserError;
 
-module.exports=TS 
+module.exports = TS;
