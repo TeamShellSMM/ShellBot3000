@@ -93,11 +93,8 @@ module.exports = async function(client){
       code,
       name,
       player_id: user ? user.id : -1,
-      statuses: [
-      ts.LEVEL_STATUS.PENDING,
-      ts.LEVEL_STATUS.APPROVED,
-      ts.LEVEL_STATUS.NEED_FIX,
-    ] })
+      statuses: ts.SHOWN_IN_LIST, 
+    })
     
 
     const seperate=tags.filter( t => t.is_seperate ).map( t => t.name )
