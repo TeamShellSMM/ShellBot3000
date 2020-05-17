@@ -46,17 +46,17 @@
     "migrate:production": "NODE_ENV=test npm run migrate:raw",
     "start": "node -r dotenv-flow/config src/app.js",
     "test": "env NODE_ENV=test mocha",
-    "coverage": "nyc --reporter=lcov --reporter=text npm test",
+    "coverage": "nyc --reporter=lcovonly --reporter=text npm test",
     "codecov": "codecov",
     "format": "prettier-eslint —eslint-config-path ./.eslintrc.js --write '$(pwd)/**/*.js'",
     "pretty": "prettier --write \"./**/*.{js,jsx,json}\"",
     "lint": "eslint --ignore-path .gitignore ."
   },
   "keywords": [
-    "discord",
-    "discordbot",
-    "community",
-    "mario"
+    "Discord",
+    "Discord Bot",
+    "Community",
+    "Mario Maker"
   ],
   "author": "",
   "license": "ISC"
