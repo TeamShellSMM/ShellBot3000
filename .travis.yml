@@ -1,0 +1,23 @@
+dist: trusty
+sudo: false
+language: node_js
+node_js:
+  - 12
+addons:
+  mariadb: '10.4'
+env:
+  - DB_HOST=localhost DB_PASS=travis DB_USER=travis DB_NAME=testing PAGE_URL=http://localhost:8080/ DEVS=1024
+before_install:
+  - mysql -e 'CREATE DATABASE testing;'
+  - mysql -e 'create database testing  DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci;'
+  - mysql -e 'create user travis identified by 'travis'; grant all on testing.* to travis;'
+  - mysql -e 'select VERSION()'
+  - SET Password=PASSWORD('travis')
+install:
+  - cd istanbul-mocha && npm install && cd ..
+before_script:
+  - npm run migrate:test
+script:
+  - npm run coverage
+after_success:
+  - npm run codecov

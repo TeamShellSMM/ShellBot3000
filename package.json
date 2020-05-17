@@ -2,6 +2,8 @@
   "name": "shellbot3000",
   "version": "1.5.0",
   "description": "A Discord Bot for Super Mario Maker teams and community.",
+  "homepage": "https://makerteams.net",
+  "repository": "github:TeamShellSMM/ShellBot3000",
   "main": "src/app.js",
   "dependencies": {
     "body-parser": "^1.19.0",
@@ -23,6 +25,7 @@
   },
   "devDependencies": {
     "chai": "^4.2.0",
+    "codecov": "3.6.5",
     "eslint": "^6.8.0",
     "eslint-config-airbnb-base": "^14.1.0",
     "eslint-config-node": "^4.0.0",
@@ -38,15 +41,24 @@
     "supertest": "^4.0.2"
   },
   "scripts": {
-    "migrate": "node_modules/.bin/knex migrate:latest",
+    "migrate:raw": "node -r dotenv-flow/config node_modules/.bin/knex --knexfile src/knexfile.js migrate:latest",
+    "migrate": "NODE_ENV=development npm run migrate:raw",
+    "migrate:test": "NODE_ENV=test npm run migrate:raw",
+    "migrate:production": "NODE_ENV=test npm run migrate:raw",
     "start": "node -r dotenv-flow/config src/app.js",
     "test": "env NODE_ENV=test mocha",
     "coverage": "nyc --reporter=lcov --reporter=text npm test",
-    "format": "node_modules/.bin/prettier-eslint —eslint-config-path ./.eslintrc.js --write '$(pwd)/**/*.js'",
-    "pretty": "node_modules/.bin/prettier --write \"./**/*.{js,jsx,json}\"",
-    "lint": "node_modules/.bin/eslint --ignore-path .gitignore ."
+    "codecov": "codecov",
+    "format": "prettier-eslint —eslint-config-path ./.eslintrc.js --write '$(pwd)/**/*.js'",
+    "pretty": "prettier --write \"./**/*.{js,jsx,json}\"",
+    "lint": "eslint --ignore-path .gitignore ."
   },
-  "keywords": [],
+  "keywords": [
+    "discord",
+    "discordbot",
+    "community",
+    "mario"
+  ],
   "author": "",
   "license": "ISC"
 }
