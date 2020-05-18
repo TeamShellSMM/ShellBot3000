@@ -414,7 +414,7 @@ class TS {
       this.defaultVariables = defaultVariables;
       this.url_slug = this.team.url_slug;
       this.config = JSON.parse(this.team.config) || {};
-      this.web_config = JSON.parse(this.team.web_config) || {};
+      this.web_config = this.team.web_config ? JSON.parse(this.team.web_config) : {} || {};
       let updateConfig = false;
       if (this.config.key) {
         this.secure_key = this.config.key;
