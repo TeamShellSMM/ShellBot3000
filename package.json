@@ -44,7 +44,7 @@
     "migrate:raw": "node -r dotenv-flow/config node_modules/.bin/knex --knexfile src/knexfile.js migrate:latest",
     "migrate": "NODE_ENV=development npm run migrate:raw",
     "migrate:test": "NODE_ENV=test npm run migrate:raw",
-    "migrate:production": "NODE_ENV=test npm run migrate:raw",
+    "migrate:production": "NODE_ENV=production npm run migrate:raw",
     "start": "node -r dotenv-flow/config src/app.js",
     "test": "env NODE_ENV=test mocha",
     "coverage": "nyc --reporter=lcovonly --reporter=text npm test",
