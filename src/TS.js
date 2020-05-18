@@ -2102,7 +2102,7 @@ class TS {
         .send(mention);
       await client.channels
         .get(ts.channels.levelChangeNotification)
-        .send(judgeEmbed);
+        .send(finishFixRequestEmbed);
       // Remove Discussion Channel
       await ts.deleteDiscussionChannel(
         level.code,
