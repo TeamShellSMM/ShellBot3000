@@ -2347,6 +2347,21 @@ class TS {
         await channel.send(
           `Reupload Request for <@${author.discord_id}>'s level with message: ${reason}`,
         );
+
+        const fixVotes = await ts
+            .getPendingVotes()
+            .where('levels.id', level.id)
+            .where('type', 'fix');
+
+        let modPings = "";
+        for(let fixVote of fixVotes){
+          modPings += `<@${fixVote.player.discord_id}> `
+        }
+        if(modPings){
+          await channel.send(
+            `Please check if your fixes were made.`,
+          );
+        }
       }
       let reply = ts.message('reupload.success', { level, newCode });
       if (!newLevel) {

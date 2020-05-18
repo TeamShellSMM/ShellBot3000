@@ -75,6 +75,22 @@ class TSRefuseFix extends TSCommand {
     await discussionChannel.send(
       `Reupload Request for <@${author.discord_id}>'s level with message: ${reason}`,
     );
+
+    const fixVotes = await ts
+        .getPendingVotes()
+        .where('levels.id', level.id)
+        .where('type', 'fix');
+
+    let modPings = "";
+    for(let fixVote of fixVotes){
+      modPings += `<@${fixVote.player.discord_id}> `
+    }
+    if(modPings){
+      await discussionChannel.send(
+        `Please check if your fixes were made.`,
+      );
+    }
+
     const voteEmbed = await ts.makeVoteEmbed(level, reason);
     const overviewMessage = await discussionChannel.send(voteEmbed);
     await overviewMessage.pin();
