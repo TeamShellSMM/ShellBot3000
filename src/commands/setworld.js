@@ -38,7 +38,7 @@ class SetWorld extends TSCommand {
       ts.userError(ts.message('setworld.invalidLevelCount'));
     if (!world_name) ts.userError(ts.message('setworld.noWorldName'));
 
-    const player = await ts.get_user(message);
+    const player = await ts.getUser(message);
 
     if (!player.maker_id || !player.maker_name) {
       ts.userError(ts.message('setworld.noMakerId'));

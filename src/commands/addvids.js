@@ -57,7 +57,7 @@ class TSAddvids extends TSCommand {
         )}\`\`\``,
       );
 
-    const player = await ts.get_user(message);
+    const player = await ts.getUser(message);
     const level = await ts.getExistingLevel(code);
 
     let old_vids = level.videos ? level.videos.split(',') : [];

@@ -162,7 +162,7 @@ describe('misc-unit', function () {
   });
 
   it('ts.get_USER no discord_id ', async () => {
-    const user = await TEST.ts.get_user().catch((e) => {
+    const user = await TEST.ts.getUser().catch((e) => {
       assert.instanceOf(e, TEST.TS.UserError);
       assert.equal(e.message, "We couldn't find your discord id");
     });

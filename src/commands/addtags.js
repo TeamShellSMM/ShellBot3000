@@ -41,7 +41,7 @@ class TSAddtags extends TSCommand {
     }
     new_tags = new_tags.split(/[,\n]/);
 
-    const player = await ts.get_user(message);
+    const player = await ts.getUser(message);
     const level = await ts.getExistingLevel(code);
     // First we get all available tags
     new_tags = await ts.addTags(new_tags);

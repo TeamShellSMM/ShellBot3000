@@ -16,7 +16,7 @@ class points extends TSCommand {
   }
 
   async tsexec(ts, message, { role }) {
-    const player = await ts.get_user(message);
+    const player = await ts.getUser(message);
 
     if (role == 'role' || role == 'norole') {
       await message.member.removeRoles(ts.rank_ids);

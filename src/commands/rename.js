@@ -20,7 +20,7 @@ class TSRename extends TSCommand {
     if (!level_name) ts.userError(ts.message('rename.noNewName'));
     if (ts.isSpecialDiscordString(level_name))
       ts.userError(ts.message('error.specialDiscordString'));
-    const player = await ts.get_user(message);
+    const player = await ts.getUser(message);
     const level = await ts.getExistingLevel(code);
 
     if (!(level.creator == player.name || player.is_mod))

@@ -11,7 +11,7 @@ class atmebot extends TSCommand {
   async tsexec(ts, message, args) {
     const atmeCommands = ['atmebot', 'atme'];
     const command = ts.parse_command(message);
-    const player = await ts.get_user(message);
+    const player = await ts.getUser(message);
 
     if (atmeCommands.indexOf(command.command) != -1) {
       var atmeVal = true;

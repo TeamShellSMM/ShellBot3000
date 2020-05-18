@@ -24,7 +24,7 @@ class MakerId extends TSCommand {
     if (!code) ts.userError(ts.message('makerid.noCode'));
     if (!name) ts.userError(ts.message('makerid.noName'));
 
-    const player = await ts.get_user(message);
+    const player = await ts.getUser(message);
 
     code = code.toUpperCase();
     if (!ts.valid_code(code)) {

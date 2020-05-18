@@ -10,7 +10,7 @@ class UnsetWorld extends TSCommand {
   }
 
   async tsexec(ts, message) {
-    const player = await ts.get_user(message);
+    const player = await ts.getUser(message);
 
     await ts.db.Members.query()
       .patch({

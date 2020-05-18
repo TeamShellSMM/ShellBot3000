@@ -218,7 +218,7 @@ app.post('/json/login', web_ts(async (ts,req) => {
         let now=moment().valueOf()
         if(tokenExpireAt<now)
           TEST.ts.userError(TEST.ts.message("login.expiredOTP"))
-        let user=await TEST.ts.get_user(token.discord_id);
+        let user=await TEST.ts.getUser(token.discord_id);
         let bearer=await TEST.ts.login(token.discord_id,token.id)
         returnObj={status:"logged_in",type:"bearer","discord_id":user.discord_id,"token":bearer,"user_info":user}
       } else {
@@ -262,7 +262,7 @@ app.post('/json/login', web_ts(async (ts,req) => {
   let token;
   it('POST /json/login succesful', async function () {
     const discordDm = TEST.acceptReply();
-    const user = await TEST.ts.get_user(discord_id);
+    const user = await TEST.ts.getUser(discord_id);
     const { body } = await TEST.request(app)
       .post('/json/login')
       .send({ url_slug: TEST.ts.url_slug, otp })
@@ -276,7 +276,7 @@ app.post('/json/login', web_ts(async (ts,req) => {
   });
 
   it('POST /json registered', async function () {
-    const user = await TEST.ts.get_user(discord_id);
+    const user = await TEST.ts.getUser(discord_id);
     const { body } = await TEST.request(app)
       .post('/json')
       .send({ url_slug: TEST.ts.url_slug, token })

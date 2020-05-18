@@ -24,7 +24,7 @@ class TSRefuseFix extends TSCommand {
       );
     }
 
-    const player = await ts.get_user(message);
+    const player = await ts.getUser(message);
     const level = await ts.getLevels().where({ code }).first();
     const author = await ts.db.Members.query()
       .where({ name: level.creator })

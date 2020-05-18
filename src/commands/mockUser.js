@@ -21,7 +21,7 @@ class mockUser extends TSCommand {
 
   async tsexec(ts, message, args) {
     if (!args.user) ts.userError('mock.noTargetGiven');
-    const player = await ts.get_user(message);
+    const player = await ts.getUser(message);
     const target = await ts.db.Members.query()
       .where({ name: args.user })
       .first();
@@ -40,7 +40,7 @@ class mockUser extends TSCommand {
       })
       .where({ name: target.name });
 
-    const p = await ts.get_user(message);
+    const p = await ts.getUser(message);
     await message.channel.send(
       ts.message('mock.userSuccess', { name: p.name }),
     );

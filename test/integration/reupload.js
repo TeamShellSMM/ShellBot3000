@@ -327,7 +327,7 @@ describe('!reupload', function () {
       .patch({ clear_score_sum: 2 })
       .where({ discord_id: '64' });
 
-    const player = await TEST.ts.get_user('64');
+    const player = await TEST.ts.getUser('64');
     // check if can't upload a new level with current points
     assert.equal(
       await TEST.mockBotSend({

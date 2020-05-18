@@ -185,7 +185,7 @@ describe('Web Apis', function () {
     });
 
     it('POST /json/members ', async function () {
-      // const user=await TEST.ts.get_user(discord_id)
+      // const user=await TEST.ts.getUser(discord_id)
       const { body } = await TEST.request(app)
         .post('/json/members')
         .send({ url_slug: TEST.ts.url_slug })
@@ -198,7 +198,7 @@ describe('Web Apis', function () {
     });
 
     it('POST /json/makers', async function () {
-      // const user=await TEST.ts.get_user(discord_id)
+      // const user=await TEST.ts.getUser(discord_id)
       const { body } = await TEST.request(app)
         .post('/json/makers')
         .send({ url_slug: TEST.ts.url_slug })

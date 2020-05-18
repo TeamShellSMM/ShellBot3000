@@ -187,7 +187,7 @@ describe('!add', function () {
       channel: 'general',
       discord_id: '256',
     });
-    const player = await TEST.ts.get_user('256');
+    const player = await TEST.ts.getUser('256');
     assert.equal(
       result,
       await TEST.mockMessage(

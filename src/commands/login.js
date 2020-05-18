@@ -10,7 +10,7 @@ class login extends TSCommand {
   }
 
   async tsexec(ts, message, args) {
-    const player = await ts.get_user(message);
+    const player = await ts.getUser(message);
     const otp = await ts.generateOtp(message.author.id);
     const login_link = ts.generateLoginLink(otp);
     await message.author.send(

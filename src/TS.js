@@ -737,7 +737,7 @@ class TS {
       if (!level_name) ts.userError(ts.message('add.noName'));
       if (ts.isSpecialDiscordString(level_name))
         ts.userError(ts.message('error.specialDiscordString'));
-      const player = await ts.get_user(discord_id);
+      const player = await ts.getUser(discord_id);
       const existing_level = await ts
         .getLevels()
         .where({ code })
@@ -1044,7 +1044,7 @@ class TS {
       ) {
         ts.userError(ts.message('clear.invalidDifficulty'));
       }
-      const player = await ts.get_user(discord_id);
+      const player = await ts.getUser(discord_id);
       const level = await ts.getExistingLevel(code);
       if (level.creator_id == player.id)
         ts.userError(ts.message('clear.ownLevel'));
@@ -1388,7 +1388,7 @@ class TS {
       const max = parseFloat(maxDifficulty) || min;
       let _players;
       const player =
-        discord_id != null ? await ts.get_user(discord_id) : null;
+        discord_id != null ? await ts.getUser(discord_id) : null;
       if (players) {
         const playerNames = players.split(',');
         const rawPlayers = await ts.db.Members.query().whereIn(
@@ -1472,7 +1472,7 @@ class TS {
     /**
      * A function that will get the user object based on the discord_id/message passed. Will do the necessary authentication checks and throw the necessary UserErrors
      */
-    this.get_user = async function (message) {
+    this.getUser = async function (message) {
       const discord_id =
         message && message.author ? message.author.id : message;
       if (!discord_id) {
@@ -1587,7 +1587,7 @@ class TS {
      */
     this.approve = async function (args) {
       // Check if vote already exists
-      const shellder = await ts.get_user(args.discord_id);
+      const shellder = await ts.getUser(args.discord_id);
       const level = await ts.getExistingLevel(args.code, true);
       const vote = await ts
         .getPendingVotes()

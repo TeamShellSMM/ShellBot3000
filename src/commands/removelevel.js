@@ -22,7 +22,7 @@ class tsremove extends TSCommand {
       ts.userError(ts.userError(ts.message('removeLevel.noReason')));
     }
 
-    const player = await ts.get_user(message);
+    const player = await ts.getUser(message);
     const level = await ts.getExistingLevel(code, true);
 
     if (ts.REMOVED_LEVELS.includes(level.status)) {

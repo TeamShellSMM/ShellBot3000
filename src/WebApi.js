@@ -550,7 +550,7 @@ module.exports = async function (client) {
               req.body.discord_id = await ts.checkBearerToken(
                 req.body.token,
               );
-              req.user = await ts.get_user(req.body.discord_id);
+              req.user = await ts.getUser(req.body.discord_id);
             }
             const data = await callback(ts, req, res);
             data.url_slug = ts.url_slug;
@@ -647,7 +647,7 @@ module.exports = async function (client) {
         req.body.discord_id = await ts.checkBearerToken(
           req.body.token,
         );
-        var user = await ts.get_user(req.body.discord_id);
+        var user = await ts.getUser(req.body.discord_id);
       }
 
       const json = await generateWorldsJson(
@@ -827,7 +827,7 @@ module.exports = async function (client) {
       req.body.discord_id = await ts.checkBearerToken(req.body.token);
       if (!(await ts.teamAdmin(req.body.discord_id)))
         ts.userError(ts.message('website.forbidden'));
-      const user = await ts.get_user(req.body.discord_id);
+      const user = await ts.getUser(req.body.discord_id);
       const varName = ts.defaultVariables.map((v) => v.name);
       await knex.transaction(async (trx) => {
         for (const row of req.body.data) {
@@ -869,7 +869,7 @@ module.exports = async function (client) {
         req.body.discord_id = await ts.checkBearerToken(
           req.body.token,
         );
-        var user = await ts.get_user(req.body.discord_id);
+        var user = await ts.getUser(req.body.discord_id);
       }
 
       const json = await generateSiteJson({ ts, user, ...req.body });
@@ -884,7 +884,7 @@ module.exports = async function (client) {
         req.body.discord_id = await ts.checkBearerToken(
           req.body.token,
         );
-        var user = await ts.get_user(req.body.discord_id);
+        var user = await ts.getUser(req.body.discord_id);
       }
 
       const json = await generateMembersJson(
@@ -917,7 +917,7 @@ module.exports = async function (client) {
 
       req.body.discord_id = await ts.checkBearerToken(req.body.token);
       req.body.player_atme = true;
-      await ts.get_user(req.body.discord_id);
+      await ts.getUser(req.body.discord_id);
 
       const msg = await ts.clear(req.body);
       await client.channels.get(ts.channels.commandFeed).send(msg);
@@ -933,7 +933,7 @@ module.exports = async function (client) {
         ts.userError('website.noToken');
 
       req.body.discord_id = await ts.checkBearerToken(req.body.token);
-      const user = await ts.get_user(req.body.discord_id);
+      const user = await ts.getUser(req.body.discord_id);
 
       if (user.is_mod) ts.userError('Forbidden');
 
@@ -972,7 +972,7 @@ module.exports = async function (client) {
         ts.userError('website.noToken');
 
       req.body.discord_id = await ts.checkBearerToken(req.body.token); // checks if logged in
-      await ts.get_user(req.body.discord_id); // just checks if registered
+      await ts.getUser(req.body.discord_id); // just checks if registered
 
       if (req.body.message == null)
         ts.userError(ts.message('feedback.noMessage'));
@@ -1012,7 +1012,7 @@ module.exports = async function (client) {
         const now = moment().valueOf();
         if (tokenExpireAt < now)
           ts.userError(ts.message('login.expiredOTP'));
-        const user = await ts.get_user(token.discord_id);
+        const user = await ts.getUser(token.discord_id);
         const bearer = await ts.login(token.discord_id, token.id);
         returnObj = {
           status: 'logged_in',
