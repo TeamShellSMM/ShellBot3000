@@ -2641,6 +2641,7 @@ class TS {
   }
   */
 }
+TS.defaultChannels= defaultChannels;
 TS.TS_LIST = {};
 TS.UserError = UserError;
 

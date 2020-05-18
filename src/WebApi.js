@@ -209,8 +209,8 @@ module.exports = async function (client) {
     return json;
   }
 
-  async function generateMembersJson(ts, isShellder, data) {
-    const competition_winners = await ts
+  async function generateMembersJson(ts, data) {
+    const competitionWinners = await ts
       .knex('competition_winners')
       .where({ guild_id: ts.team.id });
 
@@ -244,7 +244,7 @@ module.exports = async function (client) {
       let memberCounter = 1;
       for (const member of members) {
         const comps = [];
-        for (const comp of competition_winners) {
+        for (const comp of competitionWinners) {
           if (comp[1] === member.name) {
             comps.push({
               name: comp[2],
@@ -368,7 +368,7 @@ module.exports = async function (client) {
 
     for (const mem of memberArr) {
       const comps = [];
-      for (const comp of competition_winners) {
+      for (const comp of competitionWinners) {
         if (comp[1] === mem.name) {
           comps.push({
             name: comp[2],
@@ -828,7 +828,6 @@ module.exports = async function (client) {
 
       const json = await generateMembersJson(
         ts,
-        user && user.is_mod,
         req.body,
       );
       return json;
