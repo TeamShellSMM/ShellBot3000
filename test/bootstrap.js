@@ -1,7 +1,10 @@
 global.TEST = {};
 const chai = require('chai');
 const { AkairoClient } = require('discord-akairo');
-const debug = require('debug')('shellbot3000:discordLog');
+const debug=require('debug');
+const debugDiscordLog = debug('shellbot3000:discordLog');
+const debugDiscordError = debug('shellbot3000:discordError');
+const debugMockMessages = debug('shellbot3000:mockMessages');
 const WebApi = require('../src/WebApi');
 
 global.assert = chai.assert;
@@ -11,9 +14,11 @@ global.TEST.request = require('supertest');
 global.TEST.TS = require('../src/TS.js');
 const DiscordLog = require('../src/DiscordLog');
 
-DiscordLog.log = () => {};
+DiscordLog.log = (msg) => {
+  debugDiscordLog(msg);
+};
 DiscordLog.error = (e) => {
-  debug(e);
+  debugDiscordError(e);
 };
 
 after(async () => {
@@ -383,7 +388,7 @@ before(async () => {
   };
 
   global.TEST.clearTable = async (table, trx) => {
-    return await (trx || TEST.knex).raw(
+    return (trx || TEST.knex).raw(
       `
       SET FOREIGN_KEY_CHECKS = 0; 
       TRUNCATE table ??;
@@ -394,7 +399,7 @@ before(async () => {
   };
 
   global.TEST.clearDb = async (trx) => {
-    return await (trx || TEST.knex).raw(`
+    return (trx || TEST.knex).raw(`
       SET FOREIGN_KEY_CHECKS = 0; 
       TRUNCATE table plays;
       TRUNCATE table pending_votes;
@@ -412,6 +417,7 @@ before(async () => {
     const guild = TEST.ts.getGuild();
     const cache = [];
     function collectReply(args) {
+      debugMockMessages(args)
       cache.push(args);
     }
     TEST.ts.sendDM = (discord_id, msg) => {
@@ -431,7 +437,7 @@ before(async () => {
   global.TEST.clearChannels = async () => {
     const guild = global.TEST.ts.getGuild();
     const channels = guild.channels.array();
-    for (let i = 0; i < channels.length; i++) {
+    for (let i = 0; i < channels.length; i += 1) {
       const channel = channels[i];
       if (
         (global.TEST.ts.channels.levelDiscussionCategory &&

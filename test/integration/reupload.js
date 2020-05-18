@@ -572,12 +572,16 @@ describe('!reupload', function () {
       discord_id: '64',
     });
     assert.equal(
-      result[1],
+      result[0],
       'This level has been reuploaded from XXX-XXX-XX1 to XXX-XXX-YYY.',
     ); // check can upload a new level with current points
     assert.equal(
-      result[3],
-      "<@64> You have reuploaded 'pending level' by Creator with code `XXX-XXX-YYY`. ",
+      result[1],
+      "Reupload Request for <@64>'s level with message: long reason",
+    ); // check can upload a new level with current points
+    assert.equal(
+      result[2].author.name,
+      'The Judgement  has now begun for this level:',
     );
 
     assert.notExists(

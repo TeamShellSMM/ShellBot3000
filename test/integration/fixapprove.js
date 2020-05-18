@@ -69,7 +69,7 @@ describe('!fixapprove', function () {
     });
   });
 
-  it('approve', async () => {
+  it('fixapprove of pending fixed reupload level', async () => {
     await TEST.createChannel({
       name: 'XXX-XXX-XXX',
       parent: TEST.ts.channels.pendingReuploadCategory,
@@ -80,13 +80,9 @@ describe('!fixapprove', function () {
       discord_id: '128',
     });
     assert.equal(
-      result[1].fields[0].name,
-      'Mod1 voted for approval with difficulty 2.0:',
+      result[1].author.name,
+      'You fixed your level up nicely and it got approved for difficulty 2.0, good job!',
     );
-    const votes = await TEST.ts.db.PendingVotes.query()
-      .where({ code: 1 })
-      .first();
-    assert.equal(votes.type, 'approve');
     const level = await TEST.ts.db.Levels.query()
       .where({ code: 'XXX-XXX-XXX' })
       .first();
@@ -95,18 +91,40 @@ describe('!fixapprove', function () {
     assert.equal(level.status, TEST.ts.LEVEL_STATUS.APPROVED);
   });
 
-  it('approve', async () => {
+  it('fixapprove of pending not fixed reupload level', async () => {
+    await TEST.createChannel({
+      name: 'XXX-XXX-XX4',
+      parent: TEST.ts.channels.pendingReuploadCategory,
+    });
+    const result = await TEST.mockBotSend({
+      cmd: '!fixapprove "It is acceptable as it is"',
+      channel: 'XXX-XXX-XX4',
+      discord_id: '128',
+    });
+    assert.equal(
+      result[1].author.name,
+      "You didn't reupload your level, but it got approved for difficulty 1.0 anyway. Seems like the issues mentioned weren't a big deal.",
+    );
+    const level = await TEST.ts.db.Levels.query()
+      .where({ code: 'XXX-XXX-XX4' })
+      .first();
+    assert.isOk(level);
+    assert.equal(level.code, 'XXX-XXX-XX4');
+    assert.equal(level.status, TEST.ts.LEVEL_STATUS.APPROVED);
+  });
+
+  it('fixapprove of pending approved reupload', async () => {
     await TEST.createChannel({
       name: 'XXX-XXX-XX3',
       parent: TEST.ts.channels.pendingReuploadCategory,
     });
     const result = await TEST.mockBotSend({
-      cmd: '!fixapprove',
+      cmd: '!fixapprove "nice reupload!"',
       channel: 'XXX-XXX-XX3',
       discord_id: '128',
     });
     assert.equal(
-      result[1].fields[0].name,
+      result[1].author.name,
       'Mod1 voted for approval with difficulty 2.0:',
     );
     const level = await TEST.ts.db.Levels.query()
