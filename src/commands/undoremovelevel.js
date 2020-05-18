@@ -29,8 +29,8 @@ class undoremovelevel extends TSCommand {
 
     if (
       !(
-        (level.creator == player.name &&
-          level.status == ts.LEVEL_STATUS.USER_REMOVED) ||
+        (level.creator === player.name &&
+          level.status === ts.LEVEL_STATUS.USER_REMOVED) ||
         player.is_mod
       )
     )

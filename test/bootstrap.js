@@ -1,6 +1,7 @@
 global.TEST = {};
 const chai = require('chai');
 const { AkairoClient } = require('discord-akairo');
+const debug = require('debug')('shellbot3000:discordLog');
 const WebApi = require('../src/WebApi');
 
 global.assert = chai.assert;
@@ -11,7 +12,9 @@ global.TEST.TS = require('../src/TS.js');
 const DiscordLog = require('../src/DiscordLog');
 
 DiscordLog.log = () => {};
-DiscordLog.error = (e) => {};
+DiscordLog.error = (e) => {
+  debug(e);
+};
 
 after(async () => {
   await TEST.client.destroy();
@@ -408,16 +411,16 @@ before(async () => {
   global.TEST.acceptReply = () => {
     const guild = TEST.ts.getGuild();
     const cache = [];
-    function collect_reply(args) {
+    function collectReply(args) {
       cache.push(args);
     }
     TEST.ts.sendDM = (discord_id, msg) => {
-      collect_reply(msg);
+      collectReply(msg);
     };
-    TEST.message.author.send = collect_reply;
+    TEST.message.author.send = collectReply;
     guild.channels.forEach((c) => {
-      c.send = collect_reply;
-      c.reply = collect_reply;
+      c.send = collectReply;
+      c.reply = collectReply;
     });
     return () => {
       if (cache.length == 1) return cache[0];

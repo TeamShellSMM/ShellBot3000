@@ -118,7 +118,7 @@ exports.up = function (knex) {
 
       t.integer('status').notNull().defaultTo(0);
       t.integer('old_status').notNull().defaultTo(0);
-      t.string('new_code').nullable();
+      t.string('newCode').nullable();
 
       t.string('videos').notNull().defaultTo('');
       t.string('tags').notNull().defaultTo('');

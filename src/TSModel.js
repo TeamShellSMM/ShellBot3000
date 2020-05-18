@@ -1,5 +1,4 @@
 const { Model, QueryBuilder } = require('objection');
-const moment = require('moment');
 const knex = require('./db/knex');
 
 Model.knex(knex);

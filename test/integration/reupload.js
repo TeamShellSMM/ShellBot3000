@@ -367,7 +367,7 @@ describe('!reupload', function () {
             level_name: 'pending level',
             creator: 'Creator',
           },
-          new_code: 'XXX-XXX-YYY',
+          newCode: 'XXX-XXX-YYY',
         },
       ),
     );
@@ -394,7 +394,7 @@ describe('!reupload', function () {
             level_name: 'approved level',
             creator: 'Creator',
           },
-          new_code: 'XXX-XXX-YYY',
+          newCode: 'XXX-XXX-YYY',
         },
       )) + TEST.ts.message('reupload.inReuploadQueue'),
     );
@@ -497,7 +497,7 @@ describe('!reupload', function () {
             level_name: 'need fix level',
             creator: 'Creator',
           },
-          new_code: 'XXX-XXX-YYY',
+          newCode: 'XXX-XXX-YYY',
         },
       )) + TEST.ts.message('reupload.inReuploadQueue'),
     );
