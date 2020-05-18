@@ -15,6 +15,14 @@ describe('!fixapprove', function () {
       ],
       Levels: [
         {
+          level_name: 'formerly approved',
+          creator: 1,
+          code: 'XXX-XXX-XX0',
+          new_code: 'XXX-XXX-XX3',
+          status: TEST.ts.LEVEL_STATUS.REUPLOADED,
+          difficulty: 2,
+        },
+        {
           level_name: 'need fix reupload',
           creator: 1,
           code: 'XXX-XXX-XXX',
@@ -32,7 +40,7 @@ describe('!fixapprove', function () {
           level_name: 'approved reuploaded',
           creator: 1,
           code: 'XXX-XXX-XX3',
-          status: TEST.ts.LEVEL_STATUS.PENDING_APPROVED_REUPLOADED,
+          status: TEST.ts.LEVEL_STATUS.PENDING_APPROVED_REUPLOAD,
           difficulty: 0,
         },
         {
@@ -46,21 +54,21 @@ describe('!fixapprove', function () {
       PendingVotes: [
         {
           player: 2,
-          code: 1,
+          code: 2,
           type: 'fix',
           difficulty_vote: 2,
           reason: "It's a bit janky innit",
         },
         {
           player: 2,
-          code: 3,
+          code: 4,
           type: 'approve',
           difficulty_vote: 2,
           reason: 'Is good',
         },
         {
           player: 2,
-          code: 4,
+          code: 5,
           type: 'fix',
           difficulty_vote: 1,
           reason: 'better fix or reject',
@@ -179,7 +187,7 @@ describe('!fixapprove', function () {
     );
   });
 
-  it('reject success ', async () => {
+  it('reject no reason', async () => {
     await TEST.createChannel({
       name: 'XXX-XXX-XX4',
       parent: TEST.ts.channels.pendingReuploadCategory,
@@ -194,7 +202,7 @@ describe('!fixapprove', function () {
     );
   });
 
-  it('reject level not need_fix', async () => {
+  it('reject level that is approved pending', async () => {
     await TEST.createChannel({
       name: 'XXX-XXX-XX3',
       parent: TEST.ts.channels.pendingReuploadCategory,
@@ -205,8 +213,8 @@ describe('!fixapprove', function () {
       discord_id: '128',
     });
     assert.equal(
-      result,
-      'Level is not in a valid fix status (this should not happen)! ',
+      result[1].author.name,
+      "We're really sorry, but some kind of issues must have come up even though your level was already approved before. The level got rejected for now. Please check out the message below to see what's going on.",
     );
   });
 });

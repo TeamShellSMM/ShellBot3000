@@ -2076,7 +2076,7 @@ class TS {
         ) {
           embedTitle = 'approval.approveAfterRefuse';
         } else if (
-          level.status == ts.LEVEL_STATUS.PENDING_APPROVED_REUPLOAD
+          level.status === ts.LEVEL_STATUS.PENDING_APPROVED_REUPLOAD
         ) {
           embedTitle = 'approval.approveAfterReupload';
         }
