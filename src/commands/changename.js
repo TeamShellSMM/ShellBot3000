@@ -20,6 +20,9 @@ class ChangeName extends TSCommand {
 
     newName = newName.trim();
 
+    if (ts.isSpecialDiscordString(newName))
+      ts.userError('error.specialDiscordString');
+
     const player = await ts.getUser(message);
     if (player.name === newName)
       ts.userError('nickname.already', { newName });

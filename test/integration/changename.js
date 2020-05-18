@@ -68,6 +68,17 @@ describe('!changename', () => {
     );
   });
 
+  it('Name is a special character', async () => {
+    assert.equal(
+      await TEST.mockBotSend({
+        cmd: '!changename <@456681756700000000>',
+        channel: 'general',
+        discord_id: '256',
+      }),
+      "We can't process your command because it had special discord strings like <@666085542085001246> in it ",
+    );
+  });
+
   it('Name already used', async () => {
     await TEST.ts.db.Members.query()
       .patch({ is_mod: 1 })

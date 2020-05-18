@@ -29,6 +29,9 @@ class RenameMember extends TSCommand {
     if (!newName) ts.userError('renameMember.noNewName');
     newName = newName.trim();
 
+    if (ts.isSpecialDiscordString(newName))
+      ts.userError('error.specialDiscordString');
+
     const existing_member = await ts.db.Members.query()
       .where({ discord_id })
       .first();

@@ -118,6 +118,21 @@ describe('!renamemember', () => {
     );
   });
 
+  it('Special discord string', async () => {
+    await TEST.ts.db.Members.query()
+      .patch({ is_mod: 1 })
+      .where({ discord_id: 128 });
+    assert.equal(
+      await TEST.mockBotSend({
+        cmd: '!renamemember 256 <@456681756700000000>',
+        channel: 'general',
+        waitFor: 100,
+        discord_id: '128',
+      }),
+      "We can't process your command because it had special discord strings like <@666085542085001246> in it ",
+    );
+  });
+
   it('Name already used', async () => {
     await TEST.ts.db.Members.query()
       .patch({ is_mod: 1 })
