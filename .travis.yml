@@ -16,4 +16,4 @@ before_script:
 script:
   - npm run coverage
 after_success:
-  - npm run codecov
+  - bash < (curl -s https://codecov.io/bash)
