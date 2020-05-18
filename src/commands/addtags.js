@@ -17,7 +17,7 @@ class TSAddtags extends TSCommand {
     });
   }
 
-  async tsexec(ts, message, args) {
+  async tsexec(ts, message) {
     const addCommands = [
       'tsaddtags',
       'addtags',
@@ -35,88 +35,88 @@ class TSAddtags extends TSCommand {
       ts.userError(ts.message('error.noCode'));
     }
 
-    let new_tags = command.arguments.join(' ');
-    if (!new_tags) {
+    let newTags = command.arguments.join(' ');
+    if (!newTags) {
       ts.userError(ts.message('tags.noTags'));
     }
-    new_tags = new_tags.split(/[,\n]/);
+    newTags = newTags.split(/[,\n]/);
 
     const player = await ts.getUser(message);
     const level = await ts.getExistingLevel(code);
     // First we get all available tags
-    new_tags = await ts.addTags(new_tags);
+    newTags = await ts.addTags(newTags);
 
-    const filteredTags = new_tags;
-    let old_tags = level.tags ? level.tags.split(',') : [];
+    const filteredTags = newTags;
+    let oldTags = level.tags ? level.tags.split(',') : [];
     let reply;
 
-    if (addCommands.indexOf(command.command) != -1) {
+    if (addCommands.indexOf(command.command) !== -1) {
       // adding
-      const locked_tags = setTags
+      const lockedTags = setTags
         .filter((t) => t.add_lock)
         .map((t) => t.name);
 
-      new_tags = [];
+      newTags = [];
       filteredTags.forEach((tag) => {
-        if (locked_tags.includes(tag) && !player.is_mod)
+        if (lockedTags.includes(tag) && !player.is_mod)
           ts.userError(ts.message('tags.cantAdd', { tag }));
-        if (!old_tags.includes(tag)) {
-          new_tags.push(tag);
+        if (!oldTags.includes(tag)) {
+          newTags.push(tag);
         }
       });
 
-      if (new_tags.length === 0)
+      if (newTags.length === 0)
         ts.userError(
           ts.message('tags.noNew', level) +
             ts.message('tags.currentTags', {
-              tags_str: old_tags.join('\n'),
+              tags_str: oldTags.join('\n'),
             }),
         );
 
-      old_tags = old_tags.concat(new_tags);
+      oldTags = oldTags.concat(newTags);
       reply =
         ts.message('tags.haveNew', level) +
         ts.message('tags.currentTags', {
-          tags_str: old_tags.join('\n'),
+          tags_str: oldTags.join('\n'),
         });
     } else {
       // removing
-      if (!(level.creator == player.name || player.is_mod))
+      if (!(level.creator === player.name || player.is_mod))
         ts.userError(ts.message('tags.noPermission', level));
 
-      const locked_tags = setTags
+      const lockedTags = setTags
         .filter((t) => t.remove_lock)
         .map((t) => t.name);
 
-      new_tags = [];
+      newTags = [];
       filteredTags.forEach((tag) => {
-        if (locked_tags.includes(tag) && !player.is_mod)
+        if (lockedTags.includes(tag) && !player.is_mod)
           ts.userError(ts.message('tags.cantRemove', { tag }));
       });
 
-      old_tags.forEach((tag) => {
+      oldTags.forEach((tag) => {
         if (!filteredTags.includes(tag)) {
-          new_tags.push(tag);
+          newTags.push(tag);
         }
       });
 
-      if (old_tags.length === new_tags.length)
+      if (oldTags.length === newTags.length)
         ts.userError(
           ts.message('tags.noRemoved', level) +
             ts.message('tags.currentTags', {
-              tags_str: old_tags.join('\n'),
+              tags_str: oldTags.join('\n'),
             }),
         );
-      old_tags = new_tags;
+      oldTags = newTags;
       reply =
         ts.message('tags.haveRemoved', level) +
         ts.message('tags.currentTags', {
-          tags_str: old_tags.join('\n'),
+          tags_str: oldTags.join('\n'),
         });
     }
 
     await ts.db.Levels.query()
-      .patch({ tags: old_tags.join(',') })
+      .patch({ tags: oldTags.join(',') })
       .where({ code });
 
     await message.channel.send(player.user_reply + reply);

@@ -37,13 +37,12 @@ class TSRefuseFix extends TSCommand {
       ts.userError('This level is not currently in a fix request!');
 
     // only creator can use this command
-    if (!(level.creator == player.name))
+    if (!(level.creator === player.name))
       ts.userError(
         'You can only use this command on one of your own levels that currently has an open fix request.',
       );
 
     // generate judgement embed
-    let overviewMessage;
     let discussionChannel;
 
     const guild = ts.getGuild();
@@ -77,8 +76,8 @@ class TSRefuseFix extends TSCommand {
       `Reupload Request for <@${author.discord_id}>'s level with message: ${reason}`,
     );
     const voteEmbed = await ts.makeVoteEmbed(level, reason);
-    overviewMessage = await discussionChannel.send(voteEmbed);
-    overviewMessage = await overviewMessage.pin();
+    const overviewMessage = await discussionChannel.send(voteEmbed);
+    await overviewMessage.pin();
 
     const replyMessage =
       "Your level was put in the reupload queue, we'll get back to you in a bit!";

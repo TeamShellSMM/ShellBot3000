@@ -8,22 +8,25 @@ class atmebot extends TSCommand {
     });
   }
 
-  async tsexec(ts, message, args) {
+  async tsexec(ts, message) {
     const atmeCommands = ['atmebot', 'atme'];
     const command = ts.parse_command(message);
     const player = await ts.getUser(message);
+    let atmeVal;
+    let alreadyError;
+    let msg;
 
-    if (atmeCommands.indexOf(command.command) != -1) {
-      var atmeVal = true;
-      var alreadyError = ts.message('atme.already');
-      var msg = ts.message('atme.willBe');
+    if (atmeCommands.indexOf(command.command) !== -1) {
+      atmeVal = 1;
+      alreadyError = ts.message('atme.already');
+      msg = ts.message('atme.willBe');
     } else {
-      var atmeVal = null;
-      var alreadyError = ts.message('atme.alreadyNot');
-      var msg = ts.message('atme.willBeNot');
+      atmeVal = null;
+      alreadyError = ts.message('atme.alreadyNot');
+      msg = ts.message('atme.willBeNot');
     }
 
-    if (player.atme == atmeVal) ts.userError(alreadyError);
+    if (player.atme === atmeVal) ts.userError(alreadyError);
 
     await ts.db.Members.query()
       .patch({ atme: atmeVal })

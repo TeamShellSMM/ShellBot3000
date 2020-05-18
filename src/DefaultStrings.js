@@ -289,7 +289,7 @@ module.exports = {
     "You are now registered as '{{name}}'. You can now start submitting your clears in #level-clears {{{bam}}}",
 
   'login.reply':
-    " You have requested a login token for the website. click the link below to login.:\n <{{login_link}}> {{{bam}}}\n If you're on mobile, copy the link and paste it into your preferred browser app. If you open this link in an in-app browser, your login might not be saved properly. {{{buzzyS}}}\n This token will only be valid for 30 minutes",
+    " You have requested a login token for the website. click the link below to login.:\n <{{loginLink}}> {{{bam}}}\n If you're on mobile, copy the link and paste it into your preferred browser app. If you open this link in an in-app browser, your login might not be saved properly. {{{buzzyS}}}\n This token will only be valid for 30 minutes",
 
   'makerid.noCode': "You didn't provide any maker code",
   'makerid.noName': "You didn't provide your maker name",

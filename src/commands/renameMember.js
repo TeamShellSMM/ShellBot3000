@@ -6,12 +6,12 @@ class RenameMember extends TSCommand {
       aliases: ['renamemember'],
       args: [
         {
-          id: 'discord_id',
+          id: 'discordId',
           type: 'string',
           default: null,
         },
         {
-          id: 'newName',
+          id: '_newName',
           type: 'string',
           default: null,
         },
@@ -21,25 +21,26 @@ class RenameMember extends TSCommand {
   }
 
   async canRun(ts, message) {
-    return await ts.modOnly(message.author.id);
+    return ts.modOnly(message.author.id);
   }
 
-  async tsexec(ts, message, { discord_id, newName }) {
-    if (!discord_id) ts.userError('renameMember.noDiscordId');
-    if (!newName) ts.userError('renameMember.noNewName');
-    newName = newName.trim();
-
+  async tsexec(ts, message, { discordId, _newName }) {
+    if (!discordId) ts.userError('renameMember.noDiscordId');
+    if (!_newName) ts.userError('renameMember.noNewName');
+    const newName = _newName.trim();
     if (ts.isSpecialDiscordString(newName))
       ts.userError('error.specialDiscordString');
 
-    const existing_member = await ts.db.Members.query()
-      .where({ discord_id })
+    const existingMember = await ts.db.Members.query()
+      .where({ discord_id: discordId })
       .first();
-    if (!existing_member)
-      ts.userError('renameMember.noMemberFound', { discord_id });
-    if (existing_member.name === newName)
+    if (!existingMember)
+      ts.userError('renameMember.noMemberFound', {
+        discord_id: discordId,
+      });
+    if (existingMember.name === newName)
       ts.userError('renameMember.already', { newName });
-    const oldName = existing_member.name;
+    const oldName = existingMember.name;
 
     if (
       await ts.db.Members.query()
@@ -53,9 +54,9 @@ class RenameMember extends TSCommand {
 
     await ts.db.Members.query()
       .patch({ name: newName })
-      .where({ discord_id });
+      .where({ discord_id: discordId });
 
-    return await message.reply(
+    await message.reply(
       `"${oldName}" has been renamed to "${newName}"`,
     );
   }

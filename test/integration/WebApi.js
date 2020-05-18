@@ -223,7 +223,7 @@ describe('Web Apis', function () {
     });
 
     it('POST /clear', async function () {
-      const { body } = await TEST.request(app)
+      await TEST.request(app)
         .post('/clear')
         .send({ url_slug: TEST.ts.url_slug });
       // .expect('Content-Type', /json/)
@@ -231,7 +231,7 @@ describe('Web Apis', function () {
     });
 
     it('POST /approve', async function () {
-      const { body } = await TEST.request(app)
+      await TEST.request(app)
         .post('/json/random')
         .send({ url_slug: TEST.ts.url_slug });
       // .expect('Content-Type', /json/)
@@ -239,7 +239,7 @@ describe('Web Apis', function () {
     });
 
     it('POST /feedback', async function () {
-      const { body } = await TEST.request(app)
+      await TEST.request(app)
         .post('/json/random')
         .send({ url_slug: TEST.ts.url_slug });
       // .expect('Content-Type', /json/)

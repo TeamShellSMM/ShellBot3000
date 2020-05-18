@@ -34,87 +34,87 @@ class TSAddvids extends TSCommand {
       ts.userError('error.noCode');
     }
 
-    let new_vids = command.arguments.join(' ');
-    if (!new_vids) {
+    let newVids = command.arguments.join(' ');
+    if (!newVids) {
       ts.userError("You didn't give any links");
     }
-    new_vids = new_vids.split(/[, \n]/);
+    newVids = newVids.split(/[, \n]/);
     const filteredUrl = [];
-    const not_urls = [];
-    new_vids.forEach((url) => {
+    const notUrls = [];
+    newVids.forEach((url) => {
       if (url) {
         if (validUrl.isWebUri(url)) {
           filteredUrl.push(url);
         } else {
-          not_urls.push(url);
+          notUrls.push(url);
         }
       }
     });
-    if (not_urls.length)
+    if (notUrls.length)
       ts.userError(
-        `The links below didn't look like urls: \`\`\`\n${not_urls.join(
+        `The links below didn't look like urls: \`\`\`\n${notUrls.join(
           '\n',
         )}\`\`\``,
       );
 
     const player = await ts.getUser(message);
     const level = await ts.getExistingLevel(code);
+    let reply;
+    let oldVids = level.videos ? level.videos.split(',') : [];
 
-    let old_vids = level.videos ? level.videos.split(',') : [];
-
-    if (addCommands.indexOf(command.command) != -1) {
+    if (addCommands.indexOf(command.command) !== -1) {
       // adding
-      new_vids = [];
+      newVids = [];
       filteredUrl.forEach((url) => {
-        if (old_vids.indexOf(url) == -1) {
-          new_vids.push(url);
+        if (oldVids.indexOf(url) === -1) {
+          newVids.push(url);
         }
       });
-      if (new_vids.length == 0) {
+      if (newVids.length === 0) {
         ts.userError(
           `No new clear video added for "${level.level_name}" by ${
             level.creator
           }${ts.message('addVids.currentVideos', {
-            videos_str: old_vids.join('\n'),
+            videos_str: oldVids.join('\n'),
           })}`,
         );
       }
-      old_vids = old_vids.concat(new_vids);
-      var reply =
+      oldVids = oldVids.concat(newVids);
+      reply =
         ts.message('addVids.haveNew', level) +
         ts.message('addVids.currentVideos', {
-          videos_str: old_vids.join('\n'),
+          videos_str: oldVids.join('\n'),
         });
     } else {
       // removing
-      if (!(level.creator == player.name || player.is_mod == '1')) {
+      if (!(level.creator === player.name || player.is_mod === 1)) {
         ts.userError('addVids.noPermission', level);
       }
 
-      new_vids = [];
-      old_vids.forEach((url) => {
-        if (filteredUrl.indexOf(url) == -1) {
-          new_vids.push(url);
+      newVids = [];
+      oldVids.forEach((url) => {
+        if (filteredUrl.indexOf(url) === -1) {
+          newVids.push(url);
         }
       });
-      if (old_vids.length === new_vids.length) {
+      if (oldVids.length === newVids.length) {
         ts.userError(
           ts.message('addVids.noRemoved', level) +
             ts.message('addVids.currentVideos', {
-              videos_str: old_vids.join('\n'),
+              videos_str: oldVids.join('\n'),
             }),
         );
       }
-      old_vids = new_vids;
-      var reply =
+      oldVids = newVids;
+      reply =
         ts.message('addVids.haveRemoved', level) +
         ts.message('addVids.currentVideos', {
-          videos_str: old_vids.join('\n'),
+          videos_str: oldVids.join('\n'),
         });
     }
 
     await ts.db.Levels.query()
-      .patch({ videos: old_vids.join(',') })
+      .patch({ videos: oldVids.join(',') })
       .where({ code });
 
     await message.channel.send(player.user_reply + reply);

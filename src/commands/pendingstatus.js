@@ -13,7 +13,7 @@ class PendingStatus extends TSCommand {
     });
   }
 
-  async tsexec(ts, message, args) {
+  async tsexec(ts, message) {
     const player = await ts.getUser(message);
 
     const levels = await ts

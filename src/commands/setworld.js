@@ -25,18 +25,18 @@ class SetWorld extends TSCommand {
     });
   }
 
-  async tsexec(ts, message, args) {
+  async tsexec(ts, message) {
     const command = ts.parse_command(message);
 
-    const world_count = parseInt(command.arguments.shift(), 10);
-    const level_count = parseInt(command.arguments.shift(), 10);
-    const world_name = command.arguments.join(' ');
+    const worldCount = parseInt(command.arguments.shift(), 10);
+    const levelCount = parseInt(command.arguments.shift(), 10);
+    const worldName = command.arguments.join(' ');
 
-    if (!world_count)
+    if (!worldCount)
       ts.userError(ts.message('setworld.invalidWorldCount'));
-    if (!level_count)
+    if (!levelCount)
       ts.userError(ts.message('setworld.invalidLevelCount'));
-    if (!world_name) ts.userError(ts.message('setworld.noWorldName'));
+    if (!worldName) ts.userError(ts.message('setworld.noWorldName'));
 
     const player = await ts.getUser(message);
 
@@ -46,9 +46,9 @@ class SetWorld extends TSCommand {
 
     await ts.db.Members.query()
       .patch({
-        world_world_count: world_count,
-        world_level_count: level_count,
-        world_description: world_name,
+        world_world_count: worldCount,
+        world_level_count: levelCount,
+        world_description: worldName,
       })
       .where({ discord_id: message.author.id });
 

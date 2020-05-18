@@ -9,13 +9,13 @@ class login extends TSCommand {
     });
   }
 
-  async tsexec(ts, message, args) {
+  async tsexec(ts, message) {
     const player = await ts.getUser(message);
     const otp = await ts.generateOtp(message.author.id);
-    const login_link = ts.generateLoginLink(otp);
+    const loginLink = ts.generateLoginLink(otp);
     await message.author.send(
       player.user_reply +
-        ts.message('login.reply', { login_link: login_link }),
+        ts.message('login.reply', { loginLink: loginLink }),
     );
   }
 }

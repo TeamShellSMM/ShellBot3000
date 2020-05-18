@@ -30,13 +30,13 @@ class tsremove extends TSCommand {
     }
 
     // only creator and shellder can reupload a level
-    if (!(level.creator == player.name || player.is_mod)) {
+    if (!(level.creator === player.name || player.is_mod)) {
       ts.userError(ts.message('removeLevel.cant', level));
     }
 
     // tsremove run by shellders and not their own levels get REMOVED
     const newStatus =
-      level.creator != player.name && player.is_mod
+      level.creator !== player.name && player.is_mod
         ? ts.LEVEL_STATUS.REMOVED
         : ts.LEVEL_STATUS.USER_REMOVED;
 
@@ -55,7 +55,7 @@ class tsremove extends TSCommand {
       '\u200b',
       `**Reason for removal** :\`\`\`${reason}\`\`\`-<@${player.discord_id}>`,
     );
-    if (level.creator != player.name) {
+    if (level.creator !== player.name) {
       // moderation
       const creator = await ts.db.Members.query()
         .where({ name: level.creator })

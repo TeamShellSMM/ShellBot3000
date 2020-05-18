@@ -174,16 +174,16 @@ describe('registration', function () {
     );
   });
   let otp;
-  let discord_id;
+  let discordId;
   it('!login, check OTP', async function () {
-    discord_id = '1024';
+    discordId = '1024';
     const result = await TEST.mockBotSend({
       cmd: '!login',
       channel: 'general',
       discord_id: '1024',
     });
     const dbResult = await TEST.ts.db.Tokens.query().where({
-      discord_id,
+      discord_id: discordId,
     });
     assert.lengthOf(dbResult, 1, 'Should only have one item');
     assert.equal(
@@ -197,8 +197,8 @@ describe('registration', function () {
       result,
       await TEST.mockMessage(
         'login.reply',
-        { discord_id, type: 'registeredSuccess' },
-        { login_link: TEST.ts.generateLoginLink(otp) },
+        { discord_id: discordId, type: 'registeredSuccess' },
+        { loginLink: TEST.ts.generateLoginLink(otp) },
       ),
     );
   });
@@ -234,7 +234,7 @@ app.post('/json/login', web_ts(async (ts,req) => {
       .expect('Content-Type', /json/)
       .expect(200);
     const dbResult = await TEST.ts.db.Tokens.query().where({
-      discord_id,
+      discord_id: discordId,
     });
     assert.lengthOf(dbResult, 1, 'Should only have one item');
     assert.equal(
@@ -261,14 +261,16 @@ app.post('/json/login', web_ts(async (ts,req) => {
 
   let token;
   it('POST /json/login succesful', async function () {
-    const discordDm = TEST.acceptReply();
-    const user = await TEST.ts.getUser(discord_id);
+    TEST.acceptReply();
+    await TEST.ts.getUser(discordId);
     const { body } = await TEST.request(app)
       .post('/json/login')
       .send({ url_slug: TEST.ts.url_slug, otp })
       .expect('Content-Type', /json/)
       .expect(200);
-    token = await TEST.ts.db.Tokens.query().where({ discord_id });
+    token = await TEST.ts.db.Tokens.query().where({
+      discord_id: discordId,
+    });
     assert.lengthOf(token, 1, 'only has one record');
     token = token[0].token;
     assert.equal(body.status, 'logged_in');
@@ -276,7 +278,7 @@ app.post('/json/login', web_ts(async (ts,req) => {
   });
 
   it('POST /json registered', async function () {
-    const user = await TEST.ts.getUser(discord_id);
+    await TEST.ts.getUser(discordId);
     const { body } = await TEST.request(app)
       .post('/json')
       .send({ url_slug: TEST.ts.url_slug, token })

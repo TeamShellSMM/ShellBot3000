@@ -3,5 +3,8 @@
     "TEST": "readonly",
     "assert": "readonly",
     "app": "readonly"
+  },
+  "rules": {
+    "node/no-unpublished-require": "off"
   }
 }

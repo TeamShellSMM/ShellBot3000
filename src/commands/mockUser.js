@@ -27,7 +27,7 @@ class mockUser extends TSCommand {
       .first();
 
     if (!target) ts.userError('mock.notFound');
-    if (target.name == player.name) ts.userError('mock.already');
+    if (target.name === player.name) ts.userError('mock.already');
 
     await ts.db.Members.query()
       .patch({ discord_id: player.discord_id_temp || '1' })

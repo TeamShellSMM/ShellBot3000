@@ -26,22 +26,21 @@ class MakerId extends TSCommand {
 
     const player = await ts.getUser(message);
 
-    code = code.toUpperCase();
     if (!ts.valid_code(code)) {
       ts.userError(ts.message('error.invalidMakerCode', { code }));
     }
 
-    const existing_member = await ts.db.Members.query()
+    const existingMember = await ts.db.Members.query()
       .where({ maker_id: code })
       .first();
     if (
-      existing_member &&
-      existing_member.discord_id != player.discord_id
+      existingMember &&
+      existingMember.discord_id !== player.discord_id
     ) {
       ts.userError(
         ts.message('makerid.existing', {
           code,
-          name: existing_member.name,
+          name: existingMember.name,
         }),
       );
     }

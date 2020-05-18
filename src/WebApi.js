@@ -1,5 +1,3 @@
-'use strict';
-
 const bodyParser = require('body-parser');
 const compression = require('compression');
 const moment = require('moment');
