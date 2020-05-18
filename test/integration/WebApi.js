@@ -194,7 +194,6 @@ describe('Web Apis', function () {
 
       assert.notEqual(body.status, 'error');
       // For now we stop comparing these
-      // TODO: make it work with actual dates
     });
 
     it('POST /json/makers', async function () {
@@ -206,7 +205,50 @@ describe('Web Apis', function () {
         .expect(200);
       assert.notEqual(body.status, 'error');
       // For now we stop comparing these
-      // TODO: make it work with actual dates
+    });
+
+    it('POST /json/members membershipStatus=1', async function () {
+      // const user=await TEST.ts.getUser(discord_id)
+      const { body } = await TEST.request(app)
+        .post('/json/members')
+        .send({ url_slug: TEST.ts.url_slug, membershipStatus: '1' })
+        .expect('Content-Type', /json/)
+        .expect(200);
+      assert.notEqual(body.status, 'error');
+      // For now we stop comparing these
+    });
+
+    it('POST /json/members membershipStatus=2', async function () {
+      // const user=await TEST.ts.getUser(discord_id)
+      const { body } = await TEST.request(app)
+        .post('/json/members')
+        .send({ url_slug: TEST.ts.url_slug, membershipStatus: '2' })
+        .expect('Content-Type', /json/)
+        .expect(200);
+      assert.notEqual(body.status, 'error');
+      // For now we stop comparing these
+    });
+
+    it('POST /json/members membershipStatus=4', async function () {
+      // const user=await TEST.ts.getUser(discord_id)
+      const { body } = await TEST.request(app)
+        .post('/json/members')
+        .send({ url_slug: TEST.ts.url_slug, membershipStatus: '4' })
+        .expect('Content-Type', /json/)
+        .expect(200);
+      assert.notEqual(body.status, 'error');
+      // For now we stop comparing these
+    });
+
+    it('POST /json/members membershipStatus=5', async function () {
+      // const user=await TEST.ts.getUser(discord_id)
+      const { body } = await TEST.request(app)
+        .post('/json/members')
+        .send({ url_slug: TEST.ts.url_slug, membershipStatus: '5' })
+        .expect('Content-Type', /json/)
+        .expect(200);
+      assert.notEqual(body.status, 'error');
+      // For now we stop comparing these
     });
 
     it('POST /random', async function () {
@@ -302,6 +344,58 @@ describe('Web Apis', function () {
       const { body } = await TEST.request(app)
         .post('/json')
         .send({ url_slug: TEST.ts.url_slug, token: '123' })
+        .expect('Content-Type', /json/)
+        .expect(200);
+
+      assert.notEqual(
+        body.status,
+        'error',
+        'Should not return error',
+      );
+
+      assert.lengthOf(body.levels, 1, 'one levels in db');
+
+      delete body.levels[0].created_at;
+      delete body.levels[0].id;
+      assert.equal(body.levels[0].code, 'XXX-XXX-XXX');
+      assert.equal(body.levels[0].level_name, 'EZ GG');
+      assert.equal(body.levels[0].creator, 'Creator');
+    });
+
+    it('POST /json with name', async function () {
+      const { body } = await TEST.request(app)
+        .post('/json')
+        .send({
+          url_slug: TEST.ts.url_slug,
+          token: '123',
+          name: 'Creator',
+        })
+        .expect('Content-Type', /json/)
+        .expect(200);
+
+      assert.notEqual(
+        body.status,
+        'error',
+        'Should not return error',
+      );
+
+      assert.lengthOf(body.levels, 1, 'one levels in db');
+
+      delete body.levels[0].created_at;
+      delete body.levels[0].id;
+      assert.equal(body.levels[0].code, 'XXX-XXX-XXX');
+      assert.equal(body.levels[0].level_name, 'EZ GG');
+      assert.equal(body.levels[0].creator, 'Creator');
+    });
+
+    it('POST /json with code', async function () {
+      const { body } = await TEST.request(app)
+        .post('/json')
+        .send({
+          url_slug: TEST.ts.url_slug,
+          token: '123',
+          code: 'xxx-xxx-xxx',
+        })
         .expect('Content-Type', /json/)
         .expect(200);
 

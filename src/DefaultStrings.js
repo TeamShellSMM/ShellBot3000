@@ -159,9 +159,9 @@ module.exports = {
   'reupload.tooManyReuploadChannels':
     "Can't handle the request right now because there are already 50 open reupload requests (this should really never happen)!",
   'reupload.reuploadNotify':
-    'This level has been reuploaded from {{old_code}} to {{new_code}}.',
+    'This level has been reuploaded from {{oldCode}} to {{newCode}}.',
   'reupload.success':
-    "You have reuploaded '{{{level.level_name}}}' by {{level.creator}} with code `{{new_code}}`. {{{bam}}}",
+    "You have reuploaded '{{{level.level_name}}}' by {{level.creator}} with code `{{newCode}}`. {{{bam}}}",
   'reupload.renamingInstructions':
     ' If you want to rename the new level, you can use !rename new-code level name.',
   'reupload.inReuploadQueue':
@@ -338,7 +338,7 @@ module.exports = {
   'atme.willBeNot': 'You will not be atted by {{BotName}} {{{bam}}}',
 
   'ammendCode.success':
-    'The level "{{{level.level_name}}}", by {{level.creator}}, has changed code from `{{old_code}}` to `{{new_code}}`',
+    'The level "{{{level.level_name}}}", by {{level.creator}}, has changed code from `{{oldCode}}` to `{{newCode}}`',
 
   'help.basic':
     'You can find all the commands at <https://makerteams.net/features>',

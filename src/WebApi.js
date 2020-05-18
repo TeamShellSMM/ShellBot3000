@@ -18,7 +18,7 @@ module.exports = async function (client) {
   async function generateSiteJson(args = {}) {
     const { ts, user, code, name, dashboard } = args;
     if (!ts) throw new Error(`TS not loaded buzzyS`);
-    const competition_winners = await ts
+    const competitionWinners = await ts
       .knex('competition_winners')
       .where({ guild_id: ts.team.id });
     const tags = await ts
@@ -115,7 +115,7 @@ module.exports = async function (client) {
     const json = {
       levels,
       seasons,
-      competition_winners,
+      competition_winners: competitionWinners,
       tags,
       seperate,
     };
@@ -209,8 +209,8 @@ module.exports = async function (client) {
     return json;
   }
 
-  async function generateMembersJson(ts, isShellder, data) {
-    const competition_winners = await ts
+  async function generateMembersJson(ts, data) {
+    const competitionWinners = await ts
       .knex('competition_winners')
       .where({ guild_id: ts.team.id });
 
@@ -244,7 +244,7 @@ module.exports = async function (client) {
       let memberCounter = 1;
       for (const member of members) {
         const comps = [];
-        for (const comp of competition_winners) {
+        for (const comp of competitionWinners) {
           if (comp[1] === member.name) {
             comps.push({
               name: comp[2],
@@ -368,7 +368,7 @@ module.exports = async function (client) {
 
     for (const mem of memberArr) {
       const comps = [];
-      for (const comp of competition_winners) {
+      for (const comp of competitionWinners) {
         if (comp[1] === mem.name) {
           comps.push({
             name: comp[2],
@@ -398,65 +398,6 @@ module.exports = async function (client) {
     }
 
     return json;
-  }
-
-  async function generateWorldsJson(ts, isShellder, data) {
-    const competition_winners = await ts
-      .knex('competition_winners')
-      .where({ guild_id: ts.team.id });
-
-    let members = [];
-
-    if (data.membershipStatus == '1') {
-      members = await ts.db.Members.query()
-        .select()
-        .where('is_member', 1)
-        .where('world_level_count', '>', 0);
-    } else if (data.membershipStatus == '2') {
-      members = await ts.db.Members.query()
-        .select()
-        .where('world_level_count', '>', 0);
-      members = members.filter((member) => member.is_mod);
-    } else if (data.membershipStatus == '4') {
-      members = await ts.db.Members.query()
-        .select()
-        .where('world_level_count', '>', 0)
-        .where(function () {
-          this.where('is_member', 0).orWhere('is_member', null);
-        });
-    } else {
-      members = await ts.db.Members.query()
-        .select()
-        .where('world_level_count', '>', 0);
-    }
-
-    const json = [];
-
-    let memberCounter = 1;
-    for (const member of members) {
-      const comps = [];
-      for (const comp of competition_winners) {
-        if (comp[1] === member.name) {
-          comps.push({
-            name: comp[2],
-            rank: comp[3],
-          });
-        }
-      }
-
-      json.push({
-        id: memberCounter++,
-        wonComps: comps,
-        name: member.name,
-        maker_id: member.maker_id,
-        maker_name: member.maker_name,
-        world_name: member.world_description,
-        world_world_count: member.world_world_count,
-        world_level_count: member.world_level_count,
-      });
-    }
-
-    return { data: json };
   }
 
   async function generateMakersJson(ts, data) {
@@ -887,7 +828,6 @@ module.exports = async function (client) {
 
       const json = await generateMembersJson(
         ts,
-        user && user.is_mod,
         req.body,
       );
       return json;

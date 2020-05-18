@@ -175,19 +175,19 @@ describe('!ammendcode', function () {
             status: 1,
             difficulty: 1,
           },
-          old_code: 'XXX-XXX-XXX',
-          new_code: 'XXX-XXX-XX3',
+          oldCode: 'XXX-XXX-XXX',
+          newCode: 'XXX-XXX-XX3',
         },
       ),
     );
-    const old_level = await TEST.ts.db.Levels.query()
+    const oldLevel = await TEST.ts.db.Levels.query()
       .where({ code: 'XXX-XXX-XXX' })
       .first();
-    const new_level = await TEST.ts.db.Levels.query()
+    const newLevel = await TEST.ts.db.Levels.query()
       .where({ code: 'XXX-XXX-XX3' })
       .first();
-    assert.notExists(old_level);
-    assert.exists(new_level);
+    assert.notExists(oldLevel);
+    assert.exists(newLevel);
 
     assert.notExists(
       await TEST.findChannel({
@@ -238,8 +238,8 @@ describe('!ammendcode', function () {
             status: 1,
             difficulty: 1,
           },
-          old_code: 'XXX-XXX-XXX',
-          new_code: 'XXX-XXX-XX3',
+          oldCode: 'XXX-XXX-XXX',
+          newCode: 'XXX-XXX-XX3',
         },
       ),
     );

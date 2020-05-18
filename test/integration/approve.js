@@ -25,6 +25,7 @@ describe('!approve', function () {
         code: 'XXX-XXX-XXX',
         status: 0,
         difficulty: 0,
+        tags: 'tag1,tag2,tag3',
         videos: 'http://twitch.tv,http://youtube.com',
       },
       {
@@ -32,6 +33,7 @@ describe('!approve', function () {
         creator: 1,
         code: 'XXX-XXX-XX2',
         status: 1,
+        tags: 'tag1,tag2,tag3',
         difficulty: 1,
       },
       {
@@ -39,6 +41,7 @@ describe('!approve', function () {
         creator: 1,
         code: 'XXX-XXX-XX3',
         status: -1,
+        tags: 'tag1,tag2,tag3',
         difficulty: 1,
       },
     ],

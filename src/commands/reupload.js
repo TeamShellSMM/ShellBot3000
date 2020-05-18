@@ -8,7 +8,7 @@ class tsreupload extends TSCommand {
     });
   }
 
-  async tsexec(ts, message, args) {
+  async tsexec(ts, message) {
     const reply = await ts.reuploadLevel(message);
     await message.channel.send(reply);
   }
