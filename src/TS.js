@@ -2337,7 +2337,7 @@ class TS {
           newLevel,
           reason || '',
         );
-        await ts.updatePinned(channel, voteEmbed);
+
         await channel.send(
           ts.message('reupload.reuploadNotify', {
             oldCode,
@@ -2350,7 +2350,7 @@ class TS {
 
         const fixVotes = await ts
             .getPendingVotes()
-            .where('levels.id', level.id)
+            .where('levels.id', newLevel.id)
             .where('type', 'fix');
 
         let modPings = "";
@@ -2362,6 +2362,8 @@ class TS {
             `Please check if your fixes were made.`,
           );
         }
+
+        await ts.updatePinned(channel, voteEmbed);
       }
       let reply = ts.message('reupload.success', { level, newCode });
       if (!newLevel) {
