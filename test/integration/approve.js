@@ -182,6 +182,16 @@ describe('!approve', function () {
     assert.equal(result, 'Invalid difficulty format! ');
   });
 
+  it('approve with emoji reason @curr', async function () {
+    const result = await TEST.mockBotSend({
+      cmd: '!approve XXX-XXX-XXX 5 "I like it 💀"',
+      channel: TEST.ts.channels.modChannel,
+      discord_id: '256',
+    });
+    assert.notEqual(result, 'something went wrong buzzyS');
+    assert.match(result, /Your vote was added to <#[0-9]+>!/);
+  });
+
   it('approve not pending level', async function () {
     const result = await TEST.mockBotSend({
       cmd: '!approve XXX-XXX-XX3 5 "is good level"',
