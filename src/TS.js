@@ -2037,8 +2037,8 @@ class TS {
           }
           difficulty = Math.round((diffSum / diffCounter) * 2) / 2;
         } else if (level.status == ts.LEVEL_STATUS.PENDING_APPROVED_REUPLOAD) {
-          //If the level was approved before we get the difficulty from the approved level
-          let oldLevel = await ts.getLevels().where({ new_code: code }).first();
+          //If the level was approved before we get the difficulty from the approved level (gotta get the latest one though)
+          let oldLevel = await ts.getLevels().where({ new_code: code }).orderBy('id', 'desc').first();
           if(oldLevel){
             difficulty = oldLevel.difficulty;
           } else {
@@ -2355,6 +2355,7 @@ class TS {
 
         let modPings = "";
         for(let fixVote of fixVotes){
+          console.log(fixVote.player);
           modPings += `<@${fixVote.player.discord_id}> `
         }
         if(modPings){
