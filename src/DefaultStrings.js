@@ -169,6 +169,12 @@ module.exports = {
   'renameMember.noMemberFound':
     'No member found with discord_id `{{discord_id}}`',
   'renameMember.noNewName': "You didn't give a new name",
+  'renameMember.alreadyUsed':
+    'There is already another member with name "{{newName}}"',
+  'renameMember.already': 'Member already has the name "{{newName}}"',
+  'nickname.already': 'You already have the name "{{newName}}"',
+  'nickname.success':
+    'You have changed your name from "{{oldName}}" to "{{newName}}"',
 
   'rename.noNewName': "You didn't give a new level name",
   'rename.alreadyName': 'Level name is already "{{{level_name}}}"',

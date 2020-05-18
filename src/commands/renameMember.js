@@ -11,7 +11,7 @@ class RenameMember extends TSCommand {
           default: null,
         },
         {
-          id: 'new_name',
+          id: 'newName',
           type: 'string',
           default: null,
         },
@@ -24,33 +24,36 @@ class RenameMember extends TSCommand {
     return await ts.modOnly(message.author.id);
   }
 
-  async tsexec(ts, message, { discord_id, new_name }) {
+  async tsexec(ts, message, { discord_id, newName }) {
     if (!discord_id) ts.userError('renameMember.noDiscordId');
-    if (!new_name) ts.userError('renameMember.noNewName');
-
-    if (
-      await ts.db.Members.query()
-        .whereRaw('lower(name) = ?', [new_name])
-        .first()
-    ) {
-      ts.userError(
-        `There is already another member with name "${new_name}"`,
-      );
-    }
+    if (!newName) ts.userError('renameMember.noNewName');
+    newName = newName.trim();
 
     const existing_member = await ts.db.Members.query()
       .where({ discord_id })
       .first();
     if (!existing_member)
       ts.userError('renameMember.noMemberFound', { discord_id });
-    const old_name = existing_member.name;
+    if (existing_member.name === newName)
+      ts.userError('renameMember.already', { newName });
+    const oldName = existing_member.name;
+
+    if (
+      await ts.db.Members.query()
+        .whereRaw('lower(name) = ?', [newName])
+        .first()
+    ) {
+      ts.userError(
+        `There is already another member with name "${newName}"`,
+      );
+    }
 
     await ts.db.Members.query()
-      .patch({ name: new_name })
+      .patch({ name: newName })
       .where({ discord_id });
 
     return await message.reply(
-      `"${old_name}" has been renamed to "${new_name}"`,
+      `"${oldName}" has been renamed to "${newName}"`,
     );
   }
 }

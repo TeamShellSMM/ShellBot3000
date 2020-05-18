@@ -103,7 +103,22 @@ describe('!renamemember', () => {
     );
   });
 
-  it('mod, success', async () => {
+  it('Name is the same', async () => {
+    await TEST.ts.db.Members.query()
+      .patch({ is_mod: 1 })
+      .where({ discord_id: 128 });
+    assert.equal(
+      await TEST.mockBotSend({
+        cmd: '!renamemember 256 Creator',
+        channel: 'general',
+        waitFor: 100,
+        discord_id: '128',
+      }),
+      'Member already has the name "Creator" ',
+    );
+  });
+
+  it('Name already used', async () => {
     await TEST.ts.db.Members.query()
       .patch({ is_mod: 1 })
       .where({ discord_id: 128 });

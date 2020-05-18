@@ -182,7 +182,7 @@ describe('!approve', function () {
     assert.equal(result, 'Invalid difficulty format! ');
   });
 
-  it('approve with emoji reason @curr', async function () {
+  it('approve with emoji reason', async function () {
     const result = await TEST.mockBotSend({
       cmd: '!approve XXX-XXX-XXX 5 "I like it 💀"',
       channel: TEST.ts.channels.modChannel,

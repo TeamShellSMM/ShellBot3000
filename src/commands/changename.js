@@ -1,0 +1,48 @@
+const TSCommand = require('../TSCommand.js');
+
+class ChangeName extends TSCommand {
+  constructor() {
+    super('changename', {
+      aliases: ['changename', 'nickname', 'nick'],
+      args: [
+        {
+          id: 'newName',
+          type: 'string',
+          default: null,
+        },
+      ],
+      split: 'quoted',
+    });
+  }
+
+  async tsexec(ts, message, { newName }) {
+    if (!newName) ts.userError('renameMember.noNewName');
+
+    newName = newName.trim();
+
+    const player = await ts.getUser(message);
+    if (player.name === newName)
+      ts.userError('nickname.already', { newName });
+
+    if (
+      await ts.db.Members.query()
+        .whereRaw('lower(name) = ?', [newName])
+        .first()
+    ) {
+      ts.userError('renameMember.alreadyUsed', { newName });
+    }
+
+    await ts.db.Members.query()
+      .patch({ name: newName })
+      .where({ id: player.id });
+
+    return await message.reply(
+      ts.message('nickname.success', {
+        oldName: player.name,
+        newName,
+      }),
+    );
+  }
+}
+
+module.exports = ChangeName;
