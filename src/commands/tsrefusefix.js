@@ -83,7 +83,10 @@ class TSRefuseFix extends TSCommand {
 
     let modPings = "";
     for(let fixVote of fixVotes){
-      modPings += `<@${fixVote.player.discord_id}> `
+      const mod = await ts.db.Members.query()
+        .where({ name: fixVote.player })
+        .first();
+      modPings += `<@${mod.discord_id}> `
     }
     if(modPings){
       await discussionChannel.send(

@@ -2355,8 +2355,10 @@ class TS {
 
         let modPings = "";
         for(let fixVote of fixVotes){
-          console.log(fixVote.player);
-          modPings += `<@${fixVote.player.discord_id}> `
+          const mod = await ts.db.Members.query()
+            .where({ name: fixVote.player })
+            .first();
+          modPings += `<@${mod.discord_id}> `
         }
         if(modPings){
           await channel.send(
