@@ -14,8 +14,10 @@ class TSJudge extends TSCommand {
     let levelCode;
     // Check if in level discussion channel
     if (ts.valid_code(message.channel.name.toUpperCase())) {
-      inCodeDiscussionChannel = true;
       levelCode = message.channel.name.toUpperCase();
+      if(message.channel.parentID === ts.channels.levelDiscussionCategory){
+        inCodeDiscussionChannel = true;
+      }
     }
 
     if (
