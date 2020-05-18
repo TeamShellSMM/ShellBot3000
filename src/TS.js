@@ -414,7 +414,9 @@ class TS {
       this.defaultVariables = defaultVariables;
       this.url_slug = this.team.url_slug;
       this.config = JSON.parse(this.team.config) || {};
-      this.web_config = this.team.web_config ? JSON.parse(this.team.web_config) : {} || {};
+      this.web_config = this.team.web_config
+        ? JSON.parse(this.team.web_config)
+        : {} || {};
       let updateConfig = false;
       if (this.config.key) {
         this.secure_key = this.config.key;
@@ -1999,7 +2001,12 @@ class TS {
         ts.message('approval.channelDeleted'),
       );
     };
-    this.finishFixRequest = async function (code, messageAuthor, reason, approve = true) {
+    this.finishFixRequest = async function (
+      code,
+      messageAuthor,
+      reason,
+      approve = true,
+    ) {
       const level = await ts.getExistingLevel(code, true);
       const author = await ts.db.Members.query()
         .where({ name: level.creator })
@@ -2008,18 +2015,21 @@ class TS {
         ts.userError(ts.message('approval.levelNotPending'));
       }
 
-      //We have 3 different options here
-      //Level got fix approved and was reuploaded
-      //Level got fix approved and was NOT reuploaded
-      //Level was already approved before
+      // We have 3 different options here
+      // Level got fix approved and was reuploaded
+      // Level got fix approved and was NOT reuploaded
+      // Level was already approved before
       let difficulty;
-      if(approve){
-        if(level.status == ts.LEVEL_STATUS.PENDING_FIXED_REUPLOAD || level.status == ts.LEVEL_STATUS.PENDING_NOT_FIXED_REUPLOAD){
+      if (approve) {
+        if (
+          level.status == ts.LEVEL_STATUS.PENDING_FIXED_REUPLOAD ||
+          level.status == ts.LEVEL_STATUS.PENDING_NOT_FIXED_REUPLOAD
+        ) {
           // If it was in a fix request before we get the difficulty from the pending votes
           const approvalVotes = await ts
-          .getPendingVotes()
-          .where('levels.id', level.id)
-          .where('type', 'approve');
+            .getPendingVotes()
+            .where('levels.id', level.id)
+            .where('type', 'approve');
           const fixVotes = await ts
             .getPendingVotes()
             .where('levels.id', level.id)
@@ -2036,10 +2046,16 @@ class TS {
             }
           }
           difficulty = Math.round((diffSum / diffCounter) * 2) / 2;
-        } else if (level.status == ts.LEVEL_STATUS.PENDING_APPROVED_REUPLOAD) {
-          //If the level was approved before we get the difficulty from the approved level (gotta get the latest one though)
-          let oldLevel = await ts.getLevels().where({ new_code: code }).orderBy('id', 'desc').first();
-          if(oldLevel){
+        } else if (
+          level.status == ts.LEVEL_STATUS.PENDING_APPROVED_REUPLOAD
+        ) {
+          // If the level was approved before we get the difficulty from the approved level (gotta get the latest one though)
+          const oldLevel = await ts
+            .getLevels()
+            .where({ new_code: code })
+            .orderBy('id', 'desc')
+            .first();
+          if (oldLevel) {
             difficulty = oldLevel.difficulty;
           } else {
             ts.userError(ts.message('approval.oldLevelNotFound'));
@@ -2052,39 +2068,54 @@ class TS {
       }
 
       let embedTitle;
-      if(approve){
-        if(level.status == ts.LEVEL_STATUS.PENDING_FIXED_REUPLOAD){
-          embedTitle = "approval.approveAfterFix";
-        } else if (level.status == ts.LEVEL_STATUS.PENDING_NOT_FIXED_REUPLOAD){
-          embedTitle = "approval.approveAfterRefuse";
-        } else if(level.status == ts.LEVEL_STATUS.PENDING_APPROVED_REUPLOAD){
-          embedTitle = "approval.approveAfterReupload";
+      if (approve) {
+        if (level.status === ts.LEVEL_STATUS.PENDING_FIXED_REUPLOAD) {
+          embedTitle = 'approval.approveAfterFix';
+        } else if (
+          level.status === ts.LEVEL_STATUS.PENDING_NOT_FIXED_REUPLOAD
+        ) {
+          embedTitle = 'approval.approveAfterRefuse';
+        } else if (
+          level.status == ts.LEVEL_STATUS.PENDING_APPROVED_REUPLOAD
+        ) {
+          embedTitle = 'approval.approveAfterReupload';
         }
-      } else {
-        if(level.status == ts.LEVEL_STATUS.PENDING_FIXED_REUPLOAD){
-          embedTitle = "approval.rejectAfterFix";
-        } else if (level.status == ts.LEVEL_STATUS.PENDING_NOT_FIXED_REUPLOAD){
-          embedTitle = "approval.rejectAfterRefuse";
-        } else if(level.status == ts.LEVEL_STATUS.PENDING_APPROVED_REUPLOAD){
-          embedTitle = "approval.rejectAfterReupload";
-        }
+      } else if (
+        level.status === ts.LEVEL_STATUS.PENDING_FIXED_REUPLOAD
+      ) {
+        embedTitle = 'approval.rejectAfterFix';
+      } else if (
+        level.status === ts.LEVEL_STATUS.PENDING_NOT_FIXED_REUPLOAD
+      ) {
+        embedTitle = 'approval.rejectAfterRefuse';
+      } else if (
+        level.status === ts.LEVEL_STATUS.PENDING_APPROVED_REUPLOAD
+      ) {
+        embedTitle = 'approval.rejectAfterReupload';
       }
 
-      if(!embedTitle){
+      if (!embedTitle) {
         ts.userError(ts.message('approval.inWrongFixStatus'));
       }
 
-      //Status update and difficulty gets set
+      // Status update and difficulty gets set
       await ts.db.Levels.query()
-        .patch({ status: approve ? ts.LEVEL_STATUS.APPROVED : ts.LEVEL_STATUS.REJECTED, difficulty })
+        .patch({
+          status: approve
+            ? ts.LEVEL_STATUS.APPROVED
+            : ts.LEVEL_STATUS.REJECTED,
+          difficulty,
+        })
         .where({ code });
       await ts.recalculateAfterUpdate({ code });
       const mention = this.message('general.heyListen', {
         discord_id: author.discord_id,
       });
 
-      //We generate the level embed and change it up
-      let embedStyle = this.embedStyle[approve ? ts.LEVEL_STATUS.APPROVED : ts.LEVEL_STATUS.REJECTED];
+      // We generate the level embed and change it up
+      const embedStyle = this.embedStyle[
+        approve ? ts.LEVEL_STATUS.APPROVED : ts.LEVEL_STATUS.REJECTED
+      ];
       embedStyle.title = embedTitle;
 
       const finishFixRequestEmbed = this.levelEmbed(
@@ -2349,20 +2380,20 @@ class TS {
         );
 
         const fixVotes = await ts
-            .getPendingVotes()
-            .where('levels.id', newLevel.id)
-            .where('type', 'fix');
+          .getPendingVotes()
+          .where('levels.id', newLevel.id)
+          .where('type', 'fix');
 
-        let modPings = "";
-        for(let fixVote of fixVotes){
+        let modPings = '';
+        for (const fixVote of fixVotes) {
           const mod = await ts.db.Members.query()
             .where({ name: fixVote.player })
             .first();
-          modPings += `<@${mod.discord_id}> `
+          modPings += `<@${mod.discord_id}> `;
         }
-        if(modPings){
+        if (modPings) {
           await channel.send(
-            modPings + `please check if your fixes were made.`,
+            `${modPings}please check if your fixes were made.`,
           );
         }
 

@@ -125,7 +125,7 @@ describe('!fixapprove', function () {
     });
     assert.equal(
       result[1].author.name,
-      'Mod1 voted for approval with difficulty 2.0:',
+      'This level was already approved before, and now your reupload is as well.',
     );
     const level = await TEST.ts.db.Levels.query()
       .where({ code: 'XXX-XXX-XX3' })
