@@ -87,7 +87,7 @@ class TSRefuseFix extends TSCommand {
     }
     if(modPings){
       await discussionChannel.send(
-        `Please check if your fixes were made.`,
+        modPings + `please check if your fixes were made.`,
       );
     }
 

@@ -2359,7 +2359,7 @@ class TS {
         }
         if(modPings){
           await channel.send(
-            `Please check if your fixes were made.`,
+            modPings + `please check if your fixes were made.`,
           );
         }
 
