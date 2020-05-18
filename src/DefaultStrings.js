@@ -88,6 +88,10 @@ module.exports = {
   'approval.creatorNotFound': 'Author was not found in Members List!',
   'approval.levelAlreadyApproved': 'Level is already approved!',
   'approval.levelNotPending': 'Level is not pending!',
+  'approval.inWrongFixStatus':
+    'Level is not in a valid fix status (this should not happen)!',
+  'approval.oldLevelNotFound':
+    'Old level could not be found after reupload (this should not happen)!',
   'approval.tooManyDiscussionChannels':
     "Your vote is saved but there are 50 discussion channels active right now so we can't make a new one for this level",
   'approval.voteChanged':
@@ -104,6 +108,16 @@ module.exports = {
   'approval.channelDeleted': 'Justice has been met!',
   'approval.rejectAfterRefuse':
     "We're really sorry, but this level was rejected after you refused to reupload.",
+  'approval.approveAfterRefuse':
+    "You didn't reupload your level, but it got approved for difficulty {{1dp difficulty}} anyway. Seems like the issues mentioned weren't a big deal.",
+  'approval.rejectAfterFix':
+    "We're really sorry, but it seems there are still some issues after you reuploaded, so it got rejected for now.",
+  'approval.approveAfterFix':
+    'You fixed your level up nicely and it got approved for difficulty {{1dp difficulty}}, good job!',
+  'approval.rejectAfterReupload':
+    "We're really sorry, but some kind of issues must have come up even though your level was already approved before. The level got rejected for now. Please check out the message below to see what's going on.",
+  'approval.approveAfterReupload':
+    'This level was already approved before, and now your reupload is as well.',
 
   'judge.levelRejected':
     "Sorry, this level didn't quite make the cut for {{TeamName}}, but feel free to use the advice below to improve your level and resubmit it to us at later time",
@@ -118,7 +132,7 @@ module.exports = {
   'fixApprove.notInChannel':
     'This channel is not in the pending reupload category',
   'fixApprove.noReason':
-    'You have to provide a message to the creator explaining why this was rejected!',
+    'Please provide a short message to the creator explaining your decision!',
   'fixApprove.rejectNotNeedFix':
     'This level is not in the "Need Fix" status',
 

@@ -100,7 +100,6 @@ describe('misc-integration', () => {
       channel: 'general',
       discord_id: '256',
     }).catch((e)=>{
-      console.log('here')
       assert.instanceOf(e,Error)
       assert.equal(e.message,'yes')
     })

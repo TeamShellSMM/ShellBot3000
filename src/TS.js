@@ -414,7 +414,9 @@ class TS {
       this.defaultVariables = defaultVariables;
       this.url_slug = this.team.url_slug;
       this.config = JSON.parse(this.team.config) || {};
-      this.web_config = JSON.parse(this.team.web_config) || {};
+      this.web_config = this.team.web_config
+        ? JSON.parse(this.team.web_config)
+        : {} || {};
       let updateConfig = false;
       if (this.config.key) {
         this.secure_key = this.config.key;
@@ -1398,11 +1400,11 @@ class TS {
       };
       const [filtered_levels] = await knex.raw(
         `
-    SELECT levels.*,members.name creator from 
+    SELECT levels.*,members.name creator from
     levels
     inner join members on levels.creator=members.id
     ${playsSQL1}
-    where status=1 
+    where status=1
     ${playsSQL2}
     and levels.guild_id=:team_id
     and ( levels.not_default is null or levels.not_default!=1 )
@@ -1999,6 +2001,145 @@ class TS {
         ts.message('approval.channelDeleted'),
       );
     };
+    this.finishFixRequest = async function (
+      code,
+      messageAuthor,
+      reason,
+      approve = true,
+    ) {
+      const level = await ts.getExistingLevel(code, true);
+      const author = await ts.db.Members.query()
+        .where({ name: level.creator })
+        .first();
+      if (!PENDING_LEVELS.includes(level.status)) {
+        ts.userError(ts.message('approval.levelNotPending'));
+      }
+
+      // We have 3 different options here
+      // Level got fix approved and was reuploaded
+      // Level got fix approved and was NOT reuploaded
+      // Level was already approved before
+      let difficulty;
+      if (approve) {
+        if (
+          level.status == ts.LEVEL_STATUS.PENDING_FIXED_REUPLOAD ||
+          level.status == ts.LEVEL_STATUS.PENDING_NOT_FIXED_REUPLOAD
+        ) {
+          // If it was in a fix request before we get the difficulty from the pending votes
+          const approvalVotes = await ts
+            .getPendingVotes()
+            .where('levels.id', level.id)
+            .where('type', 'approve');
+          const fixVotes = await ts
+            .getPendingVotes()
+            .where('levels.id', level.id)
+            .where('type', 'fix');
+
+          const difficultyArr = [...approvalVotes, ...fixVotes];
+          let diffCounter = 0;
+          let diffSum = 0;
+          for (let i = 0; i < difficultyArr.length; i++) {
+            const diff = parseFloat(difficultyArr[i].difficulty_vote);
+            if (!Number.isNaN(diff)) {
+              diffCounter++;
+              diffSum += diff;
+            }
+          }
+          difficulty = Math.round((diffSum / diffCounter) * 2) / 2;
+        } else if (
+          level.status == ts.LEVEL_STATUS.PENDING_APPROVED_REUPLOAD
+        ) {
+          // If the level was approved before we get the difficulty from the approved level (gotta get the latest one though)
+          const oldLevel = await ts
+            .getLevels()
+            .where({ new_code: code })
+            .orderBy('id', 'desc')
+            .first();
+          if (oldLevel) {
+            difficulty = oldLevel.difficulty;
+          } else {
+            ts.userError(ts.message('approval.oldLevelNotFound'));
+          }
+        } else {
+          ts.userError(ts.message('approval.inWrongFixStatus'));
+        }
+
+        ts.initiate(author);
+      }
+
+      let embedTitle;
+      if (approve) {
+        if (level.status === ts.LEVEL_STATUS.PENDING_FIXED_REUPLOAD) {
+          embedTitle = 'approval.approveAfterFix';
+        } else if (
+          level.status === ts.LEVEL_STATUS.PENDING_NOT_FIXED_REUPLOAD
+        ) {
+          embedTitle = 'approval.approveAfterRefuse';
+        } else if (
+          level.status === ts.LEVEL_STATUS.PENDING_APPROVED_REUPLOAD
+        ) {
+          embedTitle = 'approval.approveAfterReupload';
+        }
+      } else if (
+        level.status === ts.LEVEL_STATUS.PENDING_FIXED_REUPLOAD
+      ) {
+        embedTitle = 'approval.rejectAfterFix';
+      } else if (
+        level.status === ts.LEVEL_STATUS.PENDING_NOT_FIXED_REUPLOAD
+      ) {
+        embedTitle = 'approval.rejectAfterRefuse';
+      } else if (
+        level.status === ts.LEVEL_STATUS.PENDING_APPROVED_REUPLOAD
+      ) {
+        embedTitle = 'approval.rejectAfterReupload';
+      }
+
+      if (!embedTitle) {
+        ts.userError(ts.message('approval.inWrongFixStatus'));
+      }
+
+      // Status update and difficulty gets set
+      await ts.db.Levels.query()
+        .patch({
+          status: approve
+            ? ts.LEVEL_STATUS.APPROVED
+            : ts.LEVEL_STATUS.REJECTED,
+          difficulty,
+        })
+        .where({ code });
+      await ts.recalculateAfterUpdate({ code });
+      const mention = this.message('general.heyListen', {
+        discord_id: author.discord_id,
+      });
+
+      // We generate the level embed and change it up
+      const embedStyle = this.embedStyle[
+        approve ? ts.LEVEL_STATUS.APPROVED : ts.LEVEL_STATUS.REJECTED
+      ];
+      embedStyle.title = embedTitle;
+
+      const finishFixRequestEmbed = this.levelEmbed(
+        level,
+        embedStyle,
+        { difficulty },
+      );
+      finishFixRequestEmbed.addField(
+        '\u200b',
+        `**Reason** :\`\`\`${reason}\`\`\`-<@${messageAuthor.id}>`,
+      );
+
+      await client.channels
+        .get(ts.channels.levelChangeNotification)
+        .send(mention);
+      await client.channels
+        .get(ts.channels.levelChangeNotification)
+        .send(finishFixRequestEmbed);
+      // Remove Discussion Channel
+      await ts.deleteDiscussionChannel(
+        level.code,
+        ts.message('approval.channelDeleted'),
+      );
+    };
     this.deleteDiscussionChannel = async function (code, reason) {
       if (!code)
         throw new Error(
@@ -2080,7 +2221,6 @@ class TS {
       embed = embed.setTimestamp();
       return embed;
     };
-
     this.reuploadLevel = async function (message) {
       const player = await ts.db.Members.query()
         .where({ discord_id: message.author.id })
@@ -2228,7 +2368,7 @@ class TS {
           newLevel,
           reason || '',
         );
-        await ts.updatePinned(channel, voteEmbed);
+
         await channel.send(
           ts.message('reupload.reuploadNotify', {
             oldCode,
@@ -2238,6 +2378,26 @@ class TS {
         await channel.send(
           `Reupload Request for <@${author.discord_id}>'s level with message: ${reason}`,
         );
+
+        const fixVotes = await ts
+          .getPendingVotes()
+          .where('levels.id', newLevel.id)
+          .where('type', 'fix');
+
+        let modPings = '';
+        for (const fixVote of fixVotes) {
+          const mod = await ts.db.Members.query()
+            .where({ name: fixVote.player })
+            .first();
+          modPings += `<@${mod.discord_id}> `;
+        }
+        if (modPings) {
+          await channel.send(
+            `${modPings}please check if your fixes were made.`,
+          );
+        }
+
+        await ts.updatePinned(channel, voteEmbed);
       }
       let reply = ts.message('reupload.success', { level, newCode });
       if (!newLevel) {
@@ -2263,14 +2423,14 @@ class TS {
    * Relevant updates: level difficulty update, level removal, clear add/updates/delete, point/score update, likes, difficulty vote, votes
    */
   async recalculateAfterUpdate() {
-    await knex.raw(
-      `UPDATE levels 
+    return await knex.raw(
+      `UPDATE levels
       inner join (SELECT *
     ,if(clears=0,0,round(((likes*2+clears)*score*likes/clears),1)) maker_points
     ,if(clears=0,0,round(likes/clears*100,1)) clear_like_ratio
     ,concat(vote,',',votetotal) votestr
     FROM
-    (SELECT 
+    (SELECT
     ROW_NUMBER() OVER ( ORDER BY id ) as no
       ,levels.id
       ,points.score
@@ -2300,12 +2460,12 @@ class TS {
       ,sum(CASE WHEN pending_votes.type='reject' THEN 1 ELSE 0 END) rejects
       ,sum(CASE WHEN pending_votes.type='fix' THEN 1 ELSE 0 END) want_fixes from pending_votes group by pending_votes.code) pending on
       levels.id=pending.code
-    WHERE 
+    WHERE
       levels.status IN (:SHOWN_IN_LIST:)
       AND teams.id=:guild_id
     GROUP BY levels.id) a) b on
     levels.id=b.id
-    set 
+    set
       levels.row_num=b.no,
       levels.clears=COALESCE(b.clears,0),
       levels.likes=COALESCE(b.likes,0),

@@ -32,7 +32,7 @@ describe('!pendingstatus', function () {
           level_name: 'approved reuploaded',
           creator: 1,
           code: 'XXX-XXX-XX3',
-          status: TEST.ts.LEVEL_STATUS.PENDING_APPROVED_REUPLOADED,
+          status: TEST.ts.LEVEL_STATUS.PENDING_APPROVED_REUPLOAD,
           difficulty: 0,
         },
         {

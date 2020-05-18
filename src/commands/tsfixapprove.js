@@ -59,28 +59,8 @@ class TSFixApprove extends TSCommand {
     }
 
     let replyMessage = '';
-    if (approving) {
-      await ts.approve({
-        discord_id: message.author.id,
-        code,
-        type: 'approve',
-        reason,
-        skip_update: true,
-      });
-      replyMessage = await ts.judge(code, true);
-    } else if (reason) {
-      await ts.approve({
-        discord_id: message.author.id,
-        code,
-        type: 'reject',
-        reason,
-        skip_update: true,
-      });
-      replyMessage = await ts.rejectLevelWithReason(
-        code,
-        message.author,
-        reason,
-      );
+    if (reason) {
+      replyMessage = await ts.finishFixRequest(code, message.author, reason, approving);
     } else {
       ts.userError(ts.message('fixApprove.noReason'));
     }

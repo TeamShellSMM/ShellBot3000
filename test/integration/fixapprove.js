@@ -15,6 +15,14 @@ describe('!fixapprove', function () {
       ],
       Levels: [
         {
+          level_name: 'formerly approved',
+          creator: 1,
+          code: 'XXX-XXX-XX0',
+          new_code: 'XXX-XXX-XX3',
+          status: TEST.ts.LEVEL_STATUS.REUPLOADED,
+          difficulty: 2,
+        },
+        {
           level_name: 'need fix reupload',
           creator: 1,
           code: 'XXX-XXX-XXX',
@@ -32,7 +40,7 @@ describe('!fixapprove', function () {
           level_name: 'approved reuploaded',
           creator: 1,
           code: 'XXX-XXX-XX3',
-          status: TEST.ts.LEVEL_STATUS.PENDING_APPROVED_REUPLOADED,
+          status: TEST.ts.LEVEL_STATUS.PENDING_APPROVED_REUPLOAD,
           difficulty: 0,
         },
         {
@@ -46,21 +54,21 @@ describe('!fixapprove', function () {
       PendingVotes: [
         {
           player: 2,
-          code: 1,
+          code: 2,
           type: 'fix',
           difficulty_vote: 2,
           reason: "It's a bit janky innit",
         },
         {
           player: 2,
-          code: 3,
+          code: 4,
           type: 'approve',
           difficulty_vote: 2,
           reason: 'Is good',
         },
         {
           player: 2,
-          code: 4,
+          code: 5,
           type: 'fix',
           difficulty_vote: 1,
           reason: 'better fix or reject',
@@ -69,7 +77,7 @@ describe('!fixapprove', function () {
     });
   });
 
-  it('approve', async () => {
+  it('fixapprove of pending fixed reupload level', async () => {
     await TEST.createChannel({
       name: 'XXX-XXX-XXX',
       parent: TEST.ts.channels.pendingReuploadCategory,
@@ -80,13 +88,9 @@ describe('!fixapprove', function () {
       discord_id: '128',
     });
     assert.equal(
-      result[1].fields[0].name,
-      'Mod1 voted for approval with difficulty 2.0:',
+      result[1].author.name,
+      'You fixed your level up nicely and it got approved for difficulty 2.0, good job!',
     );
-    const votes = await TEST.ts.db.PendingVotes.query()
-      .where({ code: 1 })
-      .first();
-    assert.equal(votes.type, 'approve');
     const level = await TEST.ts.db.Levels.query()
       .where({ code: 'XXX-XXX-XXX' })
       .first();
@@ -95,19 +99,41 @@ describe('!fixapprove', function () {
     assert.equal(level.status, TEST.ts.LEVEL_STATUS.APPROVED);
   });
 
-  it('approve', async () => {
+  it('fixapprove of pending not fixed reupload level', async () => {
+    await TEST.createChannel({
+      name: 'XXX-XXX-XX4',
+      parent: TEST.ts.channels.pendingReuploadCategory,
+    });
+    const result = await TEST.mockBotSend({
+      cmd: '!fixapprove "It is acceptable as it is"',
+      channel: 'XXX-XXX-XX4',
+      discord_id: '128',
+    });
+    assert.equal(
+      result[1].author.name,
+      "You didn't reupload your level, but it got approved for difficulty 1.0 anyway. Seems like the issues mentioned weren't a big deal.",
+    );
+    const level = await TEST.ts.db.Levels.query()
+      .where({ code: 'XXX-XXX-XX4' })
+      .first();
+    assert.isOk(level);
+    assert.equal(level.code, 'XXX-XXX-XX4');
+    assert.equal(level.status, TEST.ts.LEVEL_STATUS.APPROVED);
+  });
+
+  it('fixapprove of pending approved reupload', async () => {
     await TEST.createChannel({
       name: 'XXX-XXX-XX3',
       parent: TEST.ts.channels.pendingReuploadCategory,
     });
     const result = await TEST.mockBotSend({
-      cmd: '!fixapprove',
+      cmd: '!fixapprove "nice reupload!"',
       channel: 'XXX-XXX-XX3',
       discord_id: '128',
     });
     assert.equal(
-      result[1].fields[0].name,
-      'Mod1 voted for approval with difficulty 2.0:',
+      result[1].author.name,
+      'This level was already approved before, and now your reupload is as well.',
     );
     const level = await TEST.ts.db.Levels.query()
       .where({ code: 'XXX-XXX-XX3' })
@@ -161,7 +187,7 @@ describe('!fixapprove', function () {
     );
   });
 
-  it('reject success ', async () => {
+  it('reject no reason', async () => {
     await TEST.createChannel({
       name: 'XXX-XXX-XX4',
       parent: TEST.ts.channels.pendingReuploadCategory,
@@ -172,11 +198,11 @@ describe('!fixapprove', function () {
         channel: 'XXX-XXX-XX4',
         discord_id: '128',
       }),
-      'You have to provide a message to the creator explaining why this was rejected! ',
+      'Please provide a short message to the creator explaining your decision! ',
     );
   });
 
-  it('reject level not need_fix', async () => {
+  it('reject level that is approved pending', async () => {
     await TEST.createChannel({
       name: 'XXX-XXX-XX3',
       parent: TEST.ts.channels.pendingReuploadCategory,
@@ -187,8 +213,8 @@ describe('!fixapprove', function () {
       discord_id: '128',
     });
     assert.equal(
-      result,
-      'This level is not in the "Need Fix" status ',
+      result[1].author.name,
+      "We're really sorry, but some kind of issues must have come up even though your level was already approved before. The level got rejected for now. Please check out the message below to see what's going on.",
     );
   });
 });
