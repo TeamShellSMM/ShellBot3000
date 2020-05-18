@@ -1,3 +1,5 @@
+const Teams = require('../../src/models/Teams')();
+
 describe('misc-unit', function () {
   beforeEach(async () => {
     const initData = {
@@ -91,7 +93,6 @@ describe('misc-unit', function () {
   });
 
   it('new TS no arguments', async function () {
-    // assert.isFalse(await TEST.ts.modOnly())
     assert.throws(
       () => new TEST.TS(),
       Error,
@@ -100,7 +101,6 @@ describe('misc-unit', function () {
   });
 
   it('new TS no client', async function () {
-    // assert.isFalse(await TEST.ts.modOnly())
     assert.throws(
       () => new TEST.TS('guild_id'),
       Error,
@@ -109,7 +109,6 @@ describe('misc-unit', function () {
   });
 
   it('new TS no guild found', async function () {
-    // assert.isFalse(await TEST.ts.modOnly())
     assert.throws(
       () => new TEST.TS('guild_id', TEST.client),
       Error,
@@ -118,14 +117,13 @@ describe('misc-unit', function () {
   });
 
   it('Check team model loading without guild_id', async function () {
-    // assert.isFalse(await TEST.ts.modOnly())
-    const Teams = require('../../src/models/Teams')();
     assert.exists(Teams);
-    assert.doesNotThrow(async () => await Teams.query().select());
+    assert.doesNotThrow(async () => {
+      await Teams.query().select();
+    });
   });
 
   it('Check TS.team no guild_id', async function () {
-    // assert.isFalse(await TEST.ts.modOnly())
     assert.throws(
       () => TEST.TS.teams('unregistered_guild_id'),
       Error,
@@ -134,7 +132,6 @@ describe('misc-unit', function () {
   });
 
   it('TS.message unfound string', async function () {
-    // assert.isFalse(await TEST.ts.modOnly())
     assert.throws(
       () => TEST.TS.message('unknown_string'),
       Error,
@@ -143,7 +140,6 @@ describe('misc-unit', function () {
   });
 
   it('TS.teamFromUrl unfound slug', async function () {
-    // assert.isFalse(await TEST.ts.modOnly())
     assert.isFalse(TEST.TS.teamFromUrl('unknown_string'));
   });
 

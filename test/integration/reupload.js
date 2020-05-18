@@ -399,21 +399,21 @@ describe('!reupload', function () {
       )) + TEST.ts.message('reupload.inReuploadQueue'),
     );
 
-    const old_level = await TEST.ts
+    const oldLevel = await TEST.ts
       .getLevels()
       .where({ code: 'XXX-XXX-XX2' })
       .first();
-    const new_level = await TEST.ts
+    const newLevel = await TEST.ts
       .getLevels()
       .where({ code: 'XXX-XXX-YYY' })
       .first();
 
-    assert.exists(old_level);
-    assert.exists(new_level);
+    assert.exists(oldLevel);
+    assert.exists(newLevel);
 
-    assert.equal(old_level.status, TEST.ts.LEVEL_STATUS.REUPLOADED);
+    assert.equal(oldLevel.status, TEST.ts.LEVEL_STATUS.REUPLOADED);
     assert.equal(
-      new_level.status,
+      newLevel.status,
       TEST.ts.LEVEL_STATUS.PENDING_APPROVED_REUPLOAD,
     );
 
@@ -449,21 +449,21 @@ describe('!reupload', function () {
       "<@128> You have reuploaded 'User removed neex fix' by Creator with code `XXX-XXX-XX1`.  Your level has also been put in the reupload queue, we'll get back to you shortly.",
     );
 
-    const old_level = await TEST.ts
+    const oldLevel = await TEST.ts
       .getLevels()
       .where({ code: 'XXX-XXX-X12' })
       .first();
-    const new_level = await TEST.ts
+    const newLevel = await TEST.ts
       .getLevels()
       .where({ code: 'XXX-XXX-XX1' })
       .first();
 
-    assert.exists(old_level);
-    assert.exists(new_level);
+    assert.exists(oldLevel);
+    assert.exists(newLevel);
 
-    assert.equal(old_level.status, TEST.ts.LEVEL_STATUS.REMOVED);
+    assert.equal(oldLevel.status, TEST.ts.LEVEL_STATUS.REMOVED);
     assert.equal(
-      new_level.status,
+      newLevel.status,
       TEST.ts.LEVEL_STATUS.PENDING_FIXED_REUPLOAD,
     );
 
@@ -502,21 +502,21 @@ describe('!reupload', function () {
       )) + TEST.ts.message('reupload.inReuploadQueue'),
     );
 
-    const old_level = await TEST.ts
+    const oldLevel = await TEST.ts
       .getLevels()
       .where({ code: 'XXX-XXX-XX3' })
       .first();
-    const new_level = await TEST.ts
+    const newLevel = await TEST.ts
       .getLevels()
       .where({ code: 'XXX-XXX-YYY' })
       .first();
 
-    assert.exists(old_level);
-    assert.exists(new_level);
+    assert.exists(oldLevel);
+    assert.exists(newLevel);
 
-    assert.equal(old_level.status, TEST.ts.LEVEL_STATUS.REMOVED);
+    assert.equal(oldLevel.status, TEST.ts.LEVEL_STATUS.REMOVED);
     assert.equal(
-      new_level.status,
+      newLevel.status,
       TEST.ts.LEVEL_STATUS.PENDING_FIXED_REUPLOAD,
     );
 
