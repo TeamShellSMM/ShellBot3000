@@ -4,6 +4,7 @@
   "description": "A Discord Bot for Super Mario Maker teams and community.",
   "homepage": "https://makerteams.net",
   "repository": "github:TeamShellSMM/ShellBot3000",
+  "issues": "https://github.com/TeamShellSMM/ShellBot3000/issues",
   "main": "src/app.js",
   "dependencies": {
     "body-parser": "^1.19.0",
