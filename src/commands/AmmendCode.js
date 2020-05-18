@@ -1,5 +1,4 @@
 const TSCommand = require('../TSCommand.js');
-/* istanbul ignore next */
 
 class AmmendCode extends TSCommand {
   constructor() {

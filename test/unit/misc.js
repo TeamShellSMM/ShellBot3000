@@ -350,4 +350,76 @@ describe('misc-unit', function () {
       });
     assert.notExists(level);
   });
+
+  it('no arguments deleteDiscussionChannel', async () => {
+    const reply = await TEST.ts
+      .deleteDiscussionChannel()
+      .catch((e) => {
+        assert.instanceOf(e, Error);
+        assert.equal(
+          e.message,
+          'No code given to this.deleteDiscussionChannel',
+        );
+      });
+    assert.notExists(reply);
+  });
+
+  it('no arguments invalid code', async () => {
+    const reply = await TEST.ts.deleteDiscussionChannel('xxx-xxx-xx');
+    assert.notExists(reply);
+  });
+
+  it('ts.judge not pending level', async () => {
+    const reply = await TEST.ts.judge('XXX-XXX-XX5').catch((e) => {
+      assert.instanceOf(e, TEST.TS.UserError);
+      assert.equal(
+        e.message,
+        "The level 'removed level'  has been removed from AutoTest's list",
+      );
+    });
+    assert.notExists(reply);
+  });
+
+  it('ts.secureData and verifyData', async () => {
+    const rawData = [
+      { id: 1, value: 1 },
+      { id: 2, value: 1 },
+      { id: 3, value: 1 },
+      { value: 4 },
+    ];
+    const secureData = TEST.ts.secure_data(rawData);
+    const verifiedData = TEST.ts.verify_data(secureData);
+    assert.lengthOf(verifiedData, 4);
+    try {
+      TEST.ts.verify_data(rawData);
+    } catch (error) {
+      assert.instanceOf(error, TEST.ts.UserError);
+      assert.equal(
+        error.msg,
+        'There was something wrong with the secure tokens. Please try again',
+      );
+    }
+
+    try {
+      secureData[0].id = 4;
+      TEST.ts.verify_data(secureData);
+    } catch (error) {
+      assert.instanceOf(error, TEST.ts.UserError);
+      assert.equal(
+        error.msg,
+        'There was something wrong with the secure tokens. Please try again',
+      );
+    }
+
+    try {
+      secureData[0].__SECURE = 'wrong token';
+      TEST.ts.verify_data(secureData);
+    } catch (error) {
+      assert.instanceOf(error, TEST.ts.UserError);
+      assert.equal(
+        error.msg,
+        'There was something wrong with the secure tokens. Please try again',
+      );
+    }
+  });
 });

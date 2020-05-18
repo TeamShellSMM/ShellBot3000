@@ -1,38 +1,35 @@
 /* istanbul ignore file */
 
-'use strict';
-
 module.exports = {
   clientCache: null,
-  async log(info, discord_client) {
+  async log(info, discordClient) {
     console.log(info);
-    if (!this.clientCache) this.clientCache = discord_client;
-    if (!discord_client && this.clientCache)
-      discord_client = this.clientCache;
+    if (!this.clientCache) this.clientCache = discordClient;
+    if (!discordClient && this.clientCache)
+      discordClient = this.clientCache;
     if (
-      discord_client &&
+      discordClient &&
       process.env.NODE_ENV === 'production' &&
       process.env.ERROR_CHANNEL
     ) {
-      const channel = await discord_client.channels.get(
+      const channel = await discordClient.channels.get(
         process.env.ERROR_CHANNEL,
       );
-      const dev = info.channel ? ` at ${info.channel}` : '';
       info = JSON.stringify(info, null, 2).replace(/\\n/g, '\n');
       await channel.send(`\`\`\`bash\n${info}\`\`\``);
     }
   },
-  async error(error, discord_client) {
+  async error(error, discordClient) {
     console.error(error);
-    if (!this.clientCache) this.clientCache = discord_client;
-    if (!discord_client && this.clientCache)
-      discord_client = this.clientCache;
+    if (!this.clientCache) this.clientCache = discordClient;
+    if (!discordClient && this.clientCache)
+      discordClient = this.clientCache;
     if (
-      discord_client &&
+      discordClient &&
       process.env.NODE_ENV === 'production' &&
       process.env.ERROR_CHANNEL
     ) {
-      const channel = await discord_client.channels.get(
+      const channel = await discordClient.channels.get(
         process.env.ERROR_CHANNEL,
       );
       const devs = process.env.DEVS

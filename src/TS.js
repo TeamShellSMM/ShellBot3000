@@ -14,13 +14,12 @@ const PendingVotes = require('./models/PendingVotes');
 const Members = require('./models/Members');
 const Levels = require('./models/Levels');
 const Points = require('./models/Points');
-/* istanbul ignore next */
+
 Handlebars.registerHelper('plural', function (_num) {
   const num = Number(_num);
   return num > 1 || num === 0 ? 's' : '';
 });
 
-/* istanbul ignore next */
 Handlebars.registerHelper('1dp', function (num) {
   if (typeof num === 'number') return num.toFixed(1);
   if (typeof num === 'string' && !Number.isNaN(Number(num)))
@@ -435,7 +434,6 @@ class TS {
       }
       this.client = client;
       this.guild_id = guildId;
-      /* istanbul ignore next */
       this.LEVEL_STATUS = LEVEL_STATUS;
       this.PENDING_LEVELS = PENDING_LEVELS;
       this.SHOWN_IN_LIST = SHOWN_IN_LIST;
@@ -567,17 +565,14 @@ class TS {
       await this.saveSheetToDb();
       await this.recalculateAfterUpdate();
       this.pointMap = {};
-      const _points = await ts.db.Points.query().select();
-      for (let i = 0; i < _points.length; i++) {
-        this.pointMap[_points[i].difficulty] = _points[i].score;
+      const rawPoints = await ts.db.Points.query().select();
+      for (let i = 0; i < rawPoints.length; i++) {
+        this.pointMap[rawPoints[i].difficulty] = rawPoints[i].score;
       }
-      /* istanbul ignore if */
-      if (process.env.NODE_ENV !== 'test') {
-        await DiscordLog.log(
-          `Data loaded for ${this.teamVariables.TeamName}`,
-          this.client,
-        );
-      }
+      await DiscordLog.log(
+        `Data loaded for ${this.teamVariables.TeamName}`,
+        this.client,
+      );
     };
     this.getPoints = function (difficulty) {
       return this.pointMap[parseFloat(difficulty)];
@@ -1715,7 +1710,6 @@ class TS {
           .where({ discord_id: author.discord_id });
         /* istanbul ignore if */
         if (author.discord_id) {
-          // TODO: something broke here
           // doesn't work with mocked user method here.
           const curr_user = await guild.members.get(
             author.discord_id,
@@ -1731,14 +1725,12 @@ class TS {
                 }),
               );
           } else {
-            /* istanbul ignore if */
-            if (process.env.NODE_ENV === 'production')
-              DiscordLog.error(
-                ts.message('initiation.userNotInDiscord', {
-                  name: author.name,
-                }),
-                ts.client,
-              ); // not a breaking error.
+            DiscordLog.error(
+              ts.message('initiation.userNotInDiscord', {
+                name: author.name,
+              }),
+              ts.client,
+            ); // not a breaking error.
           }
         }
       }
@@ -2271,7 +2263,7 @@ class TS {
    * Relevant updates: level difficulty update, level removal, clear add/updates/delete, point/score update, likes, difficulty vote, votes
    */
   async recalculateAfterUpdate() {
-    return await knex.raw(
+    await knex.raw(
       `UPDATE levels 
       inner join (SELECT *
     ,if(clears=0,0,round(((likes*2+clears)*score*likes/clears),1)) maker_points
@@ -2377,7 +2369,7 @@ class TS {
         guild_id: this.team.id,
         SHOWN_IN_LIST: knex.raw(SHOWN_IN_LIST),
         include_own_score:
-          this.teamVariables.includeOwnPoints == 'true' || false,
+          this.teamVariables.includeOwnPoints === 'true' || false,
       },
     );
   }
@@ -2490,7 +2482,7 @@ class TS {
    */
   secure_data(data) {
     return data.map((d) => {
-      d.__secure = jwt.sign(
+      d.__SECURE = jwt.sign(
         {
           id: d.id,
         },
@@ -2502,18 +2494,19 @@ class TS {
 
   /**
    * Helper function to help verified secure data being recieved. Checks for id
-   * @param {RowPacket[]} data Rows of data recieved from user. each row should contain __secure created in secure_data
-   * @returns {RowPacket[]} returns the same data but removes __secure after verifying it.
-   * @throws {UserError} returns an error if the id in the row does not match the one in __secure
+   * @param {RowPacket[]} data Rows of data recieved from user. each row should contain __SECURE created in secure_data
+   * @returns {RowPacket[]} returns the same data but removes __SECURE after verifying it.
+   * @throws {UserError} returns an error if the id in the row does not match the one in __SECURE
    */
   verify_data(data) {
     return data.map((d) => {
       if (d.id) {
-        if (!d.__secure)
-          this.userError(this.message('error.wrongTokens'));
+        if (!d.__SECURE) {
+          this.userError('error.wrongTokens');
+        }
         try {
-          const decoded = jwt.verify(d.__secure, this.config.key);
-          if (decoded.id != d.id) {
+          const decoded = jwt.verify(d.__SECURE, this.config.key);
+          if (decoded.id !== d.id) {
             this.userError(this.message('error.wrongTokens'));
           }
         } catch (error) {
@@ -2523,7 +2516,7 @@ class TS {
         delete d.id;
         delete d.guild_id;
       }
-      delete d.__secure;
+      delete d.__SECURE;
       return d;
     });
   }
@@ -2641,7 +2634,7 @@ class TS {
   }
   */
 }
-TS.defaultChannels= defaultChannels;
+TS.defaultChannels = defaultChannels;
 TS.TS_LIST = {};
 TS.UserError = UserError;
 

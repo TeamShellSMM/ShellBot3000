@@ -24,7 +24,7 @@ class TSAddtags extends TSCommand {
       'tsaddtag',
       'addtag',
     ];
-    /* istanbul ignore next */
+
     const setTags =
       (await ts.knex('tags').where({ guild_id: ts.team.id })) || [];
     const command = ts.parse_command(message);
