@@ -172,7 +172,7 @@ describe('!fixapprove', function () {
         channel: 'XXX-XXX-XX4',
         discord_id: '128',
       }),
-      'You have to provide a message to the creator explaining why this was rejected! ',
+      'Please provide a short message to the creator explaining your decision! ',
     );
   });
 
@@ -188,7 +188,7 @@ describe('!fixapprove', function () {
     });
     assert.equal(
       result,
-      'This level is not in the "Need Fix" status ',
+      'Level is not in a valid fix status (this should not happen)! ',
     );
   });
 });
