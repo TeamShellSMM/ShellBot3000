@@ -13,18 +13,17 @@ class login extends TSCommand {
     const player = await ts.getUser(message);
     const otp = await ts.generateOtp(message.author.id);
     const loginLink = ts.generateLoginLink(otp);
-    await message.author.send(
-      player.user_reply +
-        ts.message('login.reply', { loginLink: loginLink }),
-    ).catch(error => {
-      // Only log the error if it is not an Unknown Message error
-      if (error.code === 50007) {
-        await message.reply(
-          player.user_reply +
-            ts.message('login.failedReply')
-        );
-      }
-    });;
+    await message.author
+      .send(
+        player.user_reply +
+          ts.message('login.reply', { loginLink: loginLink }),
+      )
+      .catch((error) => {
+        // Only log the error if it is not an Unknown Message error
+        if (error.code === 50007) {
+          ts.userError('login.failedReply');
+        }
+      });
   }
 }
 module.exports = login;
