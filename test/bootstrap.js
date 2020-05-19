@@ -1,7 +1,8 @@
 global.TEST = {};
 const chai = require('chai');
 const { AkairoClient } = require('discord-akairo');
-const debug=require('debug');
+const debug = require('debug');
+
 const debugDiscordLog = debug('shellbot3000:discordLog');
 const debugDiscordError = debug('shellbot3000:discordError');
 const debugMockMessages = debug('shellbot3000:mockMessages');
@@ -39,6 +40,16 @@ before(async () => {
   assert.exists(
     global.TEST.client,
     'should have discord client right now',
+  );
+
+  const guild = TEST.client.guilds.get(process.env.TEST_GUILD);
+  assert.exists(guild, 'TEST_GUILD needs to be valid');
+  const allow_testing = guild.channels.find(
+    (channel) => channel.name === 'allow-shellbot-test-here',
+  );
+  assert(
+    !!allow_testing,
+    'The channel #allow-shellbot-test-here should exist in testing server and the testing bot should be able to see it.\nThe test script will nuke most of things in this server so make sure this is a server just for testing.',
   );
 
   await TEST.knex.raw(`
@@ -417,7 +428,7 @@ before(async () => {
     const guild = TEST.ts.getGuild();
     const cache = [];
     function collectReply(args) {
-      debugMockMessages(args)
+      debugMockMessages(args);
       cache.push(args);
     }
     TEST.ts.sendDM = (discord_id, msg) => {
