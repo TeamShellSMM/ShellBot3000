@@ -9,13 +9,16 @@ class TSJudge extends TSCommand {
     });
   }
 
-  async tsexec(ts, message, args) {
+  async tsexec(ts, message) {
     let inCodeDiscussionChannel = false;
     let levelCode;
     // Check if in level discussion channel
     if (ts.valid_code(message.channel.name.toUpperCase())) {
       levelCode = message.channel.name.toUpperCase();
-      if(message.channel.parentID === ts.channels.levelDiscussionCategory){
+      if (
+        message.channel.parentID ===
+        ts.channels.levelDiscussionCategory
+      ) {
         inCodeDiscussionChannel = true;
       }
     }
@@ -27,7 +30,7 @@ class TSJudge extends TSCommand {
     )
       return false;
 
-    // Reload sheets
+    // Reload sheetsconsole.log('here');
     await ts.judge(levelCode);
   }
 }

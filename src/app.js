@@ -42,7 +42,7 @@ client.on('ready', async () => {
       (guild) => guild.id == team.guild_id,
     );
     if (team && guild) {
-      await TS.add(guild.id, client);
+      await TS.add(guild.id,DiscordWrapper);
     }
   }
 });

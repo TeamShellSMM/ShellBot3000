@@ -51,6 +51,20 @@ describe('!approve', function () {
     await TEST.setupData(initData);
   });
 
+  it('judge not in pendingCategory', async () => {
+    await TEST.createChannel({
+      name: 'XXX-XXX-XXX',
+      parent: TEST.ts.channels.pendingReuploadCategory,
+    });
+    const result = await TEST.mockBotSend({
+      cmd: '!judge',
+      channel: 'xxx-xxx-xxx',
+      waitFor: 100,
+      discord_id: '256',
+    });
+    assert.lengthOf(result, 0, 'no result');
+  });
+
   it('in non modChannel', async () => {
     const result = await TEST.mockBotSend({
       cmd: '!approve XXX-XXX-XXX 5 "is good level"',

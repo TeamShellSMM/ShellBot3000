@@ -15,7 +15,6 @@ const PendingVotes = require('./models/PendingVotes');
 const Members = require('./models/Members');
 const Levels = require('./models/Levels');
 const Points = require('./models/Points');
-const DiscordWrapper = require('./DiscordWrapper');
 const {
   defaultChannels,
   defaultVariables,
@@ -46,11 +45,12 @@ Handlebars.registerHelper('1dp', function (num) {
  *
  */
 class TS {
-  constructor(guildId, client) {
+  constructor(guildId, DiscordWrapper) {
     if (!guildId) {
       throw new Error(`No guild_id was passed to TS()`);
     }
 
+    TS.DiscordWrapper = DiscordWrapper;
     this.discord = new DiscordWrapper(guildId);
     this.CONSTANTS = CONSTANTS;
     this.defaultVariables = defaultVariables;
@@ -60,8 +60,6 @@ class TS {
     this.REMOVED_LEVELS = REMOVED_LEVELS;
 
     this.guild_id = guildId;
-    this.client = client;
-
     this.guild = this.getGuild();
 
     this.devs = process.env.DEVS.split(',');
@@ -82,6 +80,7 @@ class TS {
      */
     const ts = this;
     this.load = async function () {
+      debug(`ts.load started for ${this.guild_id}`);
       const guild = ts.getGuild(this.guild_id);
       await guild.fetchMembers(); // just load up all members
       const Team = Teams(this.guild_id);
@@ -253,6 +252,7 @@ class TS {
       await DiscordLog.log(
         `Data loaded for ${this.teamVariables.TeamName}`,
       );
+      debug(`ts.load has ended for ${this.guild_id}`);
     };
     this.getPoints = function (difficulty) {
       return this.pointMap[parseFloat(difficulty)];
@@ -955,7 +955,7 @@ class TS {
      * To be used to parse a thrown exception and check if it's a user error in discord. User error can be passed to the user. any other error, we will throw a non descript error message to the user and log the actual error
      */
     this.getUserErrorMsg = function (obj, message) {
-      if (typeof obj === 'object' && obj.type == 'user') {
+      if (obj instanceof UserError) {
         return obj.msg + ts.message('error.afterUserDiscord');
       }
       DiscordLog.error(ts.makeErrorObj(obj, message));
@@ -965,7 +965,7 @@ class TS {
      * To be used to parse a thrown exception and check if it's a user error in the JSON endpoint. User error can be passed to the user. any other error, we will throw a non descript error message to the user and log the actual error
      */
     this.getWebUserErrorMsg = function (obj) {
-      if (typeof obj === 'object' && obj.type == 'user') {
+      if (obj instanceof UserError) {
         return {
           status: 'error',
           message: obj.msg + ts.message('error.afterUserWeb'),
@@ -2070,7 +2070,8 @@ class TS {
    * Relevant updates: level difficulty update, level removal, clear add/updates/delete, point/score update, likes, difficulty vote, votes
    */
   async recalculateAfterUpdate() {
-    return await knex.raw(
+    debug(`recalculate update for  ${this.teamVariables.TeamName}`);
+    return knex.raw(
       `UPDATE levels
       inner join (SELECT *
     ,if(clears=0,0,round(((likes*2+clears)*score*likes/clears),1)) maker_points
@@ -2425,5 +2426,4 @@ class TS {
 TS.defaultChannels = defaultChannels;
 TS.TS_LIST = {};
 TS.UserError = UserError;
-TS.DiscordWrapper = DiscordWrapper;
 module.exports = TS;

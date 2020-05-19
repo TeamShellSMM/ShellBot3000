@@ -1,4 +1,5 @@
 const Teams = require('../../src/models/Teams')();
+const DiscordWrapper = require('../../src/DiscordWrapper');
 
 describe('misc-unit', function () {
   beforeEach(async () => {
@@ -100,17 +101,9 @@ describe('misc-unit', function () {
     );
   });
 
-  it('new TS no client', async function () {
-    assert.throws(
-      () => new TEST.TS('guild_id'),
-      Error,
-      'No client passed to TS()',
-    );
-  });
-
   it('new TS no guild found', async function () {
     assert.throws(
-      () => new TEST.TS('guild_id', TEST.client),
+      () => new TEST.TS('guild_id',DiscordWrapper),
       Error,
       'Cannot find discord server. Invalid guild_id or ShellBot is not on this server.',
     );

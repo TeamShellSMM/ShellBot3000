@@ -1,6 +1,8 @@
 const { Command } = require('discord-akairo');
 const TS = require('./TS.js');
 const DiscordLog = require('./DiscordLog');
+const debugError = require('debug')('shellbot3000:error');
+const debug = require('debug')('shellbot3000:TSCommand');
 
 class TSCommand extends Command {
   async tsexec(ts, message, args) {}
@@ -16,6 +18,7 @@ class TSCommand extends Command {
   }
 
   async exec(message, args) {
+    debug(`start ${message.content}`);
     let ts;
     try {
       ts = TS.teams(message.guild.id);
@@ -28,6 +31,7 @@ class TSCommand extends Command {
       args.command = ts.parse_command(message);
       await this.tsexec(ts, message, args);
     } catch (error) {
+      debugError(error);
       if (ts) {
         await TS.DiscordWrapper.reply(
           message,
@@ -42,6 +46,8 @@ class TSCommand extends Command {
     } finally {
       if (typeof TS.promisedCallback === 'function')
         TS.promisedCallback();
+
+      debug(`end ${message.content}`);
     }
   }
 }

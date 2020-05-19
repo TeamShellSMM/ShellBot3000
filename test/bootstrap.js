@@ -350,7 +350,7 @@ before(async () => {
 
   global.TEST.ts = await TEST.TS.add(
     process.env.TEST_GUILD,
-    global.TEST.client,
+    DiscordWrapper,
   );
 
   global.TEST.findChannel = ({ name, parentID }) => {
@@ -502,10 +502,12 @@ before(async () => {
     channel,
     discord_id,
     waitFor,
+    guildId,
   }) => {
     const guild = TEST.ts.getGuild();
     TEST.message.author.id = discord_id;
     TEST.message.content = cmd;
+    TEST.message.guild_id = guildId || process.env.TEST_GUILD;
     channel = channel || global.TEST.ts.channels.modChannel;
     if (/[^0-9]/.test(channel)) {
       TEST.message.channel = await guild.channels.find(
