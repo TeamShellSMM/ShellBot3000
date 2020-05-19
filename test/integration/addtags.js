@@ -128,6 +128,36 @@ describe('!addtags,!removetags', () => {
     assert.equal(level.tags, 'tag1,tag2,tag3');
   });
 
+  it('!addtag new-tag with space after comma', async () => {
+    assert.equal(
+      await TEST.mockBotSend({
+        cmd: '!addtags xxx-xxx-xxx tag1, new-tag',
+        channel: 'general',
+        discord_id: '256',
+      }),
+      '<@256> Tags added for "approved level" by "Creator" \nCurrent tags:```\ntag1\nnew-tag```',
+    );
+    const level = await TEST.ts.db.Levels.query()
+      .where({ code: 'XXX-XXX-XXX' })
+      .first();
+    assert.equal(level.tags, 'tag1,new-tag');
+  });
+
+  it('!addtag new-tag with 2 spaces after code', async () => {
+    assert.equal(
+      await TEST.mockBotSend({
+        cmd: '!addtags xxx-xxx-xxx   new-tag,tag1',
+        channel: 'general',
+        discord_id: '256',
+      }),
+      '<@256> Tags added for "approved level" by "Creator" \nCurrent tags:```\nnew-tag\ntag1```',
+    );
+    const level = await TEST.ts.db.Levels.query()
+      .where({ code: 'XXX-XXX-XXX' })
+      .first();
+    assert.equal(level.tags, 'new-tag,tag1');
+  });
+
   it('!addtag none added', async () => {
     assert.equal(
       await TEST.mockBotSend({

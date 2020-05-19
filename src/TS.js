@@ -2601,28 +2601,29 @@ class TS {
     if (!Array.isArray(tags))
       throw TypeError('not a string or array of strings');
 
-    let existing_tags = await trx('tags').where({
+    let existingTags = await trx('tags').where({
       guild_id: this.team.id,
     });
     const that = this;
-    existing_tags = existing_tags.map((t) => {
+    existingTags = existingTags.map((t) => {
       return { value: t.name, compare: that.transformTag(t.name) };
     });
     const newTags = [];
-    for (let i = 0; i < tags.length; i++) {
+    for (let i = 0; i < tags.length; i+=1) {
       if (tags[i]) {
-        const same_tag = existing_tags.find(
+        const sameTag = existingTags.find(
           (t) => this.transformTag(tags[i]) === t.compare,
         );
-        if (same_tag) {
-          tags[i] = same_tag.value;
+        if (sameTag) {
+          tags[i] = sameTag.value;
         } else {
-          existing_tags.push({
-            value: tags[i].trim(),
+          tags[i] = tags[i].trim()
+          existingTags.push({
+            value: tags[i],
             compare: this.transformTag(tags[i]),
           });
           newTags.push({
-            name: tags[i].trim(),
+            name: tags[i],
             guild_id: this.team.id,
           });
         }
