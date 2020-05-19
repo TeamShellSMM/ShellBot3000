@@ -2,9 +2,10 @@ global.TEST = {};
 const chai = require('chai');
 const { AkairoClient } = require('discord-akairo');
 const debug = require('debug');
+const DiscordWrapper = require('../src/DiscordWrapper');
 
-const debugDiscordLog = debug('shellbot3000:discordLog');
-const debugDiscordError = debug('shellbot3000:discordError');
+const debugDiscordLog = debug('shellbot3000:log');
+const debugDiscordError = debug('shellbot3000:error');
 const debugMockMessages = debug('shellbot3000:mockMessages');
 const WebApi = require('../src/WebApi');
 
@@ -42,13 +43,15 @@ before(async () => {
     'should have discord client right now',
   );
 
+  DiscordWrapper.setClient(TEST.client);
+
   const guild = TEST.client.guilds.get(process.env.TEST_GUILD);
   assert.exists(guild, 'TEST_GUILD needs to be valid');
-  const allow_testing = guild.channels.find(
+  const allowTesting = guild.channels.find(
     (channel) => channel.name === 'allow-shellbot-test-here',
   );
   assert(
-    !!allow_testing,
+    !!allowTesting,
     'The channel #allow-shellbot-test-here should exist in testing server and the testing bot should be able to see it.\nThe test script will nuke most of things in this server so make sure this is a server just for testing.',
   );
 
@@ -431,7 +434,7 @@ before(async () => {
       debugMockMessages(args);
       cache.push(args);
     }
-    TEST.ts.sendDM = (discord_id, msg) => {
+    TEST.ts.discord.dm = (discord_id, msg) => {
       collectReply(msg);
     };
     TEST.message.author.send = collectReply;
@@ -440,7 +443,7 @@ before(async () => {
       c.reply = collectReply;
     });
     return () => {
-      if (cache.length == 1) return cache[0];
+      if (cache.length === 1) return cache[0];
       return cache;
     };
   };

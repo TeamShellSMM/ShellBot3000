@@ -133,7 +133,7 @@ class TSApprove extends TSCommand {
 
     args.discord_id = message.author.id;
     const replyMessage = await ts.approve(args);
-    await message.reply(replyMessage);
+    await ts.discord.reply(message, replyMessage);
 
     // clear
     if (clearCommands.indexOf(command.command) !== -1) {
@@ -142,9 +142,7 @@ class TSApprove extends TSCommand {
         args.liked = 1;
       }
       const clearMessage = await ts.clear(args);
-      await this.client.channels
-        .get(ts.channels.commandFeed)
-        .send(clearMessage);
+      await ts.discord.send(ts.channels.commandFeed, clearMessage);
     }
   }
 }

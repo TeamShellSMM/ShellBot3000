@@ -4,6 +4,7 @@ const { AkairoClient } = require('discord-akairo');
 const TS = require('./TS.js');
 const DiscordLog = require('./DiscordLog');
 const WebApi = require('./WebApi');
+const DiscordWrapper = require('../src/DiscordWrapper');
 
 const devVars =
   process.NODE_ENV !== 'production'
@@ -50,6 +51,7 @@ client.on('ready', async () => {
   // main thread
   try {
     await client.login(process.env.DISCORD_TOKEN);
+    DiscordWrapper.setClient(client);
     const app = await WebApi(client);
     await app.listen(process.env.WEB_PORT, () =>
       DiscordLog.log(

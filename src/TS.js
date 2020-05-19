@@ -14,6 +14,17 @@ const PendingVotes = require('./models/PendingVotes');
 const Members = require('./models/Members');
 const Levels = require('./models/Levels');
 const Points = require('./models/Points');
+const DiscordWrapper = require('./DiscordWrapper');
+const debug = require('debug')('shellbot3000:ts');
+const {
+  defaultChannels,
+  defaultVariables,
+  LEVEL_STATUS,
+  PENDING_LEVELS,
+  SHOWN_IN_LIST,
+  REMOVED_LEVELS,
+} = require('./constants');
+const CONSTANTS = require('./constants');
 
 Handlebars.registerHelper('plural', function (_num) {
   const num = Number(_num);
@@ -26,334 +37,6 @@ Handlebars.registerHelper('1dp', function (num) {
     return Number(num).toFixed(1);
   return num;
 });
-
-const defaultChannels = [
-  {
-    name: 'modChannel',
-    default: 'bot-mod-channel',
-    description:
-      'The only channel where mod commands will work (approve,rerate). Only mods should be able to send/read channel',
-  },
-  {
-    name: 'initiateChannel',
-    default: 'bot-makerteam-initiation',
-    description:
-      'The channel where the member will be notified if they officially become a member. This channel should be read only to everybody',
-  },
-  {
-    name: 'levelChangeNotification',
-    default: 'bot-level-updates',
-    description:
-      'The channel where level approvals,rejections and rerates notifications are posted by the bot. This should be readonly to everyone',
-  },
-  {
-    name: 'commandFeed',
-    default: 'bot-command-feed',
-    description:
-      'This is where clears/likes and other commands from the web will be shown. This should be read only to everyone',
-  },
-  {
-    name: 'pendingReuploadCategory',
-    default: 'bot-pending-reupload',
-    description:
-      'The channel where level reuploads are discussed. Only mods should be able to send/read this category',
-  },
-  {
-    name: 'feedbackChannel',
-    default: 'bot-makerteam-feedback',
-    description:
-      'Channel where the anonymous feedback will be posted. This should be readonly for whoever can read the feedback',
-  },
-  {
-    name: 'levelDiscussionCategory',
-    default: 'bot-pending-discussion',
-    description:
-      'Channel category where pending channels will be created. Only mods should be able to send/read this category',
-  },
-];
-
-/**
- * Team settable Variables
- */
-const defaultVariables = [
-  {
-    name: 'TeamName',
-    caption: 'Team Name',
-    default: 'A Maker Team',
-    type: 'text',
-    description: 'Will be used by the bot in the reponses',
-  },
-  {
-    name: 'ModName',
-    caption: 'Mod Name',
-    default: 'Admin',
-    type: 'text',
-    description: "Will be refered to by the bot's response",
-  },
-  {
-    name: 'BotName',
-    caption: 'Bot Name',
-    default: 'ShellBot 3000',
-    type: 'text',
-    description:
-      "What the bot will refer to itself in it's responses",
-  },
-  {
-    name: 'Minimum Point',
-    caption: 'First Level Points',
-    default: 0,
-    type: 'number',
-    description:
-      'Minimum no. of points needed to submit their first level',
-  },
-  {
-    name: 'New Level',
-    caption: 'New Level Points',
-    default: 0,
-    type: 'number',
-    description: 'How many points needed to submit another level',
-  },
-  {
-    name: 'memberRole',
-    caption: 'Member Role',
-    default: '',
-    type: 'text',
-    description:
-      'Roles assigned when a member gets an approved level (name)',
-  },
-  {
-    name: 'memberRoleId',
-    caption: 'Member Role Id',
-    default: '',
-    type: 'text',
-    description:
-      'Roles assigned when a member gets an approved level',
-  },
-
-  {
-    name: 'maxDifficulty',
-    caption: 'Maximum Difficulty',
-    default: 10,
-    type: 'number',
-    description: 'The maximum allowed difficulty for this team.',
-  },
-  {
-    name: 'VotesNeeded',
-    caption: 'Votes Needed',
-    default: 1,
-    type: 'number',
-    description: 'How many mods needed to approve/reject  level',
-  },
-  {
-    name: 'ApprovalVotesNeeded',
-    caption: 'Approval Votes',
-    default: null,
-    type: 'number',
-    description: 'How many mods needed to approve a level',
-  },
-  {
-    name: 'RejectVotesNeeded',
-    caption: 'Reject Votes',
-    default: null,
-    type: 'number',
-    description: 'How many mods are needed to reject a level',
-  },
-  {
-    name: 'AgreeingVotesNeeded',
-    caption: 'Agreeing Votes',
-    default: null,
-    type: 'number',
-    description:
-      'How many approval/fix votes are needed in agreement (within the max difference of difficulty, and with no rejects) to allow judging',
-  },
-  {
-    name: 'AgreeingMaxDifference',
-    caption: 'Aggreeing Votes Difference',
-    default: null,
-    type: 'number',
-    step: '0.1',
-    description:
-      'How far apart the approval/fix votes can be to count as in agreement',
-  },
-
-  {
-    name: 'includeOwnPoints',
-    caption: 'Own Points',
-    default: false,
-    type: 'boolean',
-    description:
-      'Allow creator made levels to count with own points?',
-  },
-  {
-    name: 'allowSMM1',
-    caption: 'Allow SMM1',
-    default: false,
-    type: 'boolean',
-    description: 'Allow submissions of SMM1 levels',
-  },
-  {
-    name: 'discordAdminCanMod',
-    caption: 'Discord Admin Mod',
-    default: false,
-    type: 'boolean',
-    description: 'Allows anyone with admin role to mod for the team',
-  },
-
-  {
-    name: 'userErrorEmote',
-    caption: 'User Error Emote',
-    default: null,
-    type: 'text',
-    description:
-      'The default emote that will show when a user error occurs.',
-  },
-  {
-    name: 'criticalErrorEmote',
-    caption: 'Critical Error Emote',
-    default: null,
-    type: 'text',
-    description:
-      'The default emote of an error you should tell the devs about buzzyS',
-  },
-  {
-    name: 'updateEmote',
-    caption: 'Update Emote',
-    default: null,
-    type: 'text',
-    description:
-      'The default emote that will show when an update appears',
-  },
-  {
-    name: 'pogEmote',
-    caption: 'Pog Emote',
-    default: null,
-    type: 'text',
-    description:
-      'The default emote that will show when pog things happen',
-  },
-  {
-    name: 'loveEmote',
-    caption: 'Love Emote',
-    default: null,
-    type: 'text',
-    description: 'The default love emote used in some messages',
-  },
-  {
-    name: 'GGEmote',
-    caption: 'GG Emote',
-    default: null,
-    type: 'text',
-    description: 'GG emote shown in clear messages',
-  },
-
-  {
-    name: 'rejectedEmote',
-    caption: 'Rejected Level Emote',
-    default: null,
-    type: 'text',
-    description: 'Emote to be shown in level rejected messages',
-  },
-  {
-    name: 'approvedEmote',
-    caption: 'Approved Level Emote',
-    default: null,
-    type: 'text',
-    description: 'Emote to be shown in level approved messages',
-  },
-  {
-    name: 'needFixEmote',
-    caption: 'Fix Request Emote',
-    default: null,
-    type: 'text',
-    description: 'Emote to be shown in need fix messages',
-  },
-  {
-    name: 'judgementEmote',
-    caption: 'Judgement Emote',
-    default: null,
-    type: 'text',
-    description: 'Emote to be shown in approval votes embed for mods',
-  },
-  {
-    name: 'removeEmote',
-    caption: 'Remove Level Emote',
-    default: null,
-    type: 'text',
-    description: 'Emote to be shown in remove level messages',
-  },
-  {
-    name: 'undoEmote',
-    caption: 'Undo Remove Emote',
-    default: null,
-    type: 'text',
-    description: 'Emote to be shown in undo remove level messages',
-  },
-  {
-    name: 'rerateEmote',
-    caption: 'Level Rerate Emote',
-    default: null,
-    type: 'text',
-    description: 'Emote to be shown in rerate level messages',
-  },
-  {
-    name: 'randomEmote',
-    caption: 'Random Level Emote',
-    default: null,
-    type: 'text',
-    description: 'Emote to be shown in random level messages',
-  },
-];
-
-/**
- * Level statuses
- * @type {object}
- */
-const LEVEL_STATUS = {
-  PENDING: 0,
-  PENDING_APPROVED_REUPLOAD: 3,
-  PENDING_FIXED_REUPLOAD: 4,
-  PENDING_NOT_FIXED_REUPLOAD: 5,
-
-  NEED_FIX: -10,
-  APPROVED: 1,
-  REJECTED: -1,
-
-  REUPLOADED: 2,
-  REMOVED: -2,
-  USER_REMOVED: -3,
-};
-
-/**
- * Level status that are pending
- * @type {number[]}
- */
-const PENDING_LEVELS = [
-  LEVEL_STATUS.PENDING,
-  LEVEL_STATUS.PENDING_NOT_FIXED_REUPLOAD,
-  LEVEL_STATUS.PENDING_APPROVED_REUPLOAD,
-  LEVEL_STATUS.PENDING_FIXED_REUPLOAD,
-];
-
-/**
- * Level status that appears in the list
- * @type {number[]}
- */
-const SHOWN_IN_LIST = [
-  ...PENDING_LEVELS,
-  LEVEL_STATUS.NEED_FIX,
-  LEVEL_STATUS.APPROVED,
-];
-
-/**
- * Level status that doesn't appear in the list
- * @type {number[]}
- */
-const REMOVED_LEVELS = [
-  LEVEL_STATUS.REUPLOADED,
-  LEVEL_STATUS.REJECTED,
-  LEVEL_STATUS.REMOVED,
-  LEVEL_STATUS.USER_REMOVED,
-];
 
 /**
  * This is the main object that encapsulates all the various MakerTeam processes for a guild. Any methods called from an instance will only be for that guild
@@ -370,14 +53,19 @@ class TS {
     if (!client) {
       throw new Error(`No client passed to TS()`);
     }
+
+    this.discord = new DiscordWrapper(guildId);
+    this.CONSTANTS = CONSTANTS;
+    this.defaultVariables = defaultVariables;
+    this.LEVEL_STATUS = LEVEL_STATUS;
+    this.PENDING_LEVELS = PENDING_LEVELS;
+    this.SHOWN_IN_LIST = SHOWN_IN_LIST;
+    this.REMOVED_LEVELS = REMOVED_LEVELS;
+
     this.guild_id = guildId;
     this.client = client;
 
     this.guild = this.getGuild();
-    if (!this.guild)
-      throw new Error(
-        'Cannot find discord server. Invalid guild_id or ShellBot is not on this server.',
-      );
 
     this.devs = process.env.DEVS.split(',');
     this.page_url = process.env.PAGE_URL;
@@ -411,7 +99,6 @@ class TS {
         Points: Points(this.team.id, ts),
       };
 
-      this.defaultVariables = defaultVariables;
       this.url_slug = this.team.url_slug;
       this.config = JSON.parse(this.team.config) || {};
       this.web_config = this.team.web_config
@@ -434,12 +121,7 @@ class TS {
           config: JSON.stringify(this.config),
         }); // generate secure key if doesn't exist
       }
-      this.client = client;
       this.guild_id = guildId;
-      this.LEVEL_STATUS = LEVEL_STATUS;
-      this.PENDING_LEVELS = PENDING_LEVELS;
-      this.SHOWN_IN_LIST = SHOWN_IN_LIST;
-      this.REMOVED_LEVELS = REMOVED_LEVELS;
       this.knex = knex;
 
       const defaultVars = {
@@ -461,7 +143,7 @@ class TS {
         customStrings: 'strings',
       };
 
-      for (const key in dbToMap) {
+      for (const key of Object.keys(dbToMap)) {
         this[key] = { ...defaultVars[key] };
         const data = await knex('team_settings')
           .where({ guild_id: this.team.id })
@@ -489,13 +171,13 @@ class TS {
         this.validDifficulty.push(i / 10);
       }
 
-      const all_levels = await this.getLevels();
-      let all_tags = all_levels.map((l) => l.tags);
-      if (all_tags.length != 0) {
-        all_tags = all_tags.reduce((total, t) => `${total},${t}`);
+      const allLevels = await this.getLevels();
+      let allTags = allLevels.map((l) => l.tags);
+      if (allTags.length != 0) {
+        allTags = allTags.reduce((total, t) => `${total},${t}`);
       }
       await knex.transaction(async (trx) => {
-        await this.addTags(all_tags, trx);
+        await this.addTags(allTags, trx);
       });
 
       this.messages = this.getSettings('messages');
@@ -573,7 +255,6 @@ class TS {
       }
       await DiscordLog.log(
         `Data loaded for ${this.teamVariables.TeamName}`,
-        this.client,
       );
     };
     this.getPoints = function (difficulty) {
@@ -703,16 +384,7 @@ class TS {
           .where({ is_mod: null });
       });
     };
-    this.removeRankRoles = async function (discordId) {
-      const member = ts.getDiscordMember(discordId);
-      await member.removeRoles(this.ranks_ids);
-    };
-    this.addRankRoles = async function (discordId, roleId) {
-      const member = ts.getDiscordMember(discordId);
-      // if not has role
-      ts.removeRankRoles(discordId);
-      await member.addRole(roleId);
-    };
+
     /**
      * Method to add a level to MakerTeams
      */
@@ -811,7 +483,7 @@ class TS {
     /**
      * This will login the user to the site. The OTP token row will be generated by a new token that identifies the user
      */
-    this.login = async function (discord_id, row_id) {
+    this.login = async function (discord_id, rowId) {
       let bearer = this.generateToken(16);
       let existing = await ts.db.Tokens.query().where({
         token: bearer,
@@ -823,21 +495,12 @@ class TS {
           token: bearer,
         });
       }
-      await ts.db.Tokens.query().findById(row_id).patch({
+      await ts.db.Tokens.query().findById(rowId).patch({
         token: bearer,
         authenticated: 1,
       });
-      this.sendDM(discord_id, ts.message('website.loggedin'));
+      this.discord.dm(discord_id, ts.message('website.loggedin'));
       return bearer;
-    };
-    /**
-     * A helper function to help DM a discord user. To be mocked in tests
-     */
-    this.sendDM = async function (discord_id, message) {
-      await client.guilds
-        .get(guildId)
-        .members.get(discord_id)
-        .send(message);
     };
     /**
      * A function that checks if a token is valid and returns the discord_id
@@ -1297,7 +960,7 @@ class TS {
       if (typeof obj === 'object' && obj.type == 'user') {
         return obj.msg + ts.message('error.afterUserDiscord');
       }
-      DiscordLog.error(ts.makeErrorObj(obj, message), ts.client);
+      DiscordLog.error(ts.makeErrorObj(obj, message));
       return ts.message('error.unknownError');
     };
     /**
@@ -1310,13 +973,10 @@ class TS {
           message: obj.msg + ts.message('error.afterUserWeb'),
         };
       }
-      DiscordLog.error(
-        {
-          error: obj.stack ? obj.stack : obj,
-          url_slug: this.url_slug,
-        },
-        ts.client,
-      );
+      DiscordLog.error({
+        error: obj.stack ? obj.stack : obj,
+        url_slug: this.url_slug,
+      });
       return {
         status: 'error',
         message: ts.message('error.unknownError'),
@@ -1611,52 +1271,41 @@ class TS {
       // generate judgement embed
       if (!args.skip_update) {
         const voteEmbed = await ts.makeVoteEmbed(level);
-        const { channel } = await ts.discussionChannel(
+        await ts.discussionChannel(
           level.code,
           ts.channels.levelDiscussionCategory,
         );
-        await ts.updatePinned(channel, voteEmbed);
-        return ts.message(replyMsg, { channel_id: channel.id });
+        await ts.updatePinned(level.code, voteEmbed);
+        return ts.message(replyMsg, {
+          channel_id: this.discord.channel(level.code).id,
+        });
       }
     };
     /**
      * Helper function to create a discussion channel in the right parent. If there is already a channel, we will move the channel to the right one
-     * @param {string} channel_name channel name to find
+     * @param {string} channelName channel name to find
      * @param {Snowflake} parentID id of the parent category
-     * @param {string} [old_channel_name] if given, the function will try to find the old name first and will be renamed to channel_name if found
+     * @param {string} [oldChannelName] if given, the function will try to find the old name first and will be renamed to channel_name if found
      * @param {LevelRow} level
      * @return {Channel} returns a Discord Channel or either the created or found channel
      */
     this.discussionChannel = async (
-      channel_name,
+      channelName,
       parentID,
-      old_channel_name,
-      level,
+      oldChannelName,
     ) => {
-      if (!channel_name)
-        throw new TypeError('undefined channel_name');
+      if (!channelName) throw new TypeError('undefined channel_name');
       if (!parentID) throw new TypeError('undefined parentID');
-      const guild = ts.getGuild();
       let created = false;
-      const tooManyChannelsError = ts.message(
-        parentID === ts.channels.levelDiscussionCategory
-          ? 'approval.tooManyDiscussionChannels'
-          : 'reupload.tooManyReuploadChannels',
-      );
-      let discussionChannel = guild.channels.find(
-        (channel) => channel.name === channel_name.toLowerCase(),
-      );
-      if (old_channel_name) {
-        const old_channel = guild.channels.find(
-          (channel) =>
-            channel.name === old_channel_name.toLowerCase(),
-        );
-        if (old_channel) {
+      let discussionChannel = ts.discord.channel(channelName);
+      if (oldChannelName) {
+        const oldChannel = ts.discord.channel(oldChannelName);
+        if (oldChannel) {
           if (!discussionChannel) {
-            await old_channel.setName(channel_name.toLowerCase());
-            discussionChannel = old_channel;
+            await oldChannel.setName(channelName.toLowerCase());
+            discussionChannel = oldChannel;
           } else {
-            await old_channel.delete('duplicate channel');
+            await oldChannel.delete('duplicate channel');
             DiscordLog.error(
               'Duplicate channel found for `old_channel_name` reupload to `channel_name`. deleting `old_channel_name`',
             );
@@ -1664,20 +1313,14 @@ class TS {
         }
       }
       if (!discussionChannel) {
-        if (guild.channels.get(parentID).children.size === 50) {
-          ts.userError(tooManyChannelsError);
-        }
-        discussionChannel = await guild.createChannel(channel_name, {
-          type: 'text',
-          parent: guild.channels.get(parentID),
+        await ts.discord.createChannel(channelName, {
+          parent: parentID,
         });
         created = true;
-      } else if (discussionChannel.parentID != parentID) {
-        if (guild.channels.get(parentID).children.size === 50)
-          ts.userError(tooManyChannelsError);
-        await discussionChannel.setParent(parentID);
       }
-      return { channel: discussionChannel, created };
+
+      await ts.discord.setChannelParent(channelName, parentID);
+      return { channel: channelName, created };
     };
     /**
      *  Helper function to check if a channel exists, then post an overviem message and pin it if there are no pins or update it if there are pins
@@ -1685,10 +1328,12 @@ class TS {
      * @param {RichEmbed} embed Discord Rich Embed
      * @throws {TypeError} Will throw type errors if the arguments are not provided
      */
-    this.updatePinned = async (channel, embed) => {
-      // console.time('pinned')
-      if (!channel) throw new TypeError('channel_name undefined');
+    this.updatePinned = async (channelName, embed) => {
+      if (!channelName) throw new TypeError('channel name undefined');
       if (!embed) throw new TypeError('embed not defined');
+
+      const channel = this.discord.channel(channelName);
+
       let overviewMessage =
         process.env.NODE_ENV !== 'test'
           ? (await channel.fetchPinnedMessages()).last()
@@ -1699,13 +1344,11 @@ class TS {
       } else {
         await overviewMessage.edit(embed);
       }
-      // console.timeEnd('pinned')
     };
     /**
      * @description This function will initiate any passed discord member object. Will set is_member=1 in the database and assign the member role. An initiation message will also be sent to the initiation channel
      */
     this.initiate = async (author) => {
-      const guild = ts.getGuild();
       if (author.is_member != 1) {
         await ts.db.Members.query()
           .patch({ is_member: 1 })
@@ -1713,25 +1356,23 @@ class TS {
         /* istanbul ignore if */
         if (author.discord_id) {
           // doesn't work with mocked user method here.
-          const curr_user = await guild.members.get(
-            author.discord_id,
-          );
-          if (curr_user) {
+          if (this.discord.member(author.discord_id)) {
             // assign role
-            await curr_user.addRole(ts.teamVariables.memberRoleId);
-            await client.channels
-              .get(ts.channels.initiateChannel)
-              .send(
-                ts.message('initiation.message', {
-                  discord_id: author.discord_id,
-                }),
-              );
+            await this.discord.addRole(
+              author.discord_id,
+              ts.teamVariables.memberRoleId,
+            );
+            await this.discord.send(
+              ts.channels.initiateChannel,
+              ts.message('initiation.message', {
+                discord_id: author.discord_id,
+              }),
+            );
           } else {
             DiscordLog.error(
               ts.message('initiation.userNotInDiscord', {
                 name: author.name,
               }),
-              ts.client,
             ); // not a breaking error.
           }
         }
@@ -1769,7 +1410,7 @@ class TS {
       approvalVotesCount = 0,
       fixVotesCount = 0,
       rejectVotesCount = 0,
-      is_fix = false,
+      isFix = false,
     }) => {
       const fixAndApproveVoteCount =
         fixVotesCount + approvalVotesCount;
@@ -1797,11 +1438,11 @@ class TS {
         fixAndApproveVoteCount / approvalVotesNeeded;
       let statusUpdate;
       if (
-        (!is_fix &&
+        (!isFix &&
           approvalRatio >= 1 &&
           approvalRatio > rejectionRatio &&
           approvalRatio >= fixRatio) ||
-        (is_fix &&
+        (isFix &&
           approvalFixRatio >= 1 &&
           approvalFixRatio > rejectionRatio)
       ) {
@@ -1813,7 +1454,7 @@ class TS {
       ) {
         statusUpdate = ts.LEVEL_STATUS.REJECTED;
       } else if (
-        !is_fix && // never reassign fix vote
+        !isFix && // never reassign fix vote
         fixApproveRatio >= 1 &&
         fixApproveRatio !== rejectionRatio &&
         (approvalRatio < 1 ||
@@ -1902,7 +1543,7 @@ class TS {
         approvalVotesCount: approvalVotes.length,
         rejectVotesCount: rejectVotes.length,
         fixVotesCount: fixVotes.length,
-        is_fix: fromFix,
+        isFix: fromFix,
       });
       let difficulty;
       if (statusUpdate == ts.LEVEL_STATUS.APPROVED) {
@@ -1941,13 +1582,15 @@ class TS {
         ...fixVotes,
         ...rejectVotes,
       ]);
-      await client.channels
-        .get(ts.channels.levelChangeNotification)
-        .send(mention);
-      await client.channels
-        .get(ts.channels.levelChangeNotification)
-        .send(judgeEmbed);
-      // Remove Discussion Channel
+      await this.discord.send(
+        ts.channels.levelChangeNotification,
+        mention,
+      );
+      await this.discord.send(
+        ts.channels.levelChangeNotification,
+        judgeEmbed,
+      );
+
       await ts.deleteDiscussionChannel(
         level.code,
         ts.message('approval.channelDeleted'),
@@ -1989,12 +1632,14 @@ class TS {
         `Rejected by <@${shellder.id}>: \`\`\`\n${message}\n\`\`\``,
       );
       this.embedComments(embed, allVotes);
-      await client.channels
-        .get(ts.channels.levelChangeNotification)
-        .send(mention);
-      await client.channels
-        .get(ts.channels.levelChangeNotification)
-        .send(embed);
+      await this.discord.send(
+        ts.channels.levelChangeNotification,
+        mention,
+      );
+      await this.discord.send(
+        ts.channels.levelChangeNotification,
+        embed,
+      );
       // Remove Discussion Channel
       await ts.deleteDiscussionChannel(
         code,
@@ -2128,12 +1773,14 @@ class TS {
         `**Reason** :\`\`\`${reason}\`\`\`-<@${messageAuthor.id}>`,
       );
 
-      await client.channels
-        .get(ts.channels.levelChangeNotification)
-        .send(mention);
-      await client.channels
-        .get(ts.channels.levelChangeNotification)
-        .send(finishFixRequestEmbed);
+      await this.discord.send(
+        ts.channels.levelChangeNotification,
+        mention,
+      );
+      await this.discord.send(
+        ts.channels.levelChangeNotification,
+        finishFixRequestEmbed,
+      );
       // Remove Discussion Channel
       await ts.deleteDiscussionChannel(
         level.code,
@@ -2158,15 +1805,15 @@ class TS {
       const hash = crypto.createHmac('sha512', salt);
       hash.update(`${ip} - ${discordId}`);
       const value = hash.digest('hex');
-      await client.channels
-        .get(ts.channels.feedbackChannel)
-        .send(
-          `**[${value.slice(0, 8)}]**\n> ${message.replace(
-            /\n/g,
-            '\n> ',
-          )}`,
-        );
+      await this.discord.send(
+        ts.channels.feedbackChannel,
+        `**[${value.slice(0, 8)}]**\n> ${message.replace(
+          /\n/g,
+          '\n> ',
+        )}`,
+      );
     };
+
     this.levelEmbed = function (level, args = {}, titleArgs) {
       let { color, title, image, noLink } = args;
       let vidStr = [];
@@ -2185,7 +1832,7 @@ class TS {
           );
       });
       tagStr = tagStr.join(',');
-      let embed = client.util
+      let embed = this.discord
         .embed()
         .setColor(color || '#007bff')
         .setTitle(`${level.level_name} (${level.code})`)
@@ -2369,13 +2016,16 @@ class TS {
           reason || '',
         );
 
-        await channel.send(
+        await ts.discord.send(
+          newCode,
           ts.message('reupload.reuploadNotify', {
             oldCode,
             newCode,
           }),
         );
-        await channel.send(
+
+        await ts.discord.send(
+          newCode,
           `Reupload Request for <@${author.discord_id}>'s level with message: ${reason}`,
         );
 
@@ -2415,7 +2065,7 @@ class TS {
    * @returns {Guild}
    */
   getGuild() {
-    return this.client.guilds.get(this.guild_id);
+    return this.discord.guild();
   }
 
   /**
@@ -2609,7 +2259,7 @@ class TS {
       return { value: t.name, compare: that.transformTag(t.name) };
     });
     const newTags = [];
-    for (let i = 0; i < tags.length; i+=1) {
+    for (let i = 0; i < tags.length; i += 1) {
       if (tags[i]) {
         const sameTag = existingTags.find(
           (t) => this.transformTag(tags[i]) === t.compare,
@@ -2617,7 +2267,7 @@ class TS {
         if (sameTag) {
           tags[i] = sameTag.value;
         } else {
-          tags[i] = tags[i].trim()
+          tags[i] = tags[i].trim();
           existingTags.push({
             value: tags[i],
             compare: this.transformTag(tags[i]),
@@ -2774,29 +2424,9 @@ class TS {
       `This team, with guild id ${guild_id} has not yet setup it's config, buzzyS`,
     );
   }
-  /**
-   * Registers a new team when they run it in a discord server that is not registered
-   */
-  /*
-  static async create(args, client, gs) {
-    if (!args)
-      throw new Error(`No arguments passed to TS.create`);
-    const { guild_id } = args;
-    const Team = require('./models/Teams.js')();
-    let existingTeam = await Team.query().where({ guild_id }).first();
-    if (!existingTeam) {
-      await Team.query().insert(args);
-      let existingTeam = await Team.query().where({ guild_id }).first();
-      return await TS.add(existingTeam.guild_id, existingTeam, client, gs);
-    }
-    else {
-      throw new Error(`Server already registered as ${existingTeam.guild_name}`);
-    }
-  }
-  */
 }
 TS.defaultChannels = defaultChannels;
 TS.TS_LIST = {};
 TS.UserError = UserError;
-
+TS.DiscordWrapper = DiscordWrapper;
 module.exports = TS;

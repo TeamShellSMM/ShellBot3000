@@ -70,14 +70,16 @@ class TSRerate extends TSCommand {
         `**Reason** :\n\`\`\`${reason}\`\`\`Rerated by <@${message.member.id}>`,
       );
 
-    const levelChangeChannel = await this.client.channels.get(
-      ts.channels.levelChangeNotification,
-    );
-
     const mention = `**<@${author.discord_id}>, we got some news for you: **`;
-    await levelChangeChannel.send(mention);
-    await levelChangeChannel.send(rerateEmbed);
-    await message.reply(ts.message('difficulty.success'));
+    await ts.discord.send(
+      ts.channels.levelChangeNotification,
+      mention,
+    );
+    await ts.discord.send(
+      ts.channels.levelChangeNotification,
+      rerateEmbed,
+    );
+    await ts.discord.reply(message, ts.message('difficulty.success'));
   }
 }
 module.exports = TSRerate;

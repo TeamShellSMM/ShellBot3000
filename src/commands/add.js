@@ -12,10 +12,10 @@ class tsadd extends TSCommand {
     const command = ts.parse_command(message);
     let code = command.arguments.shift();
     if (code) code = code.toUpperCase();
-    const level_name = command.arguments.join(' ');
+    const levelName = command.arguments.join(' ');
     const { reply, player } = await ts.addLevel({
       code,
-      level_name,
+      level_name: levelName,
       discord_id: message.author.id,
     });
     await message.channel.send(player.user_reply + reply);

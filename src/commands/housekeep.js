@@ -35,7 +35,7 @@ class housekeep extends TSCommand {
         }
       }
     }
-    await message.reply('Housekeeping done');
+    await ts.discord.reply(message, 'Housekeeping done');
   }
 }
 

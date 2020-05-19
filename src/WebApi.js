@@ -823,13 +823,10 @@ module.exports = async function (client) {
         req.body.discord_id = await ts.checkBearerToken(
           req.body.token,
         );
-        var user = await ts.getUser(req.body.discord_id);
+        const user = await ts.getUser(req.body.discord_id);
       }
 
-      const json = await generateMembersJson(
-        ts,
-        req.body,
-      );
+      const json = await generateMembersJson(ts, req.body);
       return json;
     }),
   );
@@ -858,7 +855,7 @@ module.exports = async function (client) {
       await ts.getUser(req.body.discord_id);
 
       const msg = await ts.clear(req.body);
-      await client.channels.get(ts.channels.commandFeed).send(msg);
+      await ts.discord.send(ts.channels.commandFeed, msg);
       const json = { status: 'sucessful', msg: msg };
       return json;
     }),
@@ -880,9 +877,7 @@ module.exports = async function (client) {
       const msg = await ts.approve(req.body);
       const clearmsg = await ts.clear(req.body);
 
-      await client.channels
-        .get(ts.channels.commandFeed)
-        .send(clearmsg);
+      await ts.discord.send(ts.channels.commandFeed, clearmsg);
       json = { status: 'sucessful', msg: msg };
       return json;
     }),

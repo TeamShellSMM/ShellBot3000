@@ -194,11 +194,11 @@ describe('misc-unit', function () {
   it('ts.updatePinned no parameters', async () => {
     await TEST.ts.updatePinned().catch((e) => {
       assert.instanceOf(e, TypeError);
-      assert.equal(e.message, 'channel_name undefined');
+      assert.equal(e.message, 'channel name undefined');
     });
     await TEST.ts.updatePinned('channel-name').catch((e) => {
       assert.instanceOf(e, TypeError);
-      assert.equal(e.message, 'embed not defined');
+      assert.equal(e.message, 'embed not defined', 'here2');
     });
   });
 

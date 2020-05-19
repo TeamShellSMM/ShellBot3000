@@ -53,7 +53,8 @@ class TSRegister extends TSCommand {
       discord_name: message.author.username,
     });
 
-    await message.reply(
+    await ts.discord.reply(
+      message,
       ts.message('register.success', { name: nickname }),
     );
   }

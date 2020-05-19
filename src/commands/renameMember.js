@@ -56,7 +56,8 @@ class RenameMember extends TSCommand {
       .patch({ name: newName })
       .where({ discord_id: discordId });
 
-    await message.reply(
+    await ts.discord.reply(
+      message,
       `"${oldName}" has been renamed to "${newName}"`,
     );
   }

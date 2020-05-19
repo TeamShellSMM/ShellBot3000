@@ -101,7 +101,7 @@ class TSRefuseFix extends TSCommand {
     const replyMessage =
       "Your level was put in the reupload queue, we'll get back to you in a bit!";
 
-    await message.reply(replyMessage);
+    await ts.discord.reply(message,replyMessage);
   }
 }
 module.exports = TSRefuseFix;

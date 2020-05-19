@@ -22,7 +22,6 @@ class TSCommand extends Command {
       if (!(await this.canRun(ts, message))) {
         DiscordLog.log(
           ts.makeErrorObj(`can't run: ${message.content}`, message),
-          ts.client,
         );
         return false;
       }
@@ -30,9 +29,12 @@ class TSCommand extends Command {
       await this.tsexec(ts, message, args);
     } catch (error) {
       if (ts) {
-        await message.reply(ts.getUserErrorMsg(error, message));
+        await TS.DiscordWrapper.reply(
+          message,
+          ts.getUserErrorMsg(error, message),
+        );
       } else {
-        await message.reply(error);
+        await TS.DiscordWrapper.reply(message, error);
         DiscordLog.log(error, this.client);
       }
 

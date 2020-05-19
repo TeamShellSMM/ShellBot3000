@@ -32,7 +32,10 @@ class ResetLevelStatus extends TSCommand {
         new_code: null,
       })
       .where({ code });
-    await message.reply(ts.message('resetStatus.succesful', level));
+    await ts.discord.reply(
+      message,
+      ts.message('resetStatus.succesful', level),
+    );
   }
 }
 

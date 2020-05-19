@@ -128,7 +128,8 @@ class InitChannels extends TSCommand {
 */
 
     await ts.load();
-    await message.reply(
+    await ts.discord.reply(
+      message,
       change ? 'Commands done' : 'Nothing was done',
     );
   }
