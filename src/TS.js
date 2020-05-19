@@ -2609,7 +2609,7 @@ class TS {
       return { value: t.name, compare: that.transformTag(t.name) };
     });
     const newTags = [];
-    for (let i = 0; i < tags.length; i+=1) {
+    for (let i = 0; i < tags.length; i += 1) {
       if (tags[i]) {
         const sameTag = existingTags.find(
           (t) => this.transformTag(tags[i]) === t.compare,
@@ -2617,7 +2617,7 @@ class TS {
         if (sameTag) {
           tags[i] = sameTag.value;
         } else {
-          tags[i] = tags[i].trim()
+          tags[i] = tags[i].trim();
           existingTags.push({
             value: tags[i],
             compare: this.transformTag(tags[i]),

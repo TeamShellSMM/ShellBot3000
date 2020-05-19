@@ -13,10 +13,19 @@ class login extends TSCommand {
     const player = await ts.getUser(message);
     const otp = await ts.generateOtp(message.author.id);
     const loginLink = ts.generateLoginLink(otp);
-    await message.author.send(
-      player.user_reply +
-        ts.message('login.reply', { loginLink: loginLink }),
-    );
+    try {
+      await message.author.send(
+        player.user_reply +
+          ts.message('login.reply', { loginLink: loginLink }),
+      );
+    } catch (error) {
+      // Only log the error if it is not an Unknown Message error
+      if (error.code === 50007) {
+        ts.userError('login.failedReply');
+      } else {
+        throw error;
+      }
+    }
   }
 }
 module.exports = login;
