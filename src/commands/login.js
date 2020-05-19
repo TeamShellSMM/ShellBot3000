@@ -16,7 +16,15 @@ class login extends TSCommand {
     await message.author.send(
       player.user_reply +
         ts.message('login.reply', { loginLink: loginLink }),
-    );
+    ).catch(error => {
+      // Only log the error if it is not an Unknown Message error
+      if (error.code === 50007) {
+        await message.reply(
+          player.user_reply +
+            ts.message('login.failedReply')
+        );
+      }
+    });;
   }
 }
 module.exports = login;
