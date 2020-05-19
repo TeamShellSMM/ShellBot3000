@@ -3,6 +3,7 @@ const moment = require('moment');
 const jwt = require('jsonwebtoken');
 const stringSimilarity = require('string-similarity');
 const Handlebars = require('handlebars');
+const debug = require('debug')('shellbot3000:ts');
 const knex = require('./db/knex');
 const DEFAULTMESSAGES = require('./DefaultStrings.js');
 const DiscordLog = require('./DiscordLog');
@@ -15,7 +16,6 @@ const Members = require('./models/Members');
 const Levels = require('./models/Levels');
 const Points = require('./models/Points');
 const DiscordWrapper = require('./DiscordWrapper');
-const debug = require('debug')('shellbot3000:ts');
 const {
   defaultChannels,
   defaultVariables,
@@ -49,9 +49,6 @@ class TS {
   constructor(guildId, client) {
     if (!guildId) {
       throw new Error(`No guild_id was passed to TS()`);
-    }
-    if (!client) {
-      throw new Error(`No client passed to TS()`);
     }
 
     this.discord = new DiscordWrapper(guildId);
@@ -92,11 +89,11 @@ class TS {
       this.db = {
         Teams: Team,
         Tokens,
-        Plays: Plays(this.team.id, ts),
-        PendingVotes: PendingVotes(this.team.id, ts),
-        Members: Members(this.team.id, ts),
-        Levels: Levels(this.team.id, ts),
-        Points: Points(this.team.id, ts),
+        Plays: Plays(this.team.id),
+        PendingVotes: PendingVotes(this.team.id),
+        Members: Members(this.team.id),
+        Levels: Levels(this.team.id),
+        Points: Points(this.team.id),
       };
 
       this.url_slug = this.team.url_slug;
@@ -318,12 +315,12 @@ class TS {
     this.teamAdmin = (discord_id) => {
       if (!discord_id) return false;
       const guild = ts.getGuild();
-      const discord_user = guild.members.get(discord_id);
+      const discordUser = guild.members.get(discord_id);
       return (
         (Array.isArray(this.devs) &&
           this.devs.includes(discord_id)) ||
         guild.owner.user.id == discord_id ||
-        (discord_user && discord_user.hasPermission('ADMINISTRATOR'))
+        (discordUser && discordUser.hasPermission('ADMINISTRATOR'))
       );
     };
 
@@ -1554,7 +1551,7 @@ class TS {
         for (let i = 0; i < difficultyArr.length; i++) {
           const diff = parseFloat(difficultyArr[i].difficulty_vote);
           if (!Number.isNaN(diff)) {
-            diffCounter++;
+            diffCounter += 1;
             diffSum += diff;
           }
         }
@@ -1686,7 +1683,7 @@ class TS {
           for (let i = 0; i < difficultyArr.length; i++) {
             const diff = parseFloat(difficultyArr[i].difficulty_vote);
             if (!Number.isNaN(diff)) {
-              diffCounter++;
+              diffCounter += 1;
               diffSum += diff;
             }
           }
@@ -1793,9 +1790,7 @@ class TS {
           'No code given to this.deleteDiscussionChannel',
         );
       if (this.valid_code(code.toUpperCase())) {
-        const levelChannel = this.getGuild().channels.find(
-          (channel) => channel.name === code.toLowerCase(),
-        );
+        const levelChannel = this.discord.channel(code);
         if (levelChannel) {
           await levelChannel.delete(reason);
         }
@@ -2042,7 +2037,8 @@ class TS {
           modPings += `<@${mod.discord_id}> `;
         }
         if (modPings) {
-          await channel.send(
+          await this.discord.send(
+            newCode,
             `${modPings}please check if your fixes were made.`,
           );
         }
@@ -2223,9 +2219,9 @@ class TS {
   findChannel({ name, parentID }) {
     const guild = this.getGuild();
     const channel = guild.channels.find(
-      (channel) =>
-        (!parentID || (parentID && channel.parentID === parentID)) &&
-        channel.name === name.toLowerCase(),
+      (c) =>
+        (!parentID || (parentID && c.parentID === parentID)) &&
+        c.name === name.toLowerCase(),
     );
     return channel;
   }
