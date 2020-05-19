@@ -553,7 +553,8 @@ class TS {
       if (code == null) return false;
       return (
         this.is_smm2(code) ||
-        (this.teamVariables.allowSMM1 == 'true' && this.is_smm1(code))
+        (this.teamVariables.allowSMM1 === 'true' &&
+          this.is_smm1(code))
       );
     };
     /**
@@ -664,7 +665,7 @@ class TS {
         ts.userError(ts.message('error.noCode'));
       }
       code = code.toUpperCase();
-      if (difficulty && isNaN(difficulty)) {
+      if (difficulty && Number.isNaN(Number(difficulty))) {
         ts.userError(ts.message('clear.invalidDifficulty'));
       }
       if (difficulty) {
