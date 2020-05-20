@@ -144,6 +144,7 @@ class TSApprove extends TSCommand {
       const clearMessage = await ts.clear(args);
       await ts.discord.send(ts.channels.commandFeed, clearMessage);
     }
+    return true;
   }
 }
 module.exports = TSApprove;

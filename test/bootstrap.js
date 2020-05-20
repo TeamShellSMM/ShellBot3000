@@ -396,7 +396,7 @@ before(async () => {
 
   global.TEST.setupData = async (data) => {
     debugTests('setup data');
-    const ret = await TEST.knex.transaction(async (trx) => {
+    await TEST.knex.transaction(async (trx) => {
       await TEST.clearDb(trx);
       for (const i in data) {
         for (let j = 0; j < data[i].length; j += 1) {

@@ -373,6 +373,19 @@ describe('misc-unit', function () {
     assert.notExists(reply);
   });
 
+  it('ts.generateOTP multiple hit @curr', async () => {
+    assert.lengthOf(TEST.ts.generateToken(), 16);
+    await TEST.ts.db.Tokens.query().insert({
+      discord_id: '128',
+      token: '123',
+    });
+    const token = sinon.stub(TEST.ts, 'generateToken');
+    token.onCall(0).returns('123');
+    token.onCall(1).returns('456');
+    const newToken = await TEST.ts.generateUniqueToken();
+    assert.equal(newToken, '456');
+  });
+
   it('ts.secureData and verifyData', async () => {
     const rawData = [
       { id: 1, value: 1 },

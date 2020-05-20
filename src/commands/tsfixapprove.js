@@ -49,6 +49,8 @@ class TSFixApprove extends TSCommand {
     )
       ts.userError(ts.message('fixApprove.notInChannel', { code }));
 
+    if (!reason) ts.userError('fixApprove.noReason');
+
     let approving = false;
 
     if (
@@ -58,17 +60,12 @@ class TSFixApprove extends TSCommand {
       approving = true;
     }
 
-    let replyMessage = '';
-    if (reason) {
-      replyMessage = await ts.finishFixRequest(
-        code,
-        message.author,
-        reason,
-        approving,
-      );
-    } else {
-      ts.userError(ts.message('fixApprove.noReason'));
-    }
+    await ts.finishFixRequest(
+      code,
+      message.author,
+      reason,
+      approving,
+    );
   }
 }
 module.exports = TSFixApprove;

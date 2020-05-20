@@ -52,7 +52,7 @@ class undoremovelevel extends TSCommand {
       `**Notes on level status undo** :\`\`\`${reason}\`\`\`-<@${player.discord_id}>`,
     );
 
-    if (level.creator != player.name) {
+    if (level.creator !== player.name) {
       // moderation
       const creator = await ts.db.Members.query()
         .where({ name: level.creator })

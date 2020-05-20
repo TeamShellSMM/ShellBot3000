@@ -163,7 +163,8 @@ module.exports = async function (client) {
       if (makerDetails) {
         json.maker = makerDetails;
         if (json.maker.length > 0) {
-          json.maker = json.maker[0];
+          const [maker] = json.maker;
+          json.maker = maker;
           delete json.maker.discord_id;
           delete json.maker.guild_id;
           json.plays = await ts
@@ -174,7 +175,7 @@ module.exports = async function (client) {
     }
 
     if (dashboard) {
-      const [memberStats, fields] = await knex.raw(
+      const [memberStats] = await knex.raw(
         `
         SELECT sum(members.is_member) official
           ,count(members.id)-sum(members.is_member) unoffocial
@@ -409,10 +410,10 @@ module.exports = async function (client) {
       .where({ guild_id: ts.team.id })
       .orderBy('start_date');
 
-    let end_date = '2038-01-19 03:14:08';
+    let endDate = '2038-01-19 03:14:08';
     for (let i = seasons.length - 1; i >= 0; i--) {
-      seasons[i].end_date = end_date;
-      end_date = seasons[i].start_date;
+      seasons[i].end_date = endDate;
+      endDate = seasons[i].start_date;
     }
     data.season = data.season || seasons.length;
 
@@ -702,8 +703,8 @@ module.exports = async function (client) {
         });
 
         for (let i = 0; i < data.length; i += 1) {
-          const current_id = data[i].id;
-          const new_data = {
+          const currentID = data[i].id;
+          const newData = {
             id: data[i].id,
             name: data[i].name,
             synonymous_to: data[i].synonymous_to,
@@ -730,26 +731,26 @@ module.exports = async function (client) {
               ? 1
               : 0,
           };
-          if (current_id) {
+          if (currentID) {
             const existing = existing_tags.find(
-              (t) => t.id == current_id,
+              (t) => t.id == currentID,
             );
             if (!existing) ts.userError('error.hadIdButNotInDb');
-            if (!deepEqual(new_data, existing)) {
-              new_data.updated_at = moment().format(
+            if (!deepEqual(newData, existing)) {
+              newData.updated_at = moment().format(
                 'YYYY-MM-DD HH:mm:ss',
               );
-              new_data.admin_id = req.user.id;
+              newData.admin_id = req.user.id;
               await trx('tags')
-                .update(new_data)
-                .where({ id: new_data.id });
+                .update(newData)
+                .where({ id: newData.id });
               updated = true;
             }
           } else {
             delete data[i].id;
-            new_data.guild_id = ts.team.id;
-            new_data.admin_id = req.user.id;
-            await trx('tags').insert(new_data);
+            newData.guild_id = ts.team.id;
+            newData.admin_id = req.user.id;
+            await trx('tags').insert(newData);
             updated = true;
           }
         }

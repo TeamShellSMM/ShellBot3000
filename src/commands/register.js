@@ -15,7 +15,7 @@ class TSRegister extends TSCommand {
     });
   }
 
-  async tsexec(ts, message, args) {
+  async tsexec(ts, message) {
     const player = await ts.db.Members.query()
       .where({ discord_id: message.author.id })
       .first();
