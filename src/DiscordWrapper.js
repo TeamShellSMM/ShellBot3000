@@ -1,3 +1,4 @@
+const debug = require('debug')('shellbot3000:discord');
 /**
  * The wrapper ShellBot uses to connect to Discord
  */
@@ -45,6 +46,7 @@ class DiscordWrapper {
   }
 
   async renameChannel(oldName, newName) {
+    debug(`renaming ${oldName} to ${newName}`);
     const oldChannel = this.channel(oldName);
     const newChannel = this.channel(newName);
 
@@ -53,10 +55,12 @@ class DiscordWrapper {
   }
 
   async createChannel(name, { type = 'text', parent }) {
+    debug(`creating ${name}`);
     const existingChannel = this.channel(name);
     const parentCategory =
       typeof parent === 'string' ? this.channel(parent) : parent;
     if (existingChannel) {
+      debug(`${name} exists`);
       return this.setChannelParent(name, parent);
     }
     this.checkChannelFull(parent);
@@ -85,6 +89,7 @@ class DiscordWrapper {
       parentCategory &&
       channel.parentID !== parentCategory.id
     ) {
+      debug(`Changing ${search} to be under ${parent}`);
       return channel.setParent(parentCategory.id);
     }
     return true;
@@ -95,6 +100,7 @@ class DiscordWrapper {
   }
 
   async send(search, message) {
+    debug(`Sending ${message} to '${search}'`);
     return this.channel(search).send(message);
   }
 

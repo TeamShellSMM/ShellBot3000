@@ -203,31 +203,6 @@ describe('registration', function () {
     );
   });
 
-  /*
-app.post('/json/login', web_ts(async (ts,req) => {
-      let returnObj={}
-      if(!req.body.otp)
-        TEST.ts.userError(TEST.ts.message("login.noOTP"));
-
-      let token=await TEST.ts.db.Tokens.query()
-        .where('token','=',req.body.otp)
-
-      if(token.length){
-        token=token[0]
-        let tokenExpireAt=moment(token.created_at).add(30,'m').valueOf()
-        let now=moment().valueOf()
-        if(tokenExpireAt<now)
-          TEST.ts.userError(TEST.ts.message("login.expiredOTP"))
-        let user=await TEST.ts.getUser(token.discord_id);
-        let bearer=await TEST.ts.login(token.discord_id,token.id)
-        returnObj={status:"logged_in",type:"bearer","discord_id":user.discord_id,"token":bearer,"user_info":user}
-      } else {
-        TEST.ts.userError(TEST.ts.message("login.invalidToken"))
-      }
-
-      return returnObj
-  }));
-  */
   it('POST /json/login no data', async function () {
     const { body } = await TEST.request(app)
       .post('/json/login')
@@ -250,14 +225,6 @@ app.post('/json/login', web_ts(async (ts,req) => {
       'Error with no slug',
     );
   });
-
-  /*
-    it('POST /json/login errors', async function () {
-      await TEST.request(app)
-        .post('/json/login')
-        .send({ url_slug:'wrong_slug' })
-        .expect(404)
-    }) */
 
   let token;
   it('POST /json/login succesful', async function () {

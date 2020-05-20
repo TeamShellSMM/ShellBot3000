@@ -172,15 +172,26 @@ describe('!points', function () {
     );
   });
 
-  /* currently doesn't work with how we mock the discord
   it('!points role, get discord role', async function () {
-    await TEST.clearUserBot()
-    await TEST.ts.db.Members.query().patch({clear_score_sum:5}).where({discord_id:'128'})
-    assert.equal(await TEST.mockBotSend({
-      cmd: '!points role',
-      channel: 'general',
-      discord_id: '128',
-    }),'<@128> You have 1.0 clear point. You have submitted 0 level(s) .You need  points to upload a new level . Check how the points are mapped on http://localhost:8080//makerteam You have earned the rank **no rank** ')
-  })
-  // */
+    const addRole = sinon.stub(TEST.ts.discord, 'addRole');
+    const removeRoles = sinon.stub(TEST.ts.discord, 'removeRoles');
+    await TEST.ts.db.Members.query()
+      .patch({ clear_score_sum: 5 })
+      .where({ discord_id: '128' });
+    assert.equal(
+      await TEST.mockBotSend({
+        cmd: '!points role',
+        channel: 'general',
+        discord_id: '128',
+      }),
+      '<@128> You have 5.0 clear points. You have submitted 0 levels .You need 5.0 more points to upload a new level . Check how the points are mapped on http://localhost:8080//makerteam You have earned the rank **rank1** ',
+    );
+
+    sinon.assert.calledOnce(addRole);
+    sinon.assert.calledOnce(removeRoles);
+    sinon.assert.callOrder(removeRoles, addRole);
+    sinon.assert.calledWith(removeRoles, '128', TEST.ts.rank_ids);
+    sinon.assert.calledWith(addRole, '128'); // add rank
+    sinon.restore();
+  });
 });

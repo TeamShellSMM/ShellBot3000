@@ -59,7 +59,7 @@ class AmmendCode extends TSCommand {
         channel.parentID === ts.channels.levelDiscussionCategory,
     );
     if (existingChannel) {
-      await existingChannel.setName(newCode.toLowerCase());
+      await ts.discord.renameChannel(oldCode, newCode);
     }
 
     await ts.discord.reply(

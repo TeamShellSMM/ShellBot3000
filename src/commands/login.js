@@ -14,7 +14,8 @@ class login extends TSCommand {
     const otp = await ts.generateOtp(message.author.id);
     const loginLink = ts.generateLoginLink(otp);
     try {
-      await message.author.send(
+      await ts.discord.dm(
+        message.author.id,
         player.user_reply +
           ts.message('login.reply', { loginLink: loginLink }),
       );

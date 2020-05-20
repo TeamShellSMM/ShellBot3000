@@ -98,8 +98,17 @@ describe('!refusefix', function () {
           difficulty: 2,
         },
       ],
+      PendingVotes: [
+        {
+          player: 2,
+          code: 2,
+          type: 'fix',
+          reason: 'Needs fixing',
+        },
+      ],
     };
 
+    await TEST.clearChannels()
     await TEST.setupData(initData);
     TEST.ts.teamVariables['Minimum Point'] = 0;
     TEST.ts.teamVariables['New Level'] = 0;

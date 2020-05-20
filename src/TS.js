@@ -1300,7 +1300,7 @@ class TS {
         const oldChannel = ts.discord.channel(oldChannelName);
         if (oldChannel) {
           if (!discussionChannel) {
-            await oldChannel.setName(channelName.toLowerCase());
+            await this.discord.renameChannel(oldChannelName,channelName);
             discussionChannel = oldChannel;
           } else {
             await oldChannel.delete('duplicate channel');

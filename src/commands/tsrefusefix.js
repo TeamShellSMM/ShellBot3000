@@ -77,20 +77,21 @@ class TSRefuseFix extends TSCommand {
     );
 
     const fixVotes = await ts
-        .getPendingVotes()
-        .where('levels.id', level.id)
-        .where('type', 'fix');
+      .getPendingVotes()
+      .where('levels.id', level.id)
+      .where('type', 'fix');
 
-    let modPings = "";
-    for(let fixVote of fixVotes){
+    let modPings = '';
+    for (const fixVote of fixVotes) {
       const mod = await ts.db.Members.query()
         .where({ name: fixVote.player })
         .first();
-      modPings += `<@${mod.discord_id}> `
+      modPings += `<@${mod.discord_id}> `;
     }
-    if(modPings){
-      await discussionChannel.send(
-        modPings + `please check if your fixes were made.`,
+    if (modPings) {
+      await ts.discord.send(
+        code,
+        `${modPings}please check if your fixes were made.`,
       );
     }
 
@@ -101,7 +102,7 @@ class TSRefuseFix extends TSCommand {
     const replyMessage =
       "Your level was put in the reupload queue, we'll get back to you in a bit!";
 
-    await ts.discord.reply(message,replyMessage);
+    await ts.discord.reply(message, replyMessage);
   }
 }
 module.exports = TSRefuseFix;
