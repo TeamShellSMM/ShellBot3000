@@ -624,15 +624,8 @@ class TS {
      * @return {string} A response string to be sent to the user.
      */
     this.clear = async (args = {}) => {
-      let {
-        discord_id,
-        code,
-        completed,
-        liked,
-        difficulty,
-        strOnly,
-        player_atme,
-      } = args;
+      let { code, completed, liked, difficulty } = args;
+      const { discord_id, strOnly, player_atme: playerAtMe } = args;
 
       if (!discord_id) ts.userError(ts.message('error.noDiscordId'));
       if (difficulty === 'like') {
@@ -796,7 +789,7 @@ class TS {
           );
         }
       }
-      const userReply = player_atme
+      const userReply = playerAtMe
         ? player.userReply_atme
         : player.userReply;
       return (
@@ -815,7 +808,7 @@ class TS {
      */
     this.processClearMessage = function ({ msg, creatorStr, level }) {
       const levelPlaceholder = this.customStrings.levelInfo;
-      let level_str = ts.message('clear.levelInfo', {
+      let levelStr = ts.message('clear.levelInfo', {
         level,
         creator: creatorStr,
       });
@@ -824,9 +817,9 @@ class TS {
       const levelPronoun = ts.message('clear.levelPronoun');
       for (let i = 0; i < msg.length; i += 1) {
         if (msg[i]) {
-          msg[i] = msg[i].replace(levelPlaceholder, level_str);
+          msg[i] = msg[i].replace(levelPlaceholder, levelStr);
           if (i > 1) msg[i] = msg[i].replace(singleHave, manyHave);
-          level_str = levelPronoun;
+          levelStr = levelPronoun;
         }
       }
       return `\n${msg.join('\n')}`;
@@ -983,12 +976,9 @@ class TS {
     /**
      * Gets a random level based on plays of the player/passed players and difficulty
      */
-    this.randomLevel = async function ({
-      discord_id,
-      players,
-      minDifficulty,
-      maxDifficulty,
-    }) {
+    this.randomLevel = async function (args) {
+      const { discord_id, players } = args;
+      let { minDifficulty, maxDifficulty } = args;
       if (minDifficulty && !ts.valid_difficulty(minDifficulty)) {
         ts.userError(
           maxDifficulty
@@ -1009,7 +999,7 @@ class TS {
       }
       const min = parseFloat(minDifficulty) || 1;
       const max = parseFloat(maxDifficulty) || min;
-      let _players;
+      let playerIds;
       const player =
         discord_id != null ? await ts.getUser(discord_id) : null;
       if (players) {
@@ -1018,37 +1008,39 @@ class TS {
           'name',
           playerNames,
         );
-        _players = [];
-        rawPlayers.forEach((p) => {
-          _players.push(p.id);
-          if (playerNames.indexOf(p.name) === -1) {
-            ts.userError(
-              ts.message('random.playerNotFound', { player: p.name }),
-            );
-          }
-        });
-        if (_players.length === 0)
+        if (rawPlayers.length === 0)
           ts.userError(ts.message('random.noPlayersGiven'));
+        playerIds = [];
+        const dbPlayerNames = rawPlayers.map((n) => n.name);
+        if (rawPlayers.length !== playerNames.length) {
+          this.userError('random.playerNotFound', {
+            player: playerNames.find(
+              (n) => !dbPlayerNames.includes(n),
+            ),
+          });
+        }
+
+        playerIds = rawPlayers.map((p) => p.id);
       } else if (player) {
-        _players = [player.id];
+        playerIds = [player.id];
       }
-      const playsSQL1 = _players
+      const playsSQL1 = playerIds
         ? `
     left join plays on levels.id=plays.code
     and plays.player in (:players:)
     and completed=1`
         : '';
-      const playsSQL2 = _players
+      const playsSQL2 = playerIds
         ? `and creator not in (:players:)`
         : '';
-      const playsSQL3 = _players ? `and plays.id is null` : '';
+      const playsSQL3 = playerIds ? `and plays.id is null` : '';
       const par = {
         team_id: ts.team.id,
         min,
         max,
-        players: _players,
+        players: playerIds,
       };
-      const [filtered_levels] = await knex.raw(
+      const [filteredLevels] = await knex.raw(
         `
     SELECT levels.*,members.name creator from
     levels
@@ -1064,21 +1056,21 @@ class TS {
     order by likes;`,
         par,
       );
-      if (filtered_levels.length == 0) {
+      if (filteredLevels.length === 0) {
         ts.userError(
           ts.message('random.outOfLevels', {
             range: min == max ? min : `${min}-${max}`,
           }),
         );
       }
-      const borderLine = Math.floor(filtered_levels.length * 0.6);
+      const borderLine = Math.floor(filteredLevels.length * 0.6);
       let randNum;
       if (Math.random() < 0.2) {
         randNum = ts.getRandomInt(0, borderLine);
       } else {
-        randNum = ts.getRandomInt(borderLine, filtered_levels.length);
+        randNum = ts.getRandomInt(borderLine, filteredLevels.length);
       }
-      const level = filtered_levels[randNum];
+      const level = filteredLevels[randNum];
       return {
         player: player,
         level: level,
@@ -1095,7 +1087,9 @@ class TS {
      */
     this.getUser = async function (message) {
       const discord_id =
-        message && message.author ? message.author.id : message;
+        message && message.author
+          ? ts.discord.getAuthor(message)
+          : message;
       if (!discord_id) {
         this.userError('error.noDiscordId');
       }
@@ -1121,7 +1115,7 @@ class TS {
     /**
      * This extends the levelEmbed and add all the pending votes associated with this level. to be used in the level discussion channels
      */
-    this.makeVoteEmbed = async function (level, reupload_comment) {
+    this.makeVoteEmbed = async function (level, reuploadComment) {
       const approveVotes = await ts
         .getPendingVotes()
         .where('levels.id', level.id)
@@ -1161,10 +1155,10 @@ class TS {
             ts.message('pending.fixReuploadDescription'),
           );
       }
-      if (reupload_comment) {
+      if (reuploadComment) {
         voteEmbed.addField(
           `Creator (${level.creator_name}) reupload comment:`,
-          `\`\`\`\n${reupload_comment}\n\`\`\``,
+          `\`\`\`\n${reuploadComment}\n\`\`\``,
         );
       }
       let postString = ts.message('approval.approvalVotes');
@@ -1222,10 +1216,11 @@ class TS {
         }
       }
       // Check if level is approved, if it's approved only allow rejection
-      if (level.status === ts.LEVEL_STATUS.APPROVED) {
-        if (args.type === 'approve') {
-          ts.userError(ts.message('approval.levelAlreadyApproved'));
-        }
+      if (
+        level.status === ts.LEVEL_STATUS.APPROVED &&
+        args.type === 'approve'
+      ) {
+        ts.userError(ts.message('approval.levelAlreadyApproved'));
       } else if (!PENDING_LEVELS.includes(level.status)) {
         ts.userError(ts.message('approval.levelNotPending'));
       }
@@ -1317,32 +1312,28 @@ class TS {
      * @description This function will initiate any passed discord member object. Will set is_member=1 in the database and assign the member role. An initiation message will also be sent to the initiation channel
      */
     this.initiate = async (author) => {
-      if (author.is_member != 1) {
-        await ts.db.Members.query()
-          .patch({ is_member: 1 })
-          .where({ discord_id: author.discord_id });
-        /* istanbul ignore if */
-        if (author.discord_id) {
-          // doesn't work with mocked user method here.
-          if (this.discord.member(author.discord_id)) {
-            // assign role
-            await this.discord.addRole(
-              author.discord_id,
-              ts.teamVariables.memberRoleId,
-            );
-            await this.discord.send(
-              ts.channels.initiateChannel,
-              ts.message('initiation.message', {
-                discord_id: author.discord_id,
-              }),
-            );
-          } else {
-            DiscordLog.error(
-              ts.message('initiation.userNotInDiscord', {
-                name: author.name,
-              }),
-            ); // not a breaking error.
-          }
+      if (author.is_member === 1) return false;
+      await ts.db.Members.query()
+        .patch({ is_member: 1 })
+        .where({ discord_id: author.discord_id });
+      if (author.discord_id) {
+        if (this.discord.member(author.discord_id)) {
+          await this.discord.addRole(
+            author.discord_id,
+            ts.teamVariables.memberRoleId,
+          );
+          await this.discord.send(
+            ts.channels.initiateChannel,
+            ts.message('initiation.message', {
+              discord_id: author.discord_id,
+            }),
+          );
+        } else {
+          DiscordLog.error(
+            ts.message('initiation.userNotInDiscord', {
+              name: author.name,
+            }),
+          ); // not a breaking error.
         }
       }
     };
@@ -1372,14 +1363,15 @@ class TS {
      * @throws {UserError} if there is a tie
      * @throws {UserError} if there is not enough votes
      */
-    this.processVotes = ({
-      approvalVotesNeeded = 0,
-      fixVotesNeeded = 0,
-      approvalVotesCount = 0,
-      fixVotesCount = 0,
-      rejectVotesCount = 0,
-      isFix = false,
-    }) => {
+    this.processVotes = (args) => {
+      let {
+        approvalVotesNeeded = 0,
+        fixVotesNeeded = 0,
+        approvalVotesCount = 0,
+        fixVotesCount = 0,
+        rejectVotesCount = 0,
+        isFix = false,
+      } = args;
       const fixAndApproveVoteCount =
         fixVotesCount + approvalVotesCount;
       const VotesNeeded = parseInt(ts.teamVariables.VotesNeeded, 10);
@@ -1635,8 +1627,8 @@ class TS {
       let difficulty;
       if (approve) {
         if (
-          level.status == ts.LEVEL_STATUS.PENDING_FIXED_REUPLOAD ||
-          level.status == ts.LEVEL_STATUS.PENDING_NOT_FIXED_REUPLOAD
+          level.status === ts.LEVEL_STATUS.PENDING_FIXED_REUPLOAD ||
+          level.status === ts.LEVEL_STATUS.PENDING_NOT_FIXED_REUPLOAD
         ) {
           // If it was in a fix request before we get the difficulty from the pending votes
           const approvalVotes = await ts
@@ -1660,7 +1652,7 @@ class TS {
           }
           difficulty = Math.round((diffSum / diffCounter) * 2) / 2;
         } else if (
-          level.status == ts.LEVEL_STATUS.PENDING_APPROVED_REUPLOAD
+          level.status === ts.LEVEL_STATUS.PENDING_APPROVED_REUPLOAD
         ) {
           // If the level was approved before we get the difficulty from the approved level (gotta get the latest one though)
           const oldLevel = await ts
@@ -1836,7 +1828,7 @@ class TS {
     };
     this.reuploadLevel = async function (message) {
       const player = await ts.db.Members.query()
-        .where({ discord_id: message.author.id })
+        .where({ discord_id: ts.discord.getAuthor(message) })
         .first();
       if (!player) ts.userError(ts.message('error.notRegistered'));
       const command = ts.parseCommand(message);
@@ -1863,7 +1855,7 @@ class TS {
       if (!reason) ts.userError(ts.message('reupload.giveReason'));
       const earnedPoints = await ts.calculatePoints(player.name);
       const rank = ts.getRank(earnedPoints.clearPoints);
-      const userReply = `<@${message.author.id}>${
+      const userReply = `<@${ts.discord.getAuthor(message)}>${
         rank.pips ? rank.pips : ''
       } `;
       const level = await ts
@@ -1893,7 +1885,7 @@ class TS {
       )
         ts.userError(ts.message('reupload.wrongApprovedStatus'));
       // Reupload means you're going to replace the old one so need to do that for upload check
-      const creator_points = await ts.calculatePoints(
+      const creatorPoints = await ts.calculatePoints(
         level.creator,
         ts.SHOWN_IN_LIST.includes(level.status),
       );
@@ -1908,18 +1900,18 @@ class TS {
         !(
           ts.SHOWN_IN_LIST.includes(level.status) ||
           (!ts.SHOWN_IN_LIST.includes(level.status) &&
-            creator_points.canUpload)
+            creatorPoints.canUpload)
         )
       ) {
         ts.userError(ts.message('reupload.notEnoughPoints'));
       }
-      if (!(level.creator_id == player.id || player.is_mod)) {
+      if (!(level.creator_id === player.id || player.is_mod)) {
         ts.userError(ts.message('reupload.noPermission', level));
       }
       await ts.db.Levels.query()
         .patch({
           status:
-            level.status == ts.LEVEL_STATUS.APPROVED
+            level.status === ts.LEVEL_STATUS.APPROVED
               ? ts.LEVEL_STATUS.REUPLOADED
               : ts.LEVEL_STATUS.REMOVED,
           old_status: level.status,
@@ -2259,7 +2251,7 @@ class TS {
    * @param {RowPacket[]} data Rows of data probably from the database. expects to contain an id and a guild_id
    * @returns {RowPacket[]} returns the same data but with signed values to verify id
    */
-  secure_data(data) {
+  secureData(data) {
     return data.map((d) => {
       d.__SECURE = jwt.sign(
         {
@@ -2273,11 +2265,11 @@ class TS {
 
   /**
    * Helper function to help verified secure data being recieved. Checks for id
-   * @param {RowPacket[]} data Rows of data recieved from user. each row should contain __SECURE created in secure_data
+   * @param {RowPacket[]} data Rows of data recieved from user. each row should contain __SECURE created in secureData
    * @returns {RowPacket[]} returns the same data but removes __SECURE after verifying it.
    * @throws {UserError} returns an error if the id in the row does not match the one in __SECURE
    */
-  verify_data(data) {
+  verifyData(data) {
     return data.map((d) => {
       if (d.id) {
         if (!d.__SECURE) {

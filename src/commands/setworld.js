@@ -50,9 +50,10 @@ class SetWorld extends TSCommand {
         world_level_count: levelCount,
         world_description: worldName,
       })
-      .where({ discord_id: message.author.id });
+      .where({ discord_id: ts.discord.getAuthor(message) });
 
-    message.channel.send(
+    ts.discord.messageSend(
+      message,
       player.userReply + ts.message('setworld.success'),
     );
   }

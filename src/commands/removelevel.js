@@ -72,7 +72,7 @@ class tsremove extends TSCommand {
     );
 
     const reply = ts.message('removeLevel.success', level);
-    await message.channel.send(player.userReply + reply);
+    await ts.discord.messageSend(message, player.userReply + reply);
   }
 }
 module.exports = tsremove;

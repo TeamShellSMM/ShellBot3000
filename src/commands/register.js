@@ -17,7 +17,7 @@ class TSRegister extends TSCommand {
 
   async tsexec(ts, message) {
     const player = await ts.db.Members.query()
-      .where({ discord_id: message.author.id })
+      .where({ discord_id: ts.discord.getAuthor(message) })
       .first();
     if (player && player.is_banned) {
       ts.userError(ts.message('error.userBanned'));
@@ -49,7 +49,7 @@ class TSRegister extends TSCommand {
 
     await ts.db.Members.query().insert({
       name: nickname,
-      discord_id: message.author.id, // insert as string
+      discord_id: ts.discord.getAuthor(message), // insert as string
       discord_name: message.author.username,
     });
 

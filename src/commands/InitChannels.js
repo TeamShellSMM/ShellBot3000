@@ -121,7 +121,7 @@ class InitChannels extends TSCommand {
                     newChannelHelp=newChannel;
                     embed.setDescription('```fix\n'+c.Description+'\n```') // You can move this channel for organization**\n**You can delete this message**\n<a:SHELLBOTTED:666097068640829440>
                 }
-                await newChannelHelp.send(`<@${message.author.id}>`)
+                await newChannelHelp.send(`<@${ts.discord.getAuthor(message)}>`)
                 await newChannelHelp.send(embed)
             }
         }

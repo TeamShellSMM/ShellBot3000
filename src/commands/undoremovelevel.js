@@ -69,7 +69,7 @@ class undoremovelevel extends TSCommand {
     );
 
     const reply = ts.message('undoRemoveLevel.success', level);
-    await message.channel.send(player.userReply + reply);
+    await ts.discord.messageSend(message, player.userReply + reply);
   }
 }
 module.exports = undoremovelevel;

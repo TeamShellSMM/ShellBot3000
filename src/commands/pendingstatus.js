@@ -43,7 +43,8 @@ class PendingStatus extends TSCommand {
 
       return `${level.code} - "${level.level_name}":\n •${statusStr}\n`;
     });
-    await message.channel.send(
+    await ts.discord.messageSend(
+      message,
       `${player.userReply}\nYour Pending Levels:\`\`\`${levelStr.join(
         '\n',
       )}\n\`\`\``,

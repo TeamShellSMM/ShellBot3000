@@ -44,10 +44,64 @@ describe('!random / !playersRandom', function () {
 
   it('no players', async function () {
     const result = await TEST.mockBotSend({
+      cmd: '!playersRandom',
+      channel: 'general',
+      discord_id: '256',
+    });
+    assert.equal(result, 'You did not provide any players ');
+  });
+
+  it('no players', async function () {
+    const result = await TEST.mockBotSend({
       cmd: '!playersRandom 3',
       channel: 'general',
       discord_id: '256',
     });
     assert.equal(result, 'You did not provide any players ');
+  });
+
+  it('unknown player @curr', async function () {
+    const result = await TEST.mockBotSend({
+      cmd: '!playersRandom Mod,Other 1 10',
+      channel: 'general',
+      discord_id: '256',
+    });
+    assert.equal(result, 'Other is not found in the memory banks ');
+  });
+
+  it('!random check difficulty min only', async function () {
+    const result = await TEST.mockBotSend({
+      cmd: '!random 1',
+      channel: 'general',
+      discord_id: '256',
+    });
+    assert.equal(
+      result,
+      'You have ran out of levels in this range (1) ',
+    );
+  });
+
+  it('!random check difficulty swapped min and max', async function () {
+    const result = await TEST.mockBotSend({
+      cmd: '!random 3 1',
+      channel: 'general',
+      discord_id: '256',
+    });
+    assert.equal(
+      result,
+      'You have ran out of levels in this range (1-3) ',
+    );
+  });
+
+  it('!random check difficulty', async function () {
+    const result = await TEST.mockBotSend({
+      cmd: '!random 1 3',
+      channel: 'general',
+      discord_id: '256',
+    });
+    assert.equal(
+      result,
+      'You have ran out of levels in this range (1-3) ',
+    );
   });
 });

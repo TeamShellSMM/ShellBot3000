@@ -36,7 +36,7 @@ class TSRename extends TSCommand {
       new_level_name: levelName,
       ...level,
     });
-    await message.channel.send(player.userReply + reply);
+    await ts.discord.messageSend(message, player.userReply + reply);
   }
 }
 module.exports = TSRename;

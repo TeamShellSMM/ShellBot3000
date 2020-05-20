@@ -21,7 +21,7 @@ class RenameMember extends TSCommand {
   }
 
   async canRun(ts, message) {
-    return ts.modOnly(message.author.id);
+    return ts.modOnly(ts.discord.getAuthor(message));
   }
 
   async tsexec(ts, message, { discordId, _newName }) {

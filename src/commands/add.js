@@ -16,9 +16,9 @@ class tsadd extends TSCommand {
     const { reply, player } = await ts.addLevel({
       code,
       level_name: levelName,
-      discord_id: message.author.id,
+      discord_id: ts.discord.getAuthor(message),
     });
-    await message.channel.send(player.userReply + reply);
+    await ts.discord.messageSend(message, player.userReply + reply);
   }
 }
 module.exports = tsadd;

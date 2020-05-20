@@ -17,10 +17,11 @@ class TSDiscussChannel extends TSCommand {
   }
 
   async canRun(ts, message) {
-    return ts.modOnly(message.author.id);
+    return ts.modOnly(ts.discord.getAuthor(message));
   }
 
-  async tsexec(ts, message, { code }) {
+  async tsexec(ts, message, args) {
+    let { code } = args;
     // Check if in level discussion channel
     if (ts.valid_code(message.channel.name.toUpperCase())) {
       code = message.channel.name.toUpperCase();

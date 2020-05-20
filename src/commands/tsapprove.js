@@ -45,7 +45,7 @@ class TSApprove extends TSCommand {
     });
   }
 
-  async tsexec(ts, message, args) {
+  async tsexec(ts, message, pArgs) {
     /*
         Possible command syntax:
         !tsapprove code difficulty reason
@@ -80,6 +80,7 @@ class TSApprove extends TSCommand {
       'fix+lc',
     ];
 
+    const args = pArgs;
     const command = ts.parseCommand(message);
     let inCodeDiscussionChannel = false;
 
@@ -131,7 +132,7 @@ class TSApprove extends TSCommand {
       args.type = 'approve';
     }
 
-    args.discord_id = message.author.id;
+    args.discord_id = ts.discord.getAuthor(message);
     const replyMessage = await ts.approve(args);
     await ts.discord.reply(message, replyMessage);
 

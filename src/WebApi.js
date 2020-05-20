@@ -661,7 +661,7 @@ module.exports = async function (client) {
           'is_hidden',
         )
         .where({ guild_id: ts.team.id });
-      return { data: ts.secure_data(data) };
+      return { data: ts.secureData(data) };
     }),
   );
 
@@ -672,7 +672,7 @@ module.exports = async function (client) {
       if (!(await ts.teamAdmin(req.body.discord_id)))
         ts.userError(ts.message('website.forbidden'));
       if (!req.body.data) ts.userError('website.noDataSent');
-      const data = ts.verify_data(req.body.data);
+      const data = ts.verifyData(req.body.data);
 
       let updated = false;
       await ts.knex.transaction(async (trx) => {
@@ -756,7 +756,7 @@ module.exports = async function (client) {
         }
         return trx;
       });
-      return { data: updated ? 'tags updated' : 'No tags updated' }; // {data:ts.secure_data(data)}
+      return { data: updated ? 'tags updated' : 'No tags updated' }; // {data:ts.secureData(data)}
     }),
   );
 

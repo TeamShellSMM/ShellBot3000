@@ -21,9 +21,11 @@ class tsdifficulty extends TSCommand {
   }
 
   async tsexec(ts, message, args) {
-    args.discord_id = message.author.id;
-    const msg = await ts.clear(args);
-    await message.channel.send(msg);
+    const msg = await ts.clear({
+      ...args,
+      discord_id: ts.discord.getAuthor(message),
+    });
+    await ts.discord.messageSend(message, msg);
   }
 }
 module.exports = tsdifficulty;

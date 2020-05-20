@@ -18,9 +18,10 @@ class UnsetWorld extends TSCommand {
         world_level_count: 0,
         world_description: '',
       })
-      .where({ discord_id: message.author.id });
+      .where({ discord_id: ts.discord.getAuthor(message) });
 
-    message.channel.send(
+    ts.discord.messageSend(
+      message,
       player.userReply + ts.message('unsetworld.success'),
     );
   }

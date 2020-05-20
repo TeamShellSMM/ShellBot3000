@@ -373,7 +373,7 @@ describe('misc-unit', function () {
     assert.notExists(reply);
   });
 
-  it('ts.generateOTP multiple hit @curr', async () => {
+  it('ts.generateOTP multiple hit', async () => {
     assert.lengthOf(TEST.ts.generateToken(), 16);
     await TEST.ts.db.Tokens.query().insert({
       discord_id: '128',
@@ -393,11 +393,11 @@ describe('misc-unit', function () {
       { id: 3, value: 1 },
       { value: 4 },
     ];
-    const secureData = TEST.ts.secure_data(rawData);
-    const verifiedData = TEST.ts.verify_data(secureData);
+    const secureData = TEST.ts.secureData(rawData);
+    const verifiedData = TEST.ts.verifyData(secureData);
     assert.lengthOf(verifiedData, 4);
     try {
-      TEST.ts.verify_data(rawData);
+      TEST.ts.verifyData(rawData);
     } catch (error) {
       assert.instanceOf(error, TEST.ts.UserError);
       assert.equal(
@@ -408,7 +408,7 @@ describe('misc-unit', function () {
 
     try {
       secureData[0].id = 4;
-      TEST.ts.verify_data(secureData);
+      TEST.ts.verifyData(secureData);
     } catch (error) {
       assert.instanceOf(error, TEST.ts.UserError);
       assert.equal(
@@ -419,7 +419,7 @@ describe('misc-unit', function () {
 
     try {
       secureData[0].__SECURE = 'wrong token';
-      TEST.ts.verify_data(secureData);
+      TEST.ts.verifyData(secureData);
     } catch (error) {
       assert.instanceOf(error, TEST.ts.UserError);
       assert.equal(

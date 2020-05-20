@@ -45,6 +45,14 @@ class DiscordWrapper {
     return channel.children.size;
   }
 
+  getAuthor(message) {
+    return message.author.id;
+  }
+
+  async messageSend(message, msg) {
+    return message.channel.send(msg);
+  }
+
   async renameChannel(oldName, newName) {
     debug(`renaming ${oldName} to ${newName}`);
     const oldChannel = this.channel(oldName);

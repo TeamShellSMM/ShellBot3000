@@ -219,7 +219,7 @@ describe('registration', function () {
     dm.restore();
   });
 
-  it('!login unknown error @curr', async function () {
+  it('!login unknown error', async function () {
     const dm = sinon.stub(TEST.ts.discord, 'dm');
     dm.throws(new Error('unknown'));
     const result = await TEST.mockBotSend({

@@ -20,11 +20,11 @@ class tslike extends TSCommand {
     const command = ts.parseCommand(message);
     const clearArgs = {
       ...args,
-      discord_id: message.author.id,
+      discord_id: ts.discord.getAuthor(message),
       liked: likeCommands.includes(command.command) ? 1 : 0,
     };
     const msg = await ts.clear(clearArgs);
-    await message.channel.send(msg);
+    await ts.discord.messageSend(message, msg);
   }
 }
 module.exports = tslike;

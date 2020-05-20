@@ -47,9 +47,10 @@ class MakerId extends TSCommand {
 
     await ts.db.Members.query()
       .patch({ maker_id: code, maker_name: name })
-      .where({ discord_id: message.author.id });
+      .where({ discord_id: ts.discord.getAuthor(message) });
 
-    message.channel.send(
+    await ts.discord.messageSend(
+      message,
       player.userReply +
         ts.message('makerid.success', { code, name }),
     );

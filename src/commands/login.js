@@ -10,11 +10,11 @@ class login extends TSCommand {
 
   async tsexec(ts, message) {
     const player = await ts.getUser(message);
-    const otp = await ts.generateOtp(message.author.id);
+    const otp = await ts.generateOtp(ts.discord.getAuthor(message));
     const loginLink = ts.generateLoginLink(otp);
     try {
       await ts.discord.dm(
-        message.author.id,
+        ts.discord.getAuthor(message),
         player.userReply +
           ts.message('login.reply', { loginLink: loginLink }),
       );

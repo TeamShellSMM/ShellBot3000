@@ -117,7 +117,7 @@ class TSAddvids extends TSCommand {
       .patch({ videos: oldVids.join(',') })
       .where({ code });
 
-    await message.channel.send(player.userReply + reply);
+    await ts.discord.messageSend(message, player.userReply + reply);
   }
 }
 module.exports = TSAddvids;

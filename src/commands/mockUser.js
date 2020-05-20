@@ -31,17 +31,18 @@ class mockUser extends TSCommand {
 
     await ts.db.Members.query()
       .patch({ discord_id: player.discord_id_temp || '1' })
-      .where({ discord_id: message.author.id });
+      .where({ discord_id: ts.discord.getAuthor(message) });
 
     await ts.db.Members.query()
       .patch({
-        discord_id: message.author.id,
+        discord_id: ts.discord.getAuthor(message),
         discord_id_temp: target.discord_id,
       })
       .where({ name: target.name });
 
     const p = await ts.getUser(message);
-    await message.channel.send(
+    await ts.discord.messageSend(
+      message,
       ts.message('mock.userSuccess', { name: p.name }),
     );
   }
