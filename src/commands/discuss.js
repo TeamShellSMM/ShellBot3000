@@ -21,7 +21,7 @@ class TSDiscussChannel extends TSCommand {
   }
 
   async tsexec(ts, message, { code }) {
-    const command = ts.parse_command(message);
+    const command = ts.parseCommand(message);
     let inCodeDiscussionChannel = false;
 
     // Check if in level discussion channel
@@ -49,7 +49,7 @@ class TSDiscussChannel extends TSCommand {
         : ts.channels.pendingReuploadCategory,
     );
     const voteEmbed = await ts.makeVoteEmbed(level);
-    await ts.updatePinned(channel, voteEmbed);
+    await ts.discord.updatePinned(channel, voteEmbed);
   }
 }
 module.exports = TSDiscussChannel;

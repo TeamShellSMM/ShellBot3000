@@ -13,7 +13,7 @@ class housekeep extends TSCommand {
     await ts.load();
     const guild = ts.getGuild();
     let housekept = 0;
-    for (let i = 0; i < guild.channels.length; i++) {
+    for (let i = 0; i < guild.channels.length; i += 1) {
       const channel = guild.channels[i];
       if (channel.parentID == ts.channels.levelDiscussionCategory) {
         const code = channel.name.toUpperCase();
@@ -31,7 +31,7 @@ class housekeep extends TSCommand {
         }
         if (deleteLevel) {
           await ts.deleteDiscussionChannel(code, reason);
-          housekept++;
+          housekept += 1;
         }
       }
     }

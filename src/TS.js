@@ -246,7 +246,7 @@ class TS {
       await this.recalculateAfterUpdate();
       this.pointMap = {};
       const rawPoints = await ts.db.Points.query().select();
-      for (let i = 0; i < rawPoints.length; i++) {
+      for (let i = 0; i < rawPoints.length; i += 1) {
         this.pointMap[rawPoints[i].difficulty] = rawPoints[i].score;
       }
       await DiscordLog.log(
@@ -571,7 +571,7 @@ class TS {
      * @return {boolean}
      */
     this.valid_difficulty = function (diff) {
-      for (let i = 0; i < this.validDifficulty.length; i++) {
+      for (let i = 0; i < this.validDifficulty.length; i += 1) {
         if (this.validDifficulty[i] == diff) return true;
       }
       return false;
@@ -586,16 +586,16 @@ class TS {
     ) {
       const bodyArr = body ? body.split('.') : [];
       const bodyStr = [''];
-      for (var k = 0, l = 0; k < bodyArr.length; k++) {
+      for (var k = 0, l = 0; k < bodyArr.length; k += 1) {
         if (bodyArr[k]) {
           if (bodyStr[l].length + bodyArr[k].length + 1 > 980) {
-            l++;
+            l += 1;
             bodyStr[l] = '';
           }
           bodyStr[l] += `${bodyArr[k]}.`;
         }
       }
-      for (var k = 0; k < bodyStr.length; k++) {
+      for (var k = 0; k < bodyStr.length; k += 1) {
         embed.addField(header, bodyStr[k]);
         header = '\u200b';
       }
@@ -690,9 +690,9 @@ class TS {
         .where({ id: level.creator_id })
         .first(); // oddface/taika is only non registered member with a level
       if (creator && creator.atme && creator.discord_id && !strOnly) {
-        var creator_str = `<@${creator.discord_id}>`;
+        var creatorStr = `<@${creator.discord_id}>`;
       } else {
-        var creator_str = creator.name;
+        var creatorStr = creator.name;
       }
       const msg = [];
       const updated = {};
@@ -800,12 +800,12 @@ class TS {
           );
         }
       }
-      const user_reply = player_atme
-        ? player.user_reply_atme
-        : player.user_reply;
+      const userReply = player_atme
+        ? player.userReply_atme
+        : player.userReply;
       return (
-        (strOnly ? '' : user_reply) +
-        ts.processClearMessage({ msg, creator_str, level })
+        (strOnly ? '' : userReply) +
+        ts.processClearMessage({ msg, creatorStr, level })
       );
     };
     /**
@@ -813,24 +813,20 @@ class TS {
      *
      * @param {Object} args - An object.
      * @param {string[]} args.msg - Array of strings provided by ts.clear
-     * @param {string} args.creator_str - A string which is either the creator name or discord at
+     * @param {string} args.creatorStr - A string which is either the creator name or discord at
      * @param {Object} args.level - A level object, with creator being a name instead of id
      * @return {string} Returns the formatted string
      */
-    this.processClearMessage = function ({
-      msg,
-      creator_str,
-      level,
-    }) {
+    this.processClearMessage = function ({ msg, creatorStr, level }) {
       const level_placeholder = this.customStrings.levelInfo;
       let level_str = ts.message('clear.levelInfo', {
         level,
-        creator: creator_str,
+        creator: creatorStr,
       });
       const singleHave = ts.message('clear.singleHave');
       const manyHave = ts.message('clear.manyHave');
       const levelPronoun = ts.message('clear.levelPronoun');
-      for (let i = 0; i < msg.length; i++) {
+      for (let i = 0; i < msg.length; i += 1) {
         if (msg[i]) {
           msg[i] = msg[i].replace(level_placeholder, level_str);
           if (i > 1) msg[i] = msg[i].replace(singleHave, manyHave);
@@ -1116,13 +1112,13 @@ class TS {
       if (player.is_banned) this.userError('error.userBanned');
       player.created_at = player.created_at.toString();
       player.earned_points = await this.calculatePoints(player.name);
-      player.rank = this.get_rank(player.earned_points.clearPoints);
+      player.rank = this.getRank(player.earned_points.clearPoints);
       player.rank.pips = player.rank.pips || '';
       player.atme_str = player.atme
         ? `<@${player.discord_id}>`
         : player.name;
-      player.user_reply = `<@${player.discord_id}>${player.rank.pips} `;
-      player.user_reply_atme = `${
+      player.userReply = `<@${player.discord_id}>${player.rank.pips} `;
+      player.userReply_atme = `${
         player.atme_str + player.rank.pips
       } `;
 
@@ -1181,7 +1177,7 @@ class TS {
       if (approveVotes == undefined || approveVotes.length == 0) {
         postString += ts.message('approval.noVotes');
       } else {
-        for (var i = 0; i < approveVotes.length; i++) {
+        for (var i = 0; i < approveVotes.length; i += 1) {
           const curShellder = await ts.db.Members.query()
             .where({ name: approveVotes[i].player })
             .first();
@@ -1192,7 +1188,7 @@ class TS {
       if (fixVotes == undefined || fixVotes.length == 0) {
         postString += '> None\n';
       } else {
-        for (var i = 0; i < fixVotes.length; i++) {
+        for (var i = 0; i < fixVotes.length; i += 1) {
           const curShellder = await ts.db.Members.query()
             .where({ name: fixVotes[i].player })
             .first();
@@ -1203,7 +1199,7 @@ class TS {
       if (rejectVotes == undefined || rejectVotes.length == 0) {
         postString += 'None\n';
       } else {
-        for (var i = 0; i < rejectVotes.length; i++) {
+        for (var i = 0; i < rejectVotes.length; i += 1) {
           const curShellder = await ts.db.Members.query()
             .where({ name: rejectVotes[i].player })
             .first();
@@ -1273,7 +1269,7 @@ class TS {
           level.code,
           ts.channels.levelDiscussionCategory,
         );
-        await ts.updatePinned(level.code, voteEmbed);
+        await this.discord.updatePinned(level.code, voteEmbed);
         return ts.message(replyMsg, {
           channel_id: this.discord.channel(level.code).id,
         });
@@ -1300,7 +1296,10 @@ class TS {
         const oldChannel = ts.discord.channel(oldChannelName);
         if (oldChannel) {
           if (!discussionChannel) {
-            await this.discord.renameChannel(oldChannelName,channelName);
+            await this.discord.renameChannel(
+              oldChannelName,
+              channelName,
+            );
             discussionChannel = oldChannel;
           } else {
             await oldChannel.delete('duplicate channel');
@@ -1319,29 +1318,6 @@ class TS {
 
       await ts.discord.setChannelParent(channelName, parentID);
       return { channel: channelName, created };
-    };
-    /**
-     *  Helper function to check if a channel exists, then post an overviem message and pin it if there are no pins or update it if there are pins
-     * @param {Channel} channel a discord channel object
-     * @param {RichEmbed} embed Discord Rich Embed
-     * @throws {TypeError} Will throw type errors if the arguments are not provided
-     */
-    this.updatePinned = async (channelName, embed) => {
-      if (!channelName) throw new TypeError('channel name undefined');
-      if (!embed) throw new TypeError('embed not defined');
-
-      const channel = this.discord.channel(channelName);
-
-      let overviewMessage =
-        process.env.NODE_ENV !== 'test'
-          ? (await channel.fetchPinnedMessages()).last()
-          : null;
-      if (!overviewMessage) {
-        overviewMessage = await channel.send(embed);
-        if (overviewMessage) await overviewMessage.pin();
-      } else {
-        await overviewMessage.edit(embed);
-      }
     };
     /**
      * @description This function will initiate any passed discord member object. Will set is_member=1 in the database and assign the member role. An initiation message will also be sent to the initiation channel
@@ -1380,7 +1356,7 @@ class TS {
      * Helper function to embed comments to a level embed
      */
     this.embedComments = (embed, comments) => {
-      for (let i = 0; i < comments.length; i++) {
+      for (let i = 0; i < comments.length; i += 1) {
         let msgString = '';
         if (comments[i].type == 'fix') {
           msgString = 'judge.votedFix';
@@ -1549,7 +1525,7 @@ class TS {
         const difficultyArr = [...approvalVotes, ...fixVotes];
         let diffCounter = 0;
         let diffSum = 0;
-        for (let i = 0; i < difficultyArr.length; i++) {
+        for (let i = 0; i < difficultyArr.length; i += 1) {
           const diff = parseFloat(difficultyArr[i].difficulty_vote);
           if (!Number.isNaN(diff)) {
             diffCounter += 1;
@@ -1681,7 +1657,7 @@ class TS {
           const difficultyArr = [...approvalVotes, ...fixVotes];
           let diffCounter = 0;
           let diffSum = 0;
-          for (let i = 0; i < difficultyArr.length; i++) {
+          for (let i = 0; i < difficultyArr.length; i += 1) {
             const diff = parseFloat(difficultyArr[i].difficulty_vote);
             if (!Number.isNaN(diff)) {
               diffCounter += 1;
@@ -1869,7 +1845,7 @@ class TS {
         .where({ discord_id: message.author.id })
         .first();
       if (!player) ts.userError(ts.message('error.notRegistered'));
-      const command = ts.parse_command(message);
+      const command = ts.parseCommand(message);
       let oldCode = command.arguments.shift();
       if (oldCode) {
         oldCode = oldCode.toUpperCase();
@@ -1892,7 +1868,7 @@ class TS {
         ts.userError(ts.message('reupload.sameCode'));
       if (!reason) ts.userError(ts.message('reupload.giveReason'));
       const earnedPoints = await ts.calculatePoints(player.name);
-      const rank = ts.get_rank(earnedPoints.clearPoints);
+      const rank = ts.getRank(earnedPoints.clearPoints);
       const userReply = `<@${message.author.id}>${
         rank.pips ? rank.pips : ''
       } `;
@@ -2044,7 +2020,7 @@ class TS {
           );
         }
 
-        await ts.updatePinned(channel, voteEmbed);
+        await ts.discord.updatePinned(channel, voteEmbed);
       }
       let reply = ts.message('reupload.success', { level, newCode });
       if (!newLevel) {
@@ -2187,15 +2163,15 @@ class TS {
    * @param {object} message
    * @returns {object} returns command
    */
-  parse_command(message) {
-    let raw_command = message.content.trim();
-    raw_command = raw_command.split(' ');
-    const sb_command = raw_command.shift().toLowerCase().substring(1); // remove first character
-    if (!sb_command) raw_command.shift().toLowerCase();
+  parseCommand(message) {
+    let rawCommand = message.content.trim();
+    rawCommand = rawCommand.split(' ');
+    const sbCommand = rawCommand.shift().toLowerCase().substring(1); // remove first character
+    if (!sbCommand) rawCommand.shift().toLowerCase();
     let filtered = [];
-    filtered = raw_command.filter((s) => s);
+    filtered = rawCommand.filter((s) => s);
     return {
-      command: sb_command,
+      command: sbCommand,
       arguments: filtered,
       argumentString: filtered.join(' '),
     };
@@ -2205,7 +2181,7 @@ class TS {
    * Get the specified rank for a user by comparing achived score and the list or ranks from database
    * @return {Object} The rank row from database
    */
-  get_rank(points) {
+  getRank(points) {
     const ret = this.ranks.find(
       (r) => parseFloat(points) >= parseFloat(r.min_points),
     );
@@ -2348,8 +2324,8 @@ class TS {
     };
   }
 
-  async getTags(){
-    return knex('tags').where({ guild_id: this.team.id })
+  async getTags() {
+    return knex('tags').where({ guild_id: this.team.id });
   }
 
   /**

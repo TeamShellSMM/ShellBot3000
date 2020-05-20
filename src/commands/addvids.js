@@ -26,7 +26,7 @@ class TSAddvids extends TSCommand {
       'addvid',
     ];
 
-    const command = ts.parse_command(message);
+    const command = ts.parseCommand(message);
     let code = command.arguments.shift();
     if (code) {
       code = code.toUpperCase();
@@ -117,7 +117,7 @@ class TSAddvids extends TSCommand {
       .patch({ videos: oldVids.join(',') })
       .where({ code });
 
-    await message.channel.send(player.user_reply + reply);
+    await message.channel.send(player.userReply + reply);
   }
 }
 module.exports = TSAddvids;

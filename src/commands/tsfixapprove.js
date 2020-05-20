@@ -31,7 +31,7 @@ class TSFixApprove extends TSCommand {
         !tsapprove difficulty reason
         !tsreject reason
       */
-    const command = ts.parse_command(message);
+    const command = ts.parseCommand(message);
     let inReuploadChannel = false;
     let code = '';
 
@@ -60,7 +60,12 @@ class TSFixApprove extends TSCommand {
 
     let replyMessage = '';
     if (reason) {
-      replyMessage = await ts.finishFixRequest(code, message.author, reason, approving);
+      replyMessage = await ts.finishFixRequest(
+        code,
+        message.author,
+        reason,
+        approving,
+      );
     } else {
       ts.userError(ts.message('fixApprove.noReason'));
     }

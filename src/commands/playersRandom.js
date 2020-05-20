@@ -35,7 +35,7 @@ class playersRandom extends TSCommand {
       ts.embedStyle.randoms,
       { players: args.players },
     );
-    await message.channel.send(rand.player.user_reply);
+    await message.channel.send(rand.player.userReply);
     await message.channel.send(randomEmbed);
   }
 }

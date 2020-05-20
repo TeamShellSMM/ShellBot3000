@@ -15,7 +15,7 @@ class login extends TSCommand {
     try {
       await ts.discord.dm(
         message.author.id,
-        player.user_reply +
+        player.userReply +
           ts.message('login.reply', { loginLink: loginLink }),
       );
     } catch (error) {

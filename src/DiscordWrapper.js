@@ -138,6 +138,28 @@ class DiscordWrapper {
     return DiscordWrapper.client.util.embed();
   }
 
+  /**
+   *  Helper function to check if a channel exists, then post an overviem message and pin it if there are no pins or update it if there are pins
+   * @param {Channel} channel a discord channel object
+   * @param {RichEmbed} embed Discord Rich Embed
+   * @throws {TypeError} Will throw type errors if the arguments are not provided
+   */
+  async updatePinned(channelName, embed) {
+    if (!channelName) throw new TypeError('channel name undefined');
+    if (!embed) throw new TypeError('embed not defined');
+    const channel = this.channel(channelName);
+    let overviewMessage =
+      process.env.NODE_ENV !== 'test'
+        ? (await channel.fetchPinnedMessages()).last()
+        : null;
+    if (!overviewMessage) {
+      overviewMessage = await channel.send(embed);
+      if (overviewMessage) await overviewMessage.pin();
+    } else {
+      await overviewMessage.edit(embed);
+    }
+  }
+
   async dm(discordId, message) {
     return this.member(discordId).send(message);
   }

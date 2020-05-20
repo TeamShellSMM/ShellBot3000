@@ -22,7 +22,7 @@ class tsinfo extends TSCommand {
 
     const randomEmbed = ts.levelEmbed(level);
 
-    await message.channel.send(player.user_reply);
+    await message.channel.send(player.userReply);
     await message.channel.send(randomEmbed);
   }
 }

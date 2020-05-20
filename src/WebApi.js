@@ -263,7 +263,7 @@ module.exports = async function (client) {
         };
         json.push(memberObj);
 
-        memberCounter++;
+        memberCounter += 1;
       }
       return json;
     }
@@ -394,7 +394,7 @@ module.exports = async function (client) {
     });
 
     for (const obj of json) {
-      obj.id = memberCounter++;
+      obj.id = memberCounter += 1;
     }
 
     return json;
@@ -564,7 +564,7 @@ module.exports = async function (client) {
       }
 
       json.push({
-        id: memberCounter++,
+        id: (memberCounter += 1),
         wonComps: comps,
         name: member.name,
         creator_id: member.name,
@@ -621,7 +621,7 @@ module.exports = async function (client) {
 
       const settings = await ts.getSettings('settings');
       const ret = [];
-      for (let i = 0; i < ts.defaultVariables.length; i++) {
+      for (let i = 0; i < ts.defaultVariables.length; i += 1) {
         let value =
           settings[ts.defaultVariables[i].name] ||
           ts.defaultVariables[i].default;
@@ -700,7 +700,7 @@ module.exports = async function (client) {
           }
         });
 
-        for (let i = 0; i < data.length; i++) {
+        for (let i = 0; i < data.length; i += 1) {
           const current_id = data[i].id;
           const new_data = {
             id: data[i].id,

@@ -21,7 +21,7 @@ class UnsetWorld extends TSCommand {
       .where({ discord_id: message.author.id });
 
     message.channel.send(
-      player.user_reply + ts.message('unsetworld.success'),
+      player.userReply + ts.message('unsetworld.success'),
     );
   }
 }

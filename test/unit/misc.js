@@ -103,7 +103,7 @@ describe('misc-unit', function () {
 
   it('new TS no guild found', async function () {
     assert.throws(
-      () => new TEST.TS('guild_id',DiscordWrapper),
+      () => new TEST.TS('guild_id', DiscordWrapper),
       Error,
       'Cannot find discord server. Invalid guild_id or ShellBot is not on this server.',
     );
@@ -185,11 +185,11 @@ describe('misc-unit', function () {
   });
 
   it('ts.updatePinned no parameters', async () => {
-    await TEST.ts.updatePinned().catch((e) => {
+    await TEST.ts.discord.updatePinned().catch((e) => {
       assert.instanceOf(e, TypeError);
       assert.equal(e.message, 'channel name undefined');
     });
-    await TEST.ts.updatePinned('channel-name').catch((e) => {
+    await TEST.ts.discord.updatePinned('channel-name').catch((e) => {
       assert.instanceOf(e, TypeError);
       assert.equal(e.message, 'embed not defined', 'here2');
     });

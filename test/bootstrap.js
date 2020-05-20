@@ -385,7 +385,7 @@ before(async () => {
       return msg + TEST.ts.message('error.afterUserDiscord');
     if (type === 'registeredSuccess') {
       const user = await TEST.ts.getUser(discord_id);
-      return user.user_reply + msg;
+      return user.userReply + msg;
     }
     return msg;
   };
@@ -399,7 +399,7 @@ before(async () => {
     const ret = await TEST.knex.transaction(async (trx) => {
       await TEST.clearDb(trx);
       for (const i in data) {
-        for (let j = 0; j < data[i].length; j++) {
+        for (let j = 0; j < data[i].length; j += 1) {
           await TEST.ts.db[i].query(trx).insert(data[i][j]);
         }
       }

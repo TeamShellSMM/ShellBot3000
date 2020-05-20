@@ -27,7 +27,7 @@ class tsrandom extends TSCommand {
       rand.level,
       ts.embedStyle.random,
     );
-    await message.channel.send(rand.player.user_reply);
+    await message.channel.send(rand.player.userReply);
     await message.channel.send(randomEmbed);
   }
 }

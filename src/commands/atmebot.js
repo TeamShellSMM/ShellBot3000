@@ -10,7 +10,7 @@ class atmebot extends TSCommand {
 
   async tsexec(ts, message) {
     const atmeCommands = ['atmebot', 'atme'];
-    const command = ts.parse_command(message);
+    const command = ts.parseCommand(message);
     const player = await ts.getUser(message);
     let atmeVal;
     let alreadyError;
@@ -32,7 +32,7 @@ class atmebot extends TSCommand {
       .patch({ atme: atmeVal })
       .where({ discord_id: message.author.id });
 
-    await message.channel.send(player.user_reply + msg);
+    await message.channel.send(player.userReply + msg);
   }
 }
 module.exports = atmebot;

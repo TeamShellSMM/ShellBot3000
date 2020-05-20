@@ -9,7 +9,7 @@ class TSRefuseFix extends TSCommand {
   }
 
   async tsexec(ts, message) {
-    const command = ts.parse_command(message);
+    const command = ts.parseCommand(message);
     let code = command.arguments.shift();
     if (code) code = code.toUpperCase();
 

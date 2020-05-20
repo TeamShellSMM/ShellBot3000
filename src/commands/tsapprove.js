@@ -80,7 +80,7 @@ class TSApprove extends TSCommand {
       'fix+lc',
     ];
 
-    const command = ts.parse_command(message);
+    const command = ts.parseCommand(message);
     let inCodeDiscussionChannel = false;
 
     // Check if in level discussion channel

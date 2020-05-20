@@ -26,7 +26,7 @@ class TSRegister extends TSCommand {
       ts.userError(ts.message('register.already', { ...player }));
     }
 
-    const command = ts.parse_command(message);
+    const command = ts.parseCommand(message);
     let nickname = message.author.username;
 
     if (command.arguments.length > 0) {

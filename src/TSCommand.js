@@ -1,8 +1,8 @@
 const { Command } = require('discord-akairo');
-const TS = require('./TS.js');
-const DiscordLog = require('./DiscordLog');
 const debugError = require('debug')('shellbot3000:error');
 const debug = require('debug')('shellbot3000:TSCommand');
+const TS = require('./TS.js');
+const DiscordLog = require('./DiscordLog');
 
 class TSCommand extends Command {
   async tsexec(ts, message, args) {}
@@ -28,7 +28,7 @@ class TSCommand extends Command {
         );
         return false;
       }
-      args.command = ts.parse_command(message);
+      args.command = ts.parseCommand(message);
       await this.tsexec(ts, message, args);
     } catch (error) {
       debugError(error);
