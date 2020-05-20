@@ -582,11 +582,12 @@ module.exports = async function (client) {
   app.post(
     '/json/worlds',
     web_ts(async (ts, req) => {
+      let user;
       if (req.body.token) {
         req.body.discord_id = await ts.checkBearerToken(
           req.body.token,
         );
-        var user = await ts.getUser(req.body.discord_id);
+        user = await ts.getUser(req.body.discord_id);
       }
 
       const json = await generateWorldsJson(
@@ -804,11 +805,12 @@ module.exports = async function (client) {
   app.post(
     '/json',
     web_ts(async (ts, req) => {
+      let user;
       if (req.body && req.body.token) {
         req.body.discord_id = await ts.checkBearerToken(
           req.body.token,
         );
-        var user = await ts.getUser(req.body.discord_id);
+        user = await ts.getUser(req.body.discord_id);
       }
 
       const json = await generateSiteJson({ ts, user, ...req.body });

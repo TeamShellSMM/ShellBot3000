@@ -122,7 +122,7 @@ class TS {
 
       const defaultVars = {
         customStrings: {
-          levelInfo: '@@LEVEL_PLACEHOLDER@@',
+          levelInfo: '@@LEVELPLACEHOLDER@@',
           teamurl: `${ts.page_url}/${this.url_slug}`,
           BotName: 'ShellBot3000',
         },
@@ -586,7 +586,7 @@ class TS {
     ) {
       const bodyArr = body ? body.split('.') : [];
       const bodyStr = [''];
-      for (var k = 0, l = 0; k < bodyArr.length; k += 1) {
+      for (let k = 0, l = 0; k < bodyArr.length; k += 1) {
         if (bodyArr[k]) {
           if (bodyStr[l].length + bodyArr[k].length + 1 > 980) {
             l += 1;
@@ -595,7 +595,7 @@ class TS {
           bodyStr[l] += `${bodyArr[k]}.`;
         }
       }
-      for (var k = 0; k < bodyStr.length; k += 1) {
+      for (let k = 0; k < bodyStr.length; k += 1) {
         embed.addField(header, bodyStr[k]);
         header = '\u200b';
       }
@@ -682,49 +682,49 @@ class TS {
       const level = await ts.getExistingLevel(code);
       if (level.creator_id == player.id)
         ts.userError(ts.message('clear.ownLevel'));
-      const existing_play = await ts.db.Plays.query()
+      const existingPlay = await ts.db.Plays.query()
         .where('code', '=', level.id)
         .where('player', '=', player.id)
         .first();
       const creator = await ts.db.Members.query()
         .where({ id: level.creator_id })
         .first(); // oddface/taika is only non registered member with a level
-      if (creator && creator.atme && creator.discord_id && !strOnly) {
-        var creatorStr = `<@${creator.discord_id}>`;
-      } else {
-        var creatorStr = creator.name;
-      }
+
+      const creatorStr =
+        creator && creator.atme && creator.discord_id && !strOnly
+          ? `<@${creator.discord_id}>`
+          : creator.name;
       const msg = [];
       const updated = {};
-      if (existing_play) {
-        const updated_row = {};
+      if (existingPlay) {
+        const updatedRow = {};
         if (
           [1, 0].includes(completed) &&
-          existing_play.completed !== completed
+          existingPlay.completed !== completed
         ) {
           // update completed
-          updated_row.completed = completed ? 1 : 0;
+          updatedRow.completed = completed ? 1 : 0;
           updated.completed = true;
         }
-        if ([1, 0].includes(liked) && existing_play.liked !== liked) {
+        if ([1, 0].includes(liked) && existingPlay.liked !== liked) {
           // like updated
-          updated_row.liked = liked;
+          updatedRow.liked = liked;
           updated.liked = true;
         }
         if (
           (difficulty === 0 &&
-            existing_play.difficulty_vote != null) ||
-          (difficulty && existing_play.difficulty_vote != difficulty)
+            existingPlay.difficulty_vote != null) ||
+          (difficulty && existingPlay.difficulty_vote != difficulty)
         ) {
           // difficulty update
-          updated_row.difficulty_vote =
+          updatedRow.difficulty_vote =
             difficulty === 0 ? null : difficulty; // 0 difficulty will remove your vote
           updated.difficulty = true;
         }
-        if (updated_row)
+        if (updatedRow)
           await ts.db.Plays.query()
-            .findById(existing_play.id)
-            .patch(updated_row);
+            .findById(existingPlay.id)
+            .patch(updatedRow);
       } else {
         await ts.db.Plays.query().insert({
           code: level.id,
@@ -818,7 +818,7 @@ class TS {
      * @return {string} Returns the formatted string
      */
     this.processClearMessage = function ({ msg, creatorStr, level }) {
-      const level_placeholder = this.customStrings.levelInfo;
+      const levelPlaceholder = this.customStrings.levelInfo;
       let level_str = ts.message('clear.levelInfo', {
         level,
         creator: creatorStr,
@@ -828,7 +828,7 @@ class TS {
       const levelPronoun = ts.message('clear.levelPronoun');
       for (let i = 0; i < msg.length; i += 1) {
         if (msg[i]) {
-          msg[i] = msg[i].replace(level_placeholder, level_str);
+          msg[i] = msg[i].replace(levelPlaceholder, level_str);
           if (i > 1) msg[i] = msg[i].replace(singleHave, manyHave);
           level_str = levelPronoun;
         }
@@ -899,8 +899,8 @@ class TS {
     /**
      * Get the team variables stored in the database
      */
-    this.get_variable = function (var_name) {
-      return this.teamVariables[var_name];
+    this.get_variable = function (varName) {
+      return this.teamVariables[varName];
     };
     /**
      * Calculates the points needed to upload a level. 0 points needed means the user can upload a level
@@ -1076,13 +1076,11 @@ class TS {
         );
       }
       const borderLine = Math.floor(filtered_levels.length * 0.6);
+      let randNum;
       if (Math.random() < 0.2) {
-        var randNum = ts.getRandomInt(0, borderLine);
+        randNum = ts.getRandomInt(0, borderLine);
       } else {
-        var randNum = ts.getRandomInt(
-          borderLine,
-          filtered_levels.length,
-        );
+        randNum = ts.getRandomInt(borderLine, filtered_levels.length);
       }
       const level = filtered_levels[randNum];
       return {
@@ -1177,7 +1175,7 @@ class TS {
       if (approveVotes == undefined || approveVotes.length == 0) {
         postString += ts.message('approval.noVotes');
       } else {
-        for (var i = 0; i < approveVotes.length; i += 1) {
+        for (let i = 0; i < approveVotes.length; i += 1) {
           const curShellder = await ts.db.Members.query()
             .where({ name: approveVotes[i].player })
             .first();
@@ -1188,7 +1186,7 @@ class TS {
       if (fixVotes == undefined || fixVotes.length == 0) {
         postString += '> None\n';
       } else {
-        for (var i = 0; i < fixVotes.length; i += 1) {
+        for (let i = 0; i < fixVotes.length; i += 1) {
           const curShellder = await ts.db.Members.query()
             .where({ name: fixVotes[i].player })
             .first();
@@ -1199,7 +1197,7 @@ class TS {
       if (rejectVotes == undefined || rejectVotes.length == 0) {
         postString += 'None\n';
       } else {
-        for (var i = 0; i < rejectVotes.length; i += 1) {
+        for (let i = 0; i < rejectVotes.length; i += 1) {
           const curShellder = await ts.db.Members.query()
             .where({ name: rejectVotes[i].player })
             .first();

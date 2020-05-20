@@ -18,9 +18,12 @@ class tslike extends TSCommand {
   async tsexec(ts, message, args) {
     const likeCommands = ['tslike', 'like'];
     const command = ts.parseCommand(message);
-    args.discord_id = message.author.id;
-    args.liked = likeCommands.indexOf(command.command) != -1 ? 1 : 0;
-    const msg = await ts.clear(args);
+    const clearArgs = {
+      ...args,
+      discord_id: message.author.id,
+      liked: likeCommands.includes(command.command) ? 1 : 0,
+    };
+    const msg = await ts.clear(clearArgs);
     await message.channel.send(msg);
   }
 }

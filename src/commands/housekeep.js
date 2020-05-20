@@ -9,13 +9,13 @@ class housekeep extends TSCommand {
     });
   }
 
-  async tsexec(ts, message, args) {
+  async tsexec(ts, message) {
     await ts.load();
     const guild = ts.getGuild();
     let housekept = 0;
     for (let i = 0; i < guild.channels.length; i += 1) {
       const channel = guild.channels[i];
-      if (channel.parentID == ts.channels.levelDiscussionCategory) {
+      if (channel.parentID === ts.channels.levelDiscussionCategory) {
         const code = channel.name.toUpperCase();
         let deleteLevel = false;
         let reason = '';

@@ -21,12 +21,8 @@ class TSDiscussChannel extends TSCommand {
   }
 
   async tsexec(ts, message, { code }) {
-    const command = ts.parseCommand(message);
-    let inCodeDiscussionChannel = false;
-
     // Check if in level discussion channel
     if (ts.valid_code(message.channel.name.toUpperCase())) {
-      inCodeDiscussionChannel = true;
       code = message.channel.name.toUpperCase();
     }
 
@@ -42,7 +38,7 @@ class TSDiscussChannel extends TSCommand {
       ts.userError(ts.message('error.levelNotFound', { code }));
     }
 
-    const { channel, created } = await ts.discussionChannel(
+    const { channel } = await ts.discussionChannel(
       level.code,
       level.status === ts.LEVEL_STATUS.PENDING
         ? ts.channels.levelDiscussionCategory
