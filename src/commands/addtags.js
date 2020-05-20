@@ -25,8 +25,7 @@ class TSAddtags extends TSCommand {
       'addtag',
     ];
 
-    const setTags =
-      (await ts.knex('tags').where({ guild_id: ts.team.id })) || [];
+    const setTags = (await ts.getTags()) || [];
     const command = ts.parse_command(message);
     let code = command.arguments.shift();
     if (code) {

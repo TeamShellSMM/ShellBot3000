@@ -4,7 +4,6 @@ class login extends TSCommand {
   constructor() {
     super('login', {
       aliases: ['login', 'tslogin'],
-      cooldown: 5000,
       channelRestriction: 'guild',
     });
   }
@@ -23,9 +22,8 @@ class login extends TSCommand {
       // Only log the error if it is not an Unknown Message error
       if (error.code === 50007) {
         ts.userError('login.failedReply');
-      } else {
-        throw error;
       }
+      throw error;
     }
   }
 }

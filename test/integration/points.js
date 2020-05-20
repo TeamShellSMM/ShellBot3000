@@ -178,6 +178,7 @@ describe('!points', function () {
     await TEST.ts.db.Members.query()
       .patch({ clear_score_sum: 5 })
       .where({ discord_id: '128' });
+
     assert.equal(
       await TEST.mockBotSend({
         cmd: '!points role',

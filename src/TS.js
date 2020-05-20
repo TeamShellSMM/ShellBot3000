@@ -2348,6 +2348,10 @@ class TS {
     };
   }
 
+  async getTags(){
+    return knex('tags').where({ guild_id: this.team.id })
+  }
+
   /**
    * This will gather the necessary data to generate the points achived by the player
    */

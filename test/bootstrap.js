@@ -435,6 +435,10 @@ before(async () => {
     `);
   };
 
+  global.TEST.checkStub = (func) => {
+    return func.restore && func.restore.sinon;
+  };
+
   global.TEST.acceptReply = () => {
     const guild = TEST.ts.getGuild();
     const cache = [];
@@ -442,9 +446,13 @@ before(async () => {
       debugMockMessages(args);
       cache.push(args);
     }
-    TEST.ts.discord.dm = (discord_id, msg) => {
-      collectReply(msg);
-    };
+    if (!TEST.checkStub(TEST.ts.discord.dm)) {
+      debugTests('mocking discord.dm');
+      TEST.ts.discord.dm = (discord_id, msg) => {
+        collectReply(msg);
+      };
+    }
+
     TEST.message.author.send = collectReply;
     guild.channels.forEach((c) => {
       c.send = collectReply;

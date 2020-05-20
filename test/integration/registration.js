@@ -203,6 +203,35 @@ describe('registration', function () {
     );
   });
 
+  it('!login cant dm', async function () {
+    const dm = sinon.stub(TEST.ts.discord, 'dm');
+    dm.throws({ code: 50007 });
+    const result = await TEST.mockBotSend({
+      cmd: '!login',
+      channel: 'general',
+      discord_id: '256',
+    });
+    sinon.assert.calledOnce(dm);
+    assert.equal(
+      result,
+      " It seems the bot couldn't send you a direct message with the login link, are you maybe blocking direct messages from non-friends? You can try this command again if you change your discord settings. ",
+    );
+    dm.restore();
+  });
+
+  it('!login unknown error @curr', async function () {
+    const dm = sinon.stub(TEST.ts.discord, 'dm');
+    dm.throws(new Error('unknown'));
+    const result = await TEST.mockBotSend({
+      cmd: '!login',
+      channel: 'general',
+      discord_id: '256',
+    });
+    sinon.assert.calledOnce(dm);
+    assert.equal(result, 'something went wrong buzzyS');
+    dm.restore();
+  });
+
   it('POST /json/login no data', async function () {
     const { body } = await TEST.request(app)
       .post('/json/login')

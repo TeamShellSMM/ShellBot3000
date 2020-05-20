@@ -128,6 +128,24 @@ describe('!addtags,!removetags', () => {
     assert.equal(level.tags, 'tag1,tag2,tag3');
   });
 
+  it('!addtag success no existing tags', async () => {
+    const getTags = sinon.stub(TEST.ts, 'getTags');
+    assert.equal(
+      await TEST.mockBotSend({
+        cmd: '!addtags xxx-xxx-xxx tag1,tag2,tag3',
+        channel: 'general',
+        discord_id: '256',
+      }),
+      '<@256> Tags added for "approved level" by "Creator" \nCurrent tags:```\ntag1\ntag2\ntag3```',
+    );
+    sinon.assert.calledOnce(getTags);
+    getTags.restore();
+    const level = await TEST.ts.db.Levels.query()
+      .where({ code: 'XXX-XXX-XXX' })
+      .first();
+    assert.equal(level.tags, 'tag1,tag2,tag3');
+  });
+
   it('!addtag new-tag with space after comma', async () => {
     assert.equal(
       await TEST.mockBotSend({

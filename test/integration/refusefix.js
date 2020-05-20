@@ -98,17 +98,9 @@ describe('!refusefix', function () {
           difficulty: 2,
         },
       ],
-      PendingVotes: [
-        {
-          player: 2,
-          code: 2,
-          type: 'fix',
-          reason: 'Needs fixing',
-        },
-      ],
     };
 
-    await TEST.clearChannels()
+    await TEST.clearChannels();
     await TEST.setupData(initData);
     TEST.ts.teamVariables['Minimum Point'] = 0;
     TEST.ts.teamVariables['New Level'] = 0;
@@ -175,6 +167,13 @@ describe('!refusefix', function () {
   });
 
   it('creator successful refusefix', async () => {
+    await TEST.ts.db.PendingVotes.query().insert({
+      guild_id: 1,
+      player: 2,
+      code: 3,
+      type: 'fix',
+      reason: 'Needs fixing',
+    });
     await TEST.clearChannels();
     assert.equal(
       await TEST.mockBotSend({
@@ -198,6 +197,18 @@ describe('!refusefix', function () {
         parentID: TEST.ts.channels.pendingReuploadCategory,
       }),
       'should be here',
+    );
+  });
+
+  it('creator successful no ping', async () => {
+    await TEST.clearChannels();
+    assert.equal(
+      await TEST.mockBotSend({
+        cmd: '!refusefix XXX-XXX-XX3 long reason',
+        channel: 'general',
+        discord_id: '64',
+      }),
+      "Your level was put in the reupload queue, we'll get back to you in a bit!",
     );
   });
 });
