@@ -10,6 +10,7 @@
     "prettier/prettier": "error",
     "no-unused-vars": "warn",
     "no-console": "off",
+    "no-await-in-loop": "off",
     "func-names": "off",
     "no-process-exit": "off",
     "object-shorthand": "off",

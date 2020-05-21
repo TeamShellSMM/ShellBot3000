@@ -29,6 +29,10 @@ class DiscordWrapper {
     return DiscordWrapper.client.guilds.get(this.guildId);
   }
 
+  botId() {
+    return DiscordWrapper.client.user.id;
+  }
+
   channel(search, parentID) {
     if (search == null) {
       throw new Error(

@@ -60,7 +60,7 @@ describe('!random / !playersRandom', function () {
     assert.equal(result, 'You did not provide any players ');
   });
 
-  it('unknown player @curr', async function () {
+  it('unknown player', async function () {
     const result = await TEST.mockBotSend({
       cmd: '!playersRandom Mod,Other 1 10',
       channel: 'general',

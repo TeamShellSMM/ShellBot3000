@@ -159,55 +159,6 @@ before(async () => {
     },
     {
       guild_id: 1,
-      name: 'modChannel',
-      value: '703205477491671090',
-      type: 'channels',
-      admin_id: 1,
-    },
-    {
-      guild_id: 1,
-      name: 'initiateChannel',
-      value: '704991246757658692',
-      type: 'channels',
-      admin_id: 1,
-    },
-    {
-      guild_id: 1,
-      name: 'levelChangeNotification',
-      value: '704991248259350618',
-      type: 'channels',
-      admin_id: 1,
-    },
-    {
-      guild_id: 1,
-      name: 'commandFeed',
-      value: '704991250096586752',
-      type: 'channels',
-      admin_id: 1,
-    },
-    {
-      guild_id: 1,
-      name: 'feedbackChannel',
-      value: '704991254072786944',
-      type: 'channels',
-      admin_id: 1,
-    },
-    {
-      guild_id: 1,
-      name: 'pendingReuploadCategory',
-      value: '709534212306239489',
-      type: 'channels',
-      admin_id: 1,
-    },
-    {
-      guild_id: 1,
-      name: 'levelDiscussionCategory',
-      value: '709534284905709578',
-      type: 'channels',
-      admin_id: 1,
-    },
-    {
-      guild_id: 1,
       name: 'approvedEmote',
       value: '<:test:123>',
       type: 'settings',
@@ -226,6 +177,12 @@ before(async () => {
       value: 'unknownValue',
       type: 'invalidType',
       admin_id: 1,
+    },
+    {
+      guild_id: 1,
+      name: 'modChannel',
+      value: 'old-id',
+      type: 'channels',
     },
   ];
 
@@ -480,6 +437,23 @@ before(async () => {
     };
   };
 
+  global.TEST.initClearChannels = async () => {
+    debugTests('initial clearing channels');
+    const guild = global.TEST.ts.getGuild();
+    const channels = guild.channels.array();
+    for (let i = 0; i < channels.length; i += 1) {
+      const channel = channels[i];
+      if (
+        channel.name !== 'general' &&
+        channel.name !== 'allow-shellbot-test-here'
+      ) {
+        await channel.delete('AUTOTEST');
+      } else if (TEST.ts.validCode(channel.name)) {
+        await channel.delete('AUTOTEST');
+      }
+    }
+  };
+
   global.TEST.clearChannels = async () => {
     debugTests('clearing channels');
     const guild = global.TEST.ts.getGuild();
@@ -547,8 +521,34 @@ before(async () => {
 
     const ret = global.TEST.expectReply(waitFor);
     TEST.client.emit('message', TEST.message);
-    return await ret;
+    return ret;
   };
+
+  await TEST.initClearChannels();
+
+  const teamAdmin = sinon.stub(TEST.ts, 'teamAdmin');
+  teamAdmin.returns(true);
+  await TEST.mockBotSend({
+    cmd: '!initchannels',
+    channel: 'general',
+    discord_id: TEST.ts.discord.botId(),
+  });
+
+  await TEST.knex('team_settings').where({ type: 'channels' }).del();
+
+  await TEST.mockBotSend({
+    cmd: '!initchannels',
+    channel: 'general',
+    discord_id: TEST.ts.discord.botId(),
+  });
+
+  await TEST.mockBotSend({
+    cmd: '!initchannels',
+    channel: 'general',
+    discord_id: TEST.ts.discord.botId(),
+  });
+
+  teamAdmin.restore();
 });
 
 describe('Setup test and check teams registration', function () {

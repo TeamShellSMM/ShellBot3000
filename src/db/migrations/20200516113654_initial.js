@@ -205,7 +205,7 @@ exports.up = function (knex) {
       t.integer('admin_id')
         .unsigned()
         .references('members.id')
-        .notNull();
+        .nullable();
     })
     .createTable('seasons', function (t) {
       t.increments('id').unsigned().primary();

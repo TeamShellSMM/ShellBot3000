@@ -1,45 +1,88 @@
+const botPermissions = {
+  allow: [
+    'VIEW_CHANNEL',
+    'SEND_MESSAGES',
+    'MANAGE_MESSAGES',
+    'MANAGE_CHANNELS',
+    'READ_MESSAGE_HISTORY',
+    'ADD_REACTIONS',
+    'USE_EXTERNAL_EMOJIS',
+  ],
+  deny: [],
+};
+
 const defaultChannels = [
   {
     name: 'modChannel',
     default: 'bot-mod-channel',
     description:
       'The only channel where mod commands will work (approve,rerate). Only mods should be able to send/read channel',
+    defaultPermission: {
+      allow: [],
+      deny: ['VIEW_CHANNEL', 'SEND_MESSAGES'],
+    },
   },
   {
     name: 'initiateChannel',
     default: 'bot-makerteam-initiation',
     description:
       'The channel where the member will be notified if they officially become a member. This channel should be read only to everybody',
+    defaultPermission: {
+      allow: ['VIEW_CHANNEL'],
+      deny: ['SEND_MESSAGES'],
+    },
   },
   {
     name: 'levelChangeNotification',
     default: 'bot-level-updates',
     description:
       'The channel where level approvals,rejections and rerates notifications are posted by the bot. This should be readonly to everyone',
+    defaultPermission: {
+      allow: ['VIEW_CHANNEL'],
+      deny: ['SEND_MESSAGES'],
+    },
   },
   {
     name: 'commandFeed',
     default: 'bot-command-feed',
     description:
       'This is where clears/likes and other commands from the web will be shown. This should be read only to everyone',
+    defaultPermission: {
+      allow: ['VIEW_CHANNEL'],
+      deny: ['SEND_MESSAGES'],
+    },
   },
   {
     name: 'pendingReuploadCategory',
     default: 'bot-pending-reupload',
     description:
       'The channel where level reuploads are discussed. Only mods should be able to send/read this category',
+    type: 'category',
+    defaultPermission: {
+      allow: [],
+      deny: ['VIEW_CHANNEL', 'SEND_MESSAGES'],
+    },
   },
   {
     name: 'feedbackChannel',
     default: 'bot-makerteam-feedback',
     description:
       'Channel where the anonymous feedback will be posted. This should be readonly for whoever can read the feedback',
+    defaultPermission: {
+      allow: [],
+      deny: ['VIEW_CHANNEL', 'SEND_MESSAGES'],
+    },
   },
   {
     name: 'levelDiscussionCategory',
     default: 'bot-pending-discussion',
     description:
       'Channel category where pending channels will be created. Only mods should be able to send/read this category',
+    type: 'category',
+    defaultPermission: {
+      allow: [],
+      deny: ['VIEW_CHANNEL', 'SEND_MESSAGES'],
+    },
   },
 ];
 
@@ -336,6 +379,7 @@ const REMOVED_LEVELS = [
 ];
 
 module.exports = {
+  botPermissions,
   defaultChannels,
   defaultVariables,
   LEVEL_STATUS,

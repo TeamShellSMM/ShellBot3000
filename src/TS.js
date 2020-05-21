@@ -61,6 +61,7 @@ class TS {
     this.REMOVED_LEVELS = REMOVED_LEVELS;
 
     this.guild_id = guildId;
+    this.guildId = guildId;
     this.guild = this.getGuild();
 
     this.devs = process.env.DEVS.split(',');
@@ -1331,6 +1332,7 @@ class TS {
           ); // not a breaking error.
         }
       }
+      return true;
     };
     /**
      * Helper function to embed comments to a level embed
@@ -1480,6 +1482,7 @@ class TS {
         .getPendingVotes()
         .where('levels.id', level.id)
         .where('type', 'reject');
+
       const AgreeingVotesNeeded =
         ts.teamVariables.AgreeingVotesNeeded || 0;
       const AgreeingMaxDifference =
@@ -1767,7 +1770,8 @@ class TS {
     };
 
     this.levelEmbed = function (level, args = {}, titleArgs) {
-      let { color, title, image, noLink } = args;
+      const { color, title, noLink } = args;
+      let { image } = args;
       let vidStr = [];
       level.videos.split(',').forEach((vid) => {
         if (vid) vidStr.push(`[ 🎬 ](${vid})`);

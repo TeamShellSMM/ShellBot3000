@@ -455,7 +455,7 @@ describe('misc-unit', function () {
     }
   });
 
-  it('ts.message 1dp @curr', async () => {
+  it('ts.message 1dp', async () => {
     assert.equal(
       TEST.ts.message('judge.approved', { difficulty: 1 }),
       'This level was approved for difficulty: 1.0!',

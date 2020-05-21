@@ -75,7 +75,7 @@ describe('!approve', function () {
     assert.lengthOf(result, 0, 'no result');
   });
 
-  it('approve', async function () {
+  it('approve @curr', async function () {
     const result = await TEST.mockBotSend({
       cmd: '!approve XXX-XXX-XXX 5 "is good level"',
       channel: TEST.ts.channels.modChannel,

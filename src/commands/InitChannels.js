@@ -1,4 +1,7 @@
+const debug = require('debug')('shellbot3000:initchannel');
 const TSCommand = require('../TSCommand.js');
+const knex = require('../db/knex');
+const { botPermissions, defaultChannels } = require('../constants');
 
 class InitChannels extends TSCommand {
   constructor() {
@@ -8,129 +11,100 @@ class InitChannels extends TSCommand {
   }
 
   async canRun(ts, message) {
-    return ts.modOnly(ts.discord.getAuthor(message));
+    return ts.teamAdmin(message.author.id);
   }
 
-  async tsexec(ts, message, args) {
-    /*
-    const defaultChannels = {
-      modChannel: {
-        permissionOverwrites: [
-          {
-            id: message.guild.id,
-            allow: [],
-            deny: ['VIEW_CHANNEL', 'SEND_MESSAGES'],
-          },
-        ],
-      },
-      initiateChannel: {
-        permissionOverwrites: [
-          {
-            id: message.guild.id,
-            allow: ['VIEW_CHANNEL'],
-            deny: ['SEND_MESSAGES'],
-          },
-        ],
-      },
-      levelChangeNotification: {
-        permissionOverwrites: [
-          {
-            id: message.guild.id,
-            allow: ['VIEW_CHANNEL'],
-            deny: ['SEND_MESSAGES'],
-          },
-        ],
-      },
-      commandFeed: {
-        permissionOverwrites: [
-          {
-            id: message.guild.id,
-            allow: ['VIEW_CHANNEL'],
-            deny: ['SEND_MESSAGES'],
-          },
-        ],
-      },
-      levelDiscussionCategory: {
-        type: 'category',
-        permissionOverwrites: [
-          {
-            id: message.guild.id,
-            allow: [],
-            deny: ['VIEW_CHANNEL', 'SEND_MESSAGES'],
-          },
-        ],
-      },
-      pendingReuploadCategory: {
-        type: 'category',
-        permissionOverwrites: [
-          {
-            id: message.guild.id,
-            allow: [],
-            deny: ['VIEW_CHANNEL', 'SEND_MESSAGES'],
-          },
-        ],
-      },
-      feedbackChannel: {
-        permissionOverwrites: [
-          {
-            id: message.guild.id,
-            allow: [],
-            deny: ['VIEW_CHANNEL', 'SEND_MESSAGES'],
-          },
-        ],
-      },
-    };
+  async tsexec(ts, message) {
+    const change = false;
+    const channels = ts.getSettings('channels');
+    for (let i = 0; i < defaultChannels.length; i += 1) {
+      const c = defaultChannels[i];
+      debug(`Check channel ${c.name}`);
+      const existingChannel = channels[c.name]
+        ? ts.discord.channel(channels[c.name])
+        : false;
+      const channelName = c.default;
+      if (!existingChannel) {
+        debug(`Didn't find existing channel. creating one`);
+        const channelTemplate = {
+          ...c,
+          permissionOverwrites: [
+            {
+              id: ts.guildId,
+              ...c.defaultPermission,
+            },
+            {
+              id: ts.discord.botId(),
+              ...botPermissions,
+            },
+          ],
+        };
 
-    const botPermissions = {
-      id: ts.client.user.id,
-      allow: [
-        'VIEW_CHANNEL',
-        'SEND_MESSAGES',
-        'MANAGE_MESSAGES',
-        'MANAGE_CHANNELS',
-        'READ_MESSAGE_HISTORY',
-        'ADD_REACTIONS',
-        'USE_EXTERNAL_EMOJIS',
-      ],
-      deny: [],
-    };
-    /*
-        let change=false;
-        let channels=ts.getSettings('channels');
-        let sheet_updates=[];
-        for(let i in channels){
-            let c=channels[i]
-            if(!c.value){                
-                let channelTemplate=defaultChannels[c.Name];
-                let channelName=c.default
-                channelTemplate.permissionOverwrites.push(botPermissions)
-                let newChannel=message.guild.channels.find(channel => channel.name === channelName)
-                if(!newChannel) newChannel=await message.guild.createChannel(channelName,channelTemplate)
-                let embed = ts.client.util.embed()
-                    .setColor("#007bff")
-                    .setTitle("Channel Help")
-                let newChannelHelp;    
-                if(channelTemplate.type=='category'){
-                    newChannelHelp=await message.guild.createChannel(channelName+'-help',{
-                        parent: newChannel.id
-                    })
-                    embed.setDescription('```fix\n'+c.Description+'\n```') // You can delete this channel** \n<a:SHELLBOTTED:666097068640829440>
-                } else {
-                    newChannelHelp=newChannel;
-                    embed.setDescription('```fix\n'+c.Description+'\n```') // You can move this channel for organization**\n**You can delete this message**\n<a:SHELLBOTTED:666097068640829440>
-                }
-                await newChannelHelp.send(`<@${ts.discord.getAuthor(message)}>`)
-                await newChannelHelp.send(embed)
-            }
+        let newChannel = ts.discord.channel(channelName);
+        if (!newChannel) {
+          let newChannelHelp;
+          newChannel = await message.guild.createChannel(
+            channelName,
+            channelTemplate,
+          );
+          const embed = ts.discord
+            .embed()
+            .setColor('#007bff')
+            .setTitle('Channel Help');
+          if (channelTemplate.type === 'category') {
+            newChannelHelp = await message.guild.createChannel(
+              `${channelName}-help`,
+              {
+                parent: newChannel.id,
+              },
+            );
+            embed.setDescription(
+              `\`\`\`fix\n${c.description}\n\`\`\``,
+            );
+          } else {
+            newChannelHelp = newChannel;
+            embed.setDescription(
+              `\`\`\`fix\n${c.description}\n\`\`\``,
+            );
+          }
+          await newChannelHelp.send(`<@${message.author.id}>`);
+          await newChannelHelp.send(embed);
         }
-
+      }
+      const existingRow = await knex('team_settings')
+        .where({
+          guild_id: ts.guildId,
+        })
+        .where({
+          type: 'channels',
+        })
+        .where({
+          name: c.name,
+        })
+        .first();
+      const channelId = ts.discord.channel(channelName).id;
+      if (existingRow) {
+        debug(`Updating ${c.name} to ${channelId}`);
+        await ts
+          .knex('team_settings')
+          .update({ value: channelId })
+          .where({ id: existingRow.id });
+      } else {
+        debug(`Inserting ${c.name} with ${channelId}`);
+        await knex('team_settings').insert({
+          guild_id: ts.team.id,
+          type: 'channels',
+          name: c.name,
+          value: channelId,
+        });
+      }
+    }
 
     await ts.load();
     await ts.discord.reply(
       message,
       change ? 'Commands done' : 'Nothing was done',
     );
-    */
   }
 }
 
