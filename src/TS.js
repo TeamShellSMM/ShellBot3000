@@ -50,6 +50,7 @@ class TS {
       throw new Error(`No guild_id was passed to TS()`);
     }
 
+    this.DiscordWrapper = DiscordWrapper;
     TS.DiscordWrapper = DiscordWrapper;
     this.discord = new DiscordWrapper(guildId);
     this.CONSTANTS = CONSTANTS;
@@ -64,10 +65,12 @@ class TS {
 
     this.devs = process.env.DEVS.split(',');
     this.page_url = process.env.PAGE_URL;
-    this.getSettings = async (type) => {
+    this.getSettings = async (type, map = false) => {
       const rows = await knex('team_settings')
         .where({ guild_id: this.team.id })
         .where({ type });
+      if (map) return rows;
+
       const ret = {};
       rows.forEach((r) => {
         ret[r.name] = r.value;
@@ -97,9 +100,6 @@ class TS {
 
       this.url_slug = this.team.url_slug;
       this.config = JSON.parse(this.team.config) || {};
-      this.webConfig = this.team.web_config
-        ? JSON.parse(this.team.web_config)
-        : {} || {};
       let updateConfig = false;
       if (this.config.key) {
         this.secureKey = this.config.key;
@@ -120,34 +120,27 @@ class TS {
       this.guild_id = guildId;
       this.knex = knex;
 
-      const defaultVars = {
-        customStrings: {
-          levelInfo: '@@LEVELPLACEHOLDER@@',
-          teamurl: `${ts.page_url}/${this.url_slug}`,
-          BotName: 'ShellBot3000',
-        },
-        emotes: {},
+      const dbToMap = {
+        settings: 'teamVariables',
+        channels: 'channels',
+        strings: 'customStrings',
       };
 
-      guild.emojis.forEach((e) => {
-        defaultVars.emotes[e.name] = e.toString();
+      this.teamVariables = {};
+      this.channels = {};
+      this.customStrings = {
+        levelInfo: '@@LEVELPLACEHOLDER@@',
+        teamurl: `${ts.page_url}/${this.url_slug}`,
+        BotName: 'ShellBot3000',
+      };
+
+      const data = await knex('team_settings').where({
+        guild_id: this.team.id,
       });
 
-      const dbToMap = {
-        teamVariables: 'settings',
-        channels: 'channels',
-        customStrings: 'strings',
-      };
-
-      for (const key of Object.keys(dbToMap)) {
-        this[key] = { ...defaultVars[key] };
-        const data = await knex('team_settings')
-          .where({ guild_id: this.team.id })
-          .where({ type: dbToMap[key] });
-        data.forEach((d) => {
-          this[key][d.name] = d.value;
-        });
-      }
+      data.forEach((d) => {
+        this[dbToMap[d.type]][d.name] = d.value;
+      });
 
       this.emotes = {
         think: this.teamVariables.userErrorEmote,
@@ -176,18 +169,16 @@ class TS {
         await this.addTags(allTags, trx);
       });
 
-      this.messages = this.getSettings('messages');
-
-      for (const [key, value] of Object.entries(this.messages)) {
-        this.messages[key] = this.makeTemplate(value || '');
-      }
+      this.messages = {};
       TS.defaultMessages = {};
-      for (const [key, value] of Object.entries(DEFAULTMESSAGES)) {
-        TS.defaultMessages[key] = this.makeTemplate(value);
-        if (this.messages[key] === undefined) {
-          this.messages[key] = this.makeTemplate(value);
-        }
-      }
+      Object.entries(DEFAULTMESSAGES).forEach((v) => {
+        TS.defaultMessages[v[0]] = this.makeTemplate(v[1]);
+        this.messages[v[0]] = this.makeTemplate(v[1]);
+      });
+
+      (await this.getSettings('messages', true)).forEach((v) => {
+        this.messages[v[0]] = this.makeTemplate(v[1] || '');
+      });
 
       this.embedStyle = {
         [ts.LEVEL_STATUS.REJECTED]: {
@@ -327,7 +318,6 @@ class TS {
     this.modOnly = async (discordId) => {
       if (!discordId) return false;
       if (this.devs && this.devs.indexOf(discordId) !== -1) {
-        // devs can help to troubleshoot
         return true;
       }
       const guild = await ts.getGuild();
@@ -385,12 +375,16 @@ class TS {
     /**
      * Method to add a level to MakerTeams
      */
-    this.addLevel = async ({ code, level_name, discord_id }) => {
+    this.addLevel = async ({
+      code,
+      level_name: levelName,
+      discord_id,
+    }) => {
       if (!code) ts.userError(ts.message('error.noCode'));
       if (!ts.validCode(code))
         ts.userError(ts.message('error.invalidCode'));
-      if (!level_name) ts.userError(ts.message('add.noName'));
-      if (ts.isSpecialDiscordString(level_name))
+      if (!levelName) ts.userError(ts.message('add.noName'));
+      if (ts.isSpecialDiscordString(levelName))
         ts.userError(ts.message('error.specialDiscordString'));
       const player = await ts.getUser(discord_id);
       const existingLevel = await ts
@@ -410,7 +404,7 @@ class TS {
       }
       await ts.db.Levels.query().insert({
         code,
-        level_name,
+        level_name: levelName,
         creator: player.id,
         difficulty: 0,
         tags:
@@ -421,7 +415,10 @@ class TS {
       });
       await ts.recalculateAfterUpdate({ name: player.name });
       return {
-        reply: ts.message('add.success', { level_name, code }),
+        reply: ts.message('add.success', {
+          level_name: levelName,
+          code,
+        }),
         player,
       };
     };
@@ -503,6 +500,7 @@ class TS {
      * @throws {UserError} - When the token is not found in the database
      */
     this.checkBearerToken = async function (token) {
+      if (!token) ts.userError('website.noToken');
       const existingToken = await ts.db.Tokens.query()
         .where('token', '=', token)
         .first();
@@ -511,10 +509,9 @@ class TS {
           .add(30, 'days')
           .valueOf();
         const now = moment().valueOf();
-        if (tokenExpireAt < now)
-          ts.userError(ts.message('website.tokenError'));
+        if (tokenExpireAt < now) ts.userError('website.tokenError');
       } else {
-        ts.userError(ts.message('website.authError'));
+        ts.userError('website.authError');
       }
       return existingToken.discord_id;
     };
@@ -578,8 +575,9 @@ class TS {
     this.embedAddLongField = function (
       embed,
       body,
-      header = '\u200b',
+      pHeader = '\u200b',
     ) {
+      let header = pHeader;
       const bodyArr = body ? body.split('.') : [];
       const bodyStr = [''];
       for (let k = 0, l = 0; k < bodyArr.length; k += 1) {
@@ -661,7 +659,7 @@ class TS {
         difficulty = parseFloat(difficulty);
       }
       if (
-        difficulty != '0' &&
+        difficulty !== 0 &&
         difficulty &&
         !ts.valid_difficulty(difficulty)
       ) {

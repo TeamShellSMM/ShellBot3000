@@ -428,4 +428,64 @@ describe('misc-unit', function () {
       );
     }
   });
+
+  it('ts.checkBearerToken', async () => {
+    try {
+      assert.notExists(await TEST.ts.checkBearerToken());
+    } catch (error) {
+      assert.instanceOf(error, TEST.ts.UserError);
+      assert.equal(error.msg, 'No token sent');
+    }
+  });
+
+  it('ts.checkBearerToken', async () => {
+    try {
+      assert.notExists(
+        await TEST.ts.checkBearerToken('unknown_string'),
+      );
+    } catch (error) {
+      assert.instanceOf(error, TEST.ts.UserError);
+      assert.equal(error.msg, 'Authentication error');
+    }
+  });
+
+  it('ts.checkBearerToken', async () => {
+    await TEST.ts.db.Tokens.query().insert({
+      discord_id: 1,
+      token: '123',
+      created_at: '2000-01-01 01:00:00',
+    });
+    try {
+      assert.notExists(await TEST.ts.checkBearerToken('123'));
+    } catch (error) {
+      assert.instanceOf(error, TEST.ts.UserError);
+      assert.equal(error.msg, 'Token expired. Need to relogin');
+    }
+  });
+
+  it('ts.message 1dp @curr', async () => {
+    assert.equal(
+      TEST.ts.message('judge.approved', { difficulty: 1 }),
+      'This level was approved for difficulty: 1.0!',
+    );
+
+    assert.equal(
+      TEST.ts.message('judge.approved', { difficulty: 1.25 }),
+      'This level was approved for difficulty: 1.3!',
+    );
+
+    assert.equal(
+      TEST.ts.message('judge.approved', { difficulty: 1.5 }),
+      'This level was approved for difficulty: 1.5!',
+    );
+
+    assert.equal(
+      TEST.ts.message('judge.approved', { difficulty: '1' }),
+      'This level was approved for difficulty: 1.0!',
+    );
+    assert.equal(
+      TEST.ts.message('judge.approved', { difficulty: 'lol' }),
+      'This level was approved for difficulty: lol!',
+    );
+  });
 });

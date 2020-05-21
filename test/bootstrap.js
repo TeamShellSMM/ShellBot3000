@@ -7,6 +7,7 @@ const DiscordWrapper = require('../src/DiscordWrapper');
 const debugDiscordLog = debug('shellbot3000:log');
 const debugDiscordError = debug('shellbot3000:error');
 const debugMockMessages = debug('shellbot3000:mockMessages');
+const debugGetMessages = debug('shellbot3000:onMessages');
 const debugTests = debug('shellbot3000:test');
 const WebApi = require('../src/WebApi');
 
@@ -41,6 +42,7 @@ before(async () => {
   });
   debugTests('logging in');
   await TEST.client.login(process.env.DISCORD_TEST_TOKEN);
+  TEST.client.on('message', (m) => debugGetMessages(m.content));
   assert.exists(
     global.TEST.client,
     'should have discord client right now',

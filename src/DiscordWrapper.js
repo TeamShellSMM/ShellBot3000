@@ -15,10 +15,10 @@ class DiscordWrapper {
   }
 
   static setClient(client) {
-    this.client = client;
     if (!client) {
       throw new Error(`No client passed to DiscordWrapper()`);
     }
+    this.client = client;
   }
 
   /**
@@ -30,22 +30,32 @@ class DiscordWrapper {
   }
 
   channel(search, parentID) {
-    if (!search) {
-      return false;
+    if (search == null) {
+      throw new Error(
+        `Empty channel name or id is passed to discordwrapper.channel`,
+      );
     }
 
-    const searchl =
-      typeof search === 'string' ? search.toLowerCase() : search;
+    const searchl = search.toLowerCase();
+    const parent = parentID ? this.channel(parentID) : null;
     return this.guild().channels.find(
       (c) =>
         (c.name === searchl || c.id === searchl) &&
-        (!parentID ||
-          (parentID && this.channel(parentID).id === c.parentID)),
+        (!parent || (parent && parent.id === c.parentID)),
     );
   }
 
-  async channelSize(search) {
+  channelSize(search) {
+    if (!search) {
+      throw new Error(
+        `Empty channel name or id is passed to discordwrapper.channelSize`,
+      );
+    }
     const channel = this.channel(search);
+    if (!channel)
+      throw new Error(
+        'Cannot find the channel category in channelSize()',
+      );
     return channel.children.size;
   }
 
@@ -54,11 +64,14 @@ class DiscordWrapper {
     const oldChannel = this.channel(oldName);
     const newChannel = this.channel(newName);
 
-    if (oldChannel && !newChannel) return oldChannel.setName(newName);
-    return true;
+    if (oldChannel && !newChannel) {
+      return oldChannel.setName(newName);
+    }
+    return false;
   }
 
-  async createChannel(name, { type = 'text', parent }) {
+  async createChannel(name, args = {}) {
+    const { type = 'text', parent } = args;
     debug(`creating ${name}`);
     const existingChannel = this.channel(name);
     const parentCategory =
@@ -109,7 +122,7 @@ class DiscordWrapper {
   }
 
   static channel(channelId) {
-    return this.channels.get(channelId);
+    return this.client.channels.get(channelId);
   }
 
   static async send(channelId, content) {
