@@ -213,6 +213,20 @@ before(async () => {
       type: 'settings',
       admin_id: 1,
     },
+    {
+      guild_id: 1,
+      name: 'CustomMessageTest',
+      value: '{{BotName}}',
+      type: 'messages',
+      admin_id: 1,
+    },
+    {
+      guild_id: 1,
+      name: 'unknown',
+      value: 'unknownValue',
+      type: 'invalidType',
+      admin_id: 1,
+    },
   ];
 
   const points = [

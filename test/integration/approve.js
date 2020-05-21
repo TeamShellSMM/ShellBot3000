@@ -81,7 +81,7 @@ describe('!approve', function () {
       channel: TEST.ts.channels.modChannel,
       discord_id: '256',
     });
-    const result2 = await TEST.mockBotSend({
+    await TEST.mockBotSend({
       cmd: '!approve XXX-XXX-XXX 2 "ya"',
       channel: TEST.ts.channels.modChannel,
       discord_id: '512',
@@ -125,7 +125,7 @@ describe('!approve', function () {
   });
 
   it('approve+cl', async function () {
-    const result = await TEST.mockBotSend({
+    await TEST.mockBotSend({
       cmd: '!approve+cl XXX-XXX-XXX 5 "is good level"',
       channel: TEST.ts.channels.modChannel,
       discord_id: '128',
@@ -143,7 +143,7 @@ describe('!approve', function () {
   });
 
   it('approve+c', async function () {
-    const result = await TEST.mockBotSend({
+    await TEST.mockBotSend({
       cmd: '!approve+c XXX-XXX-XXX 5 "is good level"',
       channel: TEST.ts.channels.modChannel,
       discord_id: '128',
@@ -289,7 +289,7 @@ describe('!approve', function () {
       channel: TEST.ts.channels.modChannel,
       discord_id: '256',
     });
-    const result2 = await TEST.mockBotSend({
+    await TEST.mockBotSend({
       cmd: '!fix XXX-XXX-XXX 2 "no"',
       channel: TEST.ts.channels.modChannel,
       discord_id: '512',

@@ -1,4 +1,3 @@
-const Teams = require('../../src/models/Teams')();
 const DiscordWrapper = require('../../src/DiscordWrapper');
 
 describe('misc-unit', function () {
@@ -107,13 +106,6 @@ describe('misc-unit', function () {
       Error,
       'Cannot find discord server. Invalid guild_id or ShellBot is not on this server.',
     );
-  });
-
-  it('Check team model loading without guild_id', async function () {
-    assert.exists(Teams);
-    assert.doesNotThrow(async () => {
-      await Teams.query().select();
-    });
   });
 
   it('Check TS.team no guild_id', async function () {

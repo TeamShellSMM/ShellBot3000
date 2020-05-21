@@ -134,9 +134,11 @@ class TS {
         BotName: 'ShellBot3000',
       };
 
-      const data = await knex('team_settings').where({
-        guild_id: this.team.id,
-      });
+      const data = await knex('team_settings')
+        .where({
+          guild_id: this.team.id,
+        })
+        .whereIn('type', ['settings', 'channels', 'customStrings']);
 
       data.forEach((d) => {
         this[dbToMap[d.type]][d.name] = d.value;
@@ -804,7 +806,8 @@ class TS {
      * @param {Object} args.level - A level object, with creator being a name instead of id
      * @return {string} Returns the formatted string
      */
-    this.processClearMessage = function ({ msg, creatorStr, level }) {
+    this.processClearMessage = function (args) {
+      const { msg, creatorStr, level } = args;
       const levelPlaceholder = this.customStrings.levelInfo;
       let levelStr = ts.message('clear.levelInfo', {
         level,
@@ -841,20 +844,20 @@ class TS {
         // level doesn't exist
         const notDeletedLevels = {};
         const allLevels = {};
-        const _levels = await ts.getLevels().select();
-        _levels.forEach((level) => {
+        const rawLevels = await ts.getLevels().select();
+        rawLevels.forEach((l) => {
           if (
-            level &&
-            (level.status === ts.LEVEL_STATUS.PENDING ||
-              level.status === ts.LEVEL_STATUS.APPROVED)
+            l &&
+            (l.status === ts.LEVEL_STATUS.PENDING ||
+              l.status === ts.LEVEL_STATUS.APPROVED)
           ) {
             notDeletedLevels[
-              level.code
-            ] = `${level.code} - "${level.level_name}" by ${level.creator}`;
+              l.code
+            ] = `${l.code} - "${l.level_name}" by ${l.creator}`;
           }
           allLevels[
-            level.code
-          ] = `${level.code} - "${level.level_name}" by ${level.creator}`;
+            l.code
+          ] = `${l.code} - "${l.level_name}" by ${l.creator}`;
         });
         let listUsed = includeRemoved ? allLevels : notDeletedLevels;
         listUsed = Object.keys(listUsed);
@@ -915,10 +918,11 @@ class TS {
      * Helper function to throw the user error
      */
     this.userError = function (errorStr, args) {
-      if (this.messages[errorStr]) {
-        errorStr = this.messages[errorStr](args);
-      }
-      throw new UserError(errorStr);
+      throw new UserError(
+        this.messages[errorStr]
+          ? this.messages[errorStr](args)
+          : errorStr,
+      );
     };
 
     /**
@@ -966,9 +970,9 @@ class TS {
     /**
      * Helper function to get a random integer for ts.random
      */
-    this.getRandomInt = (min, max) => {
-      min = Math.ceil(min);
-      max = Math.floor(max);
+    this.getRandomInt = (pMin, pMax) => {
+      const min = Math.ceil(pMin);
+      const max = Math.floor(pMax);
       return Math.floor(Math.random() * (max - min)) + min; // The maximum is exclusive and the minimum is inclusive
     };
     /**
@@ -1057,7 +1061,7 @@ class TS {
       if (filteredLevels.length === 0) {
         ts.userError(
           ts.message('random.outOfLevels', {
-            range: min == max ? min : `${min}-${max}`,
+            range: min === max ? min : `${min}-${max}`,
           }),
         );
       }
@@ -1074,12 +1078,7 @@ class TS {
         level: level,
       };
     };
-    this.assign_rank_role = async function (discord_id, rank) {
-      // check if rank exists, if not skip
-      // load all rank roles
-      // remove all rank roles
-      // assign set role
-    };
+
     /**
      * A function that will get the user object based on the discord_id/message passed. Will do the necessary authentication checks and throw the necessary UserErrors
      */
@@ -1157,7 +1156,7 @@ class TS {
         );
       }
       let postString = ts.message('approval.approvalVotes');
-      if (approveVotes == undefined || approveVotes.length == 0) {
+      if (approveVotes === undefined || approveVotes.length === 0) {
         postString += ts.message('approval.noVotes');
       } else {
         for (let i = 0; i < approveVotes.length; i += 1) {
@@ -1168,7 +1167,7 @@ class TS {
         }
       }
       postString += ts.message('approval.fixVotes');
-      if (fixVotes == undefined || fixVotes.length == 0) {
+      if (fixVotes === undefined || fixVotes.length === 0) {
         postString += '> None\n';
       } else {
         for (let i = 0; i < fixVotes.length; i += 1) {
@@ -1179,7 +1178,7 @@ class TS {
         }
       }
       postString += ts.message('approval.rejectVotes');
-      if (rejectVotes == undefined || rejectVotes.length == 0) {
+      if (rejectVotes === undefined || rejectVotes.length === 0) {
         postString += 'None\n';
       } else {
         for (let i = 0; i < rejectVotes.length; i += 1) {
@@ -1226,7 +1225,7 @@ class TS {
           player: shellder.id,
           type: args.type,
           difficulty_vote:
-            args.type === 'approve' || args.type == 'fix'
+            args.type === 'approve' || args.type === 'fix'
               ? args.difficulty
               : null,
           reason: args.reason,
@@ -1258,6 +1257,7 @@ class TS {
           channel_id: this.discord.channel(level.code).id,
         });
       }
+      return true;
     };
     /**
      * Helper function to create a discussion channel in the right parent. If there is already a channel, we will move the channel to the right one
@@ -1338,9 +1338,9 @@ class TS {
     this.embedComments = (embed, comments) => {
       for (let i = 0; i < comments.length; i += 1) {
         let msgString = '';
-        if (comments[i].type == 'fix') {
+        if (comments[i].type === 'fix') {
           msgString = 'judge.votedFix';
-        } else if (comments[i].type == 'approve') {
+        } else if (comments[i].type === 'approve') {
           msgString = 'judge.votedApprove';
         } else {
           msgString = 'judge.votedReject';
@@ -1359,14 +1359,13 @@ class TS {
      * @throws {UserError} if there is not enough votes
      */
     this.processVotes = (args) => {
-      let {
-        approvalVotesNeeded = 0,
-        fixVotesNeeded = 0,
+      const {
         approvalVotesCount = 0,
         fixVotesCount = 0,
         rejectVotesCount = 0,
         isFix = false,
       } = args;
+      let { approvalVotesNeeded = 0, fixVotesNeeded = 0 } = args;
       const fixAndApproveVoteCount =
         fixVotesCount + approvalVotesCount;
       const VotesNeeded = parseInt(ts.teamVariables.VotesNeeded, 10);
@@ -1418,8 +1417,8 @@ class TS {
         statusUpdate = ts.LEVEL_STATUS.NEED_FIX;
       } else if (
         rejectVotesCount !== 0 &&
-        (fixApproveRatio == rejectionRatio ||
-          approvalRatio == rejectionRatio)
+        (fixApproveRatio === rejectionRatio ||
+          approvalRatio === rejectionRatio)
       ) {
         ts.userError(ts.message('approval.comboBreaker'));
       } else {
@@ -1501,7 +1500,7 @@ class TS {
         isFix: fromFix,
       });
       let difficulty;
-      if (statusUpdate == ts.LEVEL_STATUS.APPROVED) {
+      if (statusUpdate === ts.LEVEL_STATUS.APPROVED) {
         ts.initiate(author);
         const difficultyArr = [...approvalVotes, ...fixVotes];
         let diffCounter = 0;
@@ -1770,7 +1769,7 @@ class TS {
     this.levelEmbed = function (level, args = {}, titleArgs) {
       let { color, title, image, noLink } = args;
       let vidStr = [];
-      level.videos.split(',').forEach((vid, i) => {
+      level.videos.split(',').forEach((vid) => {
         if (vid) vidStr.push(`[ 🎬 ](${vid})`);
       });
       vidStr = vidStr.join(',');
@@ -1870,7 +1869,7 @@ class TS {
           ? level.old_status
           : level.status;
       // level.status==ts.LEVEL_STATUS.APPROVED || level.status==ts.LEVEL_STATUS.PENDING
-      if (newLevel && level.creator != newLevel.creator)
+      if (newLevel && level.creator !== newLevel.creator)
         ts.userError(ts.message('reupload.differentCreator'));
       if (
         newLevel &&
@@ -2353,7 +2352,7 @@ class TS {
   static teamFromUrl(urlSlug) {
     for (const i in TS.TS_LIST) {
       const team = TS.TS_LIST[i];
-      if (team.config && team.url_slug == urlSlug) {
+      if (team.config && team.url_slug === urlSlug) {
         return team;
       }
     }

@@ -1,6 +1,5 @@
-'use strict';
-
 const { AkairoClient } = require('discord-akairo');
+const knex = require('./db/knex');
 const TS = require('./TS.js');
 const DiscordLog = require('./DiscordLog');
 const WebApi = require('./WebApi');
@@ -33,15 +32,14 @@ client.on('ready', async () => {
     `ShellBot3000 (${process.env.NODE_ENV}) has started , with ${client.users.size} users, in ${client.channels.size} channels of ${client.guilds.size} guilds.`,
     client,
   );
-  const Teams = require('./models/Teams')();
-  const teams = await Teams.query().select();
+  const teams = await knex('teams').select();
   if (!teams) throw new Error(`No teams configurations buzzyS`);
 
-  for (const team of teams) {
-    const guild = await client.guilds.find(
-      (guild) => guild.id == team.guild_id,
-    );
+  for (let i = 0; i < teams.length; i += 1) {
+    const team = teams[i];
+    const guild = client.guilds.find((g) => g.id === team.guild_id);
     if (team && guild) {
+      // eslint-disable-next-line no-await-in-loop
       await TS.add(guild.id, DiscordWrapper);
     }
   }
