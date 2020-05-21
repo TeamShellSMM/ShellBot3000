@@ -2,7 +2,8 @@
   "globals": {
     "TEST": "readonly",
     "assert": "readonly",
-    "app": "readonly"
+    "app": "readonly",
+    "sinon": "readonly"
   },
   "rules": {
     "node/no-unpublished-require": "off"

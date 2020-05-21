@@ -9,26 +9,24 @@ class TSJudge extends TSCommand {
     });
   }
 
-  async tsexec(ts, message, args) {
-    let inCodeDiscussionChannel = false;
-    let levelCode;
+  async tsexec(ts, message) {
     // Check if in level discussion channel
-    if (ts.valid_code(message.channel.name.toUpperCase())) {
-      levelCode = message.channel.name.toUpperCase();
-      if(message.channel.parentID === ts.channels.levelDiscussionCategory){
-        inCodeDiscussionChannel = true;
+    if (
+      ts.validCode(
+        ts.discord.messageGetChannelName(message).toUpperCase(),
+      )
+    ) {
+      const levelCode = ts.discord
+        .messageGetChannelName(message)
+        .toUpperCase();
+      if (
+        ts.discord.messageGetParent(message) ===
+        ts.channels.levelDiscussionCategory
+      ) {
+        await ts.judge(levelCode);
       }
     }
-
-    if (
-      !(
-        inCodeDiscussionChannel // should also work in the discussion channel for that level
-      )
-    )
-      return false;
-
-    // Reload sheets
-    await ts.judge(levelCode);
+    return true;
   }
 }
 module.exports = TSJudge;

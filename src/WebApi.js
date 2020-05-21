@@ -163,7 +163,8 @@ module.exports = async function (client) {
       if (makerDetails) {
         json.maker = makerDetails;
         if (json.maker.length > 0) {
-          json.maker = json.maker[0];
+          const [maker] = json.maker;
+          json.maker = maker;
           delete json.maker.discord_id;
           delete json.maker.guild_id;
           json.plays = await ts
@@ -174,7 +175,7 @@ module.exports = async function (client) {
     }
 
     if (dashboard) {
-      const [memberStats, fields] = await knex.raw(
+      const [memberStats] = await knex.raw(
         `
         SELECT sum(members.is_member) official
           ,count(members.id)-sum(members.is_member) unoffocial
@@ -263,7 +264,7 @@ module.exports = async function (client) {
         };
         json.push(memberObj);
 
-        memberCounter++;
+        memberCounter += 1;
       }
       return json;
     }
@@ -394,7 +395,7 @@ module.exports = async function (client) {
     });
 
     for (const obj of json) {
-      obj.id = memberCounter++;
+      obj.id = memberCounter += 1;
     }
 
     return json;
@@ -409,10 +410,10 @@ module.exports = async function (client) {
       .where({ guild_id: ts.team.id })
       .orderBy('start_date');
 
-    let end_date = '2038-01-19 03:14:08';
+    let endDate = '2038-01-19 03:14:08';
     for (let i = seasons.length - 1; i >= 0; i--) {
-      seasons[i].end_date = end_date;
-      end_date = seasons[i].start_date;
+      seasons[i].end_date = endDate;
+      endDate = seasons[i].start_date;
     }
     data.season = data.season || seasons.length;
 
@@ -564,7 +565,7 @@ module.exports = async function (client) {
       }
 
       json.push({
-        id: memberCounter++,
+        id: (memberCounter += 1),
         wonComps: comps,
         name: member.name,
         creator_id: member.name,
@@ -582,11 +583,12 @@ module.exports = async function (client) {
   app.post(
     '/json/worlds',
     web_ts(async (ts, req) => {
+      let user;
       if (req.body.token) {
         req.body.discord_id = await ts.checkBearerToken(
           req.body.token,
         );
-        var user = await ts.getUser(req.body.discord_id);
+        user = await ts.getUser(req.body.discord_id);
       }
 
       const json = await generateWorldsJson(
@@ -621,7 +623,7 @@ module.exports = async function (client) {
 
       const settings = await ts.getSettings('settings');
       const ret = [];
-      for (let i = 0; i < ts.defaultVariables.length; i++) {
+      for (let i = 0; i < ts.defaultVariables.length; i += 1) {
         let value =
           settings[ts.defaultVariables[i].name] ||
           ts.defaultVariables[i].default;
@@ -659,7 +661,7 @@ module.exports = async function (client) {
           'is_hidden',
         )
         .where({ guild_id: ts.team.id });
-      return { data: ts.secure_data(data) };
+      return { data: ts.secureData(data) };
     }),
   );
 
@@ -670,7 +672,7 @@ module.exports = async function (client) {
       if (!(await ts.teamAdmin(req.body.discord_id)))
         ts.userError(ts.message('website.forbidden'));
       if (!req.body.data) ts.userError('website.noDataSent');
-      const data = ts.verify_data(req.body.data);
+      const data = ts.verifyData(req.body.data);
 
       let updated = false;
       await ts.knex.transaction(async (trx) => {
@@ -700,9 +702,9 @@ module.exports = async function (client) {
           }
         });
 
-        for (let i = 0; i < data.length; i++) {
-          const current_id = data[i].id;
-          const new_data = {
+        for (let i = 0; i < data.length; i += 1) {
+          const currentID = data[i].id;
+          const newData = {
             id: data[i].id,
             name: data[i].name,
             synonymous_to: data[i].synonymous_to,
@@ -729,32 +731,32 @@ module.exports = async function (client) {
               ? 1
               : 0,
           };
-          if (current_id) {
+          if (currentID) {
             const existing = existing_tags.find(
-              (t) => t.id == current_id,
+              (t) => t.id == currentID,
             );
             if (!existing) ts.userError('error.hadIdButNotInDb');
-            if (!deepEqual(new_data, existing)) {
-              new_data.updated_at = moment().format(
+            if (!deepEqual(newData, existing)) {
+              newData.updated_at = moment().format(
                 'YYYY-MM-DD HH:mm:ss',
               );
-              new_data.admin_id = req.user.id;
+              newData.admin_id = req.user.id;
               await trx('tags')
-                .update(new_data)
-                .where({ id: new_data.id });
+                .update(newData)
+                .where({ id: newData.id });
               updated = true;
             }
           } else {
             delete data[i].id;
-            new_data.guild_id = ts.team.id;
-            new_data.admin_id = req.user.id;
-            await trx('tags').insert(new_data);
+            newData.guild_id = ts.team.id;
+            newData.admin_id = req.user.id;
+            await trx('tags').insert(newData);
             updated = true;
           }
         }
         return trx;
       });
-      return { data: updated ? 'tags updated' : 'No tags updated' }; // {data:ts.secure_data(data)}
+      return { data: updated ? 'tags updated' : 'No tags updated' }; // {data:ts.secureData(data)}
     }),
   );
 
@@ -804,11 +806,12 @@ module.exports = async function (client) {
   app.post(
     '/json',
     web_ts(async (ts, req) => {
+      let user;
       if (req.body && req.body.token) {
         req.body.discord_id = await ts.checkBearerToken(
           req.body.token,
         );
-        var user = await ts.getUser(req.body.discord_id);
+        user = await ts.getUser(req.body.discord_id);
       }
 
       const json = await generateSiteJson({ ts, user, ...req.body });
@@ -823,13 +826,10 @@ module.exports = async function (client) {
         req.body.discord_id = await ts.checkBearerToken(
           req.body.token,
         );
-        var user = await ts.getUser(req.body.discord_id);
+        const user = await ts.getUser(req.body.discord_id);
       }
 
-      const json = await generateMembersJson(
-        ts,
-        req.body,
-      );
+      const json = await generateMembersJson(ts, req.body);
       return json;
     }),
   );
@@ -858,7 +858,7 @@ module.exports = async function (client) {
       await ts.getUser(req.body.discord_id);
 
       const msg = await ts.clear(req.body);
-      await client.channels.get(ts.channels.commandFeed).send(msg);
+      await ts.discord.send(ts.channels.commandFeed, msg);
       const json = { status: 'sucessful', msg: msg };
       return json;
     }),
@@ -880,9 +880,7 @@ module.exports = async function (client) {
       const msg = await ts.approve(req.body);
       const clearmsg = await ts.clear(req.body);
 
-      await client.channels
-        .get(ts.channels.commandFeed)
-        .send(clearmsg);
+      await ts.discord.send(ts.channels.commandFeed, clearmsg);
       json = { status: 'sucessful', msg: msg };
       return json;
     }),

@@ -15,9 +15,9 @@ class TSRegister extends TSCommand {
     });
   }
 
-  async tsexec(ts, message, args) {
+  async tsexec(ts, message) {
     const player = await ts.db.Members.query()
-      .where({ discord_id: message.author.id })
+      .where({ discord_id: ts.discord.getAuthor(message) })
       .first();
     if (player && player.is_banned) {
       ts.userError(ts.message('error.userBanned'));
@@ -26,8 +26,8 @@ class TSRegister extends TSCommand {
       ts.userError(ts.message('register.already', { ...player }));
     }
 
-    const command = ts.parse_command(message);
-    let nickname = message.author.username;
+    const command = ts.parseCommand(message);
+    let nickname = ts.discord.getUsername(message);
 
     if (command.arguments.length > 0) {
       nickname = command.arguments.join(' ');
@@ -49,11 +49,12 @@ class TSRegister extends TSCommand {
 
     await ts.db.Members.query().insert({
       name: nickname,
-      discord_id: message.author.id, // insert as string
-      discord_name: message.author.username,
+      discord_id: ts.discord.getAuthor(message), // insert as string
+      discord_name: ts.discord.getUsername(message),
     });
 
-    await message.reply(
+    await ts.discord.reply(
+      message,
       ts.message('register.success', { name: nickname }),
     );
   }

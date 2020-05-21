@@ -9,7 +9,7 @@ class playersRandom extends TSCommand {
         {
           id: 'players',
           type: 'string',
-          default: null,
+          default: '',
         },
         {
           id: 'minDifficulty',
@@ -27,16 +27,20 @@ class playersRandom extends TSCommand {
   }
 
   async tsexec(ts, message, args) {
-    args.discord_id = message.author.id;
-    const rand = await ts.randomLevel(args);
+    if (!args.players) ts.userError('random.noPlayersGiven');
+
+    const rand = await ts.randomLevel({
+      ...args,
+      discord_id: ts.discord.getAuthor(message),
+    });
 
     const randomEmbed = ts.levelEmbed(
       rand.level,
       ts.embedStyle.randoms,
       { players: args.players },
     );
-    await message.channel.send(rand.player.user_reply);
-    await message.channel.send(randomEmbed);
+    await ts.discord.messageSend(message, rand.player.userReply);
+    await ts.discord.messageSend(message, randomEmbed);
   }
 }
 module.exports = playersRandom;

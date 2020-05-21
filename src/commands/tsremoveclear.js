@@ -17,9 +17,9 @@ class TSRemoveclear extends TSCommand {
 
   async tsexec(ts, message, args) {
     args.completed = 0;
-    args.discord_id = message.author.id;
+    args.discord_id = ts.discord.getAuthor(message);
     const msg = await ts.clear(args);
-    await message.channel.send(msg);
+    await ts.discord.messageSend(message, msg);
   }
 }
 module.exports = TSRemoveclear;

@@ -9,7 +9,7 @@ class TSRename extends TSCommand {
   }
 
   async tsexec(ts, message) {
-    const command = ts.parse_command(message);
+    const command = ts.parseCommand(message);
     let code = command.arguments.shift();
     const levelName = command.arguments.join(' ');
     if (!code) {
@@ -36,7 +36,7 @@ class TSRename extends TSCommand {
       new_level_name: levelName,
       ...level,
     });
-    await message.channel.send(player.user_reply + reply);
+    await ts.discord.messageSend(message, player.userReply + reply);
   }
 }
 module.exports = TSRename;

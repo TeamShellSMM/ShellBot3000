@@ -39,7 +39,8 @@ class ChangeName extends TSCommand {
       .patch({ name: newName })
       .where({ id: player.id });
 
-    return await message.reply(
+    await ts.discord.reply(
+      message,
       ts.message('nickname.success', {
         oldName: player.name,
         newName,

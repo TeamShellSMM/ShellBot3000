@@ -21,14 +21,14 @@ class tsrandom extends TSCommand {
   }
 
   async tsexec(ts, message, args) {
-    args.discord_id = message.author.id;
+    args.discord_id = ts.discord.getAuthor(message);
     const rand = await ts.randomLevel(args);
     const randomEmbed = ts.levelEmbed(
       rand.level,
       ts.embedStyle.random,
     );
-    await message.channel.send(rand.player.user_reply);
-    await message.channel.send(randomEmbed);
+    await ts.discord.messageSend(message, rand.player.userReply);
+    await ts.discord.messageSend(message, randomEmbed);
   }
 }
 module.exports = tsrandom;

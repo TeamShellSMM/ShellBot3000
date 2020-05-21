@@ -27,7 +27,12 @@ class TSRerate extends TSCommand {
   }
 
   async tsexec(ts, message, { code, difficulty, reason }) {
-    if (!(message.channel.id === ts.channels.modChannel))
+    if (
+      !(
+        ts.discord.messageGetChannel(message) ===
+        ts.channels.modChannel
+      )
+    )
       return false;
 
     if (code) {
@@ -67,17 +72,24 @@ class TSRerate extends TSCommand {
       })
       .addField(
         '\u200b',
-        `**Reason** :\n\`\`\`${reason}\`\`\`Rerated by <@${message.member.id}>`,
+        `**Reason** :\n\`\`\`${reason}\`\`\`Rerated by <@${ts.discord.getAuthor(
+          message,
+        )}>`,
       );
 
-    const levelChangeChannel = await this.client.channels.get(
-      ts.channels.levelChangeNotification,
-    );
-
     const mention = `**<@${author.discord_id}>, we got some news for you: **`;
-    await levelChangeChannel.send(mention);
-    await levelChangeChannel.send(rerateEmbed);
-    await message.reply(ts.message('difficulty.success'));
+    await ts.discord.send(
+      ts.channels.levelChangeNotification,
+      mention,
+    );
+    await ts.discord.send(
+      ts.channels.levelChangeNotification,
+      rerateEmbed,
+    );
+    return ts.discord.reply(
+      message,
+      ts.message('difficulty.success'),
+    );
   }
 }
 module.exports = TSRerate;

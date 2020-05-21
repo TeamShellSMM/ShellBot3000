@@ -9,11 +9,11 @@ class TSRefuseFix extends TSCommand {
   }
 
   async tsexec(ts, message) {
-    const command = ts.parse_command(message);
+    const command = ts.parseCommand(message);
     let code = command.arguments.shift();
     if (code) code = code.toUpperCase();
 
-    if (!ts.valid_code(code))
+    if (!ts.validCode(code))
       ts.userError('You did not provide a valid code for the level');
 
     const reason = command.arguments.join(' ');
@@ -77,20 +77,21 @@ class TSRefuseFix extends TSCommand {
     );
 
     const fixVotes = await ts
-        .getPendingVotes()
-        .where('levels.id', level.id)
-        .where('type', 'fix');
+      .getPendingVotes()
+      .where('levels.id', level.id)
+      .where('type', 'fix');
 
-    let modPings = "";
-    for(let fixVote of fixVotes){
+    let modPings = '';
+    for (const fixVote of fixVotes) {
       const mod = await ts.db.Members.query()
         .where({ name: fixVote.player })
         .first();
-      modPings += `<@${mod.discord_id}> `
+      modPings += `<@${mod.discord_id}> `;
     }
-    if(modPings){
-      await discussionChannel.send(
-        modPings + `please check if your fixes were made.`,
+    if (modPings) {
+      await ts.discord.send(
+        code,
+        `${modPings}please check if your fixes were made.`,
       );
     }
 
@@ -101,7 +102,7 @@ class TSRefuseFix extends TSCommand {
     const replyMessage =
       "Your level was put in the reupload queue, we'll get back to you in a bit!";
 
-    await message.reply(replyMessage);
+    return ts.discord.reply(message, replyMessage);
   }
 }
 module.exports = TSRefuseFix;

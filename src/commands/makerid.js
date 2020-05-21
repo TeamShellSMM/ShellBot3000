@@ -26,7 +26,7 @@ class MakerId extends TSCommand {
 
     const player = await ts.getUser(message);
 
-    if (!ts.valid_code(code)) {
+    if (!ts.validCode(code)) {
       ts.userError(ts.message('error.invalidMakerCode', { code }));
     }
 
@@ -47,10 +47,11 @@ class MakerId extends TSCommand {
 
     await ts.db.Members.query()
       .patch({ maker_id: code, maker_name: name })
-      .where({ discord_id: message.author.id });
+      .where({ discord_id: ts.discord.getAuthor(message) });
 
-    message.channel.send(
-      player.user_reply +
+    await ts.discord.messageSend(
+      message,
+      player.userReply +
         ts.message('makerid.success', { code, name }),
     );
   }

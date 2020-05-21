@@ -16,7 +16,7 @@ class TSHelp extends TSCommand {
   }
 
   async tsexec(ts, message) {
-    await message.reply(ts.message('help.basic'));
+    await ts.discord.reply(message, ts.message('help.basic'));
   }
 }
 module.exports = TSHelp;

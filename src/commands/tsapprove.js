@@ -45,7 +45,7 @@ class TSApprove extends TSCommand {
     });
   }
 
-  async tsexec(ts, message, args) {
+  async tsexec(ts, message, pArgs) {
     /*
         Possible command syntax:
         !tsapprove code difficulty reason
@@ -80,15 +80,18 @@ class TSApprove extends TSCommand {
       'fix+lc',
     ];
 
-    const command = ts.parse_command(message);
+    const args = pArgs;
+    const command = ts.parseCommand(message);
     let inCodeDiscussionChannel = false;
 
     // Check if in level discussion channel
-    if (ts.valid_code(message.channel.name.toUpperCase())) {
+    if (ts.validCode(ts.discord.messageGetChannelName(message))) {
       inCodeDiscussionChannel = true;
       args.reason = args.difficulty;
       args.difficulty = args.code;
-      args.code = message.channel.name.toUpperCase();
+      args.code = ts.discord
+        .messageGetChannelName(message)
+        .toUpperCase();
     } else if (!args.code) {
       ts.userError('error.noCode');
     }
@@ -97,8 +100,10 @@ class TSApprove extends TSCommand {
     if (
       !(
         (
-          message.channel.id === ts.channels.modChannel || // only in shellder-bot channel
-          message.channel.id === ts.channels.pendingShellbot || // or in pending-shellbot channel
+          ts.discord.messageGetChannel(message) ===
+            ts.channels.modChannel || // only in shellder-bot channel
+          ts.discord.messageGetChannel(message) ===
+            ts.channels.pendingShellbot || // or in pending-shellbot channel
           inCodeDiscussionChannel
         ) // should also work in the discussion channel for that level
       )
@@ -131,9 +136,9 @@ class TSApprove extends TSCommand {
       args.type = 'approve';
     }
 
-    args.discord_id = message.author.id;
+    args.discord_id = ts.discord.getAuthor(message);
     const replyMessage = await ts.approve(args);
-    await message.reply(replyMessage);
+    await ts.discord.reply(message, replyMessage);
 
     // clear
     if (clearCommands.indexOf(command.command) !== -1) {
@@ -142,10 +147,9 @@ class TSApprove extends TSCommand {
         args.liked = 1;
       }
       const clearMessage = await ts.clear(args);
-      await this.client.channels
-        .get(ts.channels.commandFeed)
-        .send(clearMessage);
+      await ts.discord.send(ts.channels.commandFeed, clearMessage);
     }
+    return true;
   }
 }
 module.exports = TSApprove;

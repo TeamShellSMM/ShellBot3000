@@ -61,16 +61,18 @@ class tsremove extends TSCommand {
         .where({ name: level.creator })
         .first();
       const mention = `**<@${creator.discord_id}>, we got some news for you: **`;
-      await this.client.channels
-        .get(ts.channels.levelChangeNotification)
-        .send(mention);
+      await ts.discord.send(
+        ts.channels.levelChangeNotification,
+        mention,
+      );
     }
-    await this.client.channels
-      .get(ts.channels.levelChangeNotification)
-      .send(removeEmbed);
+    await ts.discord.send(
+      ts.channels.levelChangeNotification,
+      removeEmbed,
+    );
 
     const reply = ts.message('removeLevel.success', level);
-    await message.channel.send(player.user_reply + reply);
+    await ts.discord.messageSend(message, player.userReply + reply);
   }
 }
 module.exports = tsremove;

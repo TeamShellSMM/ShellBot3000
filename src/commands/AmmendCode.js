@@ -20,17 +20,17 @@ class AmmendCode extends TSCommand {
   }
 
   async canRun(ts, message) {
-    return ts.modOnly(message.author.id);
+    return ts.modOnly(ts.discord.getAuthor(message));
   }
 
   async tsexec(ts, message, { oldCode, newCode }) {
     if (!oldCode) ts.userError(ts.message('reupload.noOldCode'));
     if (!newCode) ts.userError(ts.message('reupload.noNewCode'));
 
-    if (!ts.valid_code(oldCode)) {
+    if (!ts.validCode(oldCode)) {
       ts.userError(ts.message('reupload.invalidOldCode'));
     }
-    if (!ts.valid_code(newCode)) {
+    if (!ts.validCode(newCode)) {
       ts.userError(ts.message('reupload.invalidNewCode'));
     }
     if (oldCode === newCode) {
@@ -52,17 +52,17 @@ class AmmendCode extends TSCommand {
       .patch({ code: newCode })
       .where({ code: oldCode });
 
-    const guild = ts.getGuild();
-    const existingChannel = guild.channels.find(
-      (channel) =>
-        channel.name === oldCode.toLowerCase() &&
-        channel.parentID === ts.channels.levelDiscussionCategory,
-    );
+    const existingChannel = ts.discord.channel(oldCode);
     if (existingChannel) {
-      await existingChannel.setName(newCode.toLowerCase());
+      await ts.discord.renameChannel(oldCode, newCode);
+      await ts.discord.send(
+        newCode,
+        ts.message('ammendcode.notify', { oldCode, newCode }),
+      );
     }
 
-    await message.reply(
+    await ts.discord.reply(
+      message,
       ts.message('ammendCode.success', {
         level: existingLevel,
         oldCode,

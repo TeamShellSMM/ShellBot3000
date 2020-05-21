@@ -31,23 +31,30 @@ class TSFixApprove extends TSCommand {
         !tsapprove difficulty reason
         !tsreject reason
       */
-    const command = ts.parse_command(message);
+    const command = ts.parseCommand(message);
     let inReuploadChannel = false;
     let code = '';
 
     // Check if in level discussion channel
-    if (ts.valid_code(message.channel.name.toUpperCase())) {
+    if (
+      ts.validCode(
+        ts.discord.messageGetChannelName(message).toUpperCase(),
+      )
+    ) {
       inReuploadChannel = true;
-      code = message.channel.name.toUpperCase();
+      code = ts.discord.messageGetChannelName(message).toUpperCase();
     } else {
       // Check the code only if not in discussion channel
     }
     if (!inReuploadChannel) return false; // silently fail
 
     if (
-      message.channel.parentID !== ts.channels.pendingReuploadCategory
+      ts.discord.messageGetParent(message) !==
+      ts.channels.pendingReuploadCategory
     )
       ts.userError(ts.message('fixApprove.notInChannel', { code }));
+
+    if (!reason) ts.userError('fixApprove.noReason');
 
     let approving = false;
 
@@ -58,12 +65,12 @@ class TSFixApprove extends TSCommand {
       approving = true;
     }
 
-    let replyMessage = '';
-    if (reason) {
-      replyMessage = await ts.finishFixRequest(code, message.author, reason, approving);
-    } else {
-      ts.userError(ts.message('fixApprove.noReason'));
-    }
+    return ts.finishFixRequest(
+      code,
+      ts.discord.getAuthor(message),
+      reason,
+      approving,
+    );
   }
 }
 module.exports = TSFixApprove;

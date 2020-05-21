@@ -26,7 +26,7 @@ class SetWorld extends TSCommand {
   }
 
   async tsexec(ts, message) {
-    const command = ts.parse_command(message);
+    const command = ts.parseCommand(message);
 
     const worldCount = parseInt(command.arguments.shift(), 10);
     const levelCount = parseInt(command.arguments.shift(), 10);
@@ -50,10 +50,11 @@ class SetWorld extends TSCommand {
         world_level_count: levelCount,
         world_description: worldName,
       })
-      .where({ discord_id: message.author.id });
+      .where({ discord_id: ts.discord.getAuthor(message) });
 
-    message.channel.send(
-      player.user_reply + ts.message('setworld.success'),
+    ts.discord.messageSend(
+      message,
+      player.userReply + ts.message('setworld.success'),
     );
   }
 }

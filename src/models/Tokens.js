@@ -1,4 +1,4 @@
-const { Model, QueryBuilder } = require('objection');
+const { Model } = require('objection');
 const knex = require('../db/knex');
 
 Model.knex(knex);

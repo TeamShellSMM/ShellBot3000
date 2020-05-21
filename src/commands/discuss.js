@@ -17,17 +17,18 @@ class TSDiscussChannel extends TSCommand {
   }
 
   async canRun(ts, message) {
-    return ts.modOnly(message.author.id);
+    return ts.modOnly(ts.discord.getAuthor(message));
   }
 
-  async tsexec(ts, message, { code }) {
-    const command = ts.parse_command(message);
-    let inCodeDiscussionChannel = false;
-
+  async tsexec(ts, message, args) {
+    let { code } = args;
     // Check if in level discussion channel
-    if (ts.valid_code(message.channel.name.toUpperCase())) {
-      inCodeDiscussionChannel = true;
-      code = message.channel.name.toUpperCase();
+    if (
+      ts.validCode(
+        ts.discord.messageGetChannelName(message).toUpperCase(),
+      )
+    ) {
+      code = ts.discord.messageGetChannelName(message).toUpperCase();
     }
 
     if (code) {
@@ -42,14 +43,14 @@ class TSDiscussChannel extends TSCommand {
       ts.userError(ts.message('error.levelNotFound', { code }));
     }
 
-    const { channel, created } = await ts.discussionChannel(
+    const { channel } = await ts.discussionChannel(
       level.code,
       level.status === ts.LEVEL_STATUS.PENDING
         ? ts.channels.levelDiscussionCategory
         : ts.channels.pendingReuploadCategory,
     );
     const voteEmbed = await ts.makeVoteEmbed(level);
-    await ts.updatePinned(channel, voteEmbed);
+    await ts.discord.updatePinned(channel, voteEmbed);
   }
 }
 module.exports = TSDiscussChannel;

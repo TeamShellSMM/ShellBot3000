@@ -9,16 +9,16 @@ class tsadd extends TSCommand {
   }
 
   async tsexec(ts, message) {
-    const command = ts.parse_command(message);
+    const command = ts.parseCommand(message);
     let code = command.arguments.shift();
     if (code) code = code.toUpperCase();
-    const level_name = command.arguments.join(' ');
+    const levelName = command.arguments.join(' ');
     const { reply, player } = await ts.addLevel({
       code,
-      level_name,
-      discord_id: message.author.id,
+      level_name: levelName,
+      discord_id: ts.discord.getAuthor(message),
     });
-    await message.channel.send(player.user_reply + reply);
+    await ts.discord.messageSend(message, player.userReply + reply);
   }
 }
 module.exports = tsadd;

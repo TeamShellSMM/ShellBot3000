@@ -25,9 +25,8 @@ class TSAddtags extends TSCommand {
       'addtag',
     ];
 
-    const setTags =
-      (await ts.knex('tags').where({ guild_id: ts.team.id })) || [];
-    const command = ts.parse_command(message);
+    const setTags = (await ts.getTags()) || [];
+    const command = ts.parseCommand(message);
     let code = command.arguments.shift();
     if (code) {
       code = code.toUpperCase();
@@ -119,7 +118,7 @@ class TSAddtags extends TSCommand {
       .patch({ tags: oldTags.join(',') })
       .where({ code });
 
-    await message.channel.send(player.user_reply + reply);
+    await ts.discord.messageSend(message, player.userReply + reply);
   }
 }
 module.exports = TSAddtags;

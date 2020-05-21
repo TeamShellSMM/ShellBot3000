@@ -8,13 +8,11 @@ class InitChannels extends TSCommand {
   }
 
   async canRun(ts, message) {
-    if (message.member.hasPermission('ADMINISTRATOR')) {
-      return true;
-    }
-    return false;
+    return ts.modOnly(ts.discord.getAuthor(message));
   }
 
   async tsexec(ts, message, args) {
+    /*
     const defaultChannels = {
       modChannel: {
         permissionOverwrites: [
@@ -121,16 +119,18 @@ class InitChannels extends TSCommand {
                     newChannelHelp=newChannel;
                     embed.setDescription('```fix\n'+c.Description+'\n```') // You can move this channel for organization**\n**You can delete this message**\n<a:SHELLBOTTED:666097068640829440>
                 }
-                await newChannelHelp.send(`<@${message.author.id}>`)
+                await newChannelHelp.send(`<@${ts.discord.getAuthor(message)}>`)
                 await newChannelHelp.send(embed)
             }
         }
-*/
+
 
     await ts.load();
-    await message.reply(
+    await ts.discord.reply(
+      message,
       change ? 'Commands done' : 'Nothing was done',
     );
+    */
   }
 }
 

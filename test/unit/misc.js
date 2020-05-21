@@ -1,4 +1,4 @@
-const Teams = require('../../src/models/Teams')();
+const DiscordWrapper = require('../../src/DiscordWrapper');
 
 describe('misc-unit', function () {
   beforeEach(async () => {
@@ -100,27 +100,12 @@ describe('misc-unit', function () {
     );
   });
 
-  it('new TS no client', async function () {
-    assert.throws(
-      () => new TEST.TS('guild_id'),
-      Error,
-      'No client passed to TS()',
-    );
-  });
-
   it('new TS no guild found', async function () {
     assert.throws(
-      () => new TEST.TS('guild_id', TEST.client),
+      () => new TEST.TS('guild_id', DiscordWrapper),
       Error,
       'Cannot find discord server. Invalid guild_id or ShellBot is not on this server.',
     );
-  });
-
-  it('Check team model loading without guild_id', async function () {
-    assert.exists(Teams);
-    assert.doesNotThrow(async () => {
-      await Teams.query().select();
-    });
   });
 
   it('Check TS.team no guild_id', async function () {
@@ -192,13 +177,13 @@ describe('misc-unit', function () {
   });
 
   it('ts.updatePinned no parameters', async () => {
-    await TEST.ts.updatePinned().catch((e) => {
+    await TEST.ts.discord.updatePinned().catch((e) => {
       assert.instanceOf(e, TypeError);
-      assert.equal(e.message, 'channel_name undefined');
+      assert.equal(e.message, 'channel name undefined');
     });
-    await TEST.ts.updatePinned('channel-name').catch((e) => {
+    await TEST.ts.discord.updatePinned('channel-name').catch((e) => {
       assert.instanceOf(e, TypeError);
-      assert.equal(e.message, 'embed not defined');
+      assert.equal(e.message, 'embed not defined', 'here2');
     });
   });
 
@@ -272,8 +257,8 @@ describe('misc-unit', function () {
     assert.equal(await TEST.ts.getEmoteUrl(), '');
   });
 
-  it('ts.valid_code no arguments', async () => {
-    assert.isFalse(await TEST.ts.valid_code());
+  it('ts.validCode no arguments', async () => {
+    assert.isFalse(await TEST.ts.validCode());
   });
 
   it('ts.is_smm2 no arguments', async () => {
@@ -380,6 +365,19 @@ describe('misc-unit', function () {
     assert.notExists(reply);
   });
 
+  it('ts.generateOTP multiple hit', async () => {
+    assert.lengthOf(TEST.ts.generateToken(), 16);
+    await TEST.ts.db.Tokens.query().insert({
+      discord_id: '128',
+      token: '123',
+    });
+    const token = sinon.stub(TEST.ts, 'generateToken');
+    token.onCall(0).returns('123');
+    token.onCall(1).returns('456');
+    const newToken = await TEST.ts.generateUniqueToken();
+    assert.equal(newToken, '456');
+  });
+
   it('ts.secureData and verifyData', async () => {
     const rawData = [
       { id: 1, value: 1 },
@@ -387,11 +385,11 @@ describe('misc-unit', function () {
       { id: 3, value: 1 },
       { value: 4 },
     ];
-    const secureData = TEST.ts.secure_data(rawData);
-    const verifiedData = TEST.ts.verify_data(secureData);
+    const secureData = TEST.ts.secureData(rawData);
+    const verifiedData = TEST.ts.verifyData(secureData);
     assert.lengthOf(verifiedData, 4);
     try {
-      TEST.ts.verify_data(rawData);
+      TEST.ts.verifyData(rawData);
     } catch (error) {
       assert.instanceOf(error, TEST.ts.UserError);
       assert.equal(
@@ -402,7 +400,7 @@ describe('misc-unit', function () {
 
     try {
       secureData[0].id = 4;
-      TEST.ts.verify_data(secureData);
+      TEST.ts.verifyData(secureData);
     } catch (error) {
       assert.instanceOf(error, TEST.ts.UserError);
       assert.equal(
@@ -412,8 +410,8 @@ describe('misc-unit', function () {
     }
 
     try {
-      secureData[0].__SECURE = 'wrong token';
-      TEST.ts.verify_data(secureData);
+      secureData[0].SECURE_TOKEN = 'wrong token';
+      TEST.ts.verifyData(secureData);
     } catch (error) {
       assert.instanceOf(error, TEST.ts.UserError);
       assert.equal(
@@ -421,5 +419,65 @@ describe('misc-unit', function () {
         'There was something wrong with the secure tokens. Please try again',
       );
     }
+  });
+
+  it('ts.checkBearerToken', async () => {
+    try {
+      assert.notExists(await TEST.ts.checkBearerToken());
+    } catch (error) {
+      assert.instanceOf(error, TEST.ts.UserError);
+      assert.equal(error.msg, 'No token sent');
+    }
+  });
+
+  it('ts.checkBearerToken', async () => {
+    try {
+      assert.notExists(
+        await TEST.ts.checkBearerToken('unknown_string'),
+      );
+    } catch (error) {
+      assert.instanceOf(error, TEST.ts.UserError);
+      assert.equal(error.msg, 'Authentication error');
+    }
+  });
+
+  it('ts.checkBearerToken', async () => {
+    await TEST.ts.db.Tokens.query().insert({
+      discord_id: 1,
+      token: '123',
+      created_at: '2000-01-01 01:00:00',
+    });
+    try {
+      assert.notExists(await TEST.ts.checkBearerToken('123'));
+    } catch (error) {
+      assert.instanceOf(error, TEST.ts.UserError);
+      assert.equal(error.msg, 'Token expired. Need to relogin');
+    }
+  });
+
+  it('ts.message 1dp @curr', async () => {
+    assert.equal(
+      TEST.ts.message('judge.approved', { difficulty: 1 }),
+      'This level was approved for difficulty: 1.0!',
+    );
+
+    assert.equal(
+      TEST.ts.message('judge.approved', { difficulty: 1.25 }),
+      'This level was approved for difficulty: 1.3!',
+    );
+
+    assert.equal(
+      TEST.ts.message('judge.approved', { difficulty: 1.5 }),
+      'This level was approved for difficulty: 1.5!',
+    );
+
+    assert.equal(
+      TEST.ts.message('judge.approved', { difficulty: '1' }),
+      'This level was approved for difficulty: 1.0!',
+    );
+    assert.equal(
+      TEST.ts.message('judge.approved', { difficulty: 'lol' }),
+      'This level was approved for difficulty: lol!',
+    );
   });
 });

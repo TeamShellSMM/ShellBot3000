@@ -1,13 +1,18 @@
 global.TEST = {};
 const chai = require('chai');
 const { AkairoClient } = require('discord-akairo');
-const debug=require('debug');
-const debugDiscordLog = debug('shellbot3000:discordLog');
-const debugDiscordError = debug('shellbot3000:discordError');
+const debug = require('debug');
+const DiscordWrapper = require('../src/DiscordWrapper');
+
+const debugDiscordLog = debug('shellbot3000:log');
+const debugDiscordError = debug('shellbot3000:error');
 const debugMockMessages = debug('shellbot3000:mockMessages');
+const debugGetMessages = debug('shellbot3000:onMessages');
+const debugTests = debug('shellbot3000:test');
 const WebApi = require('../src/WebApi');
 
 global.assert = chai.assert;
+global.sinon = require('sinon');
 global.TEST.knex = require('../src/db/knex');
 global.TEST.request = require('supertest');
 // force testing TEST.config
@@ -27,6 +32,7 @@ after(async () => {
 });
 
 before(async () => {
+  debugTests('setting up client');
   global.TEST.client = new AkairoClient({
     disableEveryone: true,
     commandDirectory: 'src/commands/',
@@ -34,13 +40,27 @@ before(async () => {
     blockClient: false,
     defaultCooldown: 0,
   });
-
+  debugTests('logging in');
   await TEST.client.login(process.env.DISCORD_TEST_TOKEN);
+  TEST.client.on('message', (m) => debugGetMessages(m.content));
   assert.exists(
     global.TEST.client,
     'should have discord client right now',
   );
 
+  DiscordWrapper.setClient(TEST.client);
+
+  const guild = TEST.client.guilds.get(process.env.TEST_GUILD);
+  assert.exists(guild, 'TEST_GUILD needs to be valid');
+  const allowTesting = guild.channels.find(
+    (channel) => channel.name === 'allow-shellbot-test-here',
+  );
+  assert(
+    !!allowTesting,
+    'The channel #allow-shellbot-test-here should exist in testing server and the testing bot should be able to see it.\nThe test script will nuke most of things in this server so make sure this is a server just for testing.',
+  );
+
+  debugTests('clear database');
   await TEST.knex.raw(`
     SET FOREIGN_KEY_CHECKS = 0; 
     TRUNCATE table tags;
@@ -193,6 +213,20 @@ before(async () => {
       type: 'settings',
       admin_id: 1,
     },
+    {
+      guild_id: 1,
+      name: 'CustomMessageTest',
+      value: '{{BotName}}',
+      type: 'messages',
+      admin_id: 1,
+    },
+    {
+      guild_id: 1,
+      name: 'unknown',
+      value: 'unknownValue',
+      type: 'invalidType',
+      admin_id: 1,
+    },
   ];
 
   const points = [
@@ -325,6 +359,7 @@ before(async () => {
     },
   ];
 
+  debugTests('setup initial data');
   await TEST.knex.transaction(async (trx) => {
     await trx.raw('SET FOREIGN_KEY_CHECKS = 0; ');
     await trx('teams').insert(defaultTeam);
@@ -336,7 +371,7 @@ before(async () => {
 
   global.TEST.ts = await TEST.TS.add(
     process.env.TEST_GUILD,
-    global.TEST.client,
+    DiscordWrapper,
   );
 
   global.TEST.findChannel = ({ name, parentID }) => {
@@ -362,11 +397,11 @@ before(async () => {
     args,
   ) => {
     const msg = TEST.ts.message(template, args);
-    if (type == 'userError')
+    if (type === 'userError')
       return msg + TEST.ts.message('error.afterUserDiscord');
-    if (type == 'registeredSuccess') {
+    if (type === 'registeredSuccess') {
       const user = await TEST.ts.getUser(discord_id);
-      return user.user_reply + msg;
+      return user.userReply + msg;
     }
     return msg;
   };
@@ -376,10 +411,11 @@ before(async () => {
   };
 
   global.TEST.setupData = async (data) => {
-    const ret = await TEST.knex.transaction(async (trx) => {
+    debugTests('setup data');
+    await TEST.knex.transaction(async (trx) => {
       await TEST.clearDb(trx);
       for (const i in data) {
-        for (let j = 0; j < data[i].length; j++) {
+        for (let j = 0; j < data[i].length; j += 1) {
           await TEST.ts.db[i].query(trx).insert(data[i][j]);
         }
       }
@@ -388,6 +424,7 @@ before(async () => {
   };
 
   global.TEST.clearTable = async (table, trx) => {
+    debugTests('clear table ${table}');
     return (trx || TEST.knex).raw(
       `
       SET FOREIGN_KEY_CHECKS = 0; 
@@ -399,6 +436,7 @@ before(async () => {
   };
 
   global.TEST.clearDb = async (trx) => {
+    debugTests('clear DB');
     return (trx || TEST.knex).raw(`
       SET FOREIGN_KEY_CHECKS = 0; 
       TRUNCATE table plays;
@@ -413,28 +451,37 @@ before(async () => {
     `);
   };
 
+  global.TEST.checkStub = (func) => {
+    return func.restore && func.restore.sinon;
+  };
+
   global.TEST.acceptReply = () => {
     const guild = TEST.ts.getGuild();
     const cache = [];
     function collectReply(args) {
-      debugMockMessages(args)
+      debugMockMessages(args);
       cache.push(args);
     }
-    TEST.ts.sendDM = (discord_id, msg) => {
-      collectReply(msg);
-    };
+    if (!TEST.checkStub(TEST.ts.discord.dm)) {
+      debugTests('mocking discord.dm');
+      TEST.ts.discord.dm = (discord_id, msg) => {
+        collectReply(msg);
+      };
+    }
+
     TEST.message.author.send = collectReply;
     guild.channels.forEach((c) => {
       c.send = collectReply;
       c.reply = collectReply;
     });
     return () => {
-      if (cache.length == 1) return cache[0];
+      if (cache.length === 1) return cache[0];
       return cache;
     };
   };
 
   global.TEST.clearChannels = async () => {
+    debugTests('clearing channels');
     const guild = global.TEST.ts.getGuild();
     const channels = guild.channels.array();
     for (let i = 0; i < channels.length; i += 1) {
@@ -448,7 +495,7 @@ before(async () => {
             global.TEST.ts.channels.pendingReuploadCategory)
       ) {
         await channel.delete('AUTOTEST');
-      } else if (TEST.ts.valid_code(channel.name)) {
+      } else if (TEST.ts.validCode(channel.name)) {
         await channel.delete('AUTOTEST');
       }
     }
@@ -460,6 +507,7 @@ before(async () => {
    * @param {string} args.parentID the id of the parent channel
    */
   global.TEST.createChannel = async ({ name, parent }) => {
+    debugTests(`create channel ${name}`);
     const guild = global.TEST.ts.getGuild();
     await guild.createChannel(name, {
       type: 'text',
@@ -488,18 +536,14 @@ before(async () => {
     channel,
     discord_id,
     waitFor,
+    guildId,
   }) => {
-    const guild = TEST.ts.getGuild();
+    debugTests(`mock sending '${cmd}'`);
     TEST.message.author.id = discord_id;
     TEST.message.content = cmd;
+    TEST.message.guild_id = guildId || process.env.TEST_GUILD;
     channel = channel || global.TEST.ts.channels.modChannel;
-    if (/[^0-9]/.test(channel)) {
-      TEST.message.channel = await guild.channels.find(
-        (c) => c.name === channel.toLowerCase(),
-      );
-    } else {
-      TEST.message.channel = await guild.channels.get(channel);
-    }
+    TEST.message.channel = TEST.ts.discord.channel(channel);
 
     const ret = global.TEST.expectReply(waitFor);
     TEST.client.emit('message', TEST.message);

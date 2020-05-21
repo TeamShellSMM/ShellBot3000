@@ -203,31 +203,35 @@ describe('registration', function () {
     );
   });
 
-  /*
-app.post('/json/login', web_ts(async (ts,req) => {
-      let returnObj={}
-      if(!req.body.otp)
-        TEST.ts.userError(TEST.ts.message("login.noOTP"));
+  it('!login cant dm', async function () {
+    const dm = sinon.stub(TEST.ts.discord, 'dm');
+    dm.throws({ code: 50007 });
+    const result = await TEST.mockBotSend({
+      cmd: '!login',
+      channel: 'general',
+      discord_id: '256',
+    });
+    sinon.assert.calledOnce(dm);
+    assert.equal(
+      result,
+      " It seems the bot couldn't send you a direct message with the login link, are you maybe blocking direct messages from non-friends? You can try this command again if you change your discord settings. ",
+    );
+    dm.restore();
+  });
 
-      let token=await TEST.ts.db.Tokens.query()
-        .where('token','=',req.body.otp)
+  it('!login unknown error', async function () {
+    const dm = sinon.stub(TEST.ts.discord, 'dm');
+    dm.throws(new Error('unknown'));
+    const result = await TEST.mockBotSend({
+      cmd: '!login',
+      channel: 'general',
+      discord_id: '256',
+    });
+    sinon.assert.calledOnce(dm);
+    assert.equal(result, 'something went wrong buzzyS');
+    dm.restore();
+  });
 
-      if(token.length){
-        token=token[0]
-        let tokenExpireAt=moment(token.created_at).add(30,'m').valueOf()
-        let now=moment().valueOf()
-        if(tokenExpireAt<now)
-          TEST.ts.userError(TEST.ts.message("login.expiredOTP"))
-        let user=await TEST.ts.getUser(token.discord_id);
-        let bearer=await TEST.ts.login(token.discord_id,token.id)
-        returnObj={status:"logged_in",type:"bearer","discord_id":user.discord_id,"token":bearer,"user_info":user}
-      } else {
-        TEST.ts.userError(TEST.ts.message("login.invalidToken"))
-      }
-
-      return returnObj
-  }));
-  */
   it('POST /json/login no data', async function () {
     const { body } = await TEST.request(app)
       .post('/json/login')
@@ -250,14 +254,6 @@ app.post('/json/login', web_ts(async (ts,req) => {
       'Error with no slug',
     );
   });
-
-  /*
-    it('POST /json/login errors', async function () {
-      await TEST.request(app)
-        .post('/json/login')
-        .send({ url_slug:'wrong_slug' })
-        .expect(404)
-    }) */
 
   let token;
   it('POST /json/login succesful', async function () {

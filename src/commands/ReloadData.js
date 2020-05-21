@@ -9,12 +9,12 @@ class ReloadData extends TSCommand {
   }
 
   async canRun(ts, message) {
-    return ts.modOnly(message.author.id);
+    return ts.modOnly(ts.discord.getAuthor(message));
   }
 
-  async tsexec(ts, message, args) {
+  async tsexec(ts, message) {
     await ts.load();
-    return await message.reply(`Reloaded data!`);
+    await ts.discord.reply(message, `Reloaded data!`);
   }
 }
 

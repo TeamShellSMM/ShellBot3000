@@ -52,22 +52,24 @@ class undoremovelevel extends TSCommand {
       `**Notes on level status undo** :\`\`\`${reason}\`\`\`-<@${player.discord_id}>`,
     );
 
-    if (level.creator != player.name) {
+    if (level.creator !== player.name) {
       // moderation
       const creator = await ts.db.Members.query()
         .where({ name: level.creator })
         .first();
       const mention = `**<@${creator.discord_id}>, we got some news for you: **`;
-      await this.client.channels
-        .get(ts.channels.levelChangeNotification)
-        .send(mention);
+      await ts.discord.send(
+        ts.channels.levelChangeNotification,
+        mention,
+      );
     }
-    await this.client.channels
-      .get(ts.channels.levelChangeNotification)
-      .send(undoEmbed);
+    await ts.discord.send(
+      ts.channels.levelChangeNotification,
+      undoEmbed,
+    );
 
     const reply = ts.message('undoRemoveLevel.success', level);
-    await message.channel.send(player.user_reply + reply);
+    await ts.discord.messageSend(message, player.userReply + reply);
   }
 }
 module.exports = undoremovelevel;
