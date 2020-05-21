@@ -27,7 +27,7 @@ class TSRegister extends TSCommand {
     }
 
     const command = ts.parseCommand(message);
-    let nickname = message.author.username;
+    let nickname = ts.discord.getUsername(message);
 
     if (command.arguments.length > 0) {
       nickname = command.arguments.join(' ');
@@ -50,7 +50,7 @@ class TSRegister extends TSCommand {
     await ts.db.Members.query().insert({
       name: nickname,
       discord_id: ts.discord.getAuthor(message), // insert as string
-      discord_name: message.author.username,
+      discord_name: ts.discord.getUsername(message),
     });
 
     await ts.discord.reply(

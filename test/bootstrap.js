@@ -479,7 +479,7 @@ before(async () => {
             global.TEST.ts.channels.pendingReuploadCategory)
       ) {
         await channel.delete('AUTOTEST');
-      } else if (TEST.ts.valid_code(channel.name)) {
+      } else if (TEST.ts.validCode(channel.name)) {
         await channel.delete('AUTOTEST');
       }
     }
@@ -523,18 +523,11 @@ before(async () => {
     guildId,
   }) => {
     debugTests(`mock sending '${cmd}'`);
-    const guild = TEST.ts.getGuild();
     TEST.message.author.id = discord_id;
     TEST.message.content = cmd;
     TEST.message.guild_id = guildId || process.env.TEST_GUILD;
     channel = channel || global.TEST.ts.channels.modChannel;
-    if (/[^0-9]/.test(channel)) {
-      TEST.message.channel = await guild.channels.find(
-        (c) => c.name === channel.toLowerCase(),
-      );
-    } else {
-      TEST.message.channel = await guild.channels.get(channel);
-    }
+    TEST.message.channel = TEST.ts.discord.channel(channel);
 
     const ret = global.TEST.expectReply(waitFor);
     TEST.client.emit('message', TEST.message);

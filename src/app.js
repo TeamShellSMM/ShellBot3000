@@ -4,7 +4,7 @@ const { AkairoClient } = require('discord-akairo');
 const TS = require('./TS.js');
 const DiscordLog = require('./DiscordLog');
 const WebApi = require('./WebApi');
-const DiscordWrapper = require('../src/DiscordWrapper');
+const DiscordWrapper = require('./DiscordWrapper');
 
 const devVars =
   process.NODE_ENV !== 'production'
@@ -42,7 +42,7 @@ client.on('ready', async () => {
       (guild) => guild.id == team.guild_id,
     );
     if (team && guild) {
-      await TS.add(guild.id,DiscordWrapper);
+      await TS.add(guild.id, DiscordWrapper);
     }
   }
 });

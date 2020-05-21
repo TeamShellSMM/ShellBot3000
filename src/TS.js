@@ -97,15 +97,15 @@ class TS {
 
       this.url_slug = this.team.url_slug;
       this.config = JSON.parse(this.team.config) || {};
-      this.web_config = this.team.web_config
+      this.webConfig = this.team.web_config
         ? JSON.parse(this.team.web_config)
         : {} || {};
       let updateConfig = false;
       if (this.config.key) {
-        this.secure_key = this.config.key;
+        this.secureKey = this.config.key;
       } else {
-        this.secure_key = this.generateToken(512);
-        this.config.key = this.secure_key;
+        this.secureKey = this.generateToken(512);
+        this.config.key = this.secureKey;
         updateConfig = true;
       }
       if (!this.config.feedback_salt) {
@@ -387,7 +387,7 @@ class TS {
      */
     this.addLevel = async ({ code, level_name, discord_id }) => {
       if (!code) ts.userError(ts.message('error.noCode'));
-      if (!ts.valid_code(code))
+      if (!ts.validCode(code))
         ts.userError(ts.message('error.invalidCode'));
       if (!level_name) ts.userError(ts.message('add.noName'));
       if (ts.isSpecialDiscordString(level_name))
@@ -545,7 +545,7 @@ class TS {
      @ @param {string} code Level code
      * @returns {boolean}
      */
-    this.valid_code = function (code) {
+    this.validCode = function (code) {
       if (code == null) return false;
       return (
         this.is_smm2(code) ||
@@ -930,9 +930,9 @@ class TS {
       return {
         error: obj.stack ? obj.stack : obj,
         url_slug: this.team.url_slug,
-        content: message.content,
-        user: message.author.username,
-        channel: `<#${message.channel.id}>`,
+        content: this.discord.getContent(message),
+        user: this.discord.getUsername(message),
+        channel: `<#${this.discord.messageGetChannel(message)}>`,
       };
     };
 
@@ -1086,10 +1086,7 @@ class TS {
      * A function that will get the user object based on the discord_id/message passed. Will do the necessary authentication checks and throw the necessary UserErrors
      */
     this.getUser = async function (message) {
-      const discord_id =
-        message && message.author
-          ? ts.discord.getAuthor(message)
-          : message;
+      const discord_id = ts.discord.getAuthor(message) || message;
       if (!discord_id) {
         this.userError('error.noDiscordId');
       }
@@ -1608,7 +1605,7 @@ class TS {
     };
     this.finishFixRequest = async function (
       code,
-      messageAuthor,
+      discordId,
       reason,
       approve = true,
     ) {
@@ -1730,7 +1727,7 @@ class TS {
       );
       finishFixRequestEmbed.addField(
         '\u200b',
-        `**Reason** :\`\`\`${reason}\`\`\`-<@${messageAuthor.id}>`,
+        `**Reason** :\`\`\`${reason}\`\`\`-<@${discordId}>`,
       );
 
       await this.discord.send(
@@ -1752,20 +1749,20 @@ class TS {
         throw new Error(
           'No code given to this.deleteDiscussionChannel',
         );
-      if (this.valid_code(code.toUpperCase())) {
+      if (this.validCode(code.toUpperCase())) {
         const levelChannel = this.discord.channel(code);
         if (levelChannel) {
           await levelChannel.delete(reason);
         }
       }
     };
-    this.putFeedback = async function (ip, discordId, salt, message) {
+    this.putFeedback = async function (ip, discordId, salt, content) {
       const hash = crypto.createHmac('sha512', salt);
       hash.update(`${ip} - ${discordId}`);
       const value = hash.digest('hex');
       await this.discord.send(
         ts.channels.feedbackChannel,
-        `**[${value.slice(0, 8)}]**\n> ${message.replace(
+        `**[${value.slice(0, 8)}]**\n> ${content.replace(
           /\n/g,
           '\n> ',
         )}`,
@@ -1838,7 +1835,7 @@ class TS {
       } else {
         ts.userError(ts.message('reupload.noOldCode'));
       }
-      if (!ts.valid_code(oldCode)) {
+      if (!ts.validCode(oldCode)) {
         ts.userError(ts.message('reupload.invalidOldCode'));
       }
       let newCode = command.arguments.shift();
@@ -1847,7 +1844,7 @@ class TS {
       } else {
         ts.userError(ts.message('reupload.noNewCode'));
       }
-      if (!ts.valid_code(newCode))
+      if (!ts.validCode(newCode))
         ts.userError(ts.message('reupload.invalidNewCode'));
       const reason = command.arguments.join(' ');
       if (oldCode === newCode)
@@ -2205,7 +2202,8 @@ class TS {
    * @param {knex} [trx] a transaction object
    * @returns {string[]}  returns an array of tags
    */
-  async addTags(tags, trx = knex) {
+  async addTags(pTags, trx = knex) {
+    let tags = pTags;
     if (!Array.isArray(tags) && typeof tags === 'string')
       tags = tags.split(/[,\n]/);
     if (!Array.isArray(tags))
@@ -2253,7 +2251,7 @@ class TS {
    */
   secureData(data) {
     return data.map((d) => {
-      d.__SECURE = jwt.sign(
+      d.SECURE_TOKEN = jwt.sign(
         {
           id: d.id,
         },
@@ -2265,18 +2263,18 @@ class TS {
 
   /**
    * Helper function to help verified secure data being recieved. Checks for id
-   * @param {RowPacket[]} data Rows of data recieved from user. each row should contain __SECURE created in secureData
-   * @returns {RowPacket[]} returns the same data but removes __SECURE after verifying it.
-   * @throws {UserError} returns an error if the id in the row does not match the one in __SECURE
+   * @param {RowPacket[]} data Rows of data recieved from user. each row should contain SECURE_TOKEN created in secureData
+   * @returns {RowPacket[]} returns the same data but removes SECURE_TOKEN after verifying it.
+   * @throws {UserError} returns an error if the id in the row does not match the one in SECURE_TOKEN
    */
   verifyData(data) {
     return data.map((d) => {
       if (d.id) {
-        if (!d.__SECURE) {
+        if (!d.SECURE_TOKEN) {
           this.userError('error.wrongTokens');
         }
         try {
-          const decoded = jwt.verify(d.__SECURE, this.config.key);
+          const decoded = jwt.verify(d.SECURE_TOKEN, this.config.key);
           if (decoded.id !== d.id) {
             this.userError(this.message('error.wrongTokens'));
           }
@@ -2287,7 +2285,7 @@ class TS {
         delete d.id;
         delete d.guild_id;
       }
-      delete d.__SECURE;
+      delete d.SECURE_TOKEN;
       return d;
     });
   }
@@ -2317,7 +2315,7 @@ class TS {
   /**
    * This will gather the necessary data to generate the points achived by the player
    */
-  async calculatePoints(name, if_remove_check) {
+  async calculatePoints(name, ifRemoveCheck) {
     const member = await this.db.Members.query()
       .where({ name })
       .first();
@@ -2327,7 +2325,7 @@ class TS {
       points: member.clear_score_sum,
       levelsUploaded: Math.max(
         0,
-        member.levels_created - (if_remove_check ? 1 : 0),
+        member.levels_created - (ifRemoveCheck ? 1 : 0),
       ),
       freeLevels: member.free_submissions,
       min,
@@ -2345,19 +2343,19 @@ class TS {
   /**
    * call to add a TS into the list.
    */
-  static async add(guild_id, client, gs) {
-    TS.TS_LIST[guild_id] = new TS(guild_id, client, gs);
-    await TS.TS_LIST[guild_id].load();
-    return TS.TS_LIST[guild_id];
+  static async add(guildId, client, gs) {
+    TS.TS_LIST[guildId] = new TS(guildId, client, gs);
+    await TS.TS_LIST[guildId].load();
+    return TS.TS_LIST[guildId];
   }
 
   /**
    * Get a TS object from a url_slug
    */
-  static teamFromUrl(url_slug) {
+  static teamFromUrl(urlSlug) {
     for (const i in TS.TS_LIST) {
       const team = TS.TS_LIST[i];
-      if (team.config && team.url_slug == url_slug) {
+      if (team.config && team.url_slug == urlSlug) {
         return team;
       }
     }
@@ -2378,14 +2376,14 @@ class TS {
 
   /**
    * Get a team
-   * @param {Snowflake} guild_id
+   * @param {Snowflake} guildId
    */
-  static teams(guild_id) {
-    if (TS.TS_LIST[guild_id]) {
-      return TS.TS_LIST[guild_id];
+  static teams(guildId) {
+    if (TS.TS_LIST[guildId]) {
+      return TS.TS_LIST[guildId];
     }
     throw new Error(
-      `This team, with guild id ${guild_id} has not yet setup it's config, buzzyS`,
+      `This team, with guild id ${guildId} has not yet setup it's config, buzzyS`,
     );
   }
 }

@@ -36,16 +36,21 @@ class TSFixApprove extends TSCommand {
     let code = '';
 
     // Check if in level discussion channel
-    if (ts.valid_code(message.channel.name.toUpperCase())) {
+    if (
+      ts.validCode(
+        ts.discord.messageGetChannelName(message).toUpperCase(),
+      )
+    ) {
       inReuploadChannel = true;
-      code = message.channel.name.toUpperCase();
+      code = ts.discord.messageGetChannelName(message).toUpperCase();
     } else {
       // Check the code only if not in discussion channel
     }
     if (!inReuploadChannel) return false; // silently fail
 
     if (
-      message.channel.parentID !== ts.channels.pendingReuploadCategory
+      ts.discord.messageGetParent(message) !==
+      ts.channels.pendingReuploadCategory
     )
       ts.userError(ts.message('fixApprove.notInChannel', { code }));
 
@@ -60,9 +65,9 @@ class TSFixApprove extends TSCommand {
       approving = true;
     }
 
-    await ts.finishFixRequest(
+    return ts.finishFixRequest(
       code,
-      message.author,
+      ts.discord.getAuthor(message),
       reason,
       approving,
     );

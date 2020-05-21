@@ -13,7 +13,7 @@ class TSRefuseFix extends TSCommand {
     let code = command.arguments.shift();
     if (code) code = code.toUpperCase();
 
-    if (!ts.valid_code(code))
+    if (!ts.validCode(code))
       ts.userError('You did not provide a valid code for the level');
 
     const reason = command.arguments.join(' ');
@@ -102,7 +102,7 @@ class TSRefuseFix extends TSCommand {
     const replyMessage =
       "Your level was put in the reupload queue, we'll get back to you in a bit!";
 
-    await ts.discord.reply(message, replyMessage);
+    return ts.discord.reply(message, replyMessage);
   }
 }
 module.exports = TSRefuseFix;

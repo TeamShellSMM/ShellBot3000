@@ -85,11 +85,13 @@ class TSApprove extends TSCommand {
     let inCodeDiscussionChannel = false;
 
     // Check if in level discussion channel
-    if (ts.valid_code(message.channel.name.toUpperCase())) {
+    if (ts.validCode(ts.discord.messageGetChannelName(message))) {
       inCodeDiscussionChannel = true;
       args.reason = args.difficulty;
       args.difficulty = args.code;
-      args.code = message.channel.name.toUpperCase();
+      args.code = ts.discord
+        .messageGetChannelName(message)
+        .toUpperCase();
     } else if (!args.code) {
       ts.userError('error.noCode');
     }
@@ -98,8 +100,10 @@ class TSApprove extends TSCommand {
     if (
       !(
         (
-          message.channel.id === ts.channels.modChannel || // only in shellder-bot channel
-          message.channel.id === ts.channels.pendingShellbot || // or in pending-shellbot channel
+          ts.discord.messageGetChannel(message) ===
+            ts.channels.modChannel || // only in shellder-bot channel
+          ts.discord.messageGetChannel(message) ===
+            ts.channels.pendingShellbot || // or in pending-shellbot channel
           inCodeDiscussionChannel
         ) // should also work in the discussion channel for that level
       )

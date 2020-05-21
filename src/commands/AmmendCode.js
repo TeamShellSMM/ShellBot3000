@@ -27,10 +27,10 @@ class AmmendCode extends TSCommand {
     if (!oldCode) ts.userError(ts.message('reupload.noOldCode'));
     if (!newCode) ts.userError(ts.message('reupload.noNewCode'));
 
-    if (!ts.valid_code(oldCode)) {
+    if (!ts.validCode(oldCode)) {
       ts.userError(ts.message('reupload.invalidOldCode'));
     }
-    if (!ts.valid_code(newCode)) {
+    if (!ts.validCode(newCode)) {
       ts.userError(ts.message('reupload.invalidNewCode'));
     }
     if (oldCode === newCode) {
@@ -52,14 +52,13 @@ class AmmendCode extends TSCommand {
       .patch({ code: newCode })
       .where({ code: oldCode });
 
-    const guild = ts.getGuild();
-    const existingChannel = guild.channels.find(
-      (channel) =>
-        channel.name === oldCode.toLowerCase() &&
-        channel.parentID === ts.channels.levelDiscussionCategory,
-    );
+    const existingChannel = ts.discord.channel(oldCode);
     if (existingChannel) {
       await ts.discord.renameChannel(oldCode, newCode);
+      await ts.discord.send(
+        newCode,
+        ts.message('ammendcode.notify', { oldCode, newCode }),
+      );
     }
 
     await ts.discord.reply(

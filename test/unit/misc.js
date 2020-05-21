@@ -265,8 +265,8 @@ describe('misc-unit', function () {
     assert.equal(await TEST.ts.getEmoteUrl(), '');
   });
 
-  it('ts.valid_code no arguments', async () => {
-    assert.isFalse(await TEST.ts.valid_code());
+  it('ts.validCode no arguments', async () => {
+    assert.isFalse(await TEST.ts.validCode());
   });
 
   it('ts.is_smm2 no arguments', async () => {
@@ -418,7 +418,7 @@ describe('misc-unit', function () {
     }
 
     try {
-      secureData[0].__SECURE = 'wrong token';
+      secureData[0].SECURE_TOKEN = 'wrong token';
       TEST.ts.verifyData(secureData);
     } catch (error) {
       assert.instanceOf(error, TEST.ts.UserError);

@@ -163,7 +163,7 @@ describe('!ammendcode', function () {
       discord_id: ownerId,
     });
     assert.equal(
-      result,
+      result[1],
       await TEST.mockMessage(
         'ammendCode.success',
         { type: 'normal' },

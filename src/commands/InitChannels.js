@@ -8,13 +8,11 @@ class InitChannels extends TSCommand {
   }
 
   async canRun(ts, message) {
-    if (message.member.hasPermission('ADMINISTRATOR')) {
-      return true;
-    }
-    return false;
+    return ts.modOnly(ts.discord.getAuthor(message));
   }
 
   async tsexec(ts, message, args) {
+    /*
     const defaultChannels = {
       modChannel: {
         permissionOverwrites: [
@@ -125,13 +123,14 @@ class InitChannels extends TSCommand {
                 await newChannelHelp.send(embed)
             }
         }
-*/
+
 
     await ts.load();
     await ts.discord.reply(
       message,
       change ? 'Commands done' : 'Nothing was done',
     );
+    */
   }
 }
 

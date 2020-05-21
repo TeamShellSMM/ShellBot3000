@@ -26,7 +26,7 @@ class MakerId extends TSCommand {
 
     const player = await ts.getUser(message);
 
-    if (!ts.valid_code(code)) {
+    if (!ts.validCode(code)) {
       ts.userError(ts.message('error.invalidMakerCode', { code }));
     }
 

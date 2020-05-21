@@ -29,28 +29,24 @@ class DiscordWrapper {
     return DiscordWrapper.client.guilds.get(this.guildId);
   }
 
-  channel(search) {
+  channel(search, parentID) {
     if (!search) {
       return false;
     }
+
     const searchl =
       typeof search === 'string' ? search.toLowerCase() : search;
     return this.guild().channels.find(
-      (c) => c.name === searchl || c.id === searchl,
+      (c) =>
+        (c.name === searchl || c.id === searchl) &&
+        (!parentID ||
+          (parentID && this.channel(parentID).id === c.parentID)),
     );
   }
 
   async channelSize(search) {
     const channel = this.channel(search);
     return channel.children.size;
-  }
-
-  getAuthor(message) {
-    return message.author.id;
-  }
-
-  async messageSend(message, msg) {
-    return message.channel.send(msg);
   }
 
   async renameChannel(oldName, newName) {
@@ -103,21 +99,21 @@ class DiscordWrapper {
     return true;
   }
 
-  async removeChannel(search, message) {
-    return this.channel(search).delete(message);
+  async removeChannel(search, reason) {
+    return this.channel(search).delete(reason);
   }
 
-  async send(search, message) {
-    debug(`Sending ${message} to '${search}'`);
-    return this.channel(search).send(message);
+  async send(search, content) {
+    debug(`Sending ${content} to '${search}'`);
+    return this.channel(search).send(content);
   }
 
   static channel(channelId) {
     return this.channels.get(channelId);
   }
 
-  static async send(channelId, message) {
-    return DiscordWrapper.channel(channelId).send(message);
+  static async send(channelId, content) {
+    return DiscordWrapper.channel(channelId).send(content);
   }
 
   member(discordId) {
@@ -144,6 +140,77 @@ class DiscordWrapper {
 
   embed() {
     return DiscordWrapper.client.util.embed();
+  }
+
+  /** discord message processing wrappers */
+
+  /**
+   * Get author's discord id from a message
+   * @param {Message} message
+   */
+  getAuthor(message) {
+    if (!message || !message.author) return null;
+    return message.author.id;
+  }
+
+  /**
+   * Get content of a message
+   * @param {Message} message
+   */
+  getContent(message) {
+    if (!message) return null;
+    return message.content;
+  }
+
+  /**
+   * Get channel id of a message
+   * @param {Message} message
+   */
+  messageGetChannel(message) {
+    if (!message || !message.channel) return null;
+    return message.channel.id;
+  }
+
+  /**
+   * Get channel name of a message
+   * @param {Message} message
+   */
+  messageGetChannelName(message) {
+    if (!message || !message.channel) return null;
+    return message.channel.name;
+  }
+
+  /**
+   * Get parent channel id of a message
+   * @param {Message} message
+   */
+  messageGetParent(message) {
+    if (!message || !message.channel) return null;
+    return message.channel.parentID;
+  }
+
+  /**
+   * @param {Message} message
+   */
+  getUsername(message) {
+    if (!message || !message.author) return null;
+    return message.author.username;
+  }
+
+  /**
+   *
+   * @param {Message} message
+   */
+  static messageGetGuild(message) {
+    return message.guild.id;
+  }
+
+  /**
+   * @param {Message} message
+   * @param {any} content - The content you want to send back the originating channel
+   */
+  async messageSend(message, content) {
+    return message.channel.send(content);
   }
 
   /**

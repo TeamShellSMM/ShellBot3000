@@ -169,6 +169,9 @@ module.exports = {
   'reupload.inReuploadQueue':
     " Your level has also been put in the reupload queue, we'll get back to you shortly.",
 
+  'ammendcode.notify':
+    'The level code has been ammended from `{{oldCode}}` to `{{newCode}}`.',
+
   'error.specialDiscordString':
     "We can't process your command because it had special discord strings like <@666085542085001246> in it",
 

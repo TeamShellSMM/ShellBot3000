@@ -10,28 +10,23 @@ class TSJudge extends TSCommand {
   }
 
   async tsexec(ts, message) {
-    let inCodeDiscussionChannel = false;
-    let levelCode;
     // Check if in level discussion channel
-    if (ts.valid_code(message.channel.name.toUpperCase())) {
-      levelCode = message.channel.name.toUpperCase();
+    if (
+      ts.validCode(
+        ts.discord.messageGetChannelName(message).toUpperCase(),
+      )
+    ) {
+      const levelCode = ts.discord
+        .messageGetChannelName(message)
+        .toUpperCase();
       if (
-        message.channel.parentID ===
+        ts.discord.messageGetParent(message) ===
         ts.channels.levelDiscussionCategory
       ) {
-        inCodeDiscussionChannel = true;
+        await ts.judge(levelCode);
       }
     }
-
-    if (
-      !(
-        inCodeDiscussionChannel // should also work in the discussion channel for that level
-      )
-    )
-      return false;
-
-    // Reload sheetsconsole.log('here');
-    await ts.judge(levelCode);
+    return true;
   }
 }
 module.exports = TSJudge;

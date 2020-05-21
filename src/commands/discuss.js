@@ -23,8 +23,12 @@ class TSDiscussChannel extends TSCommand {
   async tsexec(ts, message, args) {
     let { code } = args;
     // Check if in level discussion channel
-    if (ts.valid_code(message.channel.name.toUpperCase())) {
-      code = message.channel.name.toUpperCase();
+    if (
+      ts.validCode(
+        ts.discord.messageGetChannelName(message).toUpperCase(),
+      )
+    ) {
+      code = ts.discord.messageGetChannelName(message).toUpperCase();
     }
 
     if (code) {
