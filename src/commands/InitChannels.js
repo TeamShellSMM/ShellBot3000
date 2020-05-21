@@ -72,7 +72,7 @@ class InitChannels extends TSCommand {
       }
       const existingRow = await knex('team_settings')
         .where({
-          guild_id: ts.guildId,
+          guild_id: ts.team.id,
         })
         .where({
           type: 'channels',
