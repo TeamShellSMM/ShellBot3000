@@ -2391,4 +2391,7 @@ class TS {
 TS.defaultChannels = defaultChannels;
 TS.TS_LIST = {};
 TS.UserError = UserError;
+TS.promisedCallback = () => {
+  //do nothing
+}
 module.exports = TS;

@@ -6,7 +6,7 @@ const DiscordLog = require('./DiscordLog');
 
 class TSCommand extends Command {
   async tsexec() {
-    return true;
+    // to be extended
   }
 
   /**
@@ -46,9 +46,7 @@ class TSCommand extends Command {
         DiscordLog.log(error, this.client);
       }
     } finally {
-      if (typeof TS.promisedCallback === 'function')
-        TS.promisedCallback();
-
+      TS.promisedCallback();
       debug(`end ${message.content}`);
     }
     return true;
