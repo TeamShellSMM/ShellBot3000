@@ -67,7 +67,6 @@ class InitChannels extends TSCommand {
               `\`\`\`fix\n${c.description}\n\`\`\``,
             );
           }
-          await newChannelHelp.send(`<@${message.author.id}>`);
           await newChannelHelp.send(embed);
         }
       }
