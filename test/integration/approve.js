@@ -86,24 +86,9 @@ describe('!approve', function () {
       channel: TEST.ts.channels.modChannel,
       discord_id: '512',
     });
-    const channel = await TEST.ts
-      .getGuild()
-      .channels.find((c) => c.name === 'xxx-xxx-xxx');
+    const channel = await TEST.ts.discord.channel('xxx-xxx-xxx');
     assert.isOk(channel);
-    assert.equal(
-      result,
-      await TEST.mockMessage(
-        'approval.voteAdded',
-        {
-          type: 'normal',
-          discord_id: '256',
-        },
-        {
-          channel_id: channel.id,
-        },
-      ),
-    );
-    // TODO: check embed info here: result3[1]
+    assert.match(result[1], /Your vote was added to <#[0-9]+>!/);
     const result3 = await TEST.mockBotSend({
       cmd: '!judge',
       channel: 'XXX-XXX-XXX',
@@ -224,23 +209,17 @@ describe('!approve', function () {
       channel: TEST.ts.channels.modChannel,
       discord_id: '256',
     });
-    const channel = await TEST.ts
-      .getGuild()
-      .channels.find((c) => c.name === 'xxx-xxx-xxx');
+    const channel = await TEST.ts.discord.channel('xxx-xxx-xxx');
     assert.isOk(channel);
-    assert.equal(
-      result,
-      await TEST.mockMessage(
-        'approval.voteAdded',
-        {
-          type: 'normal',
-          discord_id: '256',
-        },
-        {
-          channel_id: channel.id,
-        },
-      ),
-    );
+    assert.deepInclude(result[0], {
+      title: 'level1 (XXX-XXX-XXX)',
+      description:
+        'made by [Creator](http://localhost:8080/makerteam/maker/Creator)\n' +
+        'Difficulty: 0, Clears: 0, Likes: 0\n' +
+        'Tags: [tag1](http://localhost:8080/makerteam/levels/tag1),[tag2](http://localhost:8080/makerteam/levels/tag2),[tag3](http://localhost:8080/makerteam/levels/tag3)\n' +
+        'Clear Video: [ 🎬 ](http://twitch.tv),[ 🎬 ](http://youtube.com)',
+    });
+    assert.match(result[1], /Your vote was added to <#[0-9]+>!/);
 
     const result2 = await TEST.mockBotSend({
       cmd: '!reject "no"',
@@ -294,30 +273,54 @@ describe('!approve', function () {
       channel: TEST.ts.channels.modChannel,
       discord_id: '512',
     });
-    const channel = await TEST.ts
-      .getGuild()
-      .channels.find((c) => c.name === 'xxx-xxx-xxx');
+    const channel = await TEST.ts.discord.channel('xxx-xxx-xxx');
     assert.isOk(channel);
-    assert.equal(
-      result,
-      await TEST.mockMessage(
-        'approval.voteAdded',
-        {
-          type: 'normal',
-          discord_id: '256',
-        },
-        {
-          channel_id: channel.id,
-        },
-      ),
-    );
-    // TODO: check embed info here: result3[1]
+    assert.deepInclude(result[0], {
+      title: 'level1 (XXX-XXX-XXX)',
+      description:
+        'made by [Creator](http://localhost:8080/makerteam/maker/Creator)\n' +
+        'Difficulty: 0, Clears: 0, Likes: 0\n' +
+        'Tags: [tag1](http://localhost:8080/makerteam/levels/tag1),[tag2](http://localhost:8080/makerteam/levels/tag2),[tag3](http://localhost:8080/makerteam/levels/tag3)\n' +
+        'Clear Video: [ 🎬 ](http://twitch.tv),[ 🎬 ](http://youtube.com)',
+      author: {
+        name: 'The Judgement  has now begun for this level:',
+        icon_url: undefined,
+        url: undefined,
+      },
+    });
+    assert.match(result[1], /Your vote was added to <#[0-9]+>!/);
     const result3 = await TEST.mockBotSend({
       cmd: '!judge',
       channel: 'XXX-XXX-XXX',
       discord_id: '256',
     });
-    // TODO:Check result3 title content
+
+    assert.deepInclude(result3[1], {
+      title: 'level1 (XXX-XXX-XXX)',
+      description:
+        "If you want to fix these issues use **!reupload** (to get it approved really quickly) or if you don't want to just use **!refusefix** and the mods will decide if it's still acceptable.",
+      url: 'http://localhost:8080/makerteam/level/XXX-XXX-XXX',
+      color: 14057728,
+      author: {
+        name:
+          "This level is one step from being approved, we'd just like to see some fixes!",
+        icon_url: undefined,
+        url: undefined,
+      },
+      fields: [
+        {
+          name: 'Mod2 voted for fix with difficulty 4.0:',
+          value: 'Fix your jank.',
+          inline: false,
+        },
+        {
+          name: 'Mod3 voted for fix with difficulty 2.0:',
+          value: 'no.',
+          inline: false,
+        },
+      ],
+    });
+
     assert.notEqual(
       result3,
       await TEST.mockMessage('approval.comboBreaker', {
@@ -350,9 +353,7 @@ describe('!approve', function () {
       channel: TEST.ts.channels.modChannel,
       discord_id: '256',
     });
-    const channel = await TEST.ts
-      .getGuild()
-      .channels.find((c) => c.name === 'xxx-xxx-xxx');
+    const channel = await TEST.ts.discord.channel('xxx-xxx-xxx');
     assert.equal(
       result[1],
       `Your vote was changed in <#${channel.id}>!`,

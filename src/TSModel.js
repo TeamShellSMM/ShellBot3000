@@ -3,7 +3,7 @@ const knex = require('./db/knex');
 
 Model.knex(knex);
 
-module.exports = (guild_id, ts) => {
+module.exports = (guild_id) => {
   class TSQueryBuilder extends QueryBuilder {
     constructor(...args) {
       super(...args);

@@ -380,23 +380,19 @@ describe('!reupload', function () {
       .patch({ clear_score_sum: 3 })
       .where({ discord_id: '64' });
     // check can upload a new level with current points
+    const result = await TEST.mockBotSend({
+      cmd: '!reupload XXX-XXX-XX2 XXX-XXX-YYY long reason',
+      channel: 'general',
+      discord_id: '64',
+    });
+    assert.deepInclude(result[2], {
+      title: 'approved level (XXX-XXX-YYY)',
+      description:
+        "This level was already approved before so if everything's alright you can approve it (use **!fixapprove**)",
+    });
     assert.equal(
-      await TEST.mockBotSend({
-        cmd: '!reupload XXX-XXX-XX2 XXX-XXX-YYY long reason',
-        channel: 'general',
-        discord_id: '64',
-      }),
-      (await TEST.mockMessage(
-        'reupload.success',
-        { type: 'registeredSuccess', discord_id: '64' },
-        {
-          level: {
-            level_name: 'approved level',
-            creator: 'Creator',
-          },
-          newCode: 'XXX-XXX-YYY',
-        },
-      )) + TEST.ts.message('reupload.inReuploadQueue'),
+      result[3],
+      "<@64> You have reuploaded 'approved level' by Creator with code `XXX-XXX-YYY`.  Your level has also been put in the reupload queue, we'll get back to you shortly.",
     );
 
     const oldLevel = await TEST.ts
@@ -440,14 +436,36 @@ describe('!reupload', function () {
       .patch({ is_mod: 1 })
       .where({ discord_id: '128' });
     // check can upload a new level with current points
+    const reply = await TEST.mockBotSend({
+      cmd: '!reupload XXX-XXX-X12 XXX-XXX-XX1 long reason',
+      channel: 'general',
+      discord_id: '128',
+    });
     assert.equal(
-      await TEST.mockBotSend({
-        cmd: '!reupload XXX-XXX-X12 XXX-XXX-XX1 long reason',
-        channel: 'general',
-        discord_id: '128',
-      }),
+      reply[3],
       "<@128> You have reuploaded 'User removed neex fix' by Creator with code `XXX-XXX-XX1`.  Your level has also been put in the reupload queue, we'll get back to you shortly.",
     );
+    assert.equal(
+      reply[1],
+      "Reupload Request for <@64>'s level with message: long reason",
+    );
+    assert.equal(
+      reply[0],
+      'This level has been reuploaded from XXX-XXX-X12 to XXX-XXX-XX1.',
+    );
+    assert.deepInclude(reply[2], {
+      title: 'pending level (XXX-XXX-XX1)',
+      description:
+        'Please check if the mandatory fixes where made and make your decision (use **!fixapprove** or **!fixreject** with a message).',
+      url: 'http://localhost:8080/makerteam/level/XXX-XXX-XX1',
+      color: 31743,
+      author: {
+        name:
+          'This level has been reuploaded and is now awaiting a decision!',
+        icon_url: undefined,
+        url: undefined,
+      },
+    });
 
     const oldLevel = await TEST.ts
       .getLevels()
@@ -483,26 +501,39 @@ describe('!reupload', function () {
       .patch({ clear_score_sum: 3 })
       .where({ discord_id: '64' });
     // check can upload a new level with current points
+    const reply = await TEST.mockBotSend({
+      cmd: '!reupload XXX-XXX-XX3 XXX-XXX-YYY long reason',
+      channel: 'general',
+      discord_id: '64',
+    });
     assert.equal(
-      await TEST.mockBotSend({
-        cmd: '!reupload XXX-XXX-XX3 XXX-XXX-YYY long reason',
-        channel: 'general',
-        discord_id: '64',
-      }),
-      (await TEST.mockMessage(
-        'reupload.success',
-        { type: 'registeredSuccess', discord_id: '64' },
-        {
-          level: {
-            level_name: 'need fix level',
-            creator: 'Creator',
-          },
-          newCode: 'XXX-XXX-YYY',
-        },
-      )) + TEST.ts.message('reupload.inReuploadQueue'),
+      reply[0],
+      'This level has been reuploaded from XXX-XXX-XX3 to XXX-XXX-YYY.',
     );
-    
-    it('should check if mods are pinged')
+    assert.equal(
+      reply[1],
+      "Reupload Request for <@64>'s level with message: long reason",
+    );
+    assert.equal(
+      reply[3],
+      "<@64> You have reuploaded 'need fix level' by Creator with code `XXX-XXX-YYY`.  Your level has also been put in the reupload queue, we'll get back to you shortly.",
+    );
+
+    assert.deepInclude(reply[2], {
+      title: 'need fix level (XXX-XXX-YYY)',
+      description:
+        'Please check if the mandatory fixes where made and make your decision (use **!fixapprove** or **!fixreject** with a message).',
+      url: 'http://localhost:8080/makerteam/level/XXX-XXX-YYY',
+      color: 31743,
+      author: {
+        name:
+          'This level has been reuploaded and is now awaiting a decision!',
+        icon_url: undefined,
+        url: undefined,
+      },
+    });
+
+    it('should check if mods are pinged');
 
     const oldLevel = await TEST.ts
       .getLevels()

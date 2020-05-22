@@ -172,7 +172,7 @@ describe('!points', function () {
     );
   });
 
-  it('!points role, get discord role', async function () {
+  it('!points role, get discord role @curr', async function () {
     const addRole = sinon.stub(TEST.ts.discord, 'addRole');
     const removeRoles = sinon.stub(TEST.ts.discord, 'removeRoles');
     await TEST.ts.db.Members.query()

@@ -92,6 +92,7 @@ class DiscordWrapper {
   }
 
   checkChannelFull(search) {
+    if (!search) return false;
     const channel = this.channel(search);
     if (
       channel &&
@@ -99,6 +100,7 @@ class DiscordWrapper {
     ) {
       throw new Error('channel full');
     }
+    return true;
   }
 
   async setChannelParent(search, parent) {
@@ -245,7 +247,7 @@ class DiscordWrapper {
         ? (await channel.fetchPinnedMessages()).last()
         : null;
     if (!overviewMessage) {
-      overviewMessage = await this.send(channelName,embed);
+      overviewMessage = await this.send(channelName, embed);
       if (overviewMessage) await overviewMessage.pin();
     } else {
       await overviewMessage.edit(embed);

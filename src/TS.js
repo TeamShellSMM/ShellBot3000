@@ -64,7 +64,6 @@ class TS {
 
     this.guild_id = guildId;
     this.guildId = guildId;
-    this.guild = this.getGuild();
 
     this.devs = process.env.DEVS.split(',');
     this.page_url = process.env.PAGE_URL;
@@ -310,7 +309,7 @@ class TS {
 
     this.teamAdmin = (discord_id) => {
       if (!discord_id) return false;
-      const guild = ts.getGuild();
+      const guild = this.discord.guild();
       const discordUser = guild.members.get(discord_id);
       return (
         (Array.isArray(this.devs) &&
@@ -325,7 +324,7 @@ class TS {
       if (this.devs && this.devs.indexOf(discordId) !== -1) {
         return true;
       }
-      const guild = await ts.getGuild();
+      const guild = await this.discord.guild();
       if (guild.owner.user.id === discordId) {
         // owner can do anything
         return true;
@@ -1986,12 +1985,12 @@ class TS {
           .where('type', 'fix');
 
         if (fixVotes && fixVotes.length > 0) {
-          const modPings = fixVotes
-            .map((v) => `<@${v.discord_id}>`)
-            .join(', ');
+          const modPings = fixVotes.map((v) => `<@${v.discord_id}>`);
           await this.discord.send(
             newCode,
-            `${modPings} please check if your fixes were made.`,
+            `${modPings.join(
+              `, `,
+            )} please check if your fixes were made.`,
           );
         }
 
@@ -2288,8 +2287,8 @@ class TS {
   makeTemplate(template) {
     const handlebar = Handlebars.compile(template);
     const that = this;
-    return function (args) {
-      if (!args) args = {};
+    return function (pArgs) {
+      const args = pArgs || {};
       const obj = {
         ...that.emotes,
         ...that.customStrings,

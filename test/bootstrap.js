@@ -430,9 +430,18 @@ before(async () => {
     const dm = sandbox.fake(getMsg);
     const messageSend = sandbox.fake(getMsg);
     const updatePin = sandbox.fake(getMsg);
+
+    /*
     const createChannel = sandbox.fake(function (channel, args) {
-      collectReply([channel, args]);
+      collectReply(['create-channel', channel, args]);
     });
+    const channel = sandbox.fake(function (args) {
+      collectReply(['find channel', args]);
+      return {
+        id: args,
+        name: args,
+      };
+    }); */
 
     if (!TEST.checkStub(TEST.ts.discord.dm)) {
       debugTests('mocking discord.dm');
@@ -444,7 +453,8 @@ before(async () => {
     sandbox.replace(TEST.ts.DiscordWrapper, 'reply', DWreply);
     sandbox.replace(TEST.ts.discord, 'messageSend', messageSend);
     sandbox.replace(TEST.ts.discord, 'updatePinned', updatePin);
-    sandbox.replace(TEST.ts.discord, 'createChannel', createChannel);
+    // sandbox.replace(TEST.ts.discord, 'createChannel', createChannel);
+    // sandbox.replace(TEST.ts.discord, 'channel', channel);
     return () => {
       sandbox.restore();
       if (cache.length === 1) return cache[0];
@@ -495,8 +505,7 @@ before(async () => {
    */
   global.TEST.createChannel = async ({ name, parent }) => {
     debugTests(`create channel ${name}`);
-    const guild = global.TEST.ts.getGuild();
-    await guild.createChannel(name, {
+    await global.TEST.ts.discord.createChannel(name, {
       type: 'text',
       parent,
     });

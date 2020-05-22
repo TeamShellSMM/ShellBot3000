@@ -30,7 +30,7 @@ describe('ts.modOnly', function () {
   });
   it('owner == true', async function () {
     assert.isTrue(
-      await TEST.ts.modOnly(TEST.ts.getGuild().owner.user.id),
+      await TEST.ts.modOnly(TEST.ts.discord.guild().owner.user.id),
     );
   });
   it('discord admin with no "discordAdminCanMod" flag == false', async function () {

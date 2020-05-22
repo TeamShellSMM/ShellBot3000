@@ -280,12 +280,14 @@ describe('Web Apis', function () {
       // .expect(403)
     });
 
-    it('POST /feedback', async function () {
+    it('POST /random', async function () {
+      const done = TEST.acceptReply();
       await TEST.request(app)
         .post('/json/random')
         .send({ url_slug: TEST.ts.url_slug });
       // .expect('Content-Type', /json/)
       // .expect(403)
+      done();
     });
   });
 
@@ -415,6 +417,7 @@ describe('Web Apis', function () {
     });
 
     it('POST /feedback', async function () {
+      const done = TEST.acceptReply();
       const { body } = await TEST.request(app)
         .post('/feedback')
         .send({
@@ -424,7 +427,7 @@ describe('Web Apis', function () {
         })
         .expect('Content-Type', /json/)
         .expect(200);
-
+      done();
       assert.deepEqual(body, {
         status: 'successful',
         url_slug: 'makerteam',
