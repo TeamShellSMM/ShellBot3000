@@ -66,35 +66,36 @@ class InitChannels extends TSCommand {
           }
           await ts.discord.send(newChannelName, embed);
         }
-      }
-      const existingRow = await knex('team_settings')
-        .where({
-          guild_id: ts.team.id,
-        })
-        .where({
-          type: 'channels',
-        })
-        .where({
-          name: c.name,
-        })
-        .first();
-      // TODO: Fix this.
-      const channelId = ts.discord.channel(channelName).id;
-      change = true;
-      if (existingRow) {
-        debug(`Updating ${c.name} to ${channelId}`);
-        await ts
-          .knex('team_settings')
-          .update({ value: channelId })
-          .where({ id: existingRow.id });
-      } else {
-        debug(`Inserting ${c.name} with ${channelId}`);
-        await knex('team_settings').insert({
-          guild_id: ts.team.id,
-          type: 'channels',
-          name: c.name,
-          value: channelId,
-        });
+
+        const existingRow = await knex('team_settings')
+          .where({
+            guild_id: ts.team.id,
+          })
+          .where({
+            type: 'channels',
+          })
+          .where({
+            name: c.name,
+          })
+          .first();
+        // TODO: Fix this.
+        const channelId = ts.discord.channel(channelName).id;
+        change = true;
+        if (existingRow) {
+          debug(`Updating ${c.name} to ${channelId}`);
+          await ts
+            .knex('team_settings')
+            .update({ value: channelId })
+            .where({ id: existingRow.id });
+        } else {
+          debug(`Inserting ${c.name} with ${channelId}`);
+          await knex('team_settings').insert({
+            guild_id: ts.team.id,
+            type: 'channels',
+            name: c.name,
+            value: channelId,
+          });
+        }
       }
     }
 
