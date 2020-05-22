@@ -15,8 +15,8 @@ class InitChannels extends TSCommand {
   }
 
   async tsexec(ts, message) {
-    const change = false;
-    const channels = ts.getSettings('channels');
+    let change = false;
+    const channels = await ts.getSettings('channels');
     for (let i = 0; i < defaultChannels.length; i += 1) {
       const c = defaultChannels[i];
       debug(`Check channel ${c.name}`);
@@ -78,7 +78,9 @@ class InitChannels extends TSCommand {
           name: c.name,
         })
         .first();
+      // TODO: Fix this.
       const channelId = ts.discord.channel(channelName).id;
+      change = true;
       if (existingRow) {
         debug(`Updating ${c.name} to ${channelId}`);
         await ts

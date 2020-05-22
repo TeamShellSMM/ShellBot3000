@@ -2259,7 +2259,8 @@ class TS {
    * @throws {UserError} returns an error if the id in the row does not match the one in SECURE_TOKEN
    */
   verifyData(data) {
-    return data.map((d) => {
+    return data.map((pD) => {
+      const d = { ...pD };
       if (d.id) {
         if (!d.SECURE_TOKEN) {
           this.userError('error.wrongTokens');

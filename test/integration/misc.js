@@ -1,3 +1,5 @@
+const TS = require('../../src/TS');
+
 describe('misc-integration', () => {
   beforeEach(async () => {
     await TEST.setupData({
@@ -89,6 +91,18 @@ describe('misc-integration', () => {
       'Autobot rolled a d97 and found this level for Mod,Other',
     );
     assert.equal(result[1].title, 'approved level (XXX-XXX-XXX)');
+  });
+
+  it('TSModel, ts error @curr', async () => {
+    const canRun = sinon.stub(TS, 'teams');
+    canRun.throws(new Error('caution'));
+    const result = await TEST.mockBotSend({
+      cmd: '!playersRandom Mod,Other',
+      channel: 'general',
+      discord_id: '256',
+    });
+    assert.equal(result, 'Error: caution');
+    canRun.restore();
   });
 
   /* 

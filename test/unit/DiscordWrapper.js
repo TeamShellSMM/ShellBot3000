@@ -59,4 +59,19 @@ describe('DiscordWrapper', function () {
 
     await TEST.ts.discord.removeChannel(newName);
   });
+
+  it('send general', async () => {
+    const message = await TEST.ts.discord.send(
+      'general',
+      'discord.send',
+    );
+    assert.exists(message);
+    const general = TEST.ts.discord.channel('general');
+    assert.exists(
+      await DiscordWrapper.send(general.id, 'discord.send'),
+    );
+    await TEST.ts.discord.reply(message, 'discord.reply');
+    await DiscordWrapper.reply(message, 'DiscordWrapper.reply');
+    await TEST.ts.discord.messageSend(message, 'discord.messageSend');
+  });
 });

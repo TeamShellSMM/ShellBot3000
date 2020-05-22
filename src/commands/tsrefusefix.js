@@ -66,10 +66,8 @@ class TSRefuseFix extends TSCommand {
       .where('code', level.id)
       .where('type', 'fix');
 
-    console.log(fixVotes);
     if (fixVotes && fixVotes.length > 0) {
       const modPings = fixVotes.map((v) => `<@${v.discord_id}>`);
-      console.log(modPings);
       await ts.discord.send(
         code,
         `${modPings.join(
