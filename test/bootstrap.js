@@ -413,25 +413,40 @@ before(async () => {
   };
 
   global.TEST.acceptReply = () => {
-    const guild = TEST.ts.getGuild();
+    const sandbox = sinon.createSandbox();
     const cache = [];
     function collectReply(args) {
       debugMockMessages(args);
       cache.push(args);
     }
-    if (!TEST.checkStub(TEST.ts.discord.dm)) {
-      debugTests('mocking discord.dm');
-      TEST.ts.discord.dm = (discord_id, msg) => {
-        collectReply(msg);
-      };
+
+    function getMsg(channel, msg) {
+      collectReply(msg);
     }
 
-    TEST.message.author.send = collectReply;
-    guild.channels.forEach((c) => {
-      c.send = collectReply;
-      c.reply = collectReply;
+    const send = sandbox.fake(getMsg);
+    const reply = sandbox.fake(getMsg);
+    const DWreply = sandbox.fake(getMsg);
+    const dm = sandbox.fake(getMsg);
+    const messageSend = sandbox.fake(getMsg);
+    const updatePin = sandbox.fake(getMsg);
+    const createChannel = sandbox.fake(function (channel, args) {
+      collectReply([channel, args]);
     });
+
+    if (!TEST.checkStub(TEST.ts.discord.dm)) {
+      debugTests('mocking discord.dm');
+      sandbox.replace(TEST.ts.discord, 'dm', dm);
+    }
+
+    sandbox.replace(TEST.ts.discord, 'send', send);
+    sandbox.replace(TEST.ts.discord, 'reply', reply);
+    sandbox.replace(TEST.ts.DiscordWrapper, 'reply', DWreply);
+    sandbox.replace(TEST.ts.discord, 'messageSend', messageSend);
+    sandbox.replace(TEST.ts.discord, 'updatePinned', updatePin);
+    sandbox.replace(TEST.ts.discord, 'createChannel', createChannel);
     return () => {
+      sandbox.restore();
       if (cache.length === 1) return cache[0];
       return cache;
     };
@@ -514,7 +529,7 @@ before(async () => {
     TEST.message.author.id = discord_id;
     TEST.message.content = cmd;
     TEST.message.guild_id = guildId || process.env.TEST_GUILD;
-    channel = channel || global.TEST.ts.channels.modChannel;
+    channel = channel || 'general';
     TEST.message.channel = TEST.ts.discord.channel(channel);
 
     const ret = global.TEST.expectReply(waitFor);

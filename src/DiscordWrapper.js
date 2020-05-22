@@ -245,7 +245,7 @@ class DiscordWrapper {
         ? (await channel.fetchPinnedMessages()).last()
         : null;
     if (!overviewMessage) {
-      overviewMessage = await channel.send(embed);
+      overviewMessage = await this.send(channelName,embed);
       if (overviewMessage) await overviewMessage.pin();
     } else {
       await overviewMessage.edit(embed);

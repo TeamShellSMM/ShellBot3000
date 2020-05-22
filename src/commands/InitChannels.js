@@ -41,9 +41,9 @@ class InitChannels extends TSCommand {
         };
 
         let newChannel = ts.discord.channel(channelName);
+        let newChannelName = channelName;
         if (!newChannel) {
-          let newChannelHelp;
-          newChannel = await message.guild.createChannel(
+          newChannel = await ts.discord.createChannel(
             channelName,
             channelTemplate,
           );
@@ -52,22 +52,19 @@ class InitChannels extends TSCommand {
             .setColor('#007bff')
             .setTitle('Channel Help');
           if (channelTemplate.type === 'category') {
-            newChannelHelp = await message.guild.createChannel(
-              `${channelName}-help`,
-              {
-                parent: newChannel.id,
-              },
-            );
+            newChannelName = `${channelName}-help`;
+            await ts.discord.createChannel(newChannelName, {
+              parent: newChannel.id,
+            });
             embed.setDescription(
               `\`\`\`fix\n${c.description}\n\`\`\``,
             );
           } else {
-            newChannelHelp = newChannel;
             embed.setDescription(
               `\`\`\`fix\n${c.description}\n\`\`\``,
             );
           }
-          await newChannelHelp.send(embed);
+          await ts.discord.send(newChannelName, embed);
         }
       }
       const existingRow = await knex('team_settings')
