@@ -1,3 +1,5 @@
+'use strict';
+
 const crypto = require('crypto');
 const moment = require('moment');
 const jwt = require('jsonwebtoken');
@@ -1233,32 +1235,21 @@ class TS {
         });
       } else {
         replyMsg = 'approval.voteChanged';
-        const updateJson = {
+        await ts.db.PendingVotes.query().findById(vote.id).patch({
           type: args.type,
-        };
-        if (args.reason) {
-          updateJson.reason = args.reason;
-        }
-        if (args.difficulty) {
-          updateJson.difficulty_vote = args.difficulty;
-        }
-        await ts.db.PendingVotes.query()
-          .findById(vote.id)
-          .patch(updateJson);
-      }
-      // generate judgement embed
-      if (!args.skip_update) {
-        const voteEmbed = await ts.makeVoteEmbed(level);
-        await ts.discussionChannel(
-          level.code,
-          ts.channels.levelDiscussionCategory,
-        );
-        await this.discord.updatePinned(level.code, voteEmbed);
-        return ts.message(replyMsg, {
-          channel_id: this.discord.channel(level.code).id,
+          reason: args.reason,
+          difficulty_vote: args.difficulty,
         });
       }
-      return true;
+      const voteEmbed = await ts.makeVoteEmbed(level);
+      await ts.discussionChannel(
+        level.code,
+        ts.channels.levelDiscussionCategory,
+      );
+      await this.discord.updatePinned(level.code, voteEmbed);
+      return ts.message(replyMsg, {
+        channel_id: this.discord.channel(level.code).id,
+      });
     };
     /**
      * Helper function to create a discussion channel in the right parent. If there is already a channel, we will move the channel to the right one
@@ -1769,7 +1760,8 @@ class TS {
       );
     };
 
-    this.levelEmbed = function (level, args = {}, titleArgs) {
+    this.levelEmbed = function (pLevel, args = {}, titleArgs) {
+      const level = pLevel;
       const { color, title, noLink } = args;
       let { image } = args;
       let vidStr = [];
@@ -1985,22 +1977,21 @@ class TS {
           `Reupload Request for <@${author.discord_id}>'s level with message: ${reason}`,
         );
 
-        const fixVotes = await ts
-          .getPendingVotes()
-          .where('levels.id', newLevel.id)
+        const fixVotes = await knex('members')
+          .select('members.discord_id')
+          .join('pending_votes', {
+            'members.id': 'pending_votes.player',
+          })
+          .where('code', newLevel.id)
           .where('type', 'fix');
 
-        let modPings = '';
-        for (const fixVote of fixVotes) {
-          const mod = await ts.db.Members.query()
-            .where({ name: fixVote.player })
-            .first();
-          modPings += `<@${mod.discord_id}> `;
-        }
-        if (modPings) {
+        if (fixVotes && fixVotes.length > 0) {
+          const modPings = fixVotes
+            .map((v) => `<@${v.discord_id}>`)
+            .join(', ');
           await this.discord.send(
             newCode,
-            `${modPings}please check if your fixes were made.`,
+            `${modPings} please check if your fixes were made.`,
           );
         }
 
@@ -2392,6 +2383,6 @@ TS.defaultChannels = defaultChannels;
 TS.TS_LIST = {};
 TS.UserError = UserError;
 TS.promisedCallback = () => {
-  //do nothing
-}
+  // do nothing
+};
 module.exports = TS;

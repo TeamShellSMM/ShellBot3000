@@ -455,6 +455,8 @@ describe('misc-unit', function () {
     }
   });
 
+  it('ts.getExistingLevel no levels');
+
   it('ts.message 1dp', async () => {
     assert.equal(
       TEST.ts.message('judge.approved', { difficulty: 1 }),

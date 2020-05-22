@@ -501,6 +501,8 @@ describe('!reupload', function () {
         },
       )) + TEST.ts.message('reupload.inReuploadQueue'),
     );
+    
+    it('should check if mods are pinged')
 
     const oldLevel = await TEST.ts
       .getLevels()
