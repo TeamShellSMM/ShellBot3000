@@ -90,7 +90,7 @@ before(async () => {
     {
       guild_id: 1,
       name: 'ModName',
-      value: 'Jampolice',
+      value: 'Mod',
       type: 'settings',
       admin_id: 1,
     },
@@ -201,7 +201,7 @@ before(async () => {
       min_points: 5,
       rank: 'rank1',
       pips: '',
-      discord_role: '703547357182034041',
+      discord_role: 'mockId1',
     },
     {
       admin_id: 1,
@@ -209,7 +209,7 @@ before(async () => {
       min_points: 20,
       rank: 'rank2',
       pips: '',
-      discord_role: '703547391948750880',
+      discord_role: 'mockId2',
     },
   ];
 

@@ -235,6 +235,15 @@ describe('misc-unit', function () {
     assert.notExists(level);
   });
 
+  it('ts.modOnly devs @curr', async () => {
+    const oldDevs = TEST.ts.devs;
+    TEST.ts.devs = ['123', '456'];
+    assert.isTrue(await TEST.ts.modOnly('123'));
+    assert.isTrue(await TEST.ts.modOnly('456'));
+    assert.isFalse(await TEST.ts.modOnly('unknown'));
+    TEST.ts.devs = oldDevs;
+  });
+
   it('ts.getExistingLevel wrong code, with suggestion', async () => {
     const level = await TEST.ts.getExistingLevel().catch((e) => {
       assert.instanceOf(e, TEST.TS.UserError);
@@ -251,6 +260,45 @@ describe('misc-unit', function () {
       'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent id ligula mauris. Cras vulputate ullamcorper tortor, a congue ante aliquet venenatis. Pellentesque pulvinar ultrices eros sed blandit. Nullam vulputate efficitur libero, quis commodo diam malesuada id. Nulla posuere ut mauris in pellentesque. Vivamus volutpat urna ut tincidunt tincidunt. Donec gravida posuere odio, rhoncus mollis ligula accumsan non. Proin ut pellentesque nunc. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Curabitur in vulputate metus. Maecenas auctor imperdiet mollis. Aenean vitae luctus sapien. Nunc pharetra quis ligula et viverra. Nunc quis dolor luctus, molestie ex sed, porttitor ligula. Suspendisse non pharetra dolor. Praesent justo lorem, imperdiet et dictum et, vestibulum quis lacus. Nulla sollicitudin mollis lacus a efficitur. Etiam tristique varius nibh, id venenatis erat interdum eu. Curabitur pharetra risus sit amet dictum condimentum. Phasellus neque purus, ullamcorper id lectus ac, tempus rhoncus felis. Praesent nec est neque. Sed tincidunt mauris id est placerat scelerisque. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Aliquam eu sagittis lectus. Vestibulum quis nibh lacinia, scelerisque quam ut, vestibulum velit. Nulla eu viverra massa. Phasellus sed elementum est, eu tristique mauris. In dapibus urna metus, dapibus porttitor nunc elementum ac.',
     );
     assert.lengthOf(embed.fields, 2);
+  });
+
+  it('ts.embedAddLongField empty', async () => {
+    const embed = TEST.ts.discord.embed();
+    TEST.ts.embedAddLongField(embed);
+    assert.lengthOf(embed.fields, 0);
+  });
+
+  it('ts.discussionChannel old and new exists', async () => {
+    const channel = sinon.stub(TEST.ts.discord, 'channel');
+    const removeChannel = sinon.stub(
+      TEST.ts.discord,
+      'removeChannel',
+    );
+    const createChannel = sinon.stub(
+      TEST.ts.discord,
+      'createChannel',
+    );
+    const setChannelParent = sinon.stub(
+      TEST.ts.discord,
+      'setChannelParent',
+    );
+    channel.returns('true');
+    await TEST.ts.discussionChannel(
+      'newChannel',
+      'parent',
+      'oldChannel',
+    );
+
+    sinon.assert.calledOnce(removeChannel);
+    sinon.assert.calledWith(
+      removeChannel,
+      'oldChannel',
+      'duplicate channel',
+    );
+    sinon.assert.notCalled(createChannel);
+    sinon.assert.calledOnce(setChannelParent);
+
+    sinon.restore();
   });
 
   it('ts.getEmoteUrl no arguments', async () => {

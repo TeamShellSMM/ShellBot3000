@@ -598,8 +598,9 @@ class TS {
       body,
       pHeader = '\u200b',
     ) {
+      if (!body) return false;
       let header = pHeader;
-      const bodyArr = body ? body.split('.') : [];
+      const bodyArr = body.split('.');
       const bodyStr = [''];
       for (let k = 0, l = 0; k < bodyArr.length; k += 1) {
         if (bodyArr[k]) {
@@ -1111,7 +1112,14 @@ class TS {
       if (player.is_banned) this.userError('error.userBanned');
       player.created_at = player.created_at.toString();
       player.earned_points = await this.calculatePoints(player.name);
-      player.rank = this.getRank(player.earned_points.clearPoints);
+      player.rank = this.getRank(
+        player.earned_points.clearPoints,
+      ) || {
+        min_points: 0,
+        rank: '-',
+        pipes: '',
+        discord_role: '',
+      };
       player.rank.pips = player.rank.pips || '';
       player.atme_str = player.atme
         ? `<@${player.discord_id}>`
@@ -1292,7 +1300,10 @@ class TS {
             );
             discussionChannel = oldChannel;
           } else {
-            await oldChannel.delete('duplicate channel');
+            await ts.discord.removeChannel(
+              oldChannelName,
+              'duplicate channel',
+            );
             DiscordLog.error(
               'Duplicate channel found for `old_channel_name` reupload to `channel_name`. deleting `old_channel_name`',
             );
