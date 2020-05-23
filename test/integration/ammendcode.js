@@ -151,7 +151,7 @@ describe('!ammendcode', function () {
   });
 
   it('owner succesful', async function () {
-    const ownerId = TEST.ts.getGuild().owner.user.id;
+    const ownerId = TEST.ts.discord.guild().owner.user.id;
     await TEST.clearChannels();
     await TEST.createChannel({
       name: 'XXX-XXX-XXX',

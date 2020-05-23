@@ -15,8 +15,8 @@ class InitChannels extends TSCommand {
   }
 
   async tsexec(ts, message) {
-    const change = false;
-    const channels = ts.getSettings('channels');
+    let change = false;
+    const channels = await ts.getSettings('channels');
     for (let i = 0; i < defaultChannels.length; i += 1) {
       const c = defaultChannels[i];
       debug(`Check channel ${c.name}`);
@@ -41,9 +41,9 @@ class InitChannels extends TSCommand {
         };
 
         let newChannel = ts.discord.channel(channelName);
+        let newChannelName = channelName;
         if (!newChannel) {
-          let newChannelHelp;
-          newChannel = await message.guild.createChannel(
+          newChannel = await ts.discord.createChannel(
             channelName,
             channelTemplate,
           );
@@ -52,50 +52,49 @@ class InitChannels extends TSCommand {
             .setColor('#007bff')
             .setTitle('Channel Help');
           if (channelTemplate.type === 'category') {
-            newChannelHelp = await message.guild.createChannel(
-              `${channelName}-help`,
-              {
-                parent: newChannel.id,
-              },
-            );
+            newChannelName = `${channelName}-help`;
+            await ts.discord.createChannel(newChannelName, {
+              parent: newChannel.id,
+            });
             embed.setDescription(
               `\`\`\`fix\n${c.description}\n\`\`\``,
             );
           } else {
-            newChannelHelp = newChannel;
             embed.setDescription(
               `\`\`\`fix\n${c.description}\n\`\`\``,
             );
           }
-          await newChannelHelp.send(embed);
+          await ts.discord.send(newChannelName, embed);
         }
-      }
-      const existingRow = await knex('team_settings')
-        .where({
-          guild_id: ts.guildId,
-        })
-        .where({
-          type: 'channels',
-        })
-        .where({
-          name: c.name,
-        })
-        .first();
-      const channelId = ts.discord.channel(channelName).id;
-      if (existingRow) {
-        debug(`Updating ${c.name} to ${channelId}`);
-        await ts
-          .knex('team_settings')
-          .update({ value: channelId })
-          .where({ id: existingRow.id });
-      } else {
-        debug(`Inserting ${c.name} with ${channelId}`);
-        await knex('team_settings').insert({
-          guild_id: ts.team.id,
-          type: 'channels',
-          name: c.name,
-          value: channelId,
-        });
+
+        const existingRow = await knex('team_settings')
+          .where({
+            guild_id: ts.team.id,
+          })
+          .where({
+            type: 'channels',
+          })
+          .where({
+            name: c.name,
+          })
+          .first();
+        const channelId = ts.discord.channel(channelName).id;
+        change = true;
+        if (existingRow) {
+          debug(`Updating ${c.name} to ${channelId}`);
+          await ts
+            .knex('team_settings')
+            .update({ value: channelId })
+            .where({ id: existingRow.id });
+        } else {
+          debug(`Inserting ${c.name} with ${channelId}`);
+          await knex('team_settings').insert({
+            guild_id: ts.team.id,
+            type: 'channels',
+            name: c.name,
+            value: channelId,
+          });
+        }
       }
     }
 

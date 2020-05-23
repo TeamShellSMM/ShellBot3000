@@ -129,7 +129,7 @@ describe('!resetstatus', function () {
   });
 
   it('owner succesful', async function () {
-    const ownerId = TEST.ts.getGuild().owner.user.id;
+    const ownerId = TEST.ts.discord.guild().owner.user.id;
     const result = await TEST.mockBotSend({
       cmd: '!resetstatus xxx-xxx-xxx',
       channel: 'general',
@@ -156,7 +156,7 @@ describe('!resetstatus', function () {
   });
 
   it('owner succesful', async function () {
-    const ownerId = TEST.ts.getGuild().owner.user.id;
+    const ownerId = TEST.ts.discord.guild().owner.user.id;
     const result = await TEST.mockBotSend({
       cmd: '!resetstatus xxx-xxx-xxx',
       channel: 'general',

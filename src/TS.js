@@ -1,3 +1,5 @@
+'use strict';
+
 const crypto = require('crypto');
 const moment = require('moment');
 const jwt = require('jsonwebtoken');
@@ -62,7 +64,6 @@ class TS {
 
     this.guild_id = guildId;
     this.guildId = guildId;
-    this.guild = this.getGuild();
 
     this.devs = process.env.DEVS.split(',');
     this.page_url = process.env.PAGE_URL;
@@ -308,7 +309,7 @@ class TS {
 
     this.teamAdmin = (discord_id) => {
       if (!discord_id) return false;
-      const guild = ts.getGuild();
+      const guild = this.discord.guild();
       const discordUser = guild.members.get(discord_id);
       return (
         (Array.isArray(this.devs) &&
@@ -323,7 +324,7 @@ class TS {
       if (this.devs && this.devs.indexOf(discordId) !== -1) {
         return true;
       }
-      const guild = await ts.getGuild();
+      const guild = await this.discord.guild();
       if (guild.owner.user.id === discordId) {
         // owner can do anything
         return true;
@@ -1233,32 +1234,21 @@ class TS {
         });
       } else {
         replyMsg = 'approval.voteChanged';
-        const updateJson = {
+        await ts.db.PendingVotes.query().findById(vote.id).patch({
           type: args.type,
-        };
-        if (args.reason) {
-          updateJson.reason = args.reason;
-        }
-        if (args.difficulty) {
-          updateJson.difficulty_vote = args.difficulty;
-        }
-        await ts.db.PendingVotes.query()
-          .findById(vote.id)
-          .patch(updateJson);
-      }
-      // generate judgement embed
-      if (!args.skip_update) {
-        const voteEmbed = await ts.makeVoteEmbed(level);
-        await ts.discussionChannel(
-          level.code,
-          ts.channels.levelDiscussionCategory,
-        );
-        await this.discord.updatePinned(level.code, voteEmbed);
-        return ts.message(replyMsg, {
-          channel_id: this.discord.channel(level.code).id,
+          reason: args.reason,
+          difficulty_vote: args.difficulty,
         });
       }
-      return true;
+      const voteEmbed = await ts.makeVoteEmbed(level);
+      await ts.discussionChannel(
+        level.code,
+        ts.channels.levelDiscussionCategory,
+      );
+      await this.discord.updatePinned(level.code, voteEmbed);
+      return ts.message(replyMsg, {
+        channel_id: this.discord.channel(level.code).id,
+      });
     };
     /**
      * Helper function to create a discussion channel in the right parent. If there is already a channel, we will move the channel to the right one
@@ -1769,7 +1759,8 @@ class TS {
       );
     };
 
-    this.levelEmbed = function (level, args = {}, titleArgs) {
+    this.levelEmbed = function (pLevel, args = {}, titleArgs) {
+      const level = pLevel;
       const { color, title, noLink } = args;
       let { image } = args;
       let vidStr = [];
@@ -1985,22 +1976,21 @@ class TS {
           `Reupload Request for <@${author.discord_id}>'s level with message: ${reason}`,
         );
 
-        const fixVotes = await ts
-          .getPendingVotes()
-          .where('levels.id', newLevel.id)
+        const fixVotes = await knex('members')
+          .select('members.discord_id')
+          .join('pending_votes', {
+            'members.id': 'pending_votes.player',
+          })
+          .where('code', newLevel.id)
           .where('type', 'fix');
 
-        let modPings = '';
-        for (const fixVote of fixVotes) {
-          const mod = await ts.db.Members.query()
-            .where({ name: fixVote.player })
-            .first();
-          modPings += `<@${mod.discord_id}> `;
-        }
-        if (modPings) {
+        if (fixVotes && fixVotes.length > 0) {
+          const modPings = fixVotes.map((v) => `<@${v.discord_id}>`);
           await this.discord.send(
             newCode,
-            `${modPings}please check if your fixes were made.`,
+            `${modPings.join(
+              `, `,
+            )} please check if your fixes were made.`,
           );
         }
 
@@ -2269,7 +2259,8 @@ class TS {
    * @throws {UserError} returns an error if the id in the row does not match the one in SECURE_TOKEN
    */
   verifyData(data) {
-    return data.map((d) => {
+    return data.map((pD) => {
+      const d = { ...pD };
       if (d.id) {
         if (!d.SECURE_TOKEN) {
           this.userError('error.wrongTokens');
@@ -2297,8 +2288,8 @@ class TS {
   makeTemplate(template) {
     const handlebar = Handlebars.compile(template);
     const that = this;
-    return function (args) {
-      if (!args) args = {};
+    return function (pArgs) {
+      const args = pArgs || {};
       const obj = {
         ...that.emotes,
         ...that.customStrings,
@@ -2392,6 +2383,6 @@ TS.defaultChannels = defaultChannels;
 TS.TS_LIST = {};
 TS.UserError = UserError;
 TS.promisedCallback = () => {
-  //do nothing
-}
+  // do nothing
+};
 module.exports = TS;

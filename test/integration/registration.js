@@ -257,7 +257,7 @@ describe('registration', function () {
 
   let token;
   it('POST /json/login succesful', async function () {
-    TEST.acceptReply();
+    const done = TEST.acceptReply();
     await TEST.ts.getUser(discordId);
     const { body } = await TEST.request(app)
       .post('/json/login')
@@ -271,6 +271,7 @@ describe('registration', function () {
     token = token[0].token;
     assert.equal(body.status, 'logged_in');
     assert.equal(body.token, token);
+    done();
   });
 
   it('POST /json registered', async function () {

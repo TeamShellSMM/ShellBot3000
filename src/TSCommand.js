@@ -42,7 +42,7 @@ class TSCommand extends Command {
           ts.getUserErrorMsg(error, message),
         );
       } else {
-        await TS.DiscordWrapper.reply(message, error);
+        await TS.DiscordWrapper.reply(message, error.toString());
         DiscordLog.log(error, this.client);
       }
     } finally {

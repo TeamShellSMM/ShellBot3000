@@ -42,67 +42,47 @@ class TSRefuseFix extends TSCommand {
         'You can only use this command on one of your own levels that currently has an open fix request.',
       );
 
-    // generate judgement embed
-    let discussionChannel;
-
-    const guild = ts.getGuild();
-
     await ts.db.Levels.query()
       .where({ code })
       .patch({ status: ts.LEVEL_STATUS.PENDING_NOT_FIXED_REUPLOAD });
     level.status = ts.LEVEL_STATUS.PENDING_NOT_FIXED_REUPLOAD;
-    // TODO: put author comment in pending_votes
-    discussionChannel = ts.findChannel({
-      name: level.code.toLowerCase(),
-      parendID: ts.channels.pendingReuploadCategory,
-    }); // not sure should specify guild/server
 
-    // Create new channel and set parent to category
-    /* istanbul ignore next */
-    if (
-      guild.channels.get(ts.channels.pendingReuploadCategory).children
-        .size === 50
-    ) {
-      ts.userError(
-        "Can't handle the request right now because there are already 50 open reupload requests (this should really never happen)!",
-      );
-    }
-    discussionChannel = await guild.createChannel(code, {
+    await ts.discord.createChannel(code, {
       type: 'text',
-      parent: guild.channels.get(ts.channels.pendingReuploadCategory),
+      parent: ts.channels.pendingReuploadCategory,
     });
-    // Post empty overview post
-    await discussionChannel.send(
+
+    await ts.discord.send(
+      code,
       `Reupload Request for <@${author.discord_id}>'s level with message: ${reason}`,
     );
 
     const fixVotes = await ts
-      .getPendingVotes()
-      .where('levels.id', level.id)
+      .knex('members')
+      .select('members.discord_id')
+      .join('pending_votes', {
+        'members.id': 'pending_votes.player',
+      })
+      .where('code', level.id)
       .where('type', 'fix');
 
-    let modPings = '';
-    for (const fixVote of fixVotes) {
-      const mod = await ts.db.Members.query()
-        .where({ name: fixVote.player })
-        .first();
-      modPings += `<@${mod.discord_id}> `;
-    }
-    if (modPings) {
+    if (fixVotes && fixVotes.length > 0) {
+      const modPings = fixVotes.map((v) => `<@${v.discord_id}>`);
       await ts.discord.send(
         code,
-        `${modPings}please check if your fixes were made.`,
+        `${modPings.join(
+          ', ',
+        )} please check if your fixes were made.`,
       );
     }
 
     const voteEmbed = await ts.makeVoteEmbed(level, reason);
-    const overviewMessage = await discussionChannel.send(voteEmbed);
-    await overviewMessage.pin();
+    await ts.discord.updatePinned(code, voteEmbed);
 
-    const replyMessage =
-      "Your level was put in the reupload queue, we'll get back to you in a bit!";
-
-    return ts.discord.reply(message, replyMessage);
+    return ts.discord.reply(
+      message,
+      "Your level was put in the reupload queue, we'll get back to you in a bit!",
+    );
   }
 }
 module.exports = TSRefuseFix;

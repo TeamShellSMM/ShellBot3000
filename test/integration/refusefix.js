@@ -174,13 +174,37 @@ describe('!refusefix', function () {
       type: 'fix',
       reason: 'Needs fixing',
     });
+    await TEST.ts.db.PendingVotes.query().insert({
+      guild_id: 1,
+      player: 3,
+      code: 3,
+      type: 'fix',
+      reason: 'So needs fixing',
+    });
     await TEST.clearChannels();
+    const result = await TEST.mockBotSend({
+      cmd: '!refusefix XXX-XXX-XX3 long reason',
+      channel: 'general',
+      discord_id: '64',
+    });
     assert.equal(
-      await TEST.mockBotSend({
-        cmd: '!refusefix XXX-XXX-XX3 long reason',
-        channel: 'general',
-        discord_id: '64',
-      }),
+      result[1],
+      '<@128>, <@256> please check if your fixes were made.',
+    );
+    assert.deepInclude(result[2], {
+      title: 'need fix level (XXX-XXX-XX3)',
+      description:
+        'Refused by: Please check the fixvotes and decide if this is still acceptable to approve or not (use **!fixapprove** or **!fixreject** with a message).',
+      url: 'http://localhost:8080/makerteam/level/XXX-XXX-XX3',
+      color: 31743,
+      author: {
+        name: 'This level has NOT been reuploaded!',
+        icon_url: undefined,
+        url: undefined,
+      },
+    });
+    assert.equal(
+      result[3],
       "Your level was put in the reupload queue, we'll get back to you in a bit!",
     );
 
@@ -202,13 +226,31 @@ describe('!refusefix', function () {
 
   it('creator successful no ping', async () => {
     await TEST.clearChannels();
+    const result = await TEST.mockBotSend({
+      cmd: '!refusefix XXX-XXX-XX3 long reason',
+      channel: 'general',
+      discord_id: '64',
+    });
     assert.equal(
-      await TEST.mockBotSend({
-        cmd: '!refusefix XXX-XXX-XX3 long reason',
-        channel: 'general',
-        discord_id: '64',
-      }),
+      result[2],
       "Your level was put in the reupload queue, we'll get back to you in a bit!",
+    );
+
+    assert.deepInclude(result[1], {
+      title: 'need fix level (XXX-XXX-XX3)',
+      description:
+        'Refused by: Please check the fixvotes and decide if this is still acceptable to approve or not (use **!fixapprove** or **!fixreject** with a message).',
+      url: 'http://localhost:8080/makerteam/level/XXX-XXX-XX3',
+      color: 31743,
+      author: {
+        name: 'This level has NOT been reuploaded!',
+        icon_url: undefined,
+        url: undefined,
+      },
+    });
+    assert.equal(
+      result[0],
+      "Reupload Request for <@64>'s level with message: long reason",
     );
   });
 });

@@ -92,6 +92,7 @@ class DiscordWrapper {
   }
 
   checkChannelFull(search) {
+    if (!search) return false;
     const channel = this.channel(search);
     if (
       channel &&
@@ -99,6 +100,7 @@ class DiscordWrapper {
     ) {
       throw new Error('channel full');
     }
+    return true;
   }
 
   async setChannelParent(search, parent) {
@@ -117,7 +119,9 @@ class DiscordWrapper {
   }
 
   async removeChannel(search, reason) {
-    return this.channel(search).delete(reason);
+    const channel = this.channel(search);
+    if (channel) return channel.delete(reason);
+    return false;
   }
 
   async send(search, content) {
@@ -237,19 +241,23 @@ class DiscordWrapper {
    * @throws {TypeError} Will throw type errors if the arguments are not provided
    */
   async updatePinned(channelName, embed) {
+    debug(`Update pin for ${channelName}`);
     if (!channelName) throw new TypeError('channel name undefined');
     if (!embed) throw new TypeError('embed not defined');
     const channel = this.channel(channelName);
-    let overviewMessage =
-      process.env.NODE_ENV !== 'test'
-        ? (await channel.fetchPinnedMessages()).last()
-        : null;
+    debug(`fetching pinned messages ${channelName}`);
+    let overviewMessage = (
+      await channel.fetchPinnedMessages(false)
+    ).last();
     if (!overviewMessage) {
-      overviewMessage = await channel.send(embed);
-      if (overviewMessage) await overviewMessage.pin();
-    } else {
-      await overviewMessage.edit(embed);
+      debug(
+        `No pin found for ${channelName}. Sending message and pinning it`,
+      );
+      overviewMessage = await this.send(channelName, embed);
+      return overviewMessage.pin();
     }
+    debug(`Pin found for ${channelName}. Editing it`);
+    return overviewMessage.edit(embed);
   }
 
   async dm(discordId, message) {

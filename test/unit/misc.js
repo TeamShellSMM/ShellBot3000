@@ -379,17 +379,21 @@ describe('misc-unit', function () {
   });
 
   it('ts.secureData and verifyData', async () => {
-    const rawData = [
+    const secureData = TEST.ts.secureData([
       { id: 1, value: 1 },
       { id: 2, value: 1 },
       { id: 3, value: 1 },
       { value: 4 },
-    ];
-    const secureData = TEST.ts.secureData(rawData);
+    ]);
     const verifiedData = TEST.ts.verifyData(secureData);
     assert.lengthOf(verifiedData, 4);
     try {
-      TEST.ts.verifyData(rawData);
+      TEST.ts.verifyData([
+        { id: 1, value: 1 },
+        { id: 2, value: 1 },
+        { id: 3, value: 1 },
+        { value: 4 },
+      ]);
     } catch (error) {
       assert.instanceOf(error, TEST.ts.UserError);
       assert.equal(
@@ -397,7 +401,6 @@ describe('misc-unit', function () {
         'There was something wrong with the secure tokens. Please try again',
       );
     }
-
     try {
       secureData[0].id = 4;
       TEST.ts.verifyData(secureData);
@@ -408,7 +411,6 @@ describe('misc-unit', function () {
         'There was something wrong with the secure tokens. Please try again',
       );
     }
-
     try {
       secureData[0].SECURE_TOKEN = 'wrong token';
       TEST.ts.verifyData(secureData);
