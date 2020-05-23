@@ -1,4 +1,4 @@
-const botPermissions = {
+const botPermissions = Object.freeze({
   allow: [
     'VIEW_CHANNEL',
     'SEND_MESSAGES',
@@ -9,9 +9,9 @@ const botPermissions = {
     'USE_EXTERNAL_EMOJIS',
   ],
   deny: [],
-};
+});
 
-const defaultChannels = [
+const defaultChannels = Object.freeze([
   {
     name: 'modChannel',
     default: 'bot-mod-channel',
@@ -84,12 +84,12 @@ const defaultChannels = [
       deny: ['VIEW_CHANNEL', 'SEND_MESSAGES'],
     },
   },
-];
+]);
 
 /**
  * Team settable Variables
  */
-const defaultVariables = [
+const defaultVariables = Object.freeze([
   {
     name: 'TeamName',
     caption: 'Team Name',
@@ -316,7 +316,7 @@ const defaultVariables = [
     type: 'text',
     description: 'Emote to be shown in random level messages',
   },
-];
+]);
 
 /**
  * The status of a level
@@ -331,7 +331,7 @@ const defaultVariables = [
  * * USER_REMOVED
  * @typedef {number} LevelStatus
  */
-const LEVEL_STATUS = {
+const LEVEL_STATUS = Object.freeze({
   PENDING: 0,
   PENDING_APPROVED_REUPLOAD: 3,
   PENDING_FIXED_REUPLOAD: 4,
@@ -344,39 +344,39 @@ const LEVEL_STATUS = {
   REUPLOADED: 2,
   REMOVED: -2,
   USER_REMOVED: -3,
-};
+});
 
 /**
  * Level status that are pending
  * @type {LevelStatus[]}
  */
-const PENDING_LEVELS = [
+const PENDING_LEVELS = Object.freeze([
   LEVEL_STATUS.PENDING,
   LEVEL_STATUS.PENDING_NOT_FIXED_REUPLOAD,
   LEVEL_STATUS.PENDING_APPROVED_REUPLOAD,
   LEVEL_STATUS.PENDING_FIXED_REUPLOAD,
-];
+]);
 
 /**
  * Level status that appears in the list
  * @type {LevelStatus[]}
  */
-const SHOWN_IN_LIST = [
+const SHOWN_IN_LIST = Object.freeze([
   ...PENDING_LEVELS,
   LEVEL_STATUS.NEED_FIX,
   LEVEL_STATUS.APPROVED,
-];
+]);
 
 /**
  * Level status that doesn't appear in the list
  * @type {LevelStatus[]}
  */
-const REMOVED_LEVELS = [
+const REMOVED_LEVELS = Object.freeze([
   LEVEL_STATUS.REUPLOADED,
   LEVEL_STATUS.REJECTED,
   LEVEL_STATUS.REMOVED,
   LEVEL_STATUS.USER_REMOVED,
-];
+]);
 
 module.exports = {
   botPermissions,

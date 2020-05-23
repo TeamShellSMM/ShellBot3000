@@ -129,6 +129,10 @@ class TS {
       };
 
       this.teamVariables = {};
+      for (let i = 0; i < defaultVariables.length; i += 1) {
+        this.teamVariables[defaultVariables[i]] =
+          defaultVariables[i].default;
+      }
       this.channels = {};
       this.customStrings = {
         levelInfo: '@@LEVELPLACEHOLDER@@',
@@ -155,14 +159,15 @@ class TS {
         GG: this.teamVariables.GGEmote,
       };
 
-      this.validDifficulty = [];
+      const validDifficulty = [];
       const maxDifficulty =
         Math.round(
           parseFloat(this.teamVariables.maxDifficulty) * 10,
         ) || 100;
       for (let i = 0; i <= maxDifficulty; i += 1) {
-        this.validDifficulty.push(i / 10);
+        validDifficulty.push(i / 10);
       }
+      this.validDifficulty = validDifficulty;
 
       const allLevels = await this.getLevels();
       let allTags = allLevels.map((l) => l.tags);
@@ -184,7 +189,7 @@ class TS {
         this.messages[v[0]] = this.makeTemplate(v[1] || '');
       });
 
-      this.embedStyle = {
+      this.embedStyle = Object.freeze({
         [ts.LEVEL_STATUS.REJECTED]: {
           color: this.teamVariables.rejectColor || '#dc3545',
           title: 'judge.levelRejected',
@@ -231,7 +236,8 @@ class TS {
           title: 'undoRemoveLevel.title',
           image: ts.teamVariables.undoEmote || ts.emotes.bam,
         },
-      };
+      });
+
       // should verify that the discord roles id exist in server
       this.ranks = await knex('ranks')
         .where({ guild_id: this.team.id })
@@ -241,8 +247,19 @@ class TS {
       await this.recalculateAfterUpdate();
       this.pointMap = {};
       const rawPoints = await ts.db.Points.query().select();
-      for (let i = 0; i < rawPoints.length; i += 1) {
-        this.pointMap[rawPoints[i].difficulty] = rawPoints[i].score;
+      if (rawPoints.length > 0) {
+        for (let i = 0; i < rawPoints.length; i += 1) {
+          this.pointMap[rawPoints[i].difficulty] = rawPoints[i].score;
+        }
+      } else {
+        await ts.db.Points.transaction(async (trx) => {
+          for (let i = 0; i < this.validDifficulty.length; i += 1) {
+            await ts.db.Points.query(trx).insert({
+              difficulty: ts.validDifficulty[i],
+              score: ts.validDifficulty[i],
+            });
+          }
+        });
       }
       await DiscordLog.log(
         `Data loaded for ${this.teamVariables.TeamName}`,
@@ -819,11 +836,9 @@ class TS {
       const manyHave = ts.message('clear.manyHave');
       const levelPronoun = ts.message('clear.levelPronoun');
       for (let i = 0; i < msg.length; i += 1) {
-        if (msg[i]) {
-          msg[i] = msg[i].replace(levelPlaceholder, levelStr);
-          if (i > 1) msg[i] = msg[i].replace(singleHave, manyHave);
-          levelStr = levelPronoun;
-        }
+        msg[i] = msg[i].replace(levelPlaceholder, levelStr);
+        if (i > 1) msg[i] = msg[i].replace(singleHave, manyHave);
+        levelStr = levelPronoun;
       }
       return `\n${msg.join('\n')}`;
     };
