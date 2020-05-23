@@ -53,6 +53,12 @@ describe('DiscordWrapper', function () {
     assert.notExists(TEST.findChannel({ name }));
   });
 
+  it('removeChannel not exist', async () => {
+    assert.isFalse(
+      await TEST.ts.discord.removeChannel('channel-not-exist'),
+    );
+  });
+
   it('rename', async () => {
     const oldName = 'oldName';
     const newName = 'newName';
@@ -121,6 +127,75 @@ describe('DiscordWrapper', function () {
     await TEST.ts.discord.reply(message, 'discord.reply');
     await DiscordWrapper.reply(message, 'DiscordWrapper.reply');
     await TEST.ts.discord.messageSend(message, 'discord.messageSend');
+  });
+
+  it('empty calls returns null @curr', async () => {
+    assert.isNull(TEST.ts.discord.getContent());
+    assert.isNull(TEST.ts.discord.messageGetChannel());
+    assert.isNull(
+      TEST.ts.discord.messageGetChannel({ name: 'test' }),
+    );
+    assert.isNull(TEST.ts.discord.messageGetChannelName());
+    assert.isNull(
+      TEST.ts.discord.messageGetChannelName({ name: 'test' }),
+    );
+    assert.isNull(TEST.ts.discord.messageGetParent());
+    assert.isNull(TEST.ts.discord.messageGetParent({ name: 'test' }));
+
+    assert.isNull(TEST.ts.discord.getUsername());
+    assert.isNull(TEST.ts.discord.getUsername({ name: 'test' }));
+  });
+
+  it('add/removeRoles @curr', async () => {
+    const botId = TEST.ts.discord.botId();
+    const guild = TEST.ts.discord.guild();
+    let role1 = guild.roles.find((r) => r.name === 'role1-test');
+    if (!role1) {
+      role1 = await guild.createRole({
+        name: 'role1-test',
+        hoist: true,
+        color: 'BLUE',
+      });
+    }
+    let role2 = guild.roles.find((r) => r.name === 'role2-test');
+    if (!role2) {
+      role2 = await guild.createRole({
+        name: 'role2-test',
+        hoist: true,
+        color: 'RED',
+      });
+    }
+    await TEST.ts.discord.removeRoles(botId, [role1.id, role2.id]);
+    await TEST.ts.discord.addRole(botId, role1.id);
+    assert.exists(
+      TEST.ts.discord
+        .member(botId)
+        .roles.find((r) => r.name === 'role1-test'),
+    );
+    await TEST.ts.discord.removeRoles(botId, [role1.id, role2.id]);
+    assert.notExists(
+      TEST.ts.discord
+        .member(botId)
+        .roles.find((r) => r.name === 'role1-test'),
+    );
+  });
+
+  it('dm @curr', async () => {
+    const send = sinon.fake();
+    const member = sinon.stub(TEST.ts.discord, 'member');
+    member.returns({
+      send,
+    });
+
+    await TEST.ts.discord.dm('discord_id', 'message to send');
+
+    sinon.assert.calledOnce(member);
+    sinon.assert.calledWith(member, 'discord_id');
+
+    sinon.assert.calledOnce(send);
+    sinon.assert.calledWith(send, 'message to send');
+
+    sinon.restore();
   });
 
   // takes 20seconds+ to run

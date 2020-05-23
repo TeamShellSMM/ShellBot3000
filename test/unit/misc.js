@@ -235,7 +235,7 @@ describe('misc-unit', function () {
     assert.notExists(level);
   });
 
-  it('ts.modOnly devs @curr', async () => {
+  it('ts.modOnly devs', async () => {
     const oldDevs = TEST.ts.devs;
     TEST.ts.devs = ['123', '456'];
     assert.isTrue(await TEST.ts.modOnly('123'));
