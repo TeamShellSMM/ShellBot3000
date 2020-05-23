@@ -2241,7 +2241,8 @@ class TS {
    * @returns {RowPacket[]} returns the same data but with signed values to verify id
    */
   secureData(data) {
-    return data.map((d) => {
+    return data.map((pD) => {
+      const d = { ...pD };
       d.SECURE_TOKEN = jwt.sign(
         {
           id: d.id,
