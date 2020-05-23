@@ -93,7 +93,7 @@ describe('misc-integration', () => {
     assert.equal(result[1].title, 'approved level (XXX-XXX-XXX)');
   });
 
-  it('TSModel, ts error @curr', async () => {
+  it('TSModel, ts error', async () => {
     const canRun = sinon.stub(TS, 'teams');
     canRun.throws(new Error('caution'));
     const result = await TEST.mockBotSend({
@@ -104,22 +104,4 @@ describe('misc-integration', () => {
     assert.equal(result, 'Error: caution');
     canRun.restore();
   });
-
-  /* 
-  it('tscommand wrong guild', async (done)=>{
-    const old=TEST.message.guild.id
-    TEST.message.guild.id='invalid'
-    const test=await TEST.mockBotSend({
-      cmd: '!commands',
-      channel: 'general',
-      discord_id: '256',
-    }).catch((e)=>{
-      assert.instanceOf(e,Error)
-      assert.equal(e.message,'yes')
-    })
-    TEST.message.guild.id=old  
-    
-  })
-
-  */
 });

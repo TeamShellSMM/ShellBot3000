@@ -78,7 +78,6 @@ class InitChannels extends TSCommand {
             name: c.name,
           })
           .first();
-        // TODO: Fix this.
         const channelId = ts.discord.channel(channelName).id;
         change = true;
         if (existingRow) {

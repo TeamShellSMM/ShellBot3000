@@ -176,7 +176,7 @@ describe('misc-unit', function () {
     assert.notExists(reply);
   });
 
-  it('ts.updatePinned no parameters @curr', async () => {
+  it('ts.updatePinned no parameters', async () => {
     await TEST.ts.discord.updatePinned().catch((e) => {
       assert.instanceOf(e, TypeError);
       assert.equal(e.message, 'channel name undefined');
@@ -456,10 +456,6 @@ describe('misc-unit', function () {
       assert.equal(error.msg, 'Token expired. Need to relogin');
     }
   });
-
-
-
-  it('ts.getExistingLevel no levels');
 
   it('ts.message 1dp', async () => {
     assert.equal(
