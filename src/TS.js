@@ -1708,11 +1708,13 @@ class TS {
       const embedStyle = this.embedStyle[
         approve ? ts.LEVEL_STATUS.APPROVED : ts.LEVEL_STATUS.REJECTED
       ];
-      embedStyle.title = embedTitle;
 
       const finishFixRequestEmbed = this.levelEmbed(
         level,
-        embedStyle,
+        {
+          ...embedStyle,
+          title: embedTitle,
+        },
         { difficulty },
       );
       finishFixRequestEmbed.addField(
