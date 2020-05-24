@@ -324,10 +324,6 @@ describe('misc-unit', function () {
     });
   });
 
-  it('ts.findChannels', async () => {
-    assert.exists(TEST.ts.findChannel({ name: 'general' }));
-  });
-
   it('ts.addTags() not string or array', async () => {
     const result = await TEST.ts
       .addTags({ name: 'general' })

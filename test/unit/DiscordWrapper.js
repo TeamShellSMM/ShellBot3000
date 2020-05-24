@@ -129,7 +129,7 @@ describe('DiscordWrapper', function () {
     await TEST.ts.discord.messageSend(message, 'discord.messageSend');
   });
 
-  it('empty calls returns null @curr', async () => {
+  it('empty calls returns null', async () => {
     assert.isNull(TEST.ts.discord.getContent());
     assert.isNull(TEST.ts.discord.messageGetChannel());
     assert.isNull(
@@ -146,7 +146,7 @@ describe('DiscordWrapper', function () {
     assert.isNull(TEST.ts.discord.getUsername({ name: 'test' }));
   });
 
-  it('add/removeRoles @curr', async () => {
+  it('add/removeRoles', async () => {
     const botId = TEST.ts.discord.botId();
     const guild = TEST.ts.discord.guild();
     let role1 = guild.roles.find((r) => r.name === 'role1-test');
@@ -180,7 +180,7 @@ describe('DiscordWrapper', function () {
     );
   });
 
-  it('dm @curr', async () => {
+  it('dm', async () => {
     const send = sinon.fake();
     const member = sinon.stub(TEST.ts.discord, 'member');
     member.returns({

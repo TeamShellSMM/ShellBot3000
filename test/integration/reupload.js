@@ -49,7 +49,7 @@ describe('!reupload', function () {
           level_name: 'user removed level',
           creator: 1,
           code: 'XXX-XXX-XX6',
-          status: TEST.ts.LEVEL_STATUS.REMOVED,
+          status: TEST.ts.LEVEL_STATUS.USER_REMOVED,
           difficulty: 1,
         },
         {
@@ -300,7 +300,7 @@ describe('!reupload', function () {
     });
     assert.equal(
       result,
-      "<@64> You have reuploaded 'pending level' by Creator with code `XXX-XXX-YYY`. ",
+      "<@64> You have reuploaded 'pending level' by Creator with code `XXX-XXX-YYY`.  If you want to rename the new level, you can use !rename new-code level name.",
     );
   });
 
@@ -327,7 +327,6 @@ describe('!reupload', function () {
       .patch({ clear_score_sum: 2 })
       .where({ discord_id: '64' });
 
-    const player = await TEST.ts.getUser('64');
     // check if can't upload a new level with current points
     assert.equal(
       await TEST.mockBotSend({
@@ -335,13 +334,7 @@ describe('!reupload', function () {
         channel: 'general',
         discord_id: '64',
       }),
-      await TEST.mockMessage(
-        'points.cantUpload',
-        { type: 'userError', discord_id: '64' },
-        {
-          points_needed: player.earned_points.pointsNeeded,
-        },
-      ),
+      'You need 1.0 more point to upload a new level . Check how the points are mapped on http://localhost:8080//makerteam ',
     );
 
     assert.notExists(
@@ -359,17 +352,25 @@ describe('!reupload', function () {
         channel: 'general',
         discord_id: '64',
       }),
-      await TEST.mockMessage(
-        'reupload.success',
-        { type: 'registeredSuccess', discord_id: '64' },
-        {
-          level: {
-            level_name: 'pending level',
-            creator: 'Creator',
-          },
-          newCode: 'XXX-XXX-YYY',
-        },
-      ),
+      "<@64> You have reuploaded 'pending level' by Creator with code `XXX-XXX-YYY`.  If you want to rename the new level, you can use !rename new-code level name.",
+    );
+  });
+
+  it('creator reupload user removed level not enough points @curr', async () => {
+    await TEST.clearChannels();
+    TEST.ts.teamVariables['New Level'] = 1;
+    await TEST.ts.db.Members.query()
+      .patch({ clear_score_sum: 2 })
+      .where({ discord_id: '64' });
+
+    // check can upload a new level with current points
+    assert.equal(
+      await TEST.mockBotSend({
+        cmd: '!reupload XXX-XXX-XX6 XXX-XXX-YYY long reason',
+        channel: 'general',
+        discord_id: '64',
+      }),
+      "Creator doesn't have enough points to upload a new level ",
     );
   });
 
@@ -392,7 +393,7 @@ describe('!reupload', function () {
     });
     assert.equal(
       result[3],
-      "<@64> You have reuploaded 'approved level' by Creator with code `XXX-XXX-YYY`.  Your level has also been put in the reupload queue, we'll get back to you shortly.",
+      "<@64> You have reuploaded 'approved level' by Creator with code `XXX-XXX-YYY`.  If you want to rename the new level, you can use !rename new-code level name. Your level has also been put in the reupload queue, we'll get back to you shortly.",
     );
 
     const oldLevel = await TEST.ts
@@ -516,7 +517,7 @@ describe('!reupload', function () {
     );
     assert.equal(
       reply[3],
-      "<@64> You have reuploaded 'need fix level' by Creator with code `XXX-XXX-YYY`.  Your level has also been put in the reupload queue, we'll get back to you shortly.",
+      "<@64> You have reuploaded 'need fix level' by Creator with code `XXX-XXX-YYY`.  If you want to rename the new level, you can use !rename new-code level name. Your level has also been put in the reupload queue, we'll get back to you shortly.",
     );
 
     assert.deepInclude(reply[2], {
@@ -532,8 +533,6 @@ describe('!reupload', function () {
         url: undefined,
       },
     });
-
-    it('should check if mods are pinged');
 
     const oldLevel = await TEST.ts
       .getLevels()
@@ -583,7 +582,7 @@ describe('!reupload', function () {
         channel: 'general',
         discord_id: '64',
       }),
-      "<@64> You have reuploaded 'User removed' by Creator with code `XXX-XXX-YYY`. ",
+      "<@64> You have reuploaded 'User removed' by Creator with code `XXX-XXX-YYY`.  If you want to rename the new level, you can use !rename new-code level name.",
     );
   });
 
@@ -639,6 +638,42 @@ describe('!reupload', function () {
         parentID: TEST.ts.channels.pendingReuploadCategory,
       }),
       "new channel shouldn't exist in pending reupload",
+    );
+  });
+
+  it('pending level reupload using another uploaded level', async () => {
+    await TEST.clearChannels();
+
+    const result = await TEST.mockBotSend({
+      cmd: '!reupload XXX-XXX-XX3 XXX-XXX-XX1 long reason',
+      channel: 'general',
+      discord_id: '64',
+    });
+
+    assert.equal(
+      result[0],
+      'This level has been reuploaded from XXX-XXX-XX3 to XXX-XXX-XX1.',
+    ); // check can upload a new level with current points
+    assert.equal(
+      result[1],
+      "Reupload Request for <@64>'s level with message: long reason",
+    ); // check can upload a new level with current points
+    assert.equal(
+      result[2].author.name,
+      'This level has been reuploaded and is now awaiting a decision!',
+    );
+
+    assert.equal(
+      result[3],
+      "<@64> You have reuploaded 'need fix level' by Creator with code `XXX-XXX-XX1`.  Your level has also been put in the reupload queue, we'll get back to you shortly.",
+    );
+
+    assert.exists(
+      await TEST.findChannel({
+        name: 'XXX-XXX-XX1',
+        parentID: TEST.ts.channels.pendingReuploadCategory,
+      }),
+      'next channel should exist',
     );
   });
 });

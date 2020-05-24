@@ -1888,11 +1888,12 @@ class TS {
         .getLevels()
         .where({ code: newCode })
         .first();
+      const newLevelExist = !!newLevel;
       const oldApproved =
         level.status === ts.LEVEL_STATUS.USER_REMOVED
           ? level.old_status
           : level.status;
-      // level.status==ts.LEVEL_STATUS.APPROVED || level.status==ts.LEVEL_STATUS.PENDING
+
       if (newLevel && level.creator !== newLevel.creator)
         ts.userError(ts.message('reupload.differentCreator'));
       if (
@@ -1976,7 +1977,7 @@ class TS {
         .first();
       if (
         newStatus !== 0 ||
-        (newStatus === 0 && ts.findChannel({ name: level.code }))
+        (newStatus === 0 && ts.discord.channel(level.code))
       ) {
         // TODO:FIX HERE
         //
@@ -2005,28 +2006,12 @@ class TS {
           `Reupload Request for <@${author.discord_id}>'s level with message: ${reason}`,
         );
 
-        const fixVotes = await knex('members')
-          .select('members.discord_id')
-          .join('pending_votes', {
-            'members.id': 'pending_votes.player',
-          })
-          .where('code', newLevel.id)
-          .where('type', 'fix');
-
-        if (fixVotes && fixVotes.length > 0) {
-          const modPings = fixVotes.map((v) => `<@${v.discord_id}>`);
-          await this.discord.send(
-            newCode,
-            `${modPings.join(
-              `, `,
-            )} please check if your fixes were made.`,
-          );
-        }
+        await this.fixModPing(newCode);
 
         await ts.discord.updatePinned(channel, voteEmbed);
       }
       let reply = ts.message('reupload.success', { level, newCode });
-      if (!newLevel) {
+      if (!newLevelExist) {
         reply += ts.message('reupload.renamingInstructions');
       }
       if (newStatus !== ts.LEVEL_STATUS.PENDING)
@@ -2034,6 +2019,30 @@ class TS {
       await ts.recalculateAfterUpdate();
       return userReply + reply;
     };
+  }
+
+  async fixModPing(code) {
+    const fixVotes = await this.knex('members')
+      .select('members.discord_id')
+      .join('pending_votes', {
+        'members.id': 'pending_votes.player',
+      })
+      .join('levels', {
+        'levels.id': 'pending_votes.code',
+      })
+      .where('levels.code', code)
+      .where('type', 'fix');
+
+    if (fixVotes && fixVotes.length > 0) {
+      const modPings = fixVotes.map((v) => `<@${v.discord_id}>`);
+      return this.discord.send(
+        code,
+        `${modPings.join(
+          ', ',
+        )} please check if your fixes were made.`,
+      );
+    }
+    return false;
   }
 
   /**
@@ -2189,22 +2198,6 @@ class TS {
       (r) => parseFloat(points) >= parseFloat(r.min_points),
     );
     return ret;
-  }
-
-  /**
-   * Helper function to find channels
-   * @param {string} obj.name Channel name
-   * @param {Snowflake} obj.parentID Category ID
-   * @returns {boolean} channel found or not
-   */
-  findChannel({ name, parentID }) {
-    const guild = this.getGuild();
-    const channel = guild.channels.find(
-      (c) =>
-        (!parentID || (parentID && c.parentID === parentID)) &&
-        c.name === name.toLowerCase(),
-    );
-    return channel;
   }
 
   /**
