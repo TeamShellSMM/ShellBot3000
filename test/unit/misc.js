@@ -125,7 +125,7 @@ describe('misc-unit', function () {
   });
 
   it('TS.teamFromUrl unfound slug', async function () {
-    assert.isFalse(TEST.TS.teamFromUrl('unknown_string'));
+    assert.notExists(TEST.TS.teamFromUrl('unknown_string'));
   });
 
   it('ts.discussionChannel no channel name', async () => {

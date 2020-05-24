@@ -615,6 +615,7 @@ class TS {
         embed.addField(header, bodyStr[k]);
         header = '\u200b';
       }
+      return true;
     };
     /**
      * Helper function to coerce/validate passed parameter from user is the boolean format used
@@ -2374,13 +2375,9 @@ class TS {
    * Get a TS object from a url_slug
    */
   static teamFromUrl(urlSlug) {
-    for (const i in TS.TS_LIST) {
-      const team = TS.TS_LIST[i];
-      if (team.config && team.url_slug === urlSlug) {
-        return team;
-      }
-    }
-    return false;
+    return Object.values(TS.TS_LIST).find(
+      (team) => team.config && team.url_slug === urlSlug,
+    );
   }
 
   /**
