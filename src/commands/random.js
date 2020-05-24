@@ -21,8 +21,10 @@ class tsrandom extends TSCommand {
   }
 
   async tsexec(ts, message, args) {
-    args.discord_id = ts.discord.getAuthor(message);
-    const rand = await ts.randomLevel(args);
+    const rand = await ts.randomLevel({
+      ...args,
+      discord_id: ts.discord.getAuthor(message),
+    });
     const randomEmbed = ts.levelEmbed(
       rand.level,
       ts.embedStyle.random,

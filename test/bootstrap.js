@@ -267,6 +267,7 @@ before(async () => {
     debugTests('setup data');
     await TEST.knex.transaction(async (trx) => {
       await TEST.clearDb(trx);
+      // eslint-disable-next-line guard-for-in,no-restricted-syntax
       for (const i in data) {
         for (let j = 0; j < data[i].length; j += 1) {
           await TEST.ts.db[i].query(trx).insert(data[i][j]);
@@ -277,7 +278,7 @@ before(async () => {
   };
 
   global.TEST.clearTable = async (table, trx) => {
-    debugTests('clear table ${table}');
+    debugTests(`clear table ${table}`);
     return (trx || TEST.knex).raw(
       `
       SET FOREIGN_KEY_CHECKS = 0; 
@@ -434,8 +435,9 @@ before(async () => {
     TEST.message.author.id = discord_id;
     TEST.message.content = cmd;
     TEST.message.guild_id = guildId || process.env.TEST_GUILD;
-    channel = channel || 'general';
-    TEST.message.channel = TEST.ts.discord.channel(channel);
+    TEST.message.channel = TEST.ts.discord.channel(
+      channel || 'general',
+    );
 
     const ret = global.TEST.expectReply(waitFor);
     TEST.client.emit('message', TEST.message);

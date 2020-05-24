@@ -411,7 +411,7 @@ module.exports = async function (client) {
       .orderBy('start_date');
 
     let endDate = '2038-01-19 03:14:08';
-    for (let i = seasons.length - 1; i >= 0; i--) {
+    for (let i = seasons.length - 1; i >= 0; i -= 1) {
       seasons[i].end_date = endDate;
       endDate = seasons[i].start_date;
     }
@@ -471,7 +471,7 @@ module.exports = async function (client) {
     return { data: json, seasons, competition_winners };
   }
 
-  const web_ts = (callback) => {
+  const webTS = (callback) => {
     // let refer=req.headers.referer.split(req.host)[1].split('/')
     return async (req, res) => {
       res.setHeader(
@@ -522,7 +522,7 @@ module.exports = async function (client) {
   };
 
   async function generateWorldsJson(ts, isShellder, data) {
-    const competition_winners = await ts
+    const competitionWinners = await ts
       .knex('competition_winners')
       .where({ guild_id: ts.team.id });
     let members = [];
@@ -555,7 +555,7 @@ module.exports = async function (client) {
     let memberCounter = 1;
     for (const member of members) {
       const comps = [];
-      for (const comp of competition_winners) {
+      for (const comp of competitionWinners) {
         if (comp[1] === member.name) {
           comps.push({
             name: comp[2],
@@ -582,7 +582,7 @@ module.exports = async function (client) {
 
   app.post(
     '/json/worlds',
-    web_ts(async (ts, req) => {
+    webTS(async (ts, req) => {
       let user;
       if (req.body.token) {
         req.body.discord_id = await ts.checkBearerToken(
@@ -610,13 +610,13 @@ module.exports = async function (client) {
     } catch (error) {
       const ret = { error: error.stack };
       DiscordLog.error(ret);
-      res.send(ts.getWebUserErrorMsg(error));
+      res.send('Something went wrong');
     }
   });
 
   app.post(
     '/teams/settings',
-    web_ts(async (ts, req) => {
+    webTS(async (ts, req) => {
       if (!req.body.discord_id) ts.userError('website.noToken');
       if (!(await ts.teamAdmin(req.body.discord_id)))
         ts.userError(ts.message('website.forbidden'));
@@ -628,7 +628,7 @@ module.exports = async function (client) {
           settings[ts.defaultVariables[i].name] ||
           ts.defaultVariables[i].default;
         if (ts.defaultVariables[i].type === 'boolean') {
-          value = value == 'true';
+          value = value === 'true';
         } else if (ts.defaultVariables[i].type === 'number') {
           value = Number(value);
         }
@@ -643,7 +643,7 @@ module.exports = async function (client) {
 
   app.post(
     '/teams/tags',
-    web_ts(async (ts, req) => {
+    webTS(async (ts, req) => {
       if (!req.body.discord_id) ts.userError('website.noToken');
       if (!(await ts.teamAdmin(req.body.discord_id)))
         ts.userError(ts.message('website.forbidden'));
@@ -667,7 +667,7 @@ module.exports = async function (client) {
 
   app.put(
     '/teams/tags',
-    web_ts(async (ts, req) => {
+    webTS(async (ts, req) => {
       if (!req.body.discord_id) ts.userError('website.noToken');
       if (!(await ts.teamAdmin(req.body.discord_id)))
         ts.userError(ts.message('website.forbidden'));
@@ -676,7 +676,7 @@ module.exports = async function (client) {
 
       let updated = false;
       await ts.knex.transaction(async (trx) => {
-        const existing_tags = await trx('tags')
+        const existingTags = await trx('tags')
           .select(
             'id',
             'name',
@@ -694,8 +694,8 @@ module.exports = async function (client) {
         // TODO:tags transformation
         data.forEach((d) => {
           if (
-            existing_tags.find(
-              (e) => d.name == e.name && d.id != e.id,
+            existingTags.find(
+              (e) => d.name === e.name && d.id !== e.id,
             )
           ) {
             ts.userError('tags.duplicateTags', { tag: d.name });
@@ -732,8 +732,8 @@ module.exports = async function (client) {
               : 0,
           };
           if (currentID) {
-            const existing = existing_tags.find(
-              (t) => t.id == currentID,
+            const existing = existingTags.find(
+              (t) => t.id === currentID,
             );
             if (!existing) ts.userError('error.hadIdButNotInDb');
             if (!deepEqual(newData, existing)) {
@@ -762,7 +762,7 @@ module.exports = async function (client) {
 
   app.put(
     '/teams/settings',
-    web_ts(async (ts, req) => {
+    webTS(async (ts, req) => {
       if (!req.body || !req.body.token)
         ts.userError('website.noToken');
       req.body.discord_id = await ts.checkBearerToken(req.body.token);
@@ -805,7 +805,7 @@ module.exports = async function (client) {
 
   app.post(
     '/json',
-    web_ts(async (ts, req) => {
+    webTS(async (ts, req) => {
       let user;
       if (req.body && req.body.token) {
         req.body.discord_id = await ts.checkBearerToken(
@@ -821,12 +821,12 @@ module.exports = async function (client) {
 
   app.post(
     '/json/members',
-    web_ts(async (ts, req) => {
+    webTS(async (ts, req) => {
       if (req.body && req.body.token) {
         req.body.discord_id = await ts.checkBearerToken(
           req.body.token,
         );
-        const user = await ts.getUser(req.body.discord_id);
+        await ts.getUser(req.body.discord_id);
       }
 
       const json = await generateMembersJson(ts, req.body);
@@ -836,7 +836,7 @@ module.exports = async function (client) {
 
   app.post(
     '/json/makers',
-    web_ts(async (ts, req) => {
+    webTS(async (ts, req) => {
       if (req.body && req.body.token) {
         req.body.discord_id = await ts.checkBearerToken(
           req.body.token,
@@ -849,7 +849,7 @@ module.exports = async function (client) {
 
   app.post(
     '/clear',
-    web_ts(async (ts, req) => {
+    webTS(async (ts, req) => {
       if (!req.body || !req.body.token)
         ts.userError('website.noToken');
 
@@ -866,7 +866,7 @@ module.exports = async function (client) {
 
   app.post(
     '/approve',
-    web_ts(async (ts, req) => {
+    webTS(async (ts, req) => {
       if (!req.body || !req.body.token)
         ts.userError('website.noToken');
 
@@ -881,14 +881,13 @@ module.exports = async function (client) {
       const clearmsg = await ts.clear(req.body);
 
       await ts.discord.send(ts.channels.commandFeed, clearmsg);
-      json = { status: 'sucessful', msg: msg };
-      return json;
+      return { status: 'sucessful', msg: msg };
     }),
   );
 
   app.post(
     '/random',
-    web_ts(async (ts, req) => {
+    webTS(async (ts, req) => {
       if (req.body && req.body.token) {
         req.body.discord_id = await ts.checkBearerToken(
           req.body.token,
@@ -903,7 +902,7 @@ module.exports = async function (client) {
 
   app.post(
     '/feedback',
-    web_ts(async (ts, req) => {
+    webTS(async (ts, req) => {
       if (!req.body || !req.body.token)
         ts.userError('website.noToken');
 
@@ -931,17 +930,14 @@ module.exports = async function (client) {
 
   app.post(
     '/json/login',
-    web_ts(async (ts, req) => {
+    webTS(async (ts, req) => {
       let returnObj = {};
       if (!req.body.otp) ts.userError(ts.message('login.noOTP'));
 
-      let token = await ts.db.Tokens.query().where(
-        'token',
-        '=',
-        req.body.otp,
-      );
-      if (token && token.length > 0) {
-        token = token[0];
+      const token = await ts.db.Tokens.query()
+        .where('token', '=', req.body.otp)
+        .first();
+      if (token) {
         const tokenExpireAt = moment(token.created_at)
           .add(30, 'm')
           .valueOf();

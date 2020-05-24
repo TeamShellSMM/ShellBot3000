@@ -26,7 +26,9 @@ class TSRerate extends TSCommand {
     });
   }
 
-  async tsexec(ts, message, { code, difficulty, reason }) {
+  async tsexec(ts, message, args) {
+    let { code } = args;
+    const { difficulty, reason } = args;
     if (
       !(
         ts.discord.messageGetChannel(message) ===
@@ -56,7 +58,7 @@ class TSRerate extends TSCommand {
       .where({ name: level.creator })
       .first();
 
-    if (level.difficulty == difficulty)
+    if (level.difficulty === difficulty)
       ts.userError(
         `"${level.level_name}" is already rated ${difficulty}`,
       );

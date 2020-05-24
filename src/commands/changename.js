@@ -15,7 +15,8 @@ class ChangeName extends TSCommand {
     });
   }
 
-  async tsexec(ts, message, { newName }) {
+  async tsexec(ts, message, args) {
+    let { newName } = args;
     if (!newName) ts.userError('renameMember.noNewName');
 
     newName = newName.trim();

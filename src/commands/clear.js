@@ -26,9 +26,11 @@ class TSClear extends TSCommand {
   }
 
   async tsexec(ts, message, args) {
-    args.discord_id = ts.discord.getAuthor(message);
-    args.completed = 1;
-    const msg = await ts.clear(args);
+    const msg = await ts.clear({
+      ...args,
+      discord_id: ts.discord.getAuthor(message),
+      completed: 1,
+    });
     await ts.discord.messageSend(message, msg);
   }
 }
