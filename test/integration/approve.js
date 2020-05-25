@@ -75,7 +75,7 @@ describe('!approve', function () {
     assert.lengthOf(result, 0, 'no result');
   });
 
-  it('judge not pending @curr', async () => {
+  it('judge not pending', async () => {
     await TEST.createChannel({
       name: 'XXX-XXX-XX2',
       parent: TEST.ts.channels.levelDiscussionCategory,

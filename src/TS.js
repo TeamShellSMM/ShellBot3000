@@ -1664,10 +1664,6 @@ class TS {
         embedTitle = 'approval.rejectAfterReupload';
       }
 
-      if (!embedTitle) {
-        ts.userError(ts.message('approval.inWrongFixStatus'));
-      }
-
       // Status update and difficulty gets set
       await ts.db.Levels.query()
         .patch({

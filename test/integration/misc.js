@@ -42,6 +42,14 @@ describe('misc-integration', () => {
           difficulty: 0,
           tags: 'tag2',
         },
+        {
+          level_name: 'approved level 2',
+          creator: 2,
+          code: 'XXX-XXX-XX4',
+          status: 1,
+          difficulty: 1,
+          likes: 100,
+        },
       ],
     });
   });
@@ -71,13 +79,24 @@ describe('misc-integration', () => {
     );
   });
 
-  it('!random', async () => {
+  it('!random @curr', async () => {
+    const random = sinon.stub(Math, 'random');
+    random.returns(0.1);
     const result = await TEST.mockBotSend({
       cmd: '!random',
       channel: 'general',
       discord_id: '128',
     });
     assert.equal(result[1].title, 'approved level (XXX-XXX-XXX)');
+
+    random.returns(0.5);
+    const result2 = await TEST.mockBotSend({
+      cmd: '!random',
+      channel: 'general',
+      discord_id: '128',
+    });
+    assert.equal(result2[1].title, 'approved level 2 (XXX-XXX-XX4)');
+    sinon.restore();
   });
 
   it('!playersRandom', async () => {

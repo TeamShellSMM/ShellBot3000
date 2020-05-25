@@ -50,6 +50,27 @@ describe('!fixapprove', function () {
           status: TEST.ts.LEVEL_STATUS.PENDING_NOT_FIXED_REUPLOAD,
           difficulty: 0,
         },
+        {
+          level_name: 'approved',
+          creator: 1,
+          code: 'XXX-XXX-XX5',
+          status: TEST.ts.LEVEL_STATUS.APPROVED,
+          difficulty: 1,
+        },
+        {
+          level_name: 'pending',
+          creator: 1,
+          code: 'XXX-XXX-XX6',
+          status: TEST.ts.LEVEL_STATUS.PENDING,
+          difficulty: 0,
+        },
+        {
+          level_name: 'approved reuploaded no old code',
+          creator: 1,
+          code: 'XXX-XXX-XX7',
+          status: TEST.ts.LEVEL_STATUS.PENDING_APPROVED_REUPLOAD,
+          difficulty: 0,
+        },
       ],
       PendingVotes: [
         {
@@ -75,6 +96,57 @@ describe('!fixapprove', function () {
         },
       ],
     });
+  });
+
+  it('fixapprove pending not reupload', async () => {
+    await TEST.createChannel({
+      name: 'XXX-XXX-XX6',
+      parent: TEST.ts.channels.pendingReuploadCategory,
+    });
+
+    assert.equal(
+      await TEST.mockBotSend({
+        cmd: '!fixapprove "great fix"',
+        channel: 'XXX-XXX-XX6',
+        waitFor: 100,
+        discord_id: '256',
+      }),
+      'Level is not in a valid fix status (this should not happen)! ',
+    );
+  });
+
+  it('fixapprove pending approved reupload, but no old level', async () => {
+    await TEST.createChannel({
+      name: 'XXX-XXX-XX7',
+      parent: TEST.ts.channels.pendingReuploadCategory,
+    });
+
+    assert.equal(
+      await TEST.mockBotSend({
+        cmd: '!fixapprove "great fix"',
+        channel: 'XXX-XXX-XX7',
+        waitFor: 100,
+        discord_id: '256',
+      }),
+      'Old level could not be found after reupload (this should not happen)! ',
+    );
+  });
+
+  it('fixapprove not pending', async () => {
+    await TEST.createChannel({
+      name: 'XXX-XXX-XX5',
+      parent: TEST.ts.channels.pendingReuploadCategory,
+    });
+
+    assert.equal(
+      await TEST.mockBotSend({
+        cmd: '!fixapprove "great fix"',
+        channel: 'XXX-XXX-XX5',
+        waitFor: 100,
+        discord_id: '256',
+      }),
+      'Level is not pending! ',
+    );
   });
 
   it('fixapprove of pending fixed reupload level', async () => {
@@ -155,6 +227,32 @@ describe('!fixapprove', function () {
       result,
       'This channel is not in the pending reupload category ',
     );
+  });
+
+  it('reject already fixed', async () => {
+    await TEST.createChannel({
+      name: 'XXX-XXX-XXX',
+      parent: TEST.ts.channels.pendingReuploadCategory,
+    });
+    const result = await TEST.mockBotSend({
+      cmd: '!fixreject "unfortunately no"',
+      channel: 'XXX-XXX-XXX',
+      discord_id: '128',
+    });
+    assert.equal(result[0], '**<@64>, we got some news for you: **');
+    assert.deepInclude(result[1], {
+      title: 'need fix reupload (XXX-XXX-XXX)',
+      description:
+        'made by Creator\nDifficulty: 0, Clears: 0, Likes: 0\n',
+      url: undefined,
+      color: 14431557,
+      author: {
+        name:
+          "We're really sorry, but it seems there are still some issues after you reuploaded, so it got rejected for now.",
+        icon_url: undefined,
+        url: undefined,
+      },
+    });
   });
 
   it('not in a valid code format channel ', async () => {
