@@ -81,7 +81,9 @@ describe('misc-integration', () => {
 
   it('!random @curr', async () => {
     const random = sinon.stub(Math, 'random');
+    const randInt = sinon.stub(TEST.ts, 'getRandomInt');
     random.returns(0.1);
+    randInt.returns(0);
     const result = await TEST.mockBotSend({
       cmd: '!random',
       channel: 'general',
@@ -90,6 +92,7 @@ describe('misc-integration', () => {
     assert.equal(result[1].title, 'approved level (XXX-XXX-XXX)');
 
     random.returns(0.5);
+    randInt.returns(1);
     const result2 = await TEST.mockBotSend({
       cmd: '!random',
       channel: 'general',
@@ -99,7 +102,9 @@ describe('misc-integration', () => {
     sinon.restore();
   });
 
-  it('!playersRandom', async () => {
+  it('!playersRandom @curr', async () => {
+    const randInt = sinon.stub(TEST.ts, 'getRandomInt');
+    randInt.returns(1);
     const result = await TEST.mockBotSend({
       cmd: '!playersRandom Mod,Other',
       channel: 'general',
@@ -109,7 +114,8 @@ describe('misc-integration', () => {
       result[1].author.name,
       'Autobot rolled a d97 and found this level for Mod,Other',
     );
-    assert.equal(result[1].title, 'approved level (XXX-XXX-XXX)');
+    assert.equal(result[1].title, 'approved level 2 (XXX-XXX-XX4)');
+    sinon.restore();
   });
 
   it('TSModel, ts error', async () => {
