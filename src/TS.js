@@ -1570,56 +1570,7 @@ class TS {
         ts.message('approval.channelDeleted'),
       );
     };
-    this.rejectLevelWithReason = async function (
-      code,
-      shellder,
-      message,
-    ) {
-      const level = await ts.getLevels().where({ code }).first();
-      if (
-        level.status !== ts.LEVEL_STATUS.PENDING_FIXED_REUPLOAD &&
-        level.status !== ts.LEVEL_STATUS.PENDING_NOT_FIXED_REUPLOAD
-      )
-        ts.userError(
-          ts.message('fixApprove.rejectNotNeedFix', { code }),
-        );
-      const allVotes = await ts
-        .getPendingVotes()
-        .where({ 'levels.id': level.id })
-        .orderBy('type');
-      await ts.db.Levels.query()
-        .patch({
-          status: ts.LEVEL_STATUS.REJECTED,
-          old_status: level.status,
-        })
-        .where({ code });
-      const author = await ts.db.Members.query()
-        .where({ id: level.creator_id })
-        .first();
-      const mention = ts.message('general.heyListen', {
-        discord_id: author.discord_id,
-      });
-      const embed = ts
-        .levelEmbed(level, this.embedStyle[ts.LEVEL_STATUS.REJECTED])
-        .setAuthor(ts.message('approval.rejectAfterRefuse'));
-      embed.setDescription(
-        `Rejected by <@${shellder.id}>: \`\`\`\n${message}\n\`\`\``,
-      );
-      this.embedComments(embed, allVotes);
-      await this.discord.send(
-        ts.channels.levelChangeNotification,
-        mention,
-      );
-      await this.discord.send(
-        ts.channels.levelChangeNotification,
-        embed,
-      );
-      // Remove Discussion Channel
-      await ts.deleteDiscussionChannel(
-        code,
-        ts.message('approval.channelDeleted'),
-      );
-    };
+
     this.finishFixRequest = async function (
       code,
       discordId,

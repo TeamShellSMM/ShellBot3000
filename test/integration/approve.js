@@ -75,6 +75,23 @@ describe('!approve', function () {
     assert.lengthOf(result, 0, 'no result');
   });
 
+  it('judge not pending @curr', async () => {
+    await TEST.createChannel({
+      name: 'XXX-XXX-XX2',
+      parent: TEST.ts.channels.levelDiscussionCategory,
+    });
+
+    assert.equal(
+      await TEST.mockBotSend({
+        cmd: '!judge',
+        channel: 'XXX-XXX-XX2',
+        waitFor: 100,
+        discord_id: '256',
+      }),
+      'Level is not pending! ',
+    );
+  });
+
   it('approve', async function () {
     const result = await TEST.mockBotSend({
       cmd: '!approve XXX-XXX-XXX 5 "is good level"',
