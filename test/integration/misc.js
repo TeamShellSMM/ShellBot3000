@@ -25,6 +25,7 @@ describe('misc-integration', () => {
           code: 'XXX-XXX-XXX',
           status: 1,
           difficulty: 1,
+          likes: 0,
         },
         {
           level_name: 'pending level',
@@ -80,6 +81,9 @@ describe('misc-integration', () => {
   });
 
   it('!random @curr', async () => {
+    await TEST.ts.db.Levels.query()
+      .patch({ likes: 100 })
+      .where({ id: 4 });
     const random = sinon.stub(Math, 'random');
     const randInt = sinon.stub(TEST.ts, 'getRandomInt');
     random.returns(0.1);
@@ -103,7 +107,12 @@ describe('misc-integration', () => {
   });
 
   it('!playersRandom @curr', async () => {
+    await TEST.ts.db.Levels.query()
+      .patch({ likes: 100 })
+      .where({ id: 4 });
+    const random = sinon.stub(Math, 'random');
     const randInt = sinon.stub(TEST.ts, 'getRandomInt');
+    random.returns(0.5);
     randInt.returns(1);
     const result = await TEST.mockBotSend({
       cmd: '!playersRandom Mod,Other',
