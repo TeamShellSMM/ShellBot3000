@@ -89,17 +89,43 @@ describe('!approve', function () {
     const channel = await TEST.ts.discord.channel('xxx-xxx-xxx');
     assert.isOk(channel);
     assert.match(result[1], /Your vote was added to <#[0-9]+>!/);
+
+    const dwMember = sinon.stub(TEST.ts.discord, 'member');
+    const addRole = sinon.stub(TEST.ts.discord, 'addRole');
+    dwMember.returns(true);
+
     const result3 = await TEST.mockBotSend({
       cmd: '!judge',
       channel: 'XXX-XXX-XXX',
       discord_id: '256',
     });
+
+    sinon.assert.calledOnce(addRole);
     assert.notEqual(
       result3,
       await TEST.mockMessage('approval.comboBreaker', {
         type: 'userError',
       }),
     );
+
+    assert.equal(result3[0], 'We welcome <@64> to our team!');
+    assert.equal(result3[1], '**<@64>, we got some news for you: **');
+    assert.deepInclude(result3[2], {
+      title: 'level1 (XXX-XXX-XXX)',
+      description:
+        'made by [Creator](http://localhost:8080/makerteam/maker/Creator)\n' +
+        'Difficulty: 0, Clears: 0, Likes: 0\n' +
+        'Tags: [tag1](http://localhost:8080/makerteam/levels/tag1),[tag2](http://localhost:8080/makerteam/levels/tag2),[tag3](http://localhost:8080/makerteam/levels/tag3)\n' +
+        'Clear Video: [ 🎬 ](http://twitch.tv),[ 🎬 ](http://youtube.com)',
+      url: 'http://localhost:8080/makerteam/level/XXX-XXX-XXX',
+      color: 106911,
+      author: {
+        name: 'This level was approved for difficulty: 3.5!',
+        icon_url: undefined,
+        url: undefined,
+      },
+    });
+
     const level = await TEST.ts.db.Levels.query()
       .where({ code: 'XXX-XXX-XXX' })
       .first();
@@ -107,6 +133,8 @@ describe('!approve', function () {
     assert.equal(level.code, 'XXX-XXX-XXX');
     assert.equal(level.status, TEST.ts.LEVEL_STATUS.APPROVED);
     assert.equal(level.difficulty, 3.5);
+
+    sinon.restore();
   });
 
   it('approve+cl', async function () {

@@ -116,7 +116,7 @@ describe('misc-unit', function () {
     );
   });
 
-  it('TS.message unfound string @curr', async function () {
+  it('TS.message unfound string', async function () {
     assert.throws(
       () => TEST.TS.message('unknown_string'),
       Error,
@@ -124,7 +124,7 @@ describe('misc-unit', function () {
     );
   });
 
-  it('ts.message unfound string @curr', async function () {
+  it('ts.message unfound string', async function () {
     assert.throws(
       () => TEST.ts.message('unknown_string'),
       Error,
