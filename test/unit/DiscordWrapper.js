@@ -173,6 +173,7 @@ describe('DiscordWrapper', function () {
         .roles.find((r) => r.name === 'role1-test'),
     );
     await TEST.ts.discord.removeRoles(botId, [role1.id, role2.id]);
+    // TODO: this sometimes fail and returns something, and we're not sure why. Rerunning the tests usually pass it though
     assert.notExists(
       TEST.ts.discord
         .member(botId)

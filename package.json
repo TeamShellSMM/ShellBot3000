@@ -45,7 +45,7 @@
     "supertest": "^4.0.2"
   },
   "scripts": {
-    "migrate:raw": "node -r dotenv-flow/config node_modules/.bin/knex --knexfile src/knexfile.js migrate:latest",
+    "migrate:raw": "node -r dotenv-flow/config knex --knexfile src/knexfile.js migrate:latest",
     "migrate": "NODE_ENV=development npm run migrate:raw",
     "migrate:test": "NODE_ENV=test npm run migrate:raw",
     "migrate:production": "NODE_ENV=production npm run migrate:raw",

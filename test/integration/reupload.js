@@ -356,7 +356,7 @@ describe('!reupload', function () {
     );
   });
 
-  it('creator reupload user removed level not enough points @curr', async () => {
+  it('creator reupload user removed level not enough points', async () => {
     await TEST.clearChannels();
     TEST.ts.teamVariables['New Level'] = 1;
     await TEST.ts.db.Members.query()

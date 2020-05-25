@@ -1,9 +1,12 @@
+'use strict';
+
+const debug = require('debug')('shellbot3000:webApi');
+const debugError = require('debug')('shellbot3000:webApi.error');
 const bodyParser = require('body-parser');
 const compression = require('compression');
 const moment = require('moment');
 const express = require('express');
 const deepEqual = require('deep-equal');
-const Teams = require('./models/Teams');
 const knex = require('./db/knex');
 const DiscordLog = require('./DiscordLog');
 const TS = require('./TS');
@@ -211,23 +214,28 @@ module.exports = async function (client) {
   }
 
   async function generateMembersJson(ts, data) {
+    let { membershipStatus, timePeriod, timePeriod2 } = data;
+    membershipStatus = parseInt(membershipStatus, 10);
+    timePeriod = parseInt(timePeriod, 10);
+    timePeriod2 = parseInt(timePeriod2, 10);
+
     const competitionWinners = await ts
       .knex('competition_winners')
       .where({ guild_id: ts.team.id });
 
     let members = [];
 
-    if (data.membershipStatus == '1') {
+    if (membershipStatus === 1) {
       members = await ts.db.Members.query()
         .select()
         .where('is_member', 1)
         .orderBy('clear_score_sum', 'desc');
-    } else if (data.membershipStatus == '2') {
+    } else if (membershipStatus === 2) {
       members = await ts.db.Members.query()
         .select()
         .where('is_mod', 1)
         .orderBy('clear_score_sum', 'desc');
-    } else if (data.membershipStatus == '4') {
+    } else if (membershipStatus === 4) {
       members = await ts.db.Members.query()
         .select()
         .where((q) =>
@@ -241,7 +249,7 @@ module.exports = async function (client) {
     }
     let json = [];
 
-    if (data.timePeriod == '1' && data.timePeriod2 == '1') {
+    if (timePeriod === 1 && timePeriod2 === 1) {
       let memberCounter = 1;
       for (const member of members) {
         const comps = [];
@@ -287,15 +295,15 @@ module.exports = async function (client) {
       'creator',
       memberNames,
     );
-    if (data.timePeriod == '2') {
+    if (timePeriod === 2) {
       lCountQueryBuilder = lCountQueryBuilder.whereRaw(
         "strftime('%m-%Y', created_at) = strftime('%m-%Y', CURRENT_TIMESTAMP)",
       );
-    } else if (data.timePeriod == '3') {
+    } else if (timePeriod === 3) {
       lCountQueryBuilder = lCountQueryBuilder.whereRaw(
         "strftime('%W-%Y', created_at) = strftime('%W-%Y', CURRENT_TIMESTAMP)",
       );
-    } else if (data.timePeriod == '4') {
+    } else if (timePeriod === 4) {
       lCountQueryBuilder = lCountQueryBuilder.whereRaw(
         "strftime('%j-%Y', created_at) = strftime('%j-%Y', CURRENT_TIMESTAMP)",
       );
@@ -327,28 +335,28 @@ module.exports = async function (client) {
       .whereIn('plays.player', memberNames)
       .where('plays.completed', '=', '1');
 
-    if (data.timePeriod == '2') {
+    if (timePeriod === 2) {
       cCountQueryBuilder = cCountQueryBuilder.whereRaw(
         "strftime('%m-%Y', levels.created_at) = strftime('%m-%Y', CURRENT_TIMESTAMP)",
       );
-    } else if (data.timePeriod == '3') {
+    } else if (timePeriod === 3) {
       cCountQueryBuilder = cCountQueryBuilder.whereRaw(
         "strftime('%W-%Y', levels.created_at) = strftime('%W-%Y', CURRENT_TIMESTAMP)",
       );
-    } else if (data.timePeriod == '4') {
+    } else if (timePeriod === 4) {
       cCountQueryBuilder = cCountQueryBuilder.whereRaw(
         "strftime('%j-%Y', levels.created_at) = strftime('%j-%Y', CURRENT_TIMESTAMP)",
       );
     }
-    if (data.timePeriod2 == '2') {
+    if (timePeriod2 === 2) {
       cCountQueryBuilder = cCountQueryBuilder.whereRaw(
         "strftime('%m-%Y', plays.created_at) = strftime('%m-%Y', CURRENT_TIMESTAMP)",
       );
-    } else if (data.timePeriod2 == '3') {
+    } else if (timePeriod2 === 3) {
       cCountQueryBuilder = cCountQueryBuilder.whereRaw(
         "strftime('%W-%Y', plays.created_at) = strftime('%W-%Y', CURRENT_TIMESTAMP)",
       );
-    } else if (data.timePeriod2 == '4') {
+    } else if (timePeriod2 === 4) {
       cCountQueryBuilder = cCountQueryBuilder.whereRaw(
         "strftime('%j-%Y', plays.created_at) = strftime('%j-%Y', CURRENT_TIMESTAMP)",
       );
@@ -395,14 +403,17 @@ module.exports = async function (client) {
     });
 
     for (const obj of json) {
-      obj.id = memberCounter += 1;
+      obj.id = memberCounter;
+      memberCounter += 1;
     }
 
     return json;
   }
 
   async function generateMakersJson(ts, data) {
-    const competition_winners = await ts
+    let { membershipStatus, season } = data;
+    membershipStatus = parseInt(membershipStatus, 10);
+    const competitionWinners = await ts
       .knex('competition_winners')
       .where({ guild_id: ts.team.id });
     const seasons = await ts
@@ -415,17 +426,15 @@ module.exports = async function (client) {
       seasons[i].end_date = endDate;
       endDate = seasons[i].start_date;
     }
-    data.season = data.season || seasons.length;
+    season = season || seasons.length;
 
-    const current_season = seasons.length
-      ? seasons[data.season - 1]
-      : {};
+    const currentSeason = seasons.length ? seasons[season - 1] : {};
     let membersSQL = '';
-    if (data.membershipStatus == '1') {
+    if (membershipStatus === 1) {
       membersSQL = `AND members.is_member=1`;
-    } else if (data.membershipStatus == '2') {
+    } else if (membershipStatus === 2) {
       membersSQL = `AND members.is_mod=1`;
-    } else if (data.membershipStatus == '4') {
+    } else if (membershipStatus === 4) {
       membersSQL = `AND members.is_member!=1`;
     }
 
@@ -462,27 +471,32 @@ module.exports = async function (client) {
       group by name
       order by maker_points desc`,
       {
-        from_season: current_season.start_date || '0000-00-00',
-        to_season: current_season.end_date || '3000-01-01',
+        from_season: currentSeason.start_date || '0000-00-00',
+        to_season: currentSeason.end_date || '3000-01-01',
         guild_id: ts.guild_id,
       },
     );
 
-    return { data: json, seasons, competition_winners };
+    return {
+      data: json,
+      seasons,
+      competition_winners: competitionWinners,
+    };
   }
 
   const webTS = (callback) => {
-    // let refer=req.headers.referer.split(req.host)[1].split('/')
     return async (req, res) => {
       res.setHeader(
         'Content-Type',
         'application/json; charset=utf-8',
       );
       let ts;
+      debug(req.body);
       if (req.body && req.body.url_slug) {
         try {
           ts = TS.teamFromUrl(req.body.url_slug);
           if (!ts) {
+            debugError('ts not found');
             res.status(404).send('Not found');
             DiscordLog.error(`"${req.body.url_slug}" not found`);
           } else {
@@ -497,20 +511,24 @@ module.exports = async function (client) {
             if (ts.teamAdmin(req.body.discord_id)) {
               data.teamAdmin = true;
             }
+            debug(data);
             res.send(JSON.stringify(data));
           }
         } catch (error) {
           if (ts) {
             res.send(ts.getWebUserErrorMsg(error));
+            debugError(error);
           } else {
             DiscordLog.error(error);
             console.error(error);
+            debugError(error);
             res.send(
               JSON.stringify({ status: 'error', message: error }),
             );
           }
         }
       } else {
+        debugError('api.noslug');
         res.send(
           JSON.stringify({
             status: 'error',
@@ -522,22 +540,24 @@ module.exports = async function (client) {
   };
 
   async function generateWorldsJson(ts, isShellder, data) {
+    let { membershipStatus } = data;
+    membershipStatus = parseInt(membershipStatus, 10);
     const competitionWinners = await ts
       .knex('competition_winners')
       .where({ guild_id: ts.team.id });
     let members = [];
 
-    if (data.membershipStatus == '1') {
+    if (membershipStatus === 1) {
       members = await ts.db.Members.query()
         .select()
         .where('is_member', 1)
         .where('world_level_count', '>', 0);
-    } else if (data.membershipStatus == '2') {
+    } else if (membershipStatus === 2) {
       members = await ts.db.Members.query()
         .select()
         .where('world_level_count', '>', 0);
       members = members.filter((member) => member.is_mod);
-    } else if (data.membershipStatus == '4') {
+    } else if (membershipStatus === 4) {
       members = await ts.db.Members.query()
         .select()
         .where('world_level_count', '>', 0)
@@ -600,6 +620,7 @@ module.exports = async function (client) {
     }),
   );
 
+  /* TODO: get teams info from team_settings and teams table
   app.post('/teams', async (req, res) => {
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
     try {
@@ -612,7 +633,7 @@ module.exports = async function (client) {
       DiscordLog.error(ret);
       res.send('Something went wrong');
     }
-  });
+  }); */
 
   app.post(
     '/teams/settings',

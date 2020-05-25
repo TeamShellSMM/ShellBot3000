@@ -116,9 +116,17 @@ describe('misc-unit', function () {
     );
   });
 
-  it('TS.message unfound string', async function () {
+  it('TS.message unfound string @curr', async function () {
     assert.throws(
       () => TEST.TS.message('unknown_string'),
+      Error,
+      '"unknown_string" message string was not found in ts.message',
+    );
+  });
+
+  it('ts.message unfound string @curr', async function () {
+    assert.throws(
+      () => TEST.ts.message('unknown_string'),
       Error,
       '"unknown_string" message string was not found in ts.message',
     );
