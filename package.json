@@ -2,7 +2,7 @@
   "name": "shellbot3000",
   "version": "1.5.0",
   "engines": {
-    "node": ">=8.3.0"
+    "node": ">=12.0.0"
   },
   "description": "A Discord Bot for Super Mario Maker teams and community.",
   "homepage": "https://makerteams.net",
