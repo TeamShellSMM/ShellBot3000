@@ -248,7 +248,6 @@ module.exports = async function (client) {
         .orderBy('clear_score_sum', 'desc');
     }
     let json = [];
-
     if (timePeriod === 1 && timePeriod2 === 1) {
       let memberCounter = 1;
       for (const member of members) {
@@ -256,8 +255,8 @@ module.exports = async function (client) {
         for (const comp of competitionWinners) {
           if (comp.creator === member.id) {
             comps.push({
-              name: comp[2],
-              rank: comp[3],
+              name: comp.details,
+              rank: comp.rank,
             });
           }
         }
@@ -378,10 +377,10 @@ module.exports = async function (client) {
     for (const mem of memberArr) {
       const comps = [];
       for (const comp of competitionWinners) {
-        if (comp[1] === mem.name) {
+        if (comp.creator === mem.id) {
           comps.push({
-            name: comp[2],
-            rank: comp[3],
+            name: comp.details,
+            rank: comp.rank,
           });
         }
       }

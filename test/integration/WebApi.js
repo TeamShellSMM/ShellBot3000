@@ -49,6 +49,16 @@ describe('Web Apis', function () {
           },
         ],
       });
+
+      await TEST.knex('competition_winners').insert({
+        admin_id: 1,
+        guild_id: 1,
+        code: 1,
+        creator: 2,
+        competition_id: 1,
+        details: 'winner',
+        rank: 1,
+      });
     });
     // TODO:web api, fix competition winners
     it('POST /json', async function () {
@@ -191,7 +201,7 @@ describe('Web Apis', function () {
       // assert.equal(body.data[0].world_name,'Super Maker World');
     });
 
-    it('POST /json/members ', async function () {
+    it('POST /json/members', async function () {
       // const user=await TEST.ts.getUser(discord_id)
       const { body } = await TEST.request(app)
         .post('/json/members')
@@ -200,6 +210,26 @@ describe('Web Apis', function () {
         .expect(200);
 
       assert.notEqual(body.status, 'error');
+      // TODO: do more comprehensive checks of the data
+    });
+
+    it('POST /json/members copetitionWinners @curr', async function () {
+      // const user=await TEST.ts.getUser(discord_id)
+      const { body } = await TEST.request(app)
+        .post('/json/members')
+        .send({
+          url_slug: TEST.ts.url_slug,
+          timePeriod: 1,
+          timePeriod2: 1,
+        })
+        .expect('Content-Type', /json/)
+        .expect(200);
+
+      assert.notEqual(body.status, 'error');
+      assert.deepInclude(body[1].wonComps[0], {
+        name: 'winner',
+        rank: 1,
+      });
       // TODO: do more comprehensive checks of the data
     });
 
@@ -438,7 +468,7 @@ describe('Web Apis', function () {
       assert.equal(body.levels[0].creator, 'Creator');
     });
 
-    it('POST /json see pending votes @curr', async function () {
+    it('POST /json see pending votes', async function () {
       await TEST.ts.db.Members.query()
         .patch({ is_mod: 1 })
         .where({ discord_id: '128' });
