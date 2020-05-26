@@ -297,15 +297,15 @@ module.exports = async function (client) {
     );
     if (timePeriod === 2) {
       lCountQueryBuilder = lCountQueryBuilder.whereRaw(
-        "strftime('%m-%Y', created_at) = strftime('%m-%Y', CURRENT_TIMESTAMP)",
+        "DATE_FORMAT(created_at,'%m-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%m-%Y')",
       );
     } else if (timePeriod === 3) {
       lCountQueryBuilder = lCountQueryBuilder.whereRaw(
-        "strftime('%W-%Y', created_at) = strftime('%W-%Y', CURRENT_TIMESTAMP)",
+        "DATE_FORMAT(created_at,'%W-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%W-%Y')",
       );
     } else if (timePeriod === 4) {
       lCountQueryBuilder = lCountQueryBuilder.whereRaw(
-        "strftime('%j-%Y', created_at) = strftime('%j-%Y', CURRENT_TIMESTAMP)",
+        "DATE_FORMAT(created_at,'%j-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%j-%Y')",
       );
     }
     const lCountResult = await lCountQueryBuilder
@@ -337,28 +337,28 @@ module.exports = async function (client) {
 
     if (timePeriod === 2) {
       cCountQueryBuilder = cCountQueryBuilder.whereRaw(
-        "strftime('%m-%Y', levels.created_at) = strftime('%m-%Y', CURRENT_TIMESTAMP)",
+        "DATE_FORMAT(levels.created_at,'%m-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%m-%Y')",
       );
     } else if (timePeriod === 3) {
       cCountQueryBuilder = cCountQueryBuilder.whereRaw(
-        "strftime('%W-%Y', levels.created_at) = strftime('%W-%Y', CURRENT_TIMESTAMP)",
+        "DATE_FORMAT(levels.created_at,'%W-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%W-%Y')",
       );
     } else if (timePeriod === 4) {
       cCountQueryBuilder = cCountQueryBuilder.whereRaw(
-        "strftime('%j-%Y', levels.created_at) = strftime('%j-%Y', CURRENT_TIMESTAMP)",
+        "DATE_FORMAT(levels.created_at,'%j-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%j-%Y')",
       );
     }
     if (timePeriod2 === 2) {
       cCountQueryBuilder = cCountQueryBuilder.whereRaw(
-        "strftime('%m-%Y', plays.created_at) = strftime('%m-%Y', CURRENT_TIMESTAMP)",
+        "DATE_FORMAT(plays.created_at,'%m-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%m-%Y')",
       );
     } else if (timePeriod2 === 3) {
       cCountQueryBuilder = cCountQueryBuilder.whereRaw(
-        "strftime('%W-%Y', plays.created_at) = strftime('%W-%Y', CURRENT_TIMESTAMP)",
+        "DATE_FORMAT(plays.created_at,'%W-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%W-%Y')",
       );
     } else if (timePeriod2 === 4) {
       cCountQueryBuilder = cCountQueryBuilder.whereRaw(
-        "strftime('%j-%Y', plays.created_at) = strftime('%j-%Y', CURRENT_TIMESTAMP)",
+        "DATE_FORMAT(plays.created_at,'%j-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%j-%Y')",
       );
     }
     const cCountResult = await cCountQueryBuilder

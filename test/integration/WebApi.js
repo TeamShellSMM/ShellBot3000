@@ -251,6 +251,24 @@ describe('Web Apis', function () {
       // For now we stop comparing these
     });
 
+    for (let i = 1; i <= 4; i += 1) {
+      for (let j = 1; j <= 4; j += 1) {
+        it(`POST /json/members timePeriod=${i},timePeriod2=${j} @curr`, async function () {
+          const { body } = await TEST.request(app)
+            .post('/json/members')
+            .send({
+              url_slug: TEST.ts.url_slug,
+              timePeriod: i,
+              timePeriod2: j,
+            })
+            .expect('Content-Type', /json/)
+            .expect(200);
+          assert.notEqual(body.status, 'error');
+          // For now we stop comparing these
+        });
+      }
+    }
+
     it('POST /random', async function () {
       const { body } = await TEST.request(app)
         .post('/random')
@@ -342,7 +360,7 @@ describe('Web Apis', function () {
       });
     });
 
-    it('POST /random @curr', async function () {
+    it('POST /random', async function () {
       const { body } = await TEST.request(app)
         .post('/random')
         .send({ url_slug: TEST.ts.url_slug, token: '123' })
@@ -359,6 +377,18 @@ describe('Web Apis', function () {
         discord_id: '128',
         name: 'Mod',
       }); // only level in the db right now
+    });
+
+    it('POST /json/members ', async function () {
+      // const user=await TEST.ts.getUser(discord_id)
+      const { body } = await TEST.request(app)
+        .post('/json/members')
+        .send({ url_slug: TEST.ts.url_slug, token: '123' })
+        .expect('Content-Type', /json/)
+        .expect(200);
+
+      assert.notEqual(body.status, 'error');
+      // For now we stop comparing these
     });
 
     it('POST /json', async function () {
