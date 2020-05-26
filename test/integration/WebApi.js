@@ -69,6 +69,19 @@ describe('Web Apis', function () {
       assert.equal(body.levels[0].creator, 'Creator');
     });
 
+    it('POST /json w dashboard', async function () {
+      const { body } = await TEST.request(app)
+        .post('/json')
+        .send({ url_slug: TEST.ts.url_slug, dashboard: 1 })
+        .expect('Content-Type', /json/)
+        .expect(200);
+
+      assert.exists(body.dashboard);
+      assert.equal(body.levels[0].code, 'XXX-XXX-XXX');
+      assert.equal(body.levels[0].level_name, 'EZ GG');
+      assert.equal(body.levels[0].creator, 'Creator');
+    });
+
     it('POST /json/login', async function () {
       const { body } = await TEST.request(app)
         .post('/json/login')
@@ -325,6 +338,10 @@ describe('Web Apis', function () {
             discord_id: '-1',
             is_banned: 1,
           },
+          {
+            name: 'Mod2',
+            discord_id: '512',
+          },
         ],
         Levels: [
           {
@@ -344,8 +361,8 @@ describe('Web Apis', function () {
         ],
         PendingVotes: [
           {
-            code: 1,
-            player: 1,
+            code: 2,
+            player: 4,
             type: 'approve',
             reason: 'yes',
             difficulty_vote: 4,
@@ -419,6 +436,42 @@ describe('Web Apis', function () {
       assert.equal(body.levels[0].code, 'XXX-XXX-XXX');
       assert.equal(body.levels[0].level_name, 'EZ GG');
       assert.equal(body.levels[0].creator, 'Creator');
+    });
+
+    it('POST /json see pending votes @curr', async function () {
+      await TEST.ts.db.Members.query()
+        .patch({ is_mod: 1 })
+        .where({ discord_id: '128' });
+      const { body } = await TEST.request(app)
+        .post('/json')
+        .send({
+          url_slug: TEST.ts.url_slug,
+          token: '123',
+          code: 'XXX-XXX-XX2',
+        })
+        .expect('Content-Type', /json/)
+        .expect(200);
+
+      assert.notEqual(
+        body.status,
+        'error',
+        'Should not return error',
+      );
+
+      assert.equal(body.levels[0].code, 'XXX-XXX-XX2');
+      assert.exists(body.pending_comments);
+      assert.deepInclude(body.pending_comments[0], {
+        id: 1,
+        guild_id: 1,
+        player: 'Mod2',
+        code: 'XXX-XXX-XX2',
+        is_shellder: 0,
+        type: 'approve',
+        difficulty_vote: 4,
+        reason: 'yes',
+        player_id: 4,
+        level_id: 2,
+      });
     });
 
     it('POST /json with name', async function () {
@@ -521,7 +574,7 @@ describe('Web Apis', function () {
       });
     });
 
-    it('POST /approve @curr', async function () {
+    it('POST /approve', async function () {
       await TEST.knex('members')
         .update({ is_mod: 1 })
         .where({ discord_id: '128' });
@@ -566,7 +619,7 @@ describe('Web Apis', function () {
       assert.equal(body.url_slug, 'makerteam');
     });
 
-    it('POST /clear @curr', async function () {
+    it('POST /clear', async function () {
       await TEST.knex('members')
         .update({ is_mod: 1 })
         .where({ discord_id: '128' });

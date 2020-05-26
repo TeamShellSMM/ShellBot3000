@@ -254,7 +254,7 @@ module.exports = async function (client) {
       for (const member of members) {
         const comps = [];
         for (const comp of competitionWinners) {
-          if (comp[1] === member.name) {
+          if (comp.creator === member.id) {
             comps.push({
               name: comp[2],
               rank: comp[3],
