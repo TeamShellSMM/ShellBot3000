@@ -15,32 +15,35 @@ class InitMembers extends TSCommand {
     let registeredCount = 0;
     let alreadyRegisteredCount = 0;
 
-    for(let member_arr of message.guild.members){
-      let discord_id = member_arr[0];
-      let member = member_arr[1];
+    for (const memberArr of message.guild.members) {
+      const discord_id = memberArr[0];
+      const member = memberArr[1];
 
-      if(discord_id == ts.discord.botId()){
-        continue;
-      }
-
-      let nickname = member.user.username;
-      if(await ts.db.Members.query()
-      .whereRaw('lower(name) = ?', [nickname.toLowerCase()])
-      .first()){
-        alreadyRegisteredCount++;
-      } else {
-        registeredCount++;
-        await ts.db.Members.query().insert({
-          name: nickname,
-          discord_id: discord_id,
-          discord_name: nickname,
-        });
+      if (discord_id !== ts.discord.botId()) {
+        const nickname = member.user.username;
+        if (
+          await ts.db.Members.query()
+            .whereRaw('lower(name) = ?', [nickname.toLowerCase()])
+            .first()
+        ) {
+          alreadyRegisteredCount += 1;
+        } else {
+          registeredCount += 1;
+          await ts.db.Members.query().insert({
+            name: nickname,
+            discord_id: discord_id,
+            discord_name: nickname,
+          });
+        }
       }
     }
 
     await ts.discord.reply(
       message,
-      ts.message('initmembers.success', { registeredCount: registeredCount, alreadyRegisteredCount: alreadyRegisteredCount }),
+      ts.message('initmembers.success', {
+        registeredCount: registeredCount,
+        alreadyRegisteredCount: alreadyRegisteredCount,
+      }),
     );
   }
 }

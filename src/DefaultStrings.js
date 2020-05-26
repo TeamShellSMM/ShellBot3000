@@ -306,7 +306,7 @@ module.exports = {
     "You are now registered as '{{name}}'. You can now start submitting your clears in #level-clears {{{bam}}}",
 
   'initmembers.success':
-    "{{registeredCount}} members have been registered with their discord name, {{alreadyRegisteredCount}} have been skipped because they were already registered.",
+    '{{registeredCount}} members have been registered with their discord name, {{alreadyRegisteredCount}} have been skipped because they were already registered.',
 
   'login.reply':
     " You have requested a login token for the website. click the link below to login.:\n <{{loginLink}}> {{{bam}}}\n If you're on mobile, copy the link and paste it into your preferred browser app. If you open this link in an in-app browser, your login might not be saved properly. {{{buzzyS}}}\n This token will only be valid for 30 minutes",
@@ -359,6 +359,6 @@ module.exports = {
   'mock.notFound': 'No user found',
   'resetStatus.alreadyPending':
     "This level is already pending. This command only resets a level's status to PENDING",
-  'resetStatus.succesful':
+  'resetStatus.successful':
     '"{{{level_name}}}" by {{{creator}}} has been reset to PENDING',
 };
