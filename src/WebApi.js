@@ -894,7 +894,7 @@ module.exports = async function (client) {
       req.body.discord_id = await ts.checkBearerToken(req.body.token);
       const user = await ts.getUser(req.body.discord_id);
 
-      if (user.is_mod) ts.userError('Forbidden');
+      if (!user.is_mod) ts.userError('Forbidden');
 
       req.body.reason = req.body.comment;
 

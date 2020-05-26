@@ -1,6 +1,6 @@
 describe('Web Apis', function () {
   describe('unauthenticated calls', function () {
-    before(async () => {
+    beforeEach(async () => {
       await TEST.setupData({
         Members: [
           {
@@ -193,7 +193,7 @@ describe('Web Apis', function () {
         .expect(200);
 
       assert.notEqual(body.status, 'error');
-      // For now we stop comparing these
+      // TODO: do more comprehensive checks of the data
     });
 
     it('POST /json/makers', async function () {
@@ -204,7 +204,7 @@ describe('Web Apis', function () {
         .expect('Content-Type', /json/)
         .expect(200);
       assert.notEqual(body.status, 'error');
-      // For now we stop comparing these
+      // TODO: do more comprehensive checks of the data
     });
 
     it('POST /json/members membershipStatus=1', async function () {
@@ -215,7 +215,7 @@ describe('Web Apis', function () {
         .expect('Content-Type', /json/)
         .expect(200);
       assert.notEqual(body.status, 'error');
-      // For now we stop comparing these
+      // TODO: do more comprehensive checks of the data
     });
 
     it('POST /json/members membershipStatus=2', async function () {
@@ -226,7 +226,7 @@ describe('Web Apis', function () {
         .expect('Content-Type', /json/)
         .expect(200);
       assert.notEqual(body.status, 'error');
-      // For now we stop comparing these
+      // TODO: do more comprehensive checks of the data
     });
 
     it('POST /json/members membershipStatus=4', async function () {
@@ -237,7 +237,7 @@ describe('Web Apis', function () {
         .expect('Content-Type', /json/)
         .expect(200);
       assert.notEqual(body.status, 'error');
-      // For now we stop comparing these
+      // TODO: do more comprehensive checks of the data
     });
 
     it('POST /json/members membershipStatus=5', async function () {
@@ -248,12 +248,12 @@ describe('Web Apis', function () {
         .expect('Content-Type', /json/)
         .expect(200);
       assert.notEqual(body.status, 'error');
-      // For now we stop comparing these
+      // TODO: do more comprehensive checks of the data
     });
 
     for (let i = 1; i <= 4; i += 1) {
       for (let j = 1; j <= 4; j += 1) {
-        it(`POST /json/members timePeriod=${i},timePeriod2=${j} @curr`, async function () {
+        it(`POST /json/members timePeriod=${i},timePeriod2=${j}`, async function () {
           const { body } = await TEST.request(app)
             .post('/json/members')
             .send({
@@ -264,7 +264,7 @@ describe('Web Apis', function () {
             .expect('Content-Type', /json/)
             .expect(200);
           assert.notEqual(body.status, 'error');
-          // For now we stop comparing these
+          // TODO: do more comprehensive checks of the data
         });
       }
     }
@@ -310,7 +310,7 @@ describe('Web Apis', function () {
   });
 
   describe('authenticated calls', function () {
-    before(async () => {
+    beforeEach(async () => {
       await TEST.setupData({
         Members: [
           {
@@ -358,6 +358,15 @@ describe('Web Apis', function () {
           },
         ],
       });
+      await TEST.knex.transaction(async (trx) => {
+        await trx('tags').insert([
+          {
+            guild_id: 1,
+            name: 'seperate',
+            is_seperate: 1,
+          },
+        ]);
+      });
     });
 
     it('POST /random', async function () {
@@ -388,7 +397,7 @@ describe('Web Apis', function () {
         .expect(200);
 
       assert.notEqual(body.status, 'error');
-      // For now we stop comparing these
+      // TODO: do more comprehensive checks of the data
     });
 
     it('POST /json', async function () {
@@ -481,6 +490,39 @@ describe('Web Apis', function () {
       assert.deepEqual(body, {
         status: 'successful',
         url_slug: 'makerteam',
+      });
+    });
+
+    it('POST /approve no token @curr', async function () {
+      const done = TEST.acceptReply();
+      const { body } = await TEST.request(app)
+        .post('/approve')
+        .send({
+          url_slug: TEST.ts.url_slug,
+        })
+        .expect('Content-Type', /json/)
+        .expect(200);
+      done();
+      assert.deepEqual(body, {
+        status: 'error',
+        message: 'No token sent',
+      });
+    });
+
+    it('POST /approve @curr', async function () {
+      const done = TEST.acceptReply();
+      const { body } = await TEST.request(app)
+        .post('/approve')
+        .send({
+          url_slug: TEST.ts.url_slug,
+          token: '123',
+        })
+        .expect('Content-Type', /json/)
+        .expect(200);
+      done();
+      assert.deepEqual(body, {
+        status: 'error',
+        message: 'Forbidden',
       });
     });
 

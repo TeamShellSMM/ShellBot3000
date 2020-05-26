@@ -63,7 +63,6 @@ before(async () => {
   debugTests('clear database');
   await TEST.knex.raw(`
     SET FOREIGN_KEY_CHECKS = 0; 
-    TRUNCATE table tags;
     TRUNCATE table teams;
     TRUNCATE table points;
     TRUNCATE table ranks;
