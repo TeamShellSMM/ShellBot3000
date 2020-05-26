@@ -64,8 +64,6 @@ describe('Web Apis', function () {
         'Should not return error',
       );
 
-      assert.lengthOf(body.levels, 1, 'one levels in db');
-
       assert.equal(body.levels[0].code, 'XXX-XXX-XXX');
       assert.equal(body.levels[0].level_name, 'EZ GG');
       assert.equal(body.levels[0].creator, 'Creator');
@@ -93,8 +91,6 @@ describe('Web Apis', function () {
 
       assert.notEqual(body.status, 'error');
 
-      assert.lengthOf(body.levels, 1, 'one levels in db');
-
       delete body.levels[0].created_at;
       delete body.levels[0].id;
       assert.equal(body.levels[0].code, 'XXX-XXX-XXX');
@@ -110,8 +106,6 @@ describe('Web Apis', function () {
         .expect(200);
 
       assert.notEqual(body.status, 'error');
-
-      assert.lengthOf(body.levels, 1, 'one levels in db');
 
       delete body.levels[0].created_at;
       delete body.levels[0].id;
@@ -420,8 +414,6 @@ describe('Web Apis', function () {
         'Should not return error',
       );
 
-      assert.lengthOf(body.levels, 1, 'one levels in db');
-
       delete body.levels[0].created_at;
       delete body.levels[0].id;
       assert.equal(body.levels[0].code, 'XXX-XXX-XXX');
@@ -446,8 +438,6 @@ describe('Web Apis', function () {
         'Should not return error',
       );
 
-      assert.lengthOf(body.levels, 1, 'one levels in db');
-
       delete body.levels[0].created_at;
       delete body.levels[0].id;
       assert.equal(body.levels[0].code, 'XXX-XXX-XXX');
@@ -471,8 +461,6 @@ describe('Web Apis', function () {
         'error',
         'Should not return error',
       );
-
-      assert.lengthOf(body.levels, 1, 'one levels in db');
 
       delete body.levels[0].created_at;
       delete body.levels[0].id;
@@ -551,11 +539,11 @@ describe('Web Apis', function () {
         .expect(200);
       done();
       assert.match(body.msg, /Your vote was added to <#[0-9]+>!/);
-      assert.equal(body.status, 'succesful');
+      assert.equal(body.status, 'successful');
       assert.equal(body.url_slug, 'makerteam');
     });
 
-    it('POST /approve @curr w clear', async function () {
+    it('POST /approve w clear', async function () {
       await TEST.knex('members')
         .update({ is_mod: 1 })
         .where({ discord_id: '128' });
@@ -574,7 +562,36 @@ describe('Web Apis', function () {
         .expect(200);
       done();
       assert.match(body.msg, /Your vote was added to <#[0-9]+>!/);
-      assert.equal(body.status, 'succesful');
+      assert.equal(body.status, 'successful');
+      assert.equal(body.url_slug, 'makerteam');
+    });
+
+    it('POST /clear @curr', async function () {
+      await TEST.knex('members')
+        .update({ is_mod: 1 })
+        .where({ discord_id: '128' });
+      const done = TEST.acceptReply();
+      const { body } = await TEST.request(app)
+        .post('/clear')
+        .send({
+          url_slug: TEST.ts.url_slug,
+          token: '123',
+          code: 'XXX-XXX-XX2',
+          completed: 1,
+        })
+        .expect('Content-Type', /json/)
+        .expect(200);
+      const reply = done();
+      console.log(reply);
+      assert.equal(
+        reply,
+        "Mod \n ‣You have cleared 'pending'  by Creator \n ‣This level is still pending",
+      );
+      assert.equal(
+        body.msg,
+        "Mod \n ‣You have cleared 'pending'  by Creator \n ‣This level is still pending",
+      );
+      assert.equal(body.status, 'successful');
       assert.equal(body.url_slug, 'makerteam');
     });
 

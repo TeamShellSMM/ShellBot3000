@@ -150,7 +150,7 @@ describe('!ammendcode', function () {
     assert.lengthOf(result, 0, 'no result');
   });
 
-  it('owner succesful', async function () {
+  it('owner successful', async function () {
     const ownerId = TEST.ts.discord.guild().owner.user.id;
     await TEST.clearChannels();
     await TEST.createChannel({

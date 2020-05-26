@@ -58,7 +58,7 @@ describe('!mockUser', function () {
     );
   });
 
-  it('Mock succesful', async () => {
+  it('Mock successful', async () => {
     await TEST.ts.db.Members.query()
       .where({ discord_id: '128' })
       .patch({ is_mod: 1 });

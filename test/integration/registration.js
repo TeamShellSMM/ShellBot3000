@@ -128,7 +128,7 @@ describe('registration', function () {
     );
   });
 
-  it('succesful registration without argument', async function () {
+  it('successful registration without argument', async function () {
     const result = await TEST.mockBotSend({
       cmd: '!register',
       channel: 'general',
@@ -153,7 +153,7 @@ describe('registration', function () {
       'message is correct',
     );
   });
-  it('succesful registration with supplied nickname', async function () {
+  it('successful registration with supplied nickname', async function () {
     const result = await TEST.mockBotSend({
       cmd: '!register my_name',
       channel: 'general',
@@ -256,7 +256,7 @@ describe('registration', function () {
   });
 
   let token;
-  it('POST /json/login succesful', async function () {
+  it('POST /json/login successful', async function () {
     const done = TEST.acceptReply();
     await TEST.ts.getUser(discordId);
     const { body } = await TEST.request(app)

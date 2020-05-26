@@ -897,9 +897,12 @@ module.exports = async function (client) {
       if (!user.is_mod) ts.userError('Forbidden');
 
       const msg = await ts.approve(req.body);
-      const clearmsg = await ts.clear(req.body);
 
-      await ts.discord.send(ts.channels.commandFeed, clearmsg);
+      if (req.body.completed || req.body.liked) {
+        const clearmsg = await ts.clear(req.body);
+        await ts.discord.send(ts.channels.commandFeed, clearmsg);
+      }
+
       return { status: 'successful', msg: msg };
     }),
   );

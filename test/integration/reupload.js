@@ -374,7 +374,7 @@ describe('!reupload', function () {
     );
   });
 
-  it('Succesful approved level reupload. Generate the right status and create the proper channels', async () => {
+  it('successful approved level reupload. Generate the right status and create the proper channels', async () => {
     await TEST.clearChannels();
     TEST.ts.teamVariables['New Level'] = 1;
     await TEST.ts.db.Members.query()
@@ -495,7 +495,7 @@ describe('!reupload', function () {
     );
   });
 
-  it('Succesful need_fix level reupload. Generate the right status and create the proper channels', async () => {
+  it('successful need_fix level reupload. Generate the right status and create the proper channels', async () => {
     await TEST.clearChannels();
     TEST.ts.teamVariables['New Level'] = 1;
     await TEST.ts.db.Members.query()
@@ -569,7 +569,7 @@ describe('!reupload', function () {
     );
   });
 
-  it('Succesful user removed reupload', async () => {
+  it('successful user removed reupload', async () => {
     await TEST.clearChannels();
     TEST.ts.teamVariables['New Level'] = 0;
     await TEST.ts.db.Members.query()
@@ -586,7 +586,7 @@ describe('!reupload', function () {
     );
   });
 
-  it('Succesful pending level reupload. Discussion channel exists, rename channel', async () => {
+  it('successful pending level reupload. Discussion channel exists, rename channel', async () => {
     await TEST.clearChannels();
     await TEST.createChannel({
       name: 'XXX-XXX-XX1',

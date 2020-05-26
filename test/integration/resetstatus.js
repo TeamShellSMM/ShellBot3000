@@ -62,7 +62,7 @@ describe('!resetstatus', function () {
     assert.notEqual(
       result,
       await TEST.mockMessage(
-        'resetStatus.succesful',
+        'resetStatus.successful',
         { type: 'normal' },
         {
           level_name: 'approved level',
@@ -76,7 +76,7 @@ describe('!resetstatus', function () {
     assert.lengthOf(result, 0, 'no result');
   });
 
-  it('mod succesful', async function () {
+  it('mod successful', async function () {
     const result = await TEST.mockBotSend({
       cmd: '!resetstatus xxx-xxx-xxx',
       channel: 'general',
@@ -85,7 +85,7 @@ describe('!resetstatus', function () {
     assert.equal(
       result,
       await TEST.mockMessage(
-        'resetStatus.succesful',
+        'resetStatus.successful',
         { type: 'normal' },
         {
           level_name: 'approved level',
@@ -128,7 +128,7 @@ describe('!resetstatus', function () {
     assert.equal(level.status, 0);
   });
 
-  it('owner succesful', async function () {
+  it('owner successful', async function () {
     const ownerId = TEST.ts.discord.guild().owner.user.id;
     const result = await TEST.mockBotSend({
       cmd: '!resetstatus xxx-xxx-xxx',
@@ -138,7 +138,7 @@ describe('!resetstatus', function () {
     assert.equal(
       result,
       await TEST.mockMessage(
-        'resetStatus.succesful',
+        'resetStatus.successful',
         { type: 'normal' },
         {
           level_name: 'approved level',
@@ -155,7 +155,7 @@ describe('!resetstatus', function () {
     assert.equal(level.status, 0);
   });
 
-  it('owner succesful', async function () {
+  it('owner successful', async function () {
     const ownerId = TEST.ts.discord.guild().owner.user.id;
     const result = await TEST.mockBotSend({
       cmd: '!resetstatus xxx-xxx-xxx',
@@ -165,7 +165,7 @@ describe('!resetstatus', function () {
     assert.equal(
       result,
       await TEST.mockMessage(
-        'resetStatus.succesful',
+        'resetStatus.successful',
         { type: 'normal' },
         {
           level_name: 'approved level',
@@ -193,7 +193,7 @@ describe('!resetstatus', function () {
     assert.notEqual(
       result,
       await TEST.mockMessage(
-        'resetStatus.succesful',
+        'resetStatus.successful',
         { type: 'normal' },
         {
           level_name: 'approved level',
@@ -218,7 +218,7 @@ describe('!resetstatus', function () {
     assert.equal(
       result,
       await TEST.mockMessage(
-        'resetStatus.succesful',
+        'resetStatus.successful',
         { type: 'normal' },
         {
           level_name: 'approved level',
