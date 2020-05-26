@@ -175,7 +175,6 @@ describe('DiscordWrapper', function () {
     const memberWithRoles = TEST.ts.discord.getMembersWithRole(
       'role1-test',
     );
-    console.log(memberWithRoles);
     assert.lengthOf(memberWithRoles, 1);
     assert.equal(memberWithRoles[0], botId);
     await TEST.ts.discord.removeRoles(botId, [role1.id, role2.id]);

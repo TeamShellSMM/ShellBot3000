@@ -340,6 +340,13 @@ describe('Web Apis', function () {
             status: 1,
             difficulty: 1,
           },
+          {
+            level_name: 'pending',
+            creator: 2,
+            code: 'XXX-XXX-XX2',
+            status: 0,
+            difficulty: 0,
+          },
         ],
         PendingVotes: [
           {
@@ -493,7 +500,7 @@ describe('Web Apis', function () {
       });
     });
 
-    it('POST /approve no token @curr', async function () {
+    it('POST /approve no token', async function () {
       const done = TEST.acceptReply();
       const { body } = await TEST.request(app)
         .post('/approve')
@@ -509,7 +516,7 @@ describe('Web Apis', function () {
       });
     });
 
-    it('POST /approve @curr', async function () {
+    it('POST /approve not mod', async function () {
       const done = TEST.acceptReply();
       const { body } = await TEST.request(app)
         .post('/approve')
@@ -524,6 +531,51 @@ describe('Web Apis', function () {
         status: 'error',
         message: 'Forbidden',
       });
+    });
+
+    it('POST /approve @curr', async function () {
+      await TEST.knex('members')
+        .update({ is_mod: 1 })
+        .where({ discord_id: '128' });
+      const done = TEST.acceptReply();
+      const { body } = await TEST.request(app)
+        .post('/approve')
+        .send({
+          url_slug: TEST.ts.url_slug,
+          token: '123',
+          code: 'XXX-XXX-XX2',
+          reason: 'not bad',
+          type: 'approve',
+        })
+        .expect('Content-Type', /json/)
+        .expect(200);
+      done();
+      assert.match(body.msg, /Your vote was added to <#[0-9]+>!/);
+      assert.equal(body.status, 'succesful');
+      assert.equal(body.url_slug, 'makerteam');
+    });
+
+    it('POST /approve @curr w clear', async function () {
+      await TEST.knex('members')
+        .update({ is_mod: 1 })
+        .where({ discord_id: '128' });
+      const done = TEST.acceptReply();
+      const { body } = await TEST.request(app)
+        .post('/approve')
+        .send({
+          url_slug: TEST.ts.url_slug,
+          token: '123',
+          code: 'XXX-XXX-XX2',
+          reason: 'not bad',
+          type: 'approve',
+          completed: 1,
+        })
+        .expect('Content-Type', /json/)
+        .expect(200);
+      done();
+      assert.match(body.msg, /Your vote was added to <#[0-9]+>!/);
+      assert.equal(body.status, 'succesful');
+      assert.equal(body.url_slug, 'makerteam');
     });
 
     it('POST /feedback no token', async function () {

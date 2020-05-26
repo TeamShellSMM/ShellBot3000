@@ -1217,9 +1217,10 @@ class TS {
      * This method is called and will process an approval vote. The method will generate the necessary discord channels if needed
      */
     this.approve = async function (args) {
+      const { discord_id, code, reason, type, difficulty } = args;
       // Check if vote already exists
-      const shellder = await ts.getUser(args.discord_id);
-      const level = await ts.getExistingLevel(args.code, true);
+      const shellder = await ts.getUser(discord_id);
+      const level = await ts.getExistingLevel(code, true);
       const vote = await ts
         .getPendingVotes()
         .where('levels.id', level.id)
@@ -1227,14 +1228,14 @@ class TS {
         .first();
       if (!vote) {
         // We only check reason if we have no vote yet
-        if (!args.reason) {
+        if (!reason) {
           ts.userError(ts.message('approval.changeReason'));
         }
       }
       // Check if level is approved, if it's approved only allow rejection
       if (
         level.status === ts.LEVEL_STATUS.APPROVED &&
-        args.type === 'approve'
+        type === 'approve'
       ) {
         ts.userError(ts.message('approval.levelAlreadyApproved'));
       } else if (!PENDING_LEVELS.includes(level.status)) {
@@ -1245,19 +1246,17 @@ class TS {
         await ts.db.PendingVotes.query().insert({
           code: level.id,
           player: shellder.id,
-          type: args.type,
+          type: type,
           difficulty_vote:
-            args.type === 'approve' || args.type === 'fix'
-              ? args.difficulty
-              : null,
-          reason: args.reason,
+            type === 'approve' || type === 'fix' ? difficulty : null,
+          reason: reason,
         });
       } else {
         replyMsg = 'approval.voteChanged';
         await ts.db.PendingVotes.query().findById(vote.id).patch({
-          type: args.type,
-          reason: args.reason,
-          difficulty_vote: args.difficulty,
+          type: type,
+          reason: reason,
+          difficulty_vote: difficulty,
         });
       }
       const voteEmbed = await ts.makeVoteEmbed(level);

@@ -880,7 +880,7 @@ module.exports = async function (client) {
 
       const msg = await ts.clear(req.body);
       await ts.discord.send(ts.channels.commandFeed, msg);
-      const json = { status: 'sucessful', msg: msg };
+      const json = { status: 'successful', msg: msg };
       return json;
     }),
   );
@@ -896,13 +896,11 @@ module.exports = async function (client) {
 
       if (!user.is_mod) ts.userError('Forbidden');
 
-      req.body.reason = req.body.comment;
-
       const msg = await ts.approve(req.body);
       const clearmsg = await ts.clear(req.body);
 
       await ts.discord.send(ts.channels.commandFeed, clearmsg);
-      return { status: 'sucessful', msg: msg };
+      return { status: 'successful', msg: msg };
     }),
   );
 
@@ -916,7 +914,7 @@ module.exports = async function (client) {
       }
 
       const rand = await ts.randomLevel(req.body);
-      rand.status = 'sucessful';
+      rand.status = 'successful';
       return rand;
     }),
   );
