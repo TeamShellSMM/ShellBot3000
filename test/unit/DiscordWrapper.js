@@ -146,7 +146,7 @@ describe('DiscordWrapper', function () {
     assert.isNull(TEST.ts.discord.getUsername({ name: 'test' }));
   });
 
-  it('add/removeRoles', async () => {
+  it('add/removeRoles, getMembersWithRole', async () => {
     const botId = TEST.ts.discord.botId();
     const guild = TEST.ts.discord.guild();
     let role1 = guild.roles.find((r) => r.name === 'role1-test');
@@ -172,6 +172,12 @@ describe('DiscordWrapper', function () {
         .member(botId)
         .roles.find((r) => r.name === 'role1-test'),
     );
+    const memberWithRoles = TEST.ts.discord.getMembersWithRole(
+      'role1-test',
+    );
+    console.log(memberWithRoles);
+    assert.lengthOf(memberWithRoles, 1);
+    assert.equal(memberWithRoles[0], botId);
     await TEST.ts.discord.removeRoles(botId, [role1.id, role2.id]);
     // TODO: this sometimes fail and returns something, and we're not sure why. Rerunning the tests usually pass it though
     assert.notExists(

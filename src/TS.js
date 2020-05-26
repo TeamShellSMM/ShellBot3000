@@ -374,13 +374,9 @@ class TS {
         const guild = ts.getGuild();
         let mods = [guild.owner.user.id];
         if (this.teamVariables.ModName) {
-          mods = guild.members
-            .filter((m) =>
-              m.roles.some(
-                (role) => role.name === this.teamVariables.ModName,
-              ),
-            )
-            .map((m) => m.user.id);
+          mods = ts.discord.getMembersWithRole(
+            this.teamVariables.ModName,
+          );
         }
         await ts.db.Members.query(trx)
           .patch({ is_mod: null })

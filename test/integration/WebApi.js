@@ -342,6 +342,25 @@ describe('Web Apis', function () {
       });
     });
 
+    it('POST /random @curr', async function () {
+      const { body } = await TEST.request(app)
+        .post('/random')
+        .send({ url_slug: TEST.ts.url_slug, token: '123' })
+        .expect('Content-Type', /json/)
+        .expect(200);
+      assert.notEqual(body.status, 'error');
+      assert.exists(body.level);
+      assert.equal(body.level.code, 'XXX-XXX-XXX'); // only level in the db right now
+      assert.deepInclude(body.player, {
+        id: 1,
+        updated_at: null,
+        deleted_at: null,
+        guild_id: 1,
+        discord_id: '128',
+        name: 'Mod',
+      }); // only level in the db right now
+    });
+
     it('POST /json', async function () {
       const { body } = await TEST.request(app)
         .post('/json')
@@ -427,10 +446,64 @@ describe('Web Apis', function () {
         })
         .expect('Content-Type', /json/)
         .expect(200);
-      done();
+      const reply = done();
+      assert.match(reply, /\*\*\[[0-9a-f]+\]\*\*\n> yes/);
       assert.deepEqual(body, {
         status: 'successful',
         url_slug: 'makerteam',
+      });
+    });
+
+    it('POST /feedback no token', async function () {
+      const done = TEST.acceptReply();
+      const { body } = await TEST.request(app)
+        .post('/feedback')
+        .send({
+          url_slug: TEST.ts.url_slug,
+        })
+        .expect('Content-Type', /json/)
+        .expect(200);
+      done();
+      assert.deepEqual(body, {
+        status: 'error',
+        message: 'No token sent',
+      });
+    });
+
+    it('POST /feedback no message', async function () {
+      const done = TEST.acceptReply();
+      const { body } = await TEST.request(app)
+        .post('/feedback')
+        .send({
+          token: '123',
+          url_slug: TEST.ts.url_slug,
+        })
+        .expect('Content-Type', /json/)
+        .expect(200);
+      done();
+      assert.deepEqual(body, {
+        status: 'error',
+        message: 'No message was sent!',
+      });
+    });
+
+    it('POST /feedback message too long', async function () {
+      const done = TEST.acceptReply();
+      const { body } = await TEST.request(app)
+        .post('/feedback')
+        .send({
+          token: '123',
+          url_slug: TEST.ts.url_slug,
+          message:
+            'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla posuere dapibus consequat. In ut lacus nunc. Sed tellus arcu, vestibulum sit amet lectus quis, scelerisque consectetur elit. In hac habitasse platea dictumst. Cras pellentesque efficitur mauris at pellentesque. Donec ante ante, efficitur quis nisl sit amet, vehicula tempus nulla. Duis aliquet posuere nulla ut sodales. Donec quis mauris purus. Duis sed nisi placerat, sodales turpis id, vestibulum lectus. Sed varius risus lectus, vitae aliquam leo tincidunt et. Nulla elementum dapibus elit, sed dapibus velit. Cras sodales dictum lorem vitae laoreet. Maecenas eu augue et sapien lobortis dignissim et eget arcu. Suspendisse placerat, ipsum et facilisis fermentum, ipsum metus sagittis massa, non faucibus leo justo quis est. Aliquam at purus sed eros efficitur feugiat nec ac purus. Suspendisse eget lorem id risus porta vehicula. Integer ex augue, tempor id semper fringilla, vehicula a mauris. Mauris sollicitudin turpis ante turpis.',
+        })
+        .expect('Content-Type', /json/)
+        .expect(200);
+      done();
+      assert.deepEqual(body, {
+        status: 'error',
+        message:
+          'The supplied message is too long, please keep it lower than 1000 characters!',
       });
     });
   });

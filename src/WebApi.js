@@ -953,7 +953,7 @@ module.exports = async function (client) {
     '/json/login',
     webTS(async (ts, req) => {
       let returnObj = {};
-      if (!req.body.otp) ts.userError(ts.message('login.noOTP'));
+      if (!req.body.otp) ts.userError('login.noOTP');
 
       const token = await ts.db.Tokens.query()
         .where('token', '=', req.body.otp)
@@ -963,8 +963,7 @@ module.exports = async function (client) {
           .add(30, 'm')
           .valueOf();
         const now = moment().valueOf();
-        if (tokenExpireAt < now)
-          ts.userError(ts.message('login.expiredOTP'));
+        if (tokenExpireAt < now) ts.userError('login.expiredOTP');
         const user = await ts.getUser(token.discord_id);
         const bearer = await ts.login(token.discord_id, token.id);
         returnObj = {
@@ -975,7 +974,7 @@ module.exports = async function (client) {
           user_info: user,
         };
       } else {
-        ts.userError(ts.message('login.invalidToken'));
+        ts.userError('login.invalidToken');
       }
 
       return returnObj;
