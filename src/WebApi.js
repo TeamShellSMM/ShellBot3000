@@ -297,15 +297,15 @@ module.exports = async function (client) {
     );
     if (timePeriod === 2) {
       lCountQueryBuilder = lCountQueryBuilder.whereRaw(
-        "strftime('%m-%Y', created_at) = strftime('%m-%Y', CURRENT_TIMESTAMP)",
+        "DATE_FORMAT(created_at,'%m-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%m-%Y')",
       );
     } else if (timePeriod === 3) {
       lCountQueryBuilder = lCountQueryBuilder.whereRaw(
-        "strftime('%W-%Y', created_at) = strftime('%W-%Y', CURRENT_TIMESTAMP)",
+        "DATE_FORMAT(created_at,'%W-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%W-%Y')",
       );
     } else if (timePeriod === 4) {
       lCountQueryBuilder = lCountQueryBuilder.whereRaw(
-        "strftime('%j-%Y', created_at) = strftime('%j-%Y', CURRENT_TIMESTAMP)",
+        "DATE_FORMAT(created_at,'%j-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%j-%Y')",
       );
     }
     const lCountResult = await lCountQueryBuilder
@@ -337,28 +337,28 @@ module.exports = async function (client) {
 
     if (timePeriod === 2) {
       cCountQueryBuilder = cCountQueryBuilder.whereRaw(
-        "strftime('%m-%Y', levels.created_at) = strftime('%m-%Y', CURRENT_TIMESTAMP)",
+        "DATE_FORMAT(levels.created_at,'%m-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%m-%Y')",
       );
     } else if (timePeriod === 3) {
       cCountQueryBuilder = cCountQueryBuilder.whereRaw(
-        "strftime('%W-%Y', levels.created_at) = strftime('%W-%Y', CURRENT_TIMESTAMP)",
+        "DATE_FORMAT(levels.created_at,'%W-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%W-%Y')",
       );
     } else if (timePeriod === 4) {
       cCountQueryBuilder = cCountQueryBuilder.whereRaw(
-        "strftime('%j-%Y', levels.created_at) = strftime('%j-%Y', CURRENT_TIMESTAMP)",
+        "DATE_FORMAT(levels.created_at,'%j-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%j-%Y')",
       );
     }
     if (timePeriod2 === 2) {
       cCountQueryBuilder = cCountQueryBuilder.whereRaw(
-        "strftime('%m-%Y', plays.created_at) = strftime('%m-%Y', CURRENT_TIMESTAMP)",
+        "DATE_FORMAT(plays.created_at,'%m-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%m-%Y')",
       );
     } else if (timePeriod2 === 3) {
       cCountQueryBuilder = cCountQueryBuilder.whereRaw(
-        "strftime('%W-%Y', plays.created_at) = strftime('%W-%Y', CURRENT_TIMESTAMP)",
+        "DATE_FORMAT(plays.created_at,'%W-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%W-%Y')",
       );
     } else if (timePeriod2 === 4) {
       cCountQueryBuilder = cCountQueryBuilder.whereRaw(
-        "strftime('%j-%Y', plays.created_at) = strftime('%j-%Y', CURRENT_TIMESTAMP)",
+        "DATE_FORMAT(plays.created_at,'%j-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%j-%Y')",
       );
     }
     const cCountResult = await cCountQueryBuilder
@@ -894,7 +894,7 @@ module.exports = async function (client) {
       req.body.discord_id = await ts.checkBearerToken(req.body.token);
       const user = await ts.getUser(req.body.discord_id);
 
-      if (user.is_mod) ts.userError('Forbidden');
+      if (!user.is_mod) ts.userError('Forbidden');
 
       req.body.reason = req.body.comment;
 
@@ -953,7 +953,7 @@ module.exports = async function (client) {
     '/json/login',
     webTS(async (ts, req) => {
       let returnObj = {};
-      if (!req.body.otp) ts.userError(ts.message('login.noOTP'));
+      if (!req.body.otp) ts.userError('login.noOTP');
 
       const token = await ts.db.Tokens.query()
         .where('token', '=', req.body.otp)
@@ -963,8 +963,7 @@ module.exports = async function (client) {
           .add(30, 'm')
           .valueOf();
         const now = moment().valueOf();
-        if (tokenExpireAt < now)
-          ts.userError(ts.message('login.expiredOTP'));
+        if (tokenExpireAt < now) ts.userError('login.expiredOTP');
         const user = await ts.getUser(token.discord_id);
         const bearer = await ts.login(token.discord_id, token.id);
         returnObj = {
@@ -975,7 +974,7 @@ module.exports = async function (client) {
           user_info: user,
         };
       } else {
-        ts.userError(ts.message('login.invalidToken'));
+        ts.userError('login.invalidToken');
       }
 
       return returnObj;

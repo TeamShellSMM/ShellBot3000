@@ -80,7 +80,7 @@ describe('misc-integration', () => {
     );
   });
 
-  it('!random @curr', async () => {
+  it('!random', async () => {
     await TEST.ts.db.Levels.query()
       .patch({ likes: 100 })
       .where({ id: 4 });
@@ -106,7 +106,7 @@ describe('misc-integration', () => {
     sinon.restore();
   });
 
-  it('!playersRandom @curr', async () => {
+  it('!playersRandom', async () => {
     await TEST.ts.db.Levels.query()
       .patch({ likes: 100 })
       .where({ id: 4 });

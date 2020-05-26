@@ -103,6 +103,19 @@ class DiscordWrapper {
     return true;
   }
 
+  /**
+   * @param {string} role Role id or name
+   * @returns {string[]} an array of user discord ids
+   */
+  getMembersWithRole(role) {
+    const guild = this.guild();
+    return guild.members
+      .filter((m) =>
+        m.roles.some((r) => r.name === role || r.id === role),
+      )
+      .map((m) => m.user.id);
+  }
+
   async setChannelParent(search, parent) {
     this.checkChannelFull(parent);
     const channel = this.channel(search);
