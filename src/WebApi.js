@@ -62,7 +62,7 @@ module.exports = async function (client) {
 
     const [levels] = await knex.raw(
       `
-      SELECT 
+      SELECT
         levels.row_num no
         ,levels.id
         ,levels.id DR_RowId
@@ -96,7 +96,7 @@ module.exports = async function (client) {
       INNER JOIN members on
         levels.creator=members.id
       ${registeredSql}
-      WHERE 
+      WHERE
         levels.status IN (:statuses:)
         AND teams.guild_id=:guild_id
         ${filterSql}
@@ -128,7 +128,7 @@ module.exports = async function (client) {
         `
       SELECT members.*,members.id creator_id
         ,sum(round(((likes*2+clears)*score*likes/clears),1)) maker_points
-        FROM members 
+        FROM members
         LEFT JOIN (
           SELECT levels.guild_id
             ,levels.creator
@@ -147,14 +147,14 @@ module.exports = async function (client) {
           LEFT JOIN points ON
             levels.guild_id=points.guild_id
             AND levels.difficulty=points.difficulty
-          WHERE 
+          WHERE
             levels.guild_id=:guild_id
             AND levels.status = :status
           GROUP BY levels.id
         ) a ON
           members.guild_id=a.guild_id
           AND members.id=a.creator
-        WHERE members.name=:name 
+        WHERE members.name=:name
         AND members.guild_id=:guild_id
       `,
         {
@@ -415,6 +415,17 @@ module.exports = async function (client) {
     const competitionWinners = await ts
       .knex('competition_winners')
       .where({ guild_id: ts.team.id });
+
+    let competitions = await ts
+      .knex('competitions')
+      .where({ guild_id: ts.team.id });
+
+    for(let competition of competitions){
+      competition.competition_group = await ts
+        .knex('competition_groups')
+        .where({ guild_id: ts.team.id, id: competition.competition_group_id });
+    }
+
     const seasons = await ts
       .knex('seasons')
       .where({ guild_id: ts.team.id })
@@ -438,7 +449,7 @@ module.exports = async function (client) {
     }
 
     const [json] = await knex.raw(
-      `SELECT 
+      `SELECT
     row_number() over ( order by sum(maker_points)) id
       ,name
       ,creator_id
@@ -458,9 +469,9 @@ module.exports = async function (client) {
           ,levels.clear_like_ratio
           ,levels.maker_points
       FROM members
-      INNER JOIN teams ON 
+      INNER JOIN teams ON
         members.guild_id=teams.id
-      LEFT JOIN levels ON 
+      LEFT JOIN levels ON
           levels.creator = members.id
       WHERE levels.status IN (0,1)
           AND levels.created_at between :from_season AND :to_season
@@ -480,6 +491,7 @@ module.exports = async function (client) {
       data: json,
       seasons,
       competition_winners: competitionWinners,
+      competitions: competitions
     };
   }
 
