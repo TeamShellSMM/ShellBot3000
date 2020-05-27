@@ -178,6 +178,8 @@ describe('DiscordWrapper', function () {
     assert.lengthOf(memberWithRoles, 1);
     assert.equal(memberWithRoles[0], botId);
     await TEST.ts.discord.removeRoles(botId, [role1.id, role2.id]);
+
+    await guild.fetchMembers();
     // TODO: this sometimes fail and returns something, and we're not sure why. Rerunning the tests usually pass it though
     assert.notExists(
       TEST.ts.discord
