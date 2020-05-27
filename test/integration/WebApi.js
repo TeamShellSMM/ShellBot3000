@@ -587,7 +587,7 @@ describe('Web Apis', function () {
       });
     });
 
-    it('POST /approve not mod', async function () {
+    it('POST /approve not mod @curr', async function () {
       const done = TEST.acceptReply();
       const { body } = await TEST.request(app)
         .post('/approve')
@@ -600,7 +600,7 @@ describe('Web Apis', function () {
       done();
       assert.deepEqual(body, {
         status: 'error',
-        message: 'Forbidden',
+        message: 'forbidden',
       });
     });
 
@@ -729,6 +729,24 @@ describe('Web Apis', function () {
         message:
           'The supplied message is too long, please keep it lower than 1000 characters!',
       });
+    });
+
+    it('POST /team/settings', async () => {
+      const teamAdmin = TEST.sinon.stub(TEST.ts,'teamAdmin')
+      teamAdmin.returns(true)
+      const done = TEST.acceptReply();
+      const { body } = await TEST.request(app)
+        .post('/team/settings')
+        .send({
+          token: '123',
+          url_slug: TEST.ts.url_slug,
+        })
+        .expect('Content-Type', /json/)
+        .expect(200);
+      done();
+
+      teamAdmin.restore();
+
     });
   });
 });

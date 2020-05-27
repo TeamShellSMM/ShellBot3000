@@ -483,7 +483,12 @@ module.exports = async function (client) {
     };
   }
 
-  const webTS = (callback, requireToken = false) => {
+  const adminChecks = Object.freeze({
+    admin: 'teamAdmin',
+    mod: 'modOnly',
+  });
+
+  const webTS = (callback, requirePermission = false) => {
     return async (req, res) => {
       res.setHeader(
         'Content-Type',
@@ -502,7 +507,17 @@ module.exports = async function (client) {
                 req.body.token,
               );
               req.user = await ts.getUser(req.body.discord_id);
-            } else if (requireToken) {
+              console.log(adminChecks[requirePermission]);
+              console.log(ts[adminChecks[requirePermission]]);
+              if (
+                adminChecks[requirePermission] &&
+                !(await ts[adminChecks[requirePermission]](
+                  req.body.discord_id,
+                ))
+              ) {
+                ts.userError('website.forbidden');
+              }
+            } else if (requirePermission) {
               ts.userError('website.noToken');
             }
             const data = await callback(ts, req, res);
@@ -628,9 +643,6 @@ module.exports = async function (client) {
   app.post(
     '/teams/settings',
     webTS(async (ts, req) => {
-      if (!(await ts.teamAdmin(req.body.discord_id)))
-        ts.userError(ts.message('website.forbidden'));
-
       const settings = await ts.getSettings('settings');
       const ret = [];
       for (let i = 0; i < ts.defaultVariables.length; i += 1) {
@@ -648,14 +660,12 @@ module.exports = async function (client) {
         });
       }
       return { settings: ret };
-    }, true),
+    }, 'admin'),
   );
 
   app.post(
     '/teams/tags',
     webTS(async (ts, req) => {
-      if (!(await ts.teamAdmin(req.body.discord_id)))
-        ts.userError(ts.message('website.forbidden'));
       const data = await ts
         .knex('tags')
         .select(
@@ -671,14 +681,12 @@ module.exports = async function (client) {
         )
         .where({ guild_id: ts.team.id });
       return { data: ts.secureData(data) };
-    }, true),
+    }, 'admin'),
   );
 
   app.put(
     '/teams/tags',
     webTS(async (ts, req) => {
-      if (!(await ts.teamAdmin(req.body.discord_id)))
-        ts.userError(ts.message('website.forbidden'));
       if (!req.body.data) ts.userError('website.noDataSent');
       const data = ts.verifyData(req.body.data);
 
@@ -765,14 +773,12 @@ module.exports = async function (client) {
         return trx;
       });
       return { data: updated ? 'tags updated' : 'No tags updated' }; // {data:ts.secureData(data)}
-    }, true),
+    }, 'admin'),
   );
 
   app.put(
     '/teams/settings',
     webTS(async (ts, req) => {
-      if (!(await ts.teamAdmin(req.body.discord_id)))
-        ts.userError(ts.message('website.forbidden'));
       const varName = ts.defaultVariables.map((v) => v.name);
       await knex.transaction(async (trx) => {
         for (const row of req.body.data) {
@@ -804,7 +810,7 @@ module.exports = async function (client) {
       });
       await ts.load();
       return { status: 'successful' };
-    }, true),
+    }, 'admin'),
   );
 
   app.post(
@@ -851,8 +857,6 @@ module.exports = async function (client) {
   app.post(
     '/approve',
     webTS(async (ts, req) => {
-      if (!req.user.is_mod) ts.userError('Forbidden');
-
       const msg = await ts.approve(req.body);
 
       if (req.body.completed || req.body.liked) {
@@ -861,7 +865,7 @@ module.exports = async function (client) {
       }
 
       return { status: 'successful', msg: msg };
-    }, true),
+    }, 'mod'),
   );
 
   app.post(

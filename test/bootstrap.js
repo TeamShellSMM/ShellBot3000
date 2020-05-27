@@ -15,8 +15,9 @@ global.assert = chai.assert;
 global.sinon = require('sinon');
 global.TEST.knex = require('../src/db/knex');
 global.TEST.request = require('supertest');
-// force testing TEST.config
 global.TEST.TS = require('../src/TS.js');
+
+global.debugTests = debugTests;
 const DiscordLog = require('../src/DiscordLog');
 
 DiscordLog.log = (msg) => {
