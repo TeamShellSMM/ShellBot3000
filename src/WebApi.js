@@ -24,6 +24,17 @@ module.exports = async function (client) {
     const competitionWinners = await ts
       .knex('competition_winners')
       .where({ guild_id: ts.team.id });
+
+    let competitions = await ts
+      .knex('competitions')
+      .where({ guild_id: ts.team.id });
+
+    for(let competition of competitions){
+      competition.competition_group = await ts
+        .knex('competition_groups')
+        .where({ guild_id: ts.team.id, id: competition.competition_group_id });
+    }
+
     const tags = await ts
       .knex('tags')
       .where({ guild_id: ts.team.id });
@@ -119,6 +130,7 @@ module.exports = async function (client) {
       levels,
       seasons,
       competition_winners: competitionWinners,
+      competitions: competitions,
       tags,
       seperate,
     };
@@ -416,16 +428,6 @@ module.exports = async function (client) {
       .knex('competition_winners')
       .where({ guild_id: ts.team.id });
 
-    let competitions = await ts
-      .knex('competitions')
-      .where({ guild_id: ts.team.id });
-
-    for(let competition of competitions){
-      competition.competition_group = await ts
-        .knex('competition_groups')
-        .where({ guild_id: ts.team.id, id: competition.competition_group_id });
-    }
-
     const seasons = await ts
       .knex('seasons')
       .where({ guild_id: ts.team.id })
@@ -490,8 +492,7 @@ module.exports = async function (client) {
     return {
       data: json,
       seasons,
-      competition_winners: competitionWinners,
-      competitions: competitions
+      competition_winners: competitionWinners
     };
   }
 
