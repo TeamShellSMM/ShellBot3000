@@ -483,7 +483,7 @@ module.exports = async function (client) {
     };
   }
 
-  const webTS = (callback) => {
+  const webTS = (callback, requireToken = false) => {
     return async (req, res) => {
       res.setHeader(
         'Content-Type',
@@ -495,15 +495,15 @@ module.exports = async function (client) {
         try {
           ts = TS.teamFromUrl(req.body.url_slug);
           if (!ts) {
-            debugError('ts not found');
-            res.status(404).send('Not found');
-            DiscordLog.error(`"${req.body.url_slug}" not found`);
+            throw new Error(`"${req.body.url_slug}" not found`);
           } else {
             if (req.body && req.body.token) {
               req.body.discord_id = await ts.checkBearerToken(
                 req.body.token,
               );
               req.user = await ts.getUser(req.body.discord_id);
+            } else if (requireToken) {
+              ts.userError('website.noToken');
             }
             const data = await callback(ts, req, res);
             data.url_slug = ts.url_slug;
@@ -519,7 +519,6 @@ module.exports = async function (client) {
             debugError(error);
           } else {
             DiscordLog.error(error);
-            console.error(error);
             debugError(error);
             res.send(
               JSON.stringify({ status: 'error', message: error }),
@@ -602,17 +601,9 @@ module.exports = async function (client) {
   app.post(
     '/json/worlds',
     webTS(async (ts, req) => {
-      let user;
-      if (req.body.token) {
-        req.body.discord_id = await ts.checkBearerToken(
-          req.body.token,
-        );
-        user = await ts.getUser(req.body.discord_id);
-      }
-
       const json = await generateWorldsJson(
         ts,
-        user && user.is_mod,
+        req.user && req.user.is_mod,
         req.body,
       );
       return json;
@@ -637,7 +628,6 @@ module.exports = async function (client) {
   app.post(
     '/teams/settings',
     webTS(async (ts, req) => {
-      if (!req.body.discord_id) ts.userError('website.noToken');
       if (!(await ts.teamAdmin(req.body.discord_id)))
         ts.userError(ts.message('website.forbidden'));
 
@@ -658,13 +648,12 @@ module.exports = async function (client) {
         });
       }
       return { settings: ret };
-    }),
+    }, true),
   );
 
   app.post(
     '/teams/tags',
     webTS(async (ts, req) => {
-      if (!req.body.discord_id) ts.userError('website.noToken');
       if (!(await ts.teamAdmin(req.body.discord_id)))
         ts.userError(ts.message('website.forbidden'));
       const data = await ts
@@ -682,13 +671,12 @@ module.exports = async function (client) {
         )
         .where({ guild_id: ts.team.id });
       return { data: ts.secureData(data) };
-    }),
+    }, true),
   );
 
   app.put(
     '/teams/tags',
     webTS(async (ts, req) => {
-      if (!req.body.discord_id) ts.userError('website.noToken');
       if (!(await ts.teamAdmin(req.body.discord_id)))
         ts.userError(ts.message('website.forbidden'));
       if (!req.body.data) ts.userError('website.noDataSent');
@@ -777,18 +765,14 @@ module.exports = async function (client) {
         return trx;
       });
       return { data: updated ? 'tags updated' : 'No tags updated' }; // {data:ts.secureData(data)}
-    }),
+    }, true),
   );
 
   app.put(
     '/teams/settings',
     webTS(async (ts, req) => {
-      if (!req.body || !req.body.token)
-        ts.userError('website.noToken');
-      req.body.discord_id = await ts.checkBearerToken(req.body.token);
       if (!(await ts.teamAdmin(req.body.discord_id)))
         ts.userError(ts.message('website.forbidden'));
-      const user = await ts.getUser(req.body.discord_id);
       const varName = ts.defaultVariables.map((v) => v.name);
       await knex.transaction(async (trx) => {
         for (const row of req.body.data) {
@@ -801,7 +785,7 @@ module.exports = async function (client) {
             if (existing) {
               if (existing.value !== row.value) {
                 await trx('team_settings')
-                  .update({ value: row.value, admin_id: user.id })
+                  .update({ value: row.value, admin_id: req.user.id })
                   .where({ guild_id: ts.team.id })
                   .where({ type: 'settings' })
                   .where({ name: row.name });
@@ -809,7 +793,7 @@ module.exports = async function (client) {
             } else {
               await trx('team_settings').insert({
                 guild_id: ts.team.id,
-                admin_id: user.id,
+                admin_id: req.user.id,
                 name: row.name,
                 value: row.value,
                 type: 'settings',
@@ -820,21 +804,17 @@ module.exports = async function (client) {
       });
       await ts.load();
       return { status: 'successful' };
-    }),
+    }, true),
   );
 
   app.post(
     '/json',
     webTS(async (ts, req) => {
-      let user;
-      if (req.body && req.body.token) {
-        req.body.discord_id = await ts.checkBearerToken(
-          req.body.token,
-        );
-        user = await ts.getUser(req.body.discord_id);
-      }
-
-      const json = await generateSiteJson({ ts, user, ...req.body });
+      const json = await generateSiteJson({
+        ts,
+        user: req.user,
+        ...req.body,
+      });
       return json;
     }),
   );
@@ -842,13 +822,6 @@ module.exports = async function (client) {
   app.post(
     '/json/members',
     webTS(async (ts, req) => {
-      if (req.body && req.body.token) {
-        req.body.discord_id = await ts.checkBearerToken(
-          req.body.token,
-        );
-        await ts.getUser(req.body.discord_id);
-      }
-
       const json = await generateMembersJson(ts, req.body);
       return json;
     }),
@@ -857,11 +830,6 @@ module.exports = async function (client) {
   app.post(
     '/json/makers',
     webTS(async (ts, req) => {
-      if (req.body && req.body.token) {
-        req.body.discord_id = await ts.checkBearerToken(
-          req.body.token,
-        );
-      }
       const json = await generateMakersJson(ts, req.body);
       return json;
     }),
@@ -870,30 +838,20 @@ module.exports = async function (client) {
   app.post(
     '/clear',
     webTS(async (ts, req) => {
-      if (!req.body || !req.body.token)
-        ts.userError('website.noToken');
-
-      req.body.discord_id = await ts.checkBearerToken(req.body.token);
-      req.body.player_atme = true;
-      await ts.getUser(req.body.discord_id);
-
-      const msg = await ts.clear(req.body);
+      const msg = await ts.clear({
+        ...req.body,
+        player_atme: true,
+      });
       await ts.discord.send(ts.channels.commandFeed, msg);
       const json = { status: 'successful', msg: msg };
       return json;
-    }),
+    }, true),
   );
 
   app.post(
     '/approve',
     webTS(async (ts, req) => {
-      if (!req.body || !req.body.token)
-        ts.userError('website.noToken');
-
-      req.body.discord_id = await ts.checkBearerToken(req.body.token);
-      const user = await ts.getUser(req.body.discord_id);
-
-      if (!user.is_mod) ts.userError('Forbidden');
+      if (!req.user.is_mod) ts.userError('Forbidden');
 
       const msg = await ts.approve(req.body);
 
@@ -903,18 +861,12 @@ module.exports = async function (client) {
       }
 
       return { status: 'successful', msg: msg };
-    }),
+    }, true),
   );
 
   app.post(
     '/random',
     webTS(async (ts, req) => {
-      if (req.body && req.body.token) {
-        req.body.discord_id = await ts.checkBearerToken(
-          req.body.token,
-        );
-      }
-
       const rand = await ts.randomLevel(req.body);
       rand.status = 'successful';
       return rand;
@@ -924,12 +876,6 @@ module.exports = async function (client) {
   app.post(
     '/feedback',
     webTS(async (ts, req) => {
-      if (!req.body || !req.body.token)
-        ts.userError('website.noToken');
-
-      req.body.discord_id = await ts.checkBearerToken(req.body.token); // checks if logged in
-      await ts.getUser(req.body.discord_id); // just checks if registered
-
       if (req.body.message == null)
         ts.userError(ts.message('feedback.noMessage'));
       if (req.body.message.length > 1000)
@@ -946,7 +892,7 @@ module.exports = async function (client) {
         req.body.message,
       );
       return { status: 'successful' };
-    }),
+    }, true),
   );
 
   app.post(
