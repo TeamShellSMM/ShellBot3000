@@ -25,14 +25,17 @@ module.exports = async function (client) {
       .knex('competition_winners')
       .where({ guild_id: ts.team.id });
 
-    let competitions = await ts
+    const competitions = await ts
       .knex('competitions')
       .where({ guild_id: ts.team.id });
 
-    for(let competition of competitions){
+    for (const competition of competitions) {
       competition.competition_group = await ts
         .knex('competition_groups')
-        .where({ guild_id: ts.team.id, id: competition.competition_group_id });
+        .where({
+          guild_id: ts.team.id,
+          id: competition.competition_group_id,
+        });
     }
 
     const tags = await ts
@@ -240,66 +243,123 @@ module.exports = async function (client) {
       memberFilterSql = 'AND (is_member=0 or is_member is null)';
     }
 
-    // if (timePeriod === 1 && timePeriod2 === 1) {
-    const [members] = await ts.knex.raw(
-      `SELECT
-        ROW_NUMBER() OVER ( ORDER BY clear_score_sum desc ) as id,
-        members.name,
-        members.maker_id,
-        clear_score_sum,
-        levels_cleared,
-        group_concat(concat_ws('@@',details,rank) order by competition_id,rank separator '||') wonComps
-        from members
-        left join competition_winners on members.id=competition_winners.creator
-        where members.guild_id=:guild_id ${memberFilterSql}
-        group by members.id
-        order by clear_score_sum desc
-      `,
-      {
-        guild_id: ts.team.id,
-      },
-    );
-    for (let i = 0; i < members.length; i += 1) {
-      if (members[i].wonComps) {
-        members[i].wonComps = members[i].wonComps.split('||');
-        for (let j = 0; j < members[i].wonComps.length; j += 1) {
-          const comp = members[i].wonComps[j].split('@@');
+    let json = [];
+    if (timePeriod === 1 && timePeriod2 === 1) {
+      [json] = await ts.knex.raw(
+        `SELECT
+          ROW_NUMBER() OVER ( ORDER BY clear_score_sum desc ) as id,
+          members.name,
+          members.maker_id,
+          clear_score_sum,
+          levels_cleared,
+          group_concat(concat_ws('@@',details,rank) order by competition_id,rank separator '||') wonComps
+          from members
+          left join competition_winners on members.id=competition_winners.creator
+          where members.guild_id=:guild_id ${memberFilterSql}
+          group by members.id
+          order by clear_score_sum desc
+        `,
+        {
+          guild_id: ts.team.id,
+        },
+      );
+    } else {
+      let levelFilter = '';
+      if (timePeriod === 2) {
+        levelFilter =
+          "AND DATE_FORMAT(levels.created_at,'%m-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%m-%Y')";
+      } else if (timePeriod === 3) {
+        levelFilter =
+          "AND DATE_FORMAT(levels.created_at,'%W-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%W-%Y')";
+      } else if (timePeriod === 4) {
+        levelFilter =
+          "AND DATE_FORMAT(levels.created_at,'%j-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%j-%Y')";
+      }
+
+      let playsFilter = '';
+      if (timePeriod2 === 2) {
+        playsFilter =
+          "AND DATE_FORMAT(plays.created_at,'%m-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%m-%Y')";
+      } else if (timePeriod2 === 3) {
+        playsFilter =
+          "AND DATE_FORMAT(plays.created_at,'%W-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%W-%Y')";
+      } else if (timePeriod2 === 4) {
+        playsFilter =
+          "AND DATE_FORMAT(plays.created_at,'%j-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%j-%Y')";
+      }
+
+      [json] = await ts.knex.raw(
+        `select 
+              ROW_NUMBER() OVER ( ORDER BY clear_score_sum desc ) as id,
+              members.name,
+              maker_id,
+              COALESCE(total_score,0)+if(:include_own_score,COALESCE(own_levels.own_score,0),0) clear_score_sum,
+              COALESCE(total_cleared,0) levels_cleared
+              from members LEFT JOIN (
+                SELECT
+                  plays.guild_id,
+                  plays.player,
+                  sum(points.score) total_score,
+                  count(distinct plays.id) total_cleared from plays
+                INNER JOIN levels ON
+                  levels.id=plays.code
+                  AND levels.guild_id=plays.guild_id
+                LEFT JOIN points ON
+                  levels.difficulty=points.difficulty
+                  AND points.guild_id=levels.guild_id
+                WHERE
+                  levels.status in (:SHOWN_IN_LIST:)
+                    AND plays.completed=1
+                    AND levels.guild_id=:guild_id
+                    ${levelFilter}
+                    ${playsFilter}
+                GROUP BY plays.player,plays.guild_id
+              ) clear_stats ON
+                    members.guild_id=clear_stats.guild_id
+                    AND members.id=clear_stats.player
+              LEFT JOIN (
+                SELECT
+                  levels.guild_id,
+                  COUNT(levels.id) calculated_levels_created,
+                  SUM(levels.maker_points) maker_points,
+                  SUM(levels.is_free_submission) free_submissions,
+                  SUM(points.score) own_score,
+                  levels.creator
+                FROM levels
+                INNER JOIN points ON
+                  points.difficulty=levels.difficulty
+                  AND points.guild_id=levels.guild_id
+                WHERE
+                  levels.guild_id=:guild_id and
+                  levels.status in (:SHOWN_IN_LIST:)
+                GROUP BY creator,levels.guild_id
+              ) own_levels ON
+                  members.guild_id=own_levels.guild_id
+                  AND members.id=own_levels.creator
+              where members.guild_id=:guild_id ${memberFilterSql}
+              order by total_score desc`,
+        {
+          guild_id: ts.team.id,
+          SHOWN_IN_LIST: knex.raw(ts.SHOWN_IN_LIST),
+          include_own_score:
+            ts.teamVariables.includeOwnPoints === 'true' || false,
+        },
+      );
+    }
+
+    for (let i = 0; i < json.length; i += 1) {
+      if (json[i].wonComps) {
+        json[i].wonComps = json[i].wonComps.split('||');
+        for (let j = 0; j < json[i].wonComps.length; j += 1) {
+          const comp = json[i].wonComps[j].split('@@');
           comp[1] = parseInt(comp[1], 10);
-          members[i].wonComps[j] = { name: comp[0], rank: comp[1] };
+          json[i].wonComps[j] = { name: comp[0], rank: comp[1] };
         }
       } else {
-        members[i].wonComps = null;
+        json[i].wonComps = null;
       }
     }
-    return members;
-    /* }
-
-    let levelFilter = '';
-    if (timePeriod === 2) {
-      levelFilter =
-        "DATE_FORMAT(levels.created_at,'%m-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%m-%Y')";
-    } else if (timePeriod === 3) {
-      levelFilter =
-        "DATE_FORMAT(levels.created_at,'%W-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%W-%Y')";
-    } else if (timePeriod === 4) {
-      levelFilter =
-        "DATE_FORMAT(levels.created_at,'%j-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%j-%Y')";
-    }
-
-    let playsFilter = '';
-    if (timePeriod2 === 2) {
-      playsFilter =
-        "DATE_FORMAT(plays.created_at,'%m-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%m-%Y')";
-    } else if (timePeriod2 === 3) {
-      playsFilter =
-        "DATE_FORMAT(plays.created_at,'%W-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%W-%Y')";
-    } else if (timePeriod2 === 4) {
-      playsFilter =
-        "DATE_FORMAT(plays.created_at,'%j-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%j-%Y')";
-    }
-
     return json;
-    */
   }
 
   async function generateMakersJson(ts, data) {
@@ -373,7 +433,7 @@ module.exports = async function (client) {
     return {
       data: json,
       seasons,
-      competition_winners: competitionWinners
+      competition_winners: competitionWinners,
     };
   }
 

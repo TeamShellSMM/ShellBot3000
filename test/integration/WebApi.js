@@ -64,14 +64,36 @@ describe('Web Apis', function () {
         ],
       });
 
-      await TEST.knex('competition_winners').insert({
-        admin_id: 1,
-        guild_id: 1,
-        code: 1,
-        creator: 2,
-        competition_id: 1,
-        details: 'winner',
-        rank: 1,
+      await TEST.setupKnex({
+        competition_groups: [
+          {
+            guild_id: 1,
+            name: 'Competition 1',
+            competition_tag: 'competition1',
+            description: 'Competition One',
+            rules: '',
+          },
+        ],
+        competitions: [
+          {
+            guild_id: 1,
+            competition_group_id: 1,
+            comp_number: 1,
+            description: '#1 theme',
+            rules: '',
+          },
+        ],
+        competition_winners: [
+          {
+            admin_id: 1,
+            guild_id: 1,
+            code: 1,
+            creator: 2,
+            competition_id: 1,
+            details: 'winner',
+            rank: 1,
+          },
+        ],
       });
     });
 
@@ -316,7 +338,7 @@ describe('Web Apis', function () {
 
     for (let i = 1; i <= 4; i += 1) {
       for (let j = 1; j <= 4; j += 1) {
-        it(`POST /json/members timePeriod=${i},timePeriod2=${j}`, async function () {
+        it(`POST /json/members timePeriod=${i},timePeriod2=${j} @curr`, async function () {
           const { body } = await TEST.request(app)
             .post('/json/members')
             .send({

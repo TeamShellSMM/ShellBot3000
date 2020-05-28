@@ -277,6 +277,19 @@ before(async () => {
     await TEST.ts.recalculateAfterUpdate();
   };
 
+  global.TEST.setupKnex = async (data) => {
+    debugTests('setup knex');
+    await TEST.knex.transaction(async (trx) => {
+      // eslint-disable-next-line guard-for-in,no-restricted-syntax
+      for (const i in data) {
+        for (let j = 0; j < data[i].length; j += 1) {
+          await trx(i).insert(data[i][j]);
+        }
+      }
+    });
+    await TEST.ts.recalculateAfterUpdate();
+  };
+
   global.TEST.clearTable = async (table, trx) => {
     debugTests(`clear table ${table}`);
     return (trx || TEST.knex).raw(
@@ -299,6 +312,8 @@ before(async () => {
       TRUNCATE table members;
       TRUNCATE table tokens;
       TRUNCATE table competition_winners;
+      TRUNCATE table competitions;
+      TRUNCATE table competition_groups;
       TRUNCATE table tags;
       TRUNCATE table seasons;
       SET FOREIGN_KEY_CHECKS = 1;
