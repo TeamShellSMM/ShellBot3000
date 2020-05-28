@@ -251,6 +251,7 @@ module.exports = async function (client) {
           members.name,
           members.maker_id,
           clear_score_sum,
+          levels_created,
           levels_cleared,
           group_concat(concat_ws('@@',details,rank) order by competition_id,rank separator '||') wonComps
           from members
@@ -293,6 +294,7 @@ module.exports = async function (client) {
               ROW_NUMBER() OVER ( ORDER BY clear_score_sum desc ) as id,
               members.name,
               maker_id,
+              calculated_levels_created levels_created,
               COALESCE(total_score,0)+if(:include_own_score,COALESCE(own_levels.own_score,0),0) clear_score_sum,
               COALESCE(total_cleared,0) levels_cleared
               from members LEFT JOIN (
@@ -332,6 +334,7 @@ module.exports = async function (client) {
                 WHERE
                   levels.guild_id=:guild_id and
                   levels.status in (:SHOWN_IN_LIST:)
+                  ${levelFilter}
                 GROUP BY creator,levels.guild_id
               ) own_levels ON
                   members.guild_id=own_levels.guild_id
