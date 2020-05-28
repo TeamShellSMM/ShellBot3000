@@ -53,7 +53,6 @@
     "test": "env NODE_ENV=test mocha",
     "coverage": "nyc --reporter=lcovonly --reporter=text npm test",
     "format": "prettier-eslint —eslint-config-path ./.eslintrc.js --write '$(pwd)/**/*.js'",
-    "pretty": "prettier --write \"./**/*.{js,jsx,json}\"",
     "lint": "eslint --ignore-path .gitignore ."
   },
   "keywords": [
