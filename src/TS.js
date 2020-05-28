@@ -29,7 +29,7 @@ const CONSTANTS = require('./constants');
 
 Handlebars.registerHelper('plural', function (_num) {
   const num = Number(_num);
-  return num > 1 || num === 0 ? 's' : '';
+  return num !== 1 ? 's' : '';
 });
 
 Handlebars.registerHelper('1dp', function (num) {

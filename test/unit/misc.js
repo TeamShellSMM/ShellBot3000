@@ -158,7 +158,7 @@ describe('misc-unit', function () {
     assert.notExists(user);
   });
 
-  it('ts.checkForAgreement no arguments @curr', async () => {
+  it('ts.checkForAgreement no arguments', async () => {
     assert.isFalse(TEST.ts.checkForAgreement());
   });
 
@@ -511,6 +511,28 @@ describe('misc-unit', function () {
       assert.instanceOf(error, TEST.ts.UserError);
       assert.equal(error.msg, 'Token expired. Need to relogin');
     }
+  });
+
+  it('ts.message plural @curr', async () => {
+    assert.equal(
+      TEST.ts.message('clear.earnedPoints', { earned_points: 0 }),
+      ' ‣You have earned 0.0 points',
+    );
+
+    assert.equal(
+      TEST.ts.message('clear.earnedPoints', { earned_points: 0.5 }),
+      ' ‣You have earned 0.5 points',
+    );
+
+    assert.equal(
+      TEST.ts.message('clear.earnedPoints', { earned_points: 1 }),
+      ' ‣You have earned 1.0 point',
+    );
+
+    assert.equal(
+      TEST.ts.message('clear.earnedPoints', { earned_points: 2 }),
+      ' ‣You have earned 2.0 points',
+    );
   });
 
   it('ts.message 1dp', async () => {

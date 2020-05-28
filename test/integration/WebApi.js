@@ -866,7 +866,7 @@ describe('Web Apis', function () {
       });
     });
 
-    it('POST /teams/settings @curr', async () => {
+    it('POST /teams/settings', async () => {
       const teamAdmin = sinon.stub(TEST.ts, 'teamAdmin');
       teamAdmin.returns(true);
       const done = TEST.acceptReply();
