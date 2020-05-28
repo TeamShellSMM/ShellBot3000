@@ -65,6 +65,13 @@ describe('Web Apis', function () {
       });
 
       await TEST.setupKnex({
+        seasons: [
+          {
+            guild_id: 1,
+            admin_id: 1,
+            name: 'Season 1',
+          },
+        ],
         competition_groups: [
           {
             guild_id: 1,
@@ -92,6 +99,13 @@ describe('Web Apis', function () {
             competition_id: 1,
             details: 'winner',
             rank: 1,
+          },
+        ],
+        tags: [
+          {
+            guild_id: 1,
+            name: 'seperate',
+            is_seperate: 1,
           },
         ],
       });
@@ -250,7 +264,7 @@ describe('Web Apis', function () {
       // assert.equal(body.data[0].world_name,'Super Maker World');
     });
 
-    it('POST /json/members @curr', async function () {
+    it('POST /json/members', async function () {
       // const user=await TEST.ts.getUser(discord_id)
       const { body } = await TEST.request(app)
         .post('/json/members')
@@ -262,7 +276,7 @@ describe('Web Apis', function () {
       // TODO: do more comprehensive checks of the data
     });
 
-    it('POST /json/members competitionWinners @curr', async function () {
+    it('POST /json/members competitionWinners', async function () {
       const { body } = await TEST.request(app)
         .post('/json/members')
         .send({
@@ -286,6 +300,39 @@ describe('Web Apis', function () {
       const { body } = await TEST.request(app)
         .post('/json/makers')
         .send({ url_slug: TEST.ts.url_slug })
+        .expect('Content-Type', /json/)
+        .expect(200);
+      assert.notEqual(body.status, 'error');
+      // TODO: do more comprehensive checks of the data
+    });
+
+    it('POST /json/makers membershipStatus=1', async function () {
+      // const user=await TEST.ts.getUser(discord_id)
+      const { body } = await TEST.request(app)
+        .post('/json/makers')
+        .send({ url_slug: TEST.ts.url_slug, membershipStatus: '1' })
+        .expect('Content-Type', /json/)
+        .expect(200);
+      assert.notEqual(body.status, 'error');
+      // TODO: do more comprehensive checks of the data
+    });
+
+    it('POST /json/makers membershipStatus=2', async function () {
+      // const user=await TEST.ts.getUser(discord_id)
+      const { body } = await TEST.request(app)
+        .post('/json/makers')
+        .send({ url_slug: TEST.ts.url_slug, membershipStatus: '2' })
+        .expect('Content-Type', /json/)
+        .expect(200);
+      assert.notEqual(body.status, 'error');
+      // TODO: do more comprehensive checks of the data
+    });
+
+    it('POST /json/makers membershipStatus=4', async function () {
+      // const user=await TEST.ts.getUser(discord_id)
+      const { body } = await TEST.request(app)
+        .post('/json/makers')
+        .send({ url_slug: TEST.ts.url_slug, membershipStatus: '4' })
         .expect('Content-Type', /json/)
         .expect(200);
       assert.notEqual(body.status, 'error');
@@ -338,7 +385,7 @@ describe('Web Apis', function () {
 
     for (let i = 1; i <= 4; i += 1) {
       for (let j = 1; j <= 4; j += 1) {
-        it(`POST /json/members timePeriod=${i},timePeriod2=${j} @curr`, async function () {
+        it(`POST /json/members timePeriod=${i},timePeriod2=${j}`, async function () {
           const { body } = await TEST.request(app)
             .post('/json/members')
             .send({
@@ -454,14 +501,55 @@ describe('Web Apis', function () {
           },
         ],
       });
-      await TEST.knex.transaction(async (trx) => {
-        await trx('tags').insert([
+
+      await TEST.setupKnex({
+        seasons: [
+          {
+            guild_id: 1,
+            admin_id: 1,
+            name: 'Season 1',
+          },
+        ],
+        competition_groups: [
+          {
+            guild_id: 1,
+            name: 'Competition 1',
+            competition_tag: 'competition1',
+            description: 'Competition One',
+            rules: '',
+          },
+        ],
+        competitions: [
+          {
+            guild_id: 1,
+            competition_group_id: 1,
+            comp_number: 1,
+            description: '#1 theme',
+            rules: '',
+          },
+        ],
+        competition_winners: [
+          {
+            admin_id: 1,
+            guild_id: 1,
+            code: 1,
+            creator: 2,
+            competition_id: 1,
+            details: 'winner',
+            rank: 1,
+          },
+        ],
+        tags: [
           {
             guild_id: 1,
             name: 'seperate',
             is_seperate: 1,
           },
-        ]);
+          {
+            guild_id: 1,
+            name: 'normal',
+          },
+        ],
       });
     });
 
@@ -778,7 +866,7 @@ describe('Web Apis', function () {
       });
     });
 
-    it('POST /teams/settings', async () => {
+    it('POST /teams/settings @curr', async () => {
       const teamAdmin = sinon.stub(TEST.ts, 'teamAdmin');
       teamAdmin.returns(true);
       const done = TEST.acceptReply();
@@ -793,6 +881,39 @@ describe('Web Apis', function () {
       done();
       assert.exists(body.settings);
       assert.isTrue(body.teamAdmin);
+
+      const result2 = await TEST.request(app)
+        .put('/teams/settings')
+        .send({
+          token: '123',
+          url_slug: TEST.ts.url_slug,
+          data: body.settings,
+        })
+        .expect('Content-Type', /json/)
+        .expect(200);
+
+      assert.deepEqual(result2.body, {
+        status: 'successful',
+        url_slug: 'makerteam',
+        teamAdmin: true,
+      });
+
+      const result3 = await TEST.request(app)
+        .put('/teams/settings')
+        .send({
+          token: '123',
+          url_slug: TEST.ts.url_slug,
+          data: body.settings,
+        })
+        .expect('Content-Type', /json/)
+        .expect(200);
+
+      assert.deepEqual(result3.body, {
+        status: 'successful',
+        url_slug: 'makerteam',
+        teamAdmin: true,
+      });
+      // randomEmote
       teamAdmin.restore();
     });
 
@@ -811,6 +932,85 @@ describe('Web Apis', function () {
       done();
       assert.exists(body.data);
       assert.isTrue(body.teamAdmin);
+
+      const result2 = await TEST.request(app)
+        .put('/teams/tags')
+        .send({
+          token: '123',
+          url_slug: TEST.ts.url_slug,
+          data: body.data,
+        })
+        .expect('Content-Type', /json/)
+        .expect(200);
+
+      assert.equal(result2.body.data, 'tags updated');
+
+      const result3 = await TEST.request(app)
+        .put('/teams/tags')
+        .send({
+          token: '123',
+          url_slug: TEST.ts.url_slug,
+          data: body.data,
+        })
+        .expect('Content-Type', /json/)
+        .expect(200);
+      assert.equal(result3.body.data, 'No tags updated');
+
+      const result4 = await TEST.request(app)
+        .put('/teams/tags')
+        .send({
+          token: '123',
+          url_slug: TEST.ts.url_slug,
+          data: [
+            ...body.data,
+            {
+              name: 'normal',
+            },
+          ],
+        })
+        .expect('Content-Type', /json/)
+        .expect(200);
+      assert.deepEqual(result4.body, {
+        status: 'error',
+        message: 'There were duplicate tags for normal',
+      });
+
+      const result5 = await TEST.request(app)
+        .put('/teams/tags')
+        .send({
+          token: '123',
+          url_slug: TEST.ts.url_slug,
+          data: [
+            ...body.data,
+            {
+              name: 'new-tag',
+            },
+          ],
+        })
+        .expect('Content-Type', /json/)
+        .expect(200);
+      assert.equal(result5.body.data, 'tags updated');
+
+      teamAdmin.restore();
+    });
+
+    it('PUT /teams/tags empty', async () => {
+      const teamAdmin = sinon.stub(TEST.ts, 'teamAdmin');
+      teamAdmin.returns(true);
+      const done = TEST.acceptReply();
+      const { body } = await TEST.request(app)
+        .put('/teams/tags')
+        .send({
+          token: '123',
+          url_slug: TEST.ts.url_slug,
+        })
+        .expect('Content-Type', /json/)
+        .expect(200);
+      done();
+      assert.deepEqual(body, {
+        status: 'error',
+        message: 'No data sent',
+      });
       teamAdmin.restore();
     });
   });

@@ -1450,13 +1450,14 @@ class TS {
      * @param {object} args.rejectVotes
      * @return {boolean}
      */
-    this.checkForAgreement = ({
-      AgreeingVotesNeeded,
-      AgreeingMaxDifference,
-      approvalVotes = [],
-      fixVotes = [],
-      rejectVotes = [],
-    }) => {
+    this.checkForAgreement = (arg = {}) => {
+      const {
+        AgreeingVotesNeeded,
+        AgreeingMaxDifference,
+        approvalVotes = [],
+        fixVotes = [],
+        rejectVotes = [],
+      } = arg;
       if (!(AgreeingVotesNeeded && AgreeingMaxDifference))
         return false;
       if (

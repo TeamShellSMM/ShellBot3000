@@ -544,10 +544,10 @@ module.exports = async function (client) {
     for (const member of members) {
       const comps = [];
       for (const comp of competitionWinners) {
-        if (comp[1] === member.name) {
+        if (comp.creator === member.id) {
           comps.push({
-            name: comp[2],
-            rank: comp[3],
+            name: comp.details,
+            rank: comp.rank,
           });
         }
       }
@@ -727,7 +727,7 @@ module.exports = async function (client) {
         }
         return trx;
       });
-      return { data: updated ? 'tags updated' : 'No tags updated' }; // {data:ts.secureData(data)}
+      return { data: updated ? 'tags updated' : 'No tags updated' };
     }, 'admin'),
   );
 
@@ -744,6 +744,7 @@ module.exports = async function (client) {
               .where({ name: row.name })
               .first();
             if (existing) {
+              debug(`put /team/settings/ ${row.name} existing`);
               if (existing.value !== row.value) {
                 await trx('team_settings')
                   .update({ value: row.value, admin_id: req.user.id })
@@ -752,6 +753,7 @@ module.exports = async function (client) {
                   .where({ name: row.name });
               }
             } else {
+              debug(`put /team/settings/ ${row.name} not existing`);
               await trx('team_settings').insert({
                 guild_id: ts.team.id,
                 admin_id: req.user.id,

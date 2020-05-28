@@ -158,6 +158,10 @@ describe('misc-unit', function () {
     assert.notExists(user);
   });
 
+  it('ts.checkForAgreement no arguments @curr', async () => {
+    assert.isFalse(TEST.ts.checkForAgreement());
+  });
+
   it('ts.clear no argument', async () => {
     const reply = await TEST.ts.clear().catch((e) => {
       assert.instanceOf(e, TEST.TS.UserError);
