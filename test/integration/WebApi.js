@@ -48,6 +48,20 @@ describe('Web Apis', function () {
             authenticated: 1,
           },
         ],
+        Plays: [
+          {
+            code: 1,
+            player: 1,
+            completed: 1,
+            liked: 1,
+          },
+          {
+            code: 1,
+            player: 3,
+            completed: 1,
+            liked: 0,
+          },
+        ],
       });
 
       await TEST.knex('competition_winners').insert({
@@ -60,7 +74,7 @@ describe('Web Apis', function () {
         rank: 1,
       });
     });
-    // TODO:web api, fix competition winners
+
     it('POST /json', async function () {
       const { body } = await TEST.request(app)
         .post('/json')
@@ -77,6 +91,19 @@ describe('Web Apis', function () {
       assert.equal(body.levels[0].code, 'XXX-XXX-XXX');
       assert.equal(body.levels[0].level_name, 'EZ GG');
       assert.equal(body.levels[0].creator, 'Creator');
+    });
+
+    it('POST /json unknown slug', async function () {
+      const { body } = await TEST.request(app)
+        .post('/json')
+        .send({ url_slug: 'unknown_slug' })
+        .expect('Content-Type', /json/);
+      // .expect(200);
+
+      assert.deepInclude(body, {
+        status: 'error',
+        message: 'Error: "unknown_slug" not found',
+      });
     });
 
     it('POST /json w dashboard', async function () {
@@ -201,7 +228,7 @@ describe('Web Apis', function () {
       // assert.equal(body.data[0].world_name,'Super Maker World');
     });
 
-    it('POST /json/members', async function () {
+    it('POST /json/members @curr', async function () {
       // const user=await TEST.ts.getUser(discord_id)
       const { body } = await TEST.request(app)
         .post('/json/members')
@@ -213,8 +240,7 @@ describe('Web Apis', function () {
       // TODO: do more comprehensive checks of the data
     });
 
-    it('POST /json/members copetitionWinners @curr', async function () {
-      // const user=await TEST.ts.getUser(discord_id)
+    it('POST /json/members competitionWinners @curr', async function () {
       const { body } = await TEST.request(app)
         .post('/json/members')
         .send({
@@ -226,7 +252,7 @@ describe('Web Apis', function () {
         .expect(200);
 
       assert.notEqual(body.status, 'error');
-      assert.deepInclude(body[1].wonComps[0], {
+      assert.deepInclude(body[2].wonComps[0], {
         name: 'winner',
         rank: 1,
       });
@@ -587,7 +613,7 @@ describe('Web Apis', function () {
       });
     });
 
-    it('POST /approve not mod @curr', async function () {
+    it('POST /approve not mod', async function () {
       const done = TEST.acceptReply();
       const { body } = await TEST.request(app)
         .post('/approve')
@@ -665,7 +691,6 @@ describe('Web Apis', function () {
         .expect('Content-Type', /json/)
         .expect(200);
       const reply = done();
-      console.log(reply);
       assert.equal(
         reply,
         "Mod \n ‣You have cleared 'pending'  by Creator \n ‣This level is still pending",
@@ -731,12 +756,12 @@ describe('Web Apis', function () {
       });
     });
 
-    it('POST /team/settings', async () => {
-      const teamAdmin = TEST.sinon.stub(TEST.ts,'teamAdmin')
-      teamAdmin.returns(true)
+    it('POST /teams/settings', async () => {
+      const teamAdmin = sinon.stub(TEST.ts, 'teamAdmin');
+      teamAdmin.returns(true);
       const done = TEST.acceptReply();
       const { body } = await TEST.request(app)
-        .post('/team/settings')
+        .post('/teams/settings')
         .send({
           token: '123',
           url_slug: TEST.ts.url_slug,
@@ -744,9 +769,27 @@ describe('Web Apis', function () {
         .expect('Content-Type', /json/)
         .expect(200);
       done();
-
+      assert.exists(body.settings);
+      assert.isTrue(body.teamAdmin);
       teamAdmin.restore();
+    });
 
+    it('POST /teams/tags', async () => {
+      const teamAdmin = sinon.stub(TEST.ts, 'teamAdmin');
+      teamAdmin.returns(true);
+      const done = TEST.acceptReply();
+      const { body } = await TEST.request(app)
+        .post('/teams/tags')
+        .send({
+          token: '123',
+          url_slug: TEST.ts.url_slug,
+        })
+        .expect('Content-Type', /json/)
+        .expect(200);
+      done();
+      assert.exists(body.data);
+      assert.isTrue(body.teamAdmin);
+      teamAdmin.restore();
     });
   });
 });

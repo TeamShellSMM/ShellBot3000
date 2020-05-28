@@ -2068,7 +2068,7 @@ class TS {
           levels.difficulty=points.difficulty
           AND points.guild_id=levels.guild_id
         WHERE
-          levels.status=1
+          levels.status in (:SHOWN_IN_LIST:)
           AND plays.completed=1
           AND levels.guild_id=:guild_id
         GROUP BY plays.player,plays.guild_id

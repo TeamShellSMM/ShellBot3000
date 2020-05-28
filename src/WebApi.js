@@ -216,197 +216,78 @@ module.exports = async function (client) {
   async function generateMembersJson(ts, data) {
     let { membershipStatus, timePeriod, timePeriod2 } = data;
     membershipStatus = parseInt(membershipStatus, 10);
-    timePeriod = parseInt(timePeriod, 10);
-    timePeriod2 = parseInt(timePeriod2, 10);
+    timePeriod = timePeriod ? parseInt(timePeriod, 10) : 1;
+    timePeriod2 = timePeriod2 ? parseInt(timePeriod2, 10) : 1;
 
-    const competitionWinners = await ts
-      .knex('competition_winners')
-      .where({ guild_id: ts.team.id });
-
-    let members = [];
-
+    let memberFilterSql = '';
     if (membershipStatus === 1) {
-      members = await ts.db.Members.query()
-        .select()
-        .where('is_member', 1)
-        .orderBy('clear_score_sum', 'desc');
+      memberFilterSql = 'AND is_member=1';
     } else if (membershipStatus === 2) {
-      members = await ts.db.Members.query()
-        .select()
-        .where('is_mod', 1)
-        .orderBy('clear_score_sum', 'desc');
+      memberFilterSql = 'AND is_mod=1';
     } else if (membershipStatus === 4) {
-      members = await ts.db.Members.query()
-        .select()
-        .where((q) =>
-          q.where('is_member', 0).orWhere('is_member', null),
-        )
-        .orderBy('clear_score_sum', 'desc');
-    } else {
-      members = await ts.db.Members.query()
-        .select()
-        .orderBy('clear_score_sum', 'desc');
-    }
-    let json = [];
-    if (timePeriod === 1 && timePeriod2 === 1) {
-      let memberCounter = 1;
-      for (const member of members) {
-        const comps = [];
-        for (const comp of competitionWinners) {
-          if (comp.creator === member.id) {
-            comps.push({
-              name: comp.details,
-              rank: comp.rank,
-            });
-          }
-        }
-
-        const memberObj = {
-          id: memberCounter,
-          name: member.name,
-          wonComps: comps,
-          levels_created: member.levels_created,
-          levels_cleared: member.levels_cleared,
-          clear_score_sum: member.clear_score_sum,
-        };
-        json.push(memberObj);
-
-        memberCounter += 1;
-      }
-      return json;
-    }
-    // TODO: fix
-    const membersObj = {};
-
-    const memberNames = Array.from(members, (x) => x.id);
-
-    for (const memName of memberNames) {
-      membersObj[memName] = {
-        name: memName,
-        levels_created: 0,
-        levels_cleared: 0,
-        clear_score_sum: 0.0,
-        wonComps: [],
-      };
+      memberFilterSql = 'AND (is_member=0 or is_member is null)';
     }
 
-    let lCountQueryBuilder = ts.db.Levels.query().whereIn(
-      'creator',
-      memberNames,
+    // if (timePeriod === 1 && timePeriod2 === 1) {
+    const [members] = await ts.knex.raw(
+      `SELECT
+        ROW_NUMBER() OVER ( ORDER BY clear_score_sum desc ) as id,
+        members.name,
+        members.maker_id,
+        clear_score_sum,
+        levels_cleared,
+        group_concat(concat_ws('@@',details,rank) order by competition_id,rank separator '||') wonComps
+        from members
+        left join competition_winners on members.id=competition_winners.creator
+        where members.guild_id=:guild_id ${memberFilterSql}
+        group by members.id
+        order by clear_score_sum desc
+      `,
+      {
+        guild_id: ts.team.id,
+      },
     );
-    if (timePeriod === 2) {
-      lCountQueryBuilder = lCountQueryBuilder.whereRaw(
-        "DATE_FORMAT(created_at,'%m-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%m-%Y')",
-      );
-    } else if (timePeriod === 3) {
-      lCountQueryBuilder = lCountQueryBuilder.whereRaw(
-        "DATE_FORMAT(created_at,'%W-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%W-%Y')",
-      );
-    } else if (timePeriod === 4) {
-      lCountQueryBuilder = lCountQueryBuilder.whereRaw(
-        "DATE_FORMAT(created_at,'%j-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%j-%Y')",
-      );
-    }
-    const lCountResult = await lCountQueryBuilder
-      .groupBy('creator')
-      .select('creator')
-      .count('id as count_created');
-
-    for (const row of lCountResult) {
-      membersObj[row.creator].levels_created = row.count_created;
-    }
-
-    let cCountQueryBuilder = ts.db.Plays.query()
-      .join('levels', function () {
-        this.on('plays.code', '=', 'levels.code').on(
-          'plays.guild_id',
-          '=',
-          'levels.guild_id',
-        );
-      })
-      .join('points', function () {
-        this.on('levels.difficulty', '=', 'points.difficulty').on(
-          'levels.guild_id',
-          '=',
-          'points.guild_id',
-        );
-      })
-      .whereIn('plays.player', memberNames)
-      .where('plays.completed', '=', '1');
-
-    if (timePeriod === 2) {
-      cCountQueryBuilder = cCountQueryBuilder.whereRaw(
-        "DATE_FORMAT(levels.created_at,'%m-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%m-%Y')",
-      );
-    } else if (timePeriod === 3) {
-      cCountQueryBuilder = cCountQueryBuilder.whereRaw(
-        "DATE_FORMAT(levels.created_at,'%W-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%W-%Y')",
-      );
-    } else if (timePeriod === 4) {
-      cCountQueryBuilder = cCountQueryBuilder.whereRaw(
-        "DATE_FORMAT(levels.created_at,'%j-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%j-%Y')",
-      );
-    }
-    if (timePeriod2 === 2) {
-      cCountQueryBuilder = cCountQueryBuilder.whereRaw(
-        "DATE_FORMAT(plays.created_at,'%m-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%m-%Y')",
-      );
-    } else if (timePeriod2 === 3) {
-      cCountQueryBuilder = cCountQueryBuilder.whereRaw(
-        "DATE_FORMAT(plays.created_at,'%W-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%W-%Y')",
-      );
-    } else if (timePeriod2 === 4) {
-      cCountQueryBuilder = cCountQueryBuilder.whereRaw(
-        "DATE_FORMAT(plays.created_at,'%j-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%j-%Y')",
-      );
-    }
-    const cCountResult = await cCountQueryBuilder
-      .groupBy('plays.player')
-      .select('plays.player')
-      .count('plays.id as count_cleared')
-      .sum('points.score as score_sum');
-
-    for (const row of cCountResult) {
-      const memName = row.player;
-      membersObj[memName].levels_cleared = row.count_cleared;
-      membersObj[memName].clear_score_sum = row.score_sum;
-    }
-
-    const memberArr = Object.values(membersObj);
-
-    for (const mem of memberArr) {
-      const comps = [];
-      for (const comp of competitionWinners) {
-        if (comp.creator === mem.id) {
-          comps.push({
-            name: comp.details,
-            rank: comp.rank,
-          });
+    for (let i = 0; i < members.length; i += 1) {
+      if (members[i].wonComps) {
+        members[i].wonComps = members[i].wonComps.split('||');
+        for (let j = 0; j < members[i].wonComps.length; j += 1) {
+          const comp = members[i].wonComps[j].split('@@');
+          comp[1] = parseInt(comp[1], 10);
+          members[i].wonComps[j] = { name: comp[0], rank: comp[1] };
         }
+      } else {
+        members[i].wonComps = null;
       }
+    }
+    return members;
+    /* }
 
-      mem.wonComps = comps;
+    let levelFilter = '';
+    if (timePeriod === 2) {
+      levelFilter =
+        "DATE_FORMAT(levels.created_at,'%m-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%m-%Y')";
+    } else if (timePeriod === 3) {
+      levelFilter =
+        "DATE_FORMAT(levels.created_at,'%W-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%W-%Y')";
+    } else if (timePeriod === 4) {
+      levelFilter =
+        "DATE_FORMAT(levels.created_at,'%j-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%j-%Y')";
     }
 
-    json = memberArr;
-
-    let memberCounter = 1;
-    json.sort(function (a, b) {
-      if (a.clear_score_sum > b.clear_score_sum) {
-        return -1;
-      }
-      if (a.clear_score_sum < b.clear_score_sum) {
-        return 1;
-      }
-      return 0;
-    });
-
-    for (const obj of json) {
-      obj.id = memberCounter;
-      memberCounter += 1;
+    let playsFilter = '';
+    if (timePeriod2 === 2) {
+      playsFilter =
+        "DATE_FORMAT(plays.created_at,'%m-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%m-%Y')";
+    } else if (timePeriod2 === 3) {
+      playsFilter =
+        "DATE_FORMAT(plays.created_at,'%W-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%W-%Y')";
+    } else if (timePeriod2 === 4) {
+      playsFilter =
+        "DATE_FORMAT(plays.created_at,'%j-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%j-%Y')";
     }
 
     return json;
+    */
   }
 
   async function generateMakersJson(ts, data) {
@@ -507,8 +388,6 @@ module.exports = async function (client) {
                 req.body.token,
               );
               req.user = await ts.getUser(req.body.discord_id);
-              console.log(adminChecks[requirePermission]);
-              console.log(ts[adminChecks[requirePermission]]);
               if (
                 adminChecks[requirePermission] &&
                 !(await ts[adminChecks[requirePermission]](
@@ -536,7 +415,10 @@ module.exports = async function (client) {
             DiscordLog.error(error);
             debugError(error);
             res.send(
-              JSON.stringify({ status: 'error', message: error }),
+              JSON.stringify({
+                status: 'error',
+                message: error.toString(),
+              }),
             );
           }
         }
@@ -642,7 +524,7 @@ module.exports = async function (client) {
 
   app.post(
     '/teams/settings',
-    webTS(async (ts, req) => {
+    webTS(async (ts) => {
       const settings = await ts.getSettings('settings');
       const ret = [];
       for (let i = 0; i < ts.defaultVariables.length; i += 1) {
@@ -665,7 +547,7 @@ module.exports = async function (client) {
 
   app.post(
     '/teams/tags',
-    webTS(async (ts, req) => {
+    webTS(async (ts) => {
       const data = await ts
         .knex('tags')
         .select(

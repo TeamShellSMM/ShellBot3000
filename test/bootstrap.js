@@ -17,7 +17,7 @@ global.TEST.knex = require('../src/db/knex');
 global.TEST.request = require('supertest');
 global.TEST.TS = require('../src/TS.js');
 
-global.debugTests = debugTests;
+global.TEST.debugTests = debugTests;
 const DiscordLog = require('../src/DiscordLog');
 
 DiscordLog.log = (msg) => {
