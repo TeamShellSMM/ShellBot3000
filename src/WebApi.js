@@ -271,7 +271,7 @@ module.exports = async function (client) {
           "AND DATE_FORMAT(levels.created_at,'%m-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%m-%Y')";
       } else if (timePeriod === 3) {
         levelFilter =
-          "AND DATE_FORMAT(levels.created_at,'%W-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%W-%Y')";
+          "AND DATE_FORMAT(levels.created_at,'%u-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%u-%Y')";
       } else if (timePeriod === 4) {
         levelFilter =
           "AND DATE_FORMAT(levels.created_at,'%j-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%j-%Y')";
@@ -283,7 +283,7 @@ module.exports = async function (client) {
           "AND DATE_FORMAT(plays.created_at,'%m-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%m-%Y')";
       } else if (timePeriod2 === 3) {
         playsFilter =
-          "AND DATE_FORMAT(plays.created_at,'%W-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%W-%Y')";
+          "AND DATE_FORMAT(plays.created_at,'%u-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%u-%Y')";
       } else if (timePeriod2 === 4) {
         playsFilter =
           "AND DATE_FORMAT(plays.created_at,'%j-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%j-%Y')";
