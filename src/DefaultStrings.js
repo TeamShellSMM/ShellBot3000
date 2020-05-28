@@ -286,6 +286,8 @@ module.exports = {
   'tags.cantRemove': 'You can\'t remove the tag "{{tag}}"',
   'tags.currentTags': 'Current tags:```\n{{tags_str}}```',
   'tags.duplicateTags': 'There were duplicate tags for {{tag}}',
+  'tags.whitelistedOnly':
+    '`{{tag}}` is not a tag that has been whitelisted.',
 
   'addVids.noPermission':
     'You can\'t remove videos from "{{level_name}}" by "{{creator}}"',

@@ -199,6 +199,14 @@ const defaultVariables = Object.freeze([
       'Allow creator made levels to count with own points?',
   },
   {
+    name: 'whitelistedTagsOnly',
+    caption: 'Whitelisted Tags Only',
+    default: false,
+    type: 'boolean',
+    description:
+      'Non mods can only add tags that are already existing',
+  },
+  {
     name: 'allowSMM1',
     caption: 'Allow SMM1',
     default: false,

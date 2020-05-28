@@ -2183,9 +2183,10 @@ class TS {
    * Add tags to database if doesn't exist
    * @param {string|string[]} tags Can pass a comma seperated string or an array of strings
    * @param {knex} [trx] a transaction object
+   * @param {string} [discordId]
    * @returns {string[]}  returns an array of tags
    */
-  async addTags(pTags, trx = knex) {
+  async addTags(pTags, trx = knex, discordId) {
     let tags = pTags;
     if (!Array.isArray(tags) && typeof tags === 'string')
       tags = tags.split(/[,\n]/);
@@ -2208,6 +2209,13 @@ class TS {
         if (sameTag) {
           tags[i] = sameTag.value;
         } else {
+          if (
+            discordId &&
+            this.teamVariables.whitelistedTagsOnly === 'true' &&
+            !(await this.modOnly(discordId))
+          ) {
+            this.userError('tags.whitelistedOnly', { tag: tags[i] });
+          }
           tags[i] = tags[i].trim();
           existingTags.push({
             value: tags[i],

@@ -43,7 +43,7 @@ class TSAddtags extends TSCommand {
     const player = await ts.getUser(message);
     const level = await ts.getExistingLevel(code);
     // First we get all available tags
-    newTags = await ts.addTags(newTags);
+    newTags = await ts.addTags(newTags, ts.knex, player.discord_id);
 
     const filteredTags = newTags;
     let oldTags = level.tags ? level.tags.split(',') : [];

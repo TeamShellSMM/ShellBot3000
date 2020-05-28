@@ -128,6 +128,38 @@ describe('!addtags,!removetags', () => {
     assert.equal(level.tags, 'tag1,tag2,tag3');
   });
 
+  it('!addtag whitelisted tags not mod', async () => {
+    const oldVal = TEST.ts.teamVariables.whitelistedTagsOnly;
+    TEST.ts.teamVariables.whitelistedTagsOnly = 'true';
+    assert.equal(
+      await TEST.mockBotSend({
+        cmd: '!addtags xxx-xxx-xxx tag1,tag2,tag3',
+        channel: 'general',
+        discord_id: '256',
+      }),
+      '`tag3` is not a tag that has been whitelisted. ',
+    );
+    TEST.ts.teamVariables.whitelistedTagsOnly = oldVal;
+  });
+
+  it('!addtag whitelisted tags mod', async () => {
+    const modOnly = sinon.stub(TEST.ts, 'modOnly');
+    modOnly.returns(true);
+    const oldVal = TEST.ts.teamVariables.whitelistedTagsOnly;
+    TEST.ts.teamVariables.whitelistedTagsOnly = 'true';
+    const result = await TEST.mockBotSend({
+      cmd: '!addtags xxx-xxx-xxx tag1,tag2,tag3',
+      channel: 'general',
+      discord_id: '128',
+    });
+    modOnly.restore();
+    assert.equal(
+      result,
+      '<@128> Tags added for "approved level" by "Creator" \nCurrent tags:```\ntag1\ntag2\ntag3```',
+    );
+    TEST.ts.teamVariables.whitelistedTagsOnly = oldVal;
+  });
+
   it('!addtag success no existing tags', async () => {
     const getTags = sinon.stub(TEST.ts, 'getTags');
     assert.equal(

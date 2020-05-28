@@ -401,7 +401,7 @@ describe('Web Apis', function () {
       }
     }
 
-    it('POST /random @curr', async function () {
+    it('POST /random', async function () {
       const { body } = await TEST.request(app)
         .post('/random')
         .send({ url_slug: TEST.ts.url_slug })
@@ -543,7 +543,7 @@ describe('Web Apis', function () {
       });
     });
 
-    it('POST /random @curr', async function () {
+    it('POST /random', async function () {
       const { body } = await TEST.request(app)
         .post('/random')
         .send({ url_slug: TEST.ts.url_slug, token: '123' })
