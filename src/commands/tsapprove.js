@@ -139,6 +139,7 @@ class TSApprove extends TSCommand {
     args.discord_id = ts.discord.getAuthor(message);
     const replyMessage = await ts.approve(args);
     await ts.discord.reply(message, replyMessage);
+    const user = await ts.getUser(message);
 
     // clear
     if (clearCommands.indexOf(command.command) !== -1) {
@@ -146,6 +147,7 @@ class TSApprove extends TSCommand {
       if (likeCommands.indexOf(command.command) !== -1) {
         args.liked = 1;
       }
+      args.playerDontAtMe = !user.atme;
       const clearMessage = await ts.clear(args);
       await ts.discord.send(ts.channels.commandFeed, clearMessage);
     }

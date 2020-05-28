@@ -642,7 +642,7 @@ class TS {
      */
     this.clear = async (args = {}) => {
       let { code, completed, liked, difficulty } = args;
-      const { discord_id, strOnly, player_atme: playerAtMe } = args;
+      const { discord_id, strOnly, playerDontAtMe } = args;
 
       if (!discord_id) ts.userError(ts.message('error.noDiscordId'));
       if (difficulty === 'like') {
@@ -806,8 +806,8 @@ class TS {
           );
         }
       }
-      const userReply = playerAtMe
-        ? player.userReply_atme
+      const userReply = playerDontAtMe
+        ? player.userReply_dontatme
         : player.userReply;
       return (
         (strOnly ? '' : userReply) +
@@ -1122,7 +1122,7 @@ class TS {
         ? `<@${player.discord_id}>`
         : player.name;
       player.userReply = `<@${player.discord_id}>${player.rank.pips} `;
-      player.userReply_atme = `${
+      player.userReply_dontatme = `${
         player.atme_str + player.rank.pips
       } `;
 

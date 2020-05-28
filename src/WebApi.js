@@ -806,7 +806,7 @@ module.exports = async function (client) {
     webTS(async (ts, req) => {
       const msg = await ts.clear({
         ...req.body,
-        player_atme: true,
+        playerDontAtMe: true,
       });
       await ts.discord.send(ts.channels.commandFeed, msg);
       const json = { status: 'successful', msg: msg };
