@@ -645,6 +645,11 @@ class TS {
       const { discord_id, strOnly, playerDontAtMe } = args;
 
       if (!discord_id) ts.userError(ts.message('error.noDiscordId'));
+
+      if (typeof difficulty === 'string')
+        difficulty = difficulty.toLowerCase();
+      if (typeof liked === 'string') liked = liked.toLowerCase();
+
       if (difficulty === 'like') {
         difficulty = null;
         liked = 1;

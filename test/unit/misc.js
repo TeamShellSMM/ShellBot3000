@@ -513,7 +513,7 @@ describe('misc-unit', function () {
     }
   });
 
-  it('ts.message plural @curr', async () => {
+  it('ts.message plural', async () => {
     assert.equal(
       TEST.ts.message('clear.earnedPoints', { earned_points: 0 }),
       ' ‣You have earned 0.0 points',

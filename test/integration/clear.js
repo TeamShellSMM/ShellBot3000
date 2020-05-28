@@ -153,6 +153,18 @@ describe('!clears', function () {
     );
   });
 
+  it('clear with LIKE', async function () {
+    const result = await TEST.mockBotSend({
+      cmd: '!clear XXX-XXX-XXX LIKE',
+      channel: 'general',
+      discord_id: '128',
+    });
+    assert.equal(
+      result,
+      "<@128> \n ‣You have cleared 'level1'  by Creator \n ‣You have earned 1.0 point\n ‣You also have liked this level ",
+    );
+  });
+
   it('clear with invalid parameters', async function () {
     const result = await TEST.mockBotSend({
       cmd: '!clear XXX-XXX-XXX llike',
