@@ -401,7 +401,7 @@ describe('Web Apis', function () {
       }
     }
 
-    it('POST /random', async function () {
+    it('POST /random @curr', async function () {
       const { body } = await TEST.request(app)
         .post('/random')
         .send({ url_slug: TEST.ts.url_slug })
@@ -428,16 +428,6 @@ describe('Web Apis', function () {
         .send({ url_slug: TEST.ts.url_slug });
       // .expect('Content-Type', /json/)
       // .expect(403)
-    });
-
-    it('POST /random', async function () {
-      const done = TEST.acceptReply();
-      await TEST.request(app)
-        .post('/json/random')
-        .send({ url_slug: TEST.ts.url_slug });
-      // .expect('Content-Type', /json/)
-      // .expect(403)
-      done();
     });
   });
 
@@ -553,7 +543,7 @@ describe('Web Apis', function () {
       });
     });
 
-    it('POST /random', async function () {
+    it('POST /random @curr', async function () {
       const { body } = await TEST.request(app)
         .post('/random')
         .send({ url_slug: TEST.ts.url_slug, token: '123' })

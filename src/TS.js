@@ -1019,8 +1019,7 @@ class TS {
         maxDifficulty = minDifficulty;
         minDifficulty = temp;
       }
-      const min = parseFloat(minDifficulty) || 1;
-      const max = parseFloat(maxDifficulty) || min;
+
       let playerIds;
       const player =
         discord_id != null ? await ts.getUser(discord_id) : null;
@@ -1046,6 +1045,29 @@ class TS {
       } else if (player) {
         playerIds = [player.id];
       }
+
+      if (!minDifficulty) {
+        if (playerIds) {
+          const [result] = await ts.knex.raw(
+            `select max(difficulty) maxDiff
+          from plays
+          inner join levels on plays.code=levels.id
+          where plays.player in (:players:) and plays.completed=1
+          `,
+            { players: playerIds },
+          );
+          maxDifficulty = result[0].maxDiff;
+        }
+
+        if (!maxDifficulty) {
+          minDifficulty = 0.5;
+          maxDifficulty = 100;
+        }
+      }
+
+      const min = parseFloat(minDifficulty) || 0.5;
+      const max = parseFloat(maxDifficulty) || min;
+
       const playsSQL1 = playerIds
         ? `
     left join plays on levels.id=plays.code
