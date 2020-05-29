@@ -39,11 +39,12 @@ class TSAddtags extends TSCommand {
       ts.userError(ts.message('tags.noTags'));
     }
     newTags = newTags.split(/[,\n]/);
+    let argTags = newTags;
 
     const player = await ts.getUser(message);
     const level = await ts.getExistingLevel(code);
     // First we get all available tags
-    newTags = await ts.addTags(newTags, ts.knex, player.discord_id);
+    newTags = await ts.addTags(newTags, ts.knex, player.discord_id, addCommands.indexOf(command.command) !== -1);
 
     const filteredTags = newTags;
     let oldTags = level.tags ? level.tags.split(',') : [];
@@ -117,6 +118,10 @@ class TSAddtags extends TSCommand {
     await ts.db.Levels.query()
       .patch({ tags: oldTags.join(',') })
       .where({ code });
+
+    if(addCommands.indexOf(command.command) === -1){
+      await ts.checkTagsForRemoval(argTags, ts.knex);
+    }
 
     await ts.discord.messageSend(message, player.userReply + reply);
   }

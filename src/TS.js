@@ -169,7 +169,7 @@ class TS {
       }
       this.validDifficulty = validDifficulty;
 
-      const allLevels = await this.getLevels();
+      const allLevels = await this.getLevels().whereIn('status', this.SHOWN_IN_LIST);
       let allTags = allLevels.map((l) => l.tags);
       if (allTags.length !== 0) {
         allTags = allTags.reduce((total, t) => `${total},${t}`);
@@ -177,6 +177,12 @@ class TS {
       await knex.transaction(async (trx) => {
         await this.addTags(allTags, trx);
       });
+
+      const dbTags = (await this.getTags()).map(x => x.name);
+      await knex.transaction(async (trx) => {
+        await this.checkTagsForRemoval(dbTags, trx);
+      });
+
 
       this.messages = {};
       TS.defaultMessages = {};
@@ -1564,6 +1570,11 @@ class TS {
         .patch({ status: statusUpdate, difficulty })
         .where({ code });
       await ts.recalculateAfterUpdate({ code });
+
+      if(ts.SHOWN_IN_LIST.indexOf(statusUpdate) === -1){
+        ts.checkTagsForRemoval(level.tags, ts.knex);
+      }
+
       const mention = this.message('general.heyListen', {
         discord_id: author.discord_id,
       });
@@ -1699,6 +1710,11 @@ class TS {
         })
         .where({ code });
       await ts.recalculateAfterUpdate({ code });
+
+      if(!approve){
+        ts.checkTagsForRemoval(level.tags, ts.knex);
+      }
+
       const mention = this.message('general.heyListen', {
         discord_id: author.discord_id,
       });
@@ -1912,6 +1928,7 @@ class TS {
         .where({
           code: oldCode,
         });
+
       await ts.db.Levels.query()
         .patch({ new_code: newCode })
         .where({ new_code: oldCode });
@@ -2199,7 +2216,7 @@ class TS {
    * @param {string} [discordId]
    * @returns {string[]}  returns an array of tags
    */
-  async addTags(pTags, trx = knex, discordId) {
+  async addTags(pTags, trx = knex, discordId, insertTags = true) {
     let tags = pTags;
     if (!Array.isArray(tags) && typeof tags === 'string')
       tags = tags.split(/[,\n]/);
@@ -2241,11 +2258,52 @@ class TS {
         }
       }
     }
-    if (newTags.length !== 0) {
+    if (newTags.length !== 0 && insertTags) {
       await trx('tags').insert(newTags);
     }
 
     return tags;
+  }
+
+  /**
+   * Add tags to database if doesn't exist
+   * @param {string|string[]} tags Can pass a comma seperated string or an array of strings
+   * @param {knex} [trx] a transaction object
+   * @param {string} [discordId]
+   * @returns {string[]}  returns an array of tags that were removed
+   */
+  async checkTagsForRemoval(pTags, trx = knex) {
+    console.log("checking tags", pTags);
+    let tags = pTags;
+    if (!Array.isArray(tags) && typeof tags === 'string')
+      tags = tags.split(/[,\n]/);
+    if (!Array.isArray(tags))
+      throw TypeError('not a string or array of strings');
+
+    let checkTags = await trx('tags').where({
+      guild_id: this.team.id,
+    }).whereIn('name', tags);
+    const that = this;
+
+    const removeTags = [];
+    for (let checkTag of checkTags) {
+      let levels = await trx('levels').where({
+        guild_id: this.team.id,
+      }).whereIn('status', this.SHOWN_IN_LIST).where('tags', 'like', '%' + checkTag.name + '%');
+
+      if(!(levels && levels.length > 0)){
+        removeTags.push(checkTag.name);
+      }
+    }
+    if(removeTags.length > 0){
+      console.log("removing unused tags: ", removeTags);
+      await trx('tags').where({
+        guild_id: this.team.id,
+      }).whereIn('name', removeTags)
+      .del();
+    }
+
+    return removeTags;
   }
 
   /**
