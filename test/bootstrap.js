@@ -302,6 +302,7 @@ before(async () => {
       TRUNCATE table plays;
       TRUNCATE table pending_votes;
       TRUNCATE table levels;
+      TRUNCATE table level_tags;
       TRUNCATE table members;
       TRUNCATE table tokens;
       TRUNCATE table competition_winners;

@@ -141,13 +141,17 @@ class TSAddtags extends TSCommand {
 
       reply = ts.message('tags.haveRemoved', level);
     }
-    /*
-ts.message('tags.currentTags', {
-          tags_str: oldTags.join('\n'),
-        });
-    */
 
-    await ts.discord.messageSend(message, player.userReply + reply);
+    const updatedTags = await ts.getLevelTags(level.id);
+
+    await ts.discord.messageSend(
+      message,
+      player.userReply +
+        reply +
+        ts.message('tags.currentTags', {
+          tags_str: updatedTags.map((t) => t.name).join('\n'),
+        }),
+    );
   }
 }
 module.exports = TSAddtags;

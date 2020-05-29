@@ -169,7 +169,9 @@ class TS {
       }
       this.validDifficulty = validDifficulty;
 
-      const allLevels = await this.getLevels();
+      const allLevels = await this.knex('levels').where({
+        guild_id: this.team.id,
+      });
       let allTags = allLevels.map((l) => l.tags);
       if (allTags.length !== 0) {
         allTags = allTags.reduce((total, t) => `${total},${t}`);
@@ -190,10 +192,11 @@ class TS {
         existingTags.forEach((r) => {
           tagMap[this.transformTag(r.name)] = r.id;
         }, this);
-        console.log(tagMap);
         const levelTags = [];
+        console.log(allLevels);
         allLevels.forEach((l) => {
           if (l.tags) {
+            console.log(l.tags);
             const tags = l.tags.split(',');
             tags.forEach((t) => {
               const ret = {
@@ -205,14 +208,9 @@ class TS {
             }, this);
           }
         }, this);
-
-        console.log(levelTags.filter((x) => x.tag_id === -1));
-
         await this.knex.transaction(async (trx) => {
           await trx('level_tags').insert(levelTags);
         });
-
-        // @curr
       }
 
       this.messages = {};
@@ -2185,6 +2183,12 @@ class TS {
           this.teamVariables.includeOwnPoints === 'true' || false,
       },
     );
+  }
+
+  async getLevelTags(levelId) {
+    return this.knex('tags')
+      .join('level_tags', { 'level_tags.tag_id': 'tags.id' })
+      .where({ level_id: levelId });
   }
 
   /**
