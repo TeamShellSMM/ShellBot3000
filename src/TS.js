@@ -2147,7 +2147,7 @@ class TS {
    */
   parseCommand(message) {
     let rawCommand = message.content.trim();
-    rawCommand = rawCommand.split(' ');
+    rawCommand = rawCommand.split(/[ \n]/);
     const sbCommand = rawCommand.shift().toLowerCase().substring(1); // remove first character
     if (!sbCommand) rawCommand.shift().toLowerCase();
     let filtered = [];

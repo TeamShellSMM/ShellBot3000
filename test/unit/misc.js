@@ -336,6 +336,17 @@ describe('misc-unit', function () {
     });
   });
 
+  it('ts.parseCommand @curr', async () => {
+    const result = TEST.ts.parseCommand({
+      content: '!addvid xxx-xxx-xxx\n val1,val2',
+    });
+    assert.deepEqual(result, {
+      command: 'addvid',
+      arguments: ['xxx-xxx-xxx', 'val1,val2'],
+      argumentString: 'xxx-xxx-xxx val1,val2',
+    });
+  });
+
   it('ts.addTags() not string or array', async () => {
     const result = await TEST.ts
       .addTags({ name: 'general' })
