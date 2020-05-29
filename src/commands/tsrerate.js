@@ -48,6 +48,7 @@ class TSRerate extends TSCommand {
     if (!ts.valid_difficulty(difficulty))
       ts.userError('Invalid difficulty format!');
     if (!reason) ts.userError('difficulty.noReason');
+    ts.reasonLengthCheck(reason, 800);
 
     const level = await ts.getExistingLevel(code, true);
     if (level.status !== ts.LEVEL_STATUS.APPROVED) {

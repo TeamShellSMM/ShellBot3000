@@ -55,6 +55,7 @@ class TSFixApprove extends TSCommand {
       ts.userError(ts.message('fixApprove.notInChannel', { code }));
 
     if (!reason) ts.userError('fixApprove.noReason');
+    ts.reasonLengthCheck(reason, 800);
 
     let approving = false;
 

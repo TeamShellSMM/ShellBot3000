@@ -14,10 +14,10 @@ class undoremovelevel extends TSCommand {
     code = code.toUpperCase();
     const reason = command.arguments.join(' ');
 
-    if (!reason)
-      ts.userError(
-        ts.userError(ts.message('undoRemoveLevel.noReason')),
-      );
+    if (!reason) {
+      ts.userError('undoRemoveLevel.noReason');
+    }
+    ts.reasonLengthCheck(reason, 800);
 
     const player = await ts.getUser(message);
     const level = await ts.getExistingLevel(code, true);

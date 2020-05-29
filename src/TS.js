@@ -1257,6 +1257,8 @@ class TS {
         // We only check reason if we have no vote yet
         if (!reason) {
           ts.userError(ts.message('approval.changeReason'));
+        } else {
+          ts.reasonLengthCheck(reason);
         }
       }
       // Check if level is approved, if it's approved only allow rejection
@@ -1841,6 +1843,7 @@ class TS {
       if (oldCode === newCode)
         ts.userError(ts.message('reupload.sameCode'));
       if (!reason) ts.userError(ts.message('reupload.giveReason'));
+      this.reasonLengthCheck(reason, 800);
       const earnedPoints = await ts.calculatePoints(player.name);
       const rank = ts.getRank(earnedPoints.clearPoints);
       const userReply = `<@${ts.discord.getAuthor(message)}>${
@@ -2168,6 +2171,16 @@ class TS {
       (r) => parseFloat(points) >= parseFloat(r.min_points),
     );
     return ret;
+  }
+
+  /**
+   * Checks if reason is larger than 1500 characters. throws a user error if it's more than than
+   * @param {string} reason
+   * @throws {UserError} Reason more than 1500 characters
+   */
+  reasonLengthCheck(reason, maxLength = 1500) {
+    if (reason.length > maxLength)
+      this.userError('error.reasonTooLong', { maxLength });
   }
 
   /**

@@ -230,6 +230,8 @@ module.exports = {
   'undoRemoveLevel.success':
     'You have undid the status change of "{{{level_name}}}" by {{{creator}}} {{{bam}}}',
 
+  'error.reasonTooLong':
+    "Your reason/comment can't be longer than {{maxLength}}",
   'error.notApproved': 'Level is not approved',
   'error.userBanned': 'You have been barred from using this service',
   'error.notRegistered': 'You are not yet registered',

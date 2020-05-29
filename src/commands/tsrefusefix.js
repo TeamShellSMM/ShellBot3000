@@ -23,6 +23,7 @@ class TSRefuseFix extends TSCommand {
         'Please provide a little message to the mods for context at the end of the command!',
       );
     }
+    ts.reasonLengthCheck(reason, 800);
 
     const player = await ts.getUser(message);
     const level = await ts.getLevels().where({ code }).first();

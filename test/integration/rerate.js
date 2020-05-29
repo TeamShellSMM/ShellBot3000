@@ -123,6 +123,34 @@ describe('!rerate', function () {
     assert.equal(result[2], 'Difficulty was successfully changed!');
   });
 
+  it('reason length=800 @curr', async function () {
+    const result = await TEST.mockBotSend({
+      cmd:
+        '!rerate XXX-XXX-XXX 2 "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In ut enim rhoncus, aliquet sem sed, maximus quam. Ut sed enim consectetur erat posuere semper. Maecenas a augue a massa iaculis lacinia sit amet eget turpis. Ut hendrerit ullamcorper lacus, eget vulputate eros porttitor non. Pellentesque maximus laoreet diam, sit amet porta nisi. Proin sed dignissim ligula, vitae lacinia quam. Quisque ac augue ut risus lacinia ultrices. Cras vel luctus nisl, vel mattis sapien. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras odio dui, faucibus a nibh vel, porttitor dignissim leo. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Curabitur ac congue elit, quis pulvinar turpis. Nunc feugiat elit nec eros lobortis, in aliquam nibh sollicitudin blandit."',
+      channel: TEST.ts.channels.modChannel,
+      discord_id: '128',
+    });
+    assert.equal(result[1].title, 'approved level (XXX-XXX-XXX)');
+    assert.equal(
+      result[1].author.name,
+      'Difficulty rating updated from 1.0 - 2.0',
+    );
+    assert.equal(result[2], 'Difficulty was successfully changed!');
+  });
+
+  it('reason length=801 @curr', async function () {
+    const result = await TEST.mockBotSend({
+      cmd:
+        '!rerate XXX-XXX-XXX 2 "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In ut enim rhooncus, aliquet sem sed, maximus quam. Ut sed enim consectetur erat posuere semper. Maecenas a augue a massa iaculis lacinia sit amet eget turpis. Ut hendrerit ullamcorper lacus, eget vulputate eros porttitor non. Pellentesque maximus laoreet diam, sit amet porta nisi. Proin sed dignissim ligula, vitae lacinia quam. Quisque ac augue ut risus lacinia ultrices. Cras vel luctus nisl, vel mattis sapien. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras odio dui, faucibus a nibh vel, porttitor dignissim leo. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Curabitur ac congue elit, quis pulvinar turpis. Nunc feugiat elit nec eros lobortis, in aliquam nibh sollicitudin blandit."',
+      channel: TEST.ts.channels.modChannel,
+      discord_id: '128',
+    });
+    assert.equal(
+      result,
+      "Your reason/comment can't be longer than 800 ",
+    );
+  });
+
   it('already that difficulty', async function () {
     assert.equal(
       await TEST.mockBotSend({

@@ -92,6 +92,29 @@ describe('!approve', function () {
     );
   });
 
+  it('approve reason=1500', async function () {
+    const result = await TEST.mockBotSend({
+      cmd:
+        '!approve XXX-XXX-XXX 5 "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin pellentesque sapien enim, vitae vestibulum metus pulvinar eget. Aliquam tincidunt lacinia scelerisque. Lorem ipsum dolor sit amet, consectetur adipiscing elit. In gravida turpis id neque facilisis laoreet. Curabitur luctus gravida purus eget scelerisque. Ut et lectus sapien. Nam egestas enim ut rutrum efficitur. Aliquam sit amet sollicitudin velit. Donec quis est volutpat, iaculis ipsum pharetra, egestas eros. Donec leo quam, posuere at dolor ut, consequat eleifend urna. Morbi non scelerisque eros. Suspendisse vitae semper tellus. Nullam malesuada dolor ex. Ut posuere erat sed placerat pellentesque. Phasellus lacinia pellentesque vulputate. Sed ultrices molestie massa id imperdiet. Ut et erat dictum, auctor neque et, lacinia turpis. Donec fermentum nunc sed leo ornare ullamcorper. Maecenas dapibus, massa vel ultricies iaculis, mauris dui efficitur ante, et pretium lectus turpis venenatis felis. In vitae posuere mauris, in finibus turpis. Cras sodales odio sed lacus eleifend, non laoreet nisi varius. Proin gravida iaculis mi, a lobortis risus iaculis eget. Praesent gravida volutpat sapien, ornare convallis eros hendrerit nec. Pellentesque molestie a nisl non fermentum. Etiam quis luctus erat. Nullam lacinia lacus id erat pretium dictum ut sed neque. Sed gravida ultricies sapien, quis rutrum tortor eleifend eu. Sed rhoncus sodales lectus, ac convallis sapien finibus ut. Sed tincidunt convalis ornare. Curabitur amet."',
+      channel: TEST.ts.channels.modChannel,
+      discord_id: '256',
+    });
+    assert.match(result[1], /Your vote was added to <#[0-9]+>!/);
+  });
+
+  it('approve reason=1501', async function () {
+    const result = await TEST.mockBotSend({
+      cmd:
+        '!approve XXX-XXX-XXX 5 "Lorem ipsum doloor sit amet, consectetur adipiscing elit. Proin pellentesque sapien enim, vitae vestibulum metus pulvinar eget. Aliquam tincidunt lacinia scelerisque. Lorem ipsum dolor sit amet, consectetur adipiscing elit. In gravida turpis id neque facilisis laoreet. Curabitur luctus gravida purus eget scelerisque. Ut et lectus sapien. Nam egestas enim ut rutrum efficitur. Aliquam sit amet sollicitudin velit. Donec quis est volutpat, iaculis ipsum pharetra, egestas eros. Donec leo quam, posuere at dolor ut, consequat eleifend urna. Morbi non scelerisque eros. Suspendisse vitae semper tellus. Nullam malesuada dolor ex. Ut posuere erat sed placerat pellentesque. Phasellus lacinia pellentesque vulputate. Sed ultrices molestie massa id imperdiet. Ut et erat dictum, auctor neque et, lacinia turpis. Donec fermentum nunc sed leo ornare ullamcorper. Maecenas dapibus, massa vel ultricies iaculis, mauris dui efficitur ante, et pretium lectus turpis venenatis felis. In vitae posuere mauris, in finibus turpis. Cras sodales odio sed lacus eleifend, non laoreet nisi varius. Proin gravida iaculis mi, a lobortis risus iaculis eget. Praesent gravida volutpat sapien, ornare convallis eros hendrerit nec. Pellentesque molestie a nisl non fermentum. Etiam quis luctus erat. Nullam lacinia lacus id erat pretium dictum ut sed neque. Sed gravida ultricies sapien, quis rutrum tortor eleifend eu. Sed rhoncus sodales lectus, ac convallis sapien finibus ut. Sed tincidunt convalis ornare. Curabitur amet."',
+      channel: TEST.ts.channels.modChannel,
+      discord_id: '256',
+    });
+    assert.equal(
+      result,
+      "Your reason/comment can't be longer than 1500 ",
+    );
+  });
+
   it('approve', async function () {
     const result = await TEST.mockBotSend({
       cmd: '!approve XXX-XXX-XXX 5 "is good level"',
