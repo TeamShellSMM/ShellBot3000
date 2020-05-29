@@ -178,6 +178,43 @@ class TS {
         await this.addTags(allTags, trx);
       });
 
+      const existingLevelTags = await this.knex('level_tags')
+        .select()
+        .where({ guild_id: this.team.id });
+
+      if (existingLevelTags.length === 0) {
+        const existingTags = await this.knex('tags').where({
+          guild_id: this.team.id,
+        });
+        const tagMap = {};
+        existingTags.forEach((r) => {
+          tagMap[this.transformTag(r.name)] = r.id;
+        }, this);
+        console.log(tagMap);
+        const levelTags = [];
+        allLevels.forEach((l) => {
+          if (l.tags) {
+            const tags = l.tags.split(',');
+            tags.forEach((t) => {
+              const ret = {
+                level_id: l.id,
+                tag_id: tagMap[this.transformTag(t)] || -1,
+                guild_id: this.team.id,
+              };
+              levelTags.push(ret);
+            }, this);
+          }
+        }, this);
+
+        console.log(levelTags.filter((x) => x.tag_id === -1));
+
+        await this.knex.transaction(async (trx) => {
+          await trx('level_tags').insert(levelTags);
+        });
+
+        // @curr
+      }
+
       this.messages = {};
       TS.defaultMessages = {};
       Object.entries(DEFAULTMESSAGES).forEach((v) => {
@@ -273,11 +310,18 @@ class TS {
       return knex('levels')
         .select(
           knex.raw(
-            `levels.*, members.id creator_id,members.name creator`,
+            `levels.*, members.id creator_id,members.name creator,group_concat(tags.name) tags`,
           ),
         )
         .join('members', { 'levels.creator': 'members.id' })
-        .where('levels.guild_id', this.team.id);
+        .leftJoin('level_tags', {
+          'levels.id': 'level_tags.level_id',
+        })
+        .leftJoin('tags', {
+          'level_tags.tag_id': 'tags.id',
+        })
+        .where('levels.guild_id', this.team.id)
+        .groupBy('levels.id');
     };
     this.getPlays = () => {
       return knex('plays')
