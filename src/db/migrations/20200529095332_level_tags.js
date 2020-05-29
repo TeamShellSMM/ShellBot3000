@@ -17,6 +17,8 @@ exports.up = function (knex) {
       .unsigned()
       .references('members.id')
       .nullable();
+
+    t.index(['tag_id', 'level_id']);
   });
 };
 

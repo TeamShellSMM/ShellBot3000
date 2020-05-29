@@ -136,7 +136,7 @@ describe('!addtags,!removetags', () => {
       .where({ level_id: 1 });
     assert.deepEqual(
       tags.map((t) => t.tag_id),
-      [1, 2, 6],
+      [1, 2, 8],
     );
   });
 
@@ -201,7 +201,7 @@ describe('!addtags,!removetags', () => {
       .where({ level_id: 1 });
     assert.deepEqual(
       tags.map((t) => t.tag_id),
-      [1, 6],
+      [1, 8],
     );
   });
 
@@ -219,13 +219,11 @@ describe('!addtags,!removetags', () => {
       .where({ level_id: 1 });
     assert.deepEqual(
       tags.map((t) => t.tag_id),
-      [1, 6],
+      [1, 8],
     );
   });
 
-  it('!addtag none added @curr', async () => {
-    console.log(await TEST.knex('level_tags').select());
-
+  it('!addtag none added', async () => {
     const reply = await TEST.mockBotSend({
       cmd: '!addtags XXX-XXX-XX2 tag2',
       channel: 'general',
@@ -236,7 +234,7 @@ describe('!addtags,!removetags', () => {
       .where({ level_id: 2 });
     assert.deepEqual(
       tags.map((t) => t.tag_id),
-      [1, 6],
+      [6, 2, 7, 4, 5],
     );
     assert.equal(
       reply,
@@ -264,13 +262,18 @@ describe('!addtags,!removetags', () => {
       }),
       '<@256> Tags removed for "pending level" by "Creator "\nCurrent tags:```\ntag2\nall_locked\nremove_locked```',
     );
-    const level = await TEST.ts.db.Levels.query()
-      .where({ code: 'XXX-XXX-XX2' })
-      .first();
-    assert.equal(level.tags, 'tag2,all_locked,remove_locked');
+    const tags = await TEST.knex('level_tags')
+      .where({ guild_id: 1 })
+      .where({ level_id: 2 });
+    assert.deepEqual(
+      tags.map((t) => t.tag_id),
+      [2, 4, 5],
+    );
   });
 
   it('!removetag success by mod', async () => {
+    const modOnly = sinon.stub(TEST.ts, 'modOnly');
+    modOnly.returns(true);
     assert.equal(
       await TEST.mockBotSend({
         cmd: '!removetags XXX-XXX-XX2 removetag1,removetag3',
@@ -279,10 +282,14 @@ describe('!addtags,!removetags', () => {
       }),
       '<@128> Tags removed for "pending level" by "Creator "\nCurrent tags:```\ntag2\nall_locked\nremove_locked```',
     );
-    const level = await TEST.ts.db.Levels.query()
-      .where({ code: 'XXX-XXX-XX2' })
-      .first();
-    assert.equal(level.tags, 'tag2,all_locked,remove_locked');
+    const tags = await TEST.knex('level_tags')
+      .where({ guild_id: 1 })
+      .where({ level_id: 2 });
+    assert.deepEqual(
+      tags.map((t) => t.tag_id),
+      [2, 4, 5],
+    );
+    modOnly.restore();
   });
 
   it('!removetag fail by other player', async () => {
@@ -294,12 +301,12 @@ describe('!addtags,!removetags', () => {
       }),
       'You can\'t remove tags from "pending level" by "Creator" ',
     );
-    const level = await TEST.ts.db.Levels.query()
-      .where({ code: 'XXX-XXX-XX2' })
-      .first();
-    assert.equal(
-      level.tags,
-      'removetag1,tag2,removetag3,all_locked,remove_locked',
+    const tags = await TEST.knex('level_tags')
+      .where({ guild_id: 1 })
+      .where({ level_id: 2 });
+    assert.deepEqual(
+      tags.map((t) => t.tag_id),
+      [6, 2, 7, 4, 5],
     );
   });
 

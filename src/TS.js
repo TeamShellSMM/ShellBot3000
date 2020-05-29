@@ -193,10 +193,8 @@ class TS {
           tagMap[this.transformTag(r.name)] = r.id;
         }, this);
         const levelTags = [];
-        console.log(allLevels);
         allLevels.forEach((l) => {
           if (l.tags) {
-            console.log(l.tags);
             const tags = l.tags.split(',');
             tags.forEach((t) => {
               const ret = {
@@ -1959,18 +1957,38 @@ class TS {
         .where({ new_code: oldCode });
       if (!newLevel) {
         // if no new level was found create a new level copying over the old data
+
         await ts.db.Levels.query().insert({
           code: newCode,
           level_name: level.level_name,
           creator: level.creator_id,
           difficulty: false,
           status: 0,
-          tags: level.tags,
+          tags: level.tags || '',
         });
         newLevel = await ts
           .getLevels()
           .where({ code: newCode })
           .first();
+
+        let oldTags = await ts
+          .knex('level_tags')
+          .where({ level_id: level.id });
+
+        oldTags = oldTags.map(
+          ({ guild_id, tag_id, user_id, created_at }) => {
+            return {
+              guild_id,
+              tag_id,
+              user_id,
+              created_at,
+              level_id: newLevel.id,
+            };
+          },
+        );
+        await ts.knex.transaction(async (trx) => {
+          await trx('level_tags').insert(oldTags);
+        });
       }
       await ts.db.PendingVotes.query()
         .patch({ code: newLevel.id })
@@ -2360,10 +2378,6 @@ class TS {
       };
       return handlebar(obj);
     };
-  }
-
-  async getTags() {
-    return knex('tags').where({ guild_id: this.team.id });
   }
 
   /**

@@ -86,7 +86,7 @@ module.exports = async function (client) {
         ,levels.level_name
         ,levels.status
         ,levels.difficulty
-        ,levels.tags
+        ,group_concat(distinct tags.name order by tags.id) tags
         ,levels.videos
         ,levels.created_at
         ,levels.clears
@@ -109,6 +109,10 @@ module.exports = async function (client) {
         AND points.difficulty=levels.difficulty
       INNER JOIN members on
         levels.creator=members.id
+      LEFT JOIN level_tags on
+        levels.id=level_tags.level_id
+      LEFT JOIN tags on
+        level_tags.tag_id=tags.id
       ${registeredSql}
       WHERE
         levels.status IN (:statuses:)

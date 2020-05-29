@@ -23,6 +23,7 @@ describe('!reupload', function () {
           code: 'XXX-XXX-XX1',
           status: TEST.ts.LEVEL_STATUS.PENDING,
           difficulty: 0,
+          tags: 'tag1,tag2',
         },
         {
           level_name: 'approved level',
@@ -94,6 +95,7 @@ describe('!reupload', function () {
     };
 
     await TEST.setupData(initData);
+    await TEST.ts.load();
     TEST.ts.teamVariables['Minimum Point'] = 0;
     TEST.ts.teamVariables['New Level'] = 0;
   });
@@ -320,7 +322,7 @@ describe('!reupload', function () {
     );
   });
 
-  it('creator successful reupload pending level with just enough points', async () => {
+  it('creator successful reupload pending level with just enough points @curr', async () => {
     await TEST.clearChannels();
     TEST.ts.teamVariables['New Level'] = 1;
     await TEST.ts.db.Members.query()
@@ -353,6 +355,16 @@ describe('!reupload', function () {
         discord_id: '64',
       }),
       "<@64> You have reuploaded 'pending level' by Creator with code `XXX-XXX-YYY`.  If you want to rename the new level, you can use !rename new-code level name.",
+    );
+    const newLevel = await TEST.knex('levels')
+      .where({ code: 'XXX-XXX-YYY' })
+      .first();
+    const newTags = await TEST.knex('level_tags').where({
+      level_id: newLevel.id,
+    });
+    assert.deepEqual(
+      newTags.map((x) => x.tag_id),
+      [1, 2],
     );
   });
 

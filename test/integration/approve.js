@@ -49,6 +49,7 @@ describe('!approve', function () {
   beforeEach(async () => {
     await TEST.clearChannels();
     await TEST.setupData(initData);
+    await TEST.ts.load();
   });
 
   it('judge not in pendingCategory', async () => {
