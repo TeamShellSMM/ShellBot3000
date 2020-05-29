@@ -346,7 +346,7 @@ class TS {
         // owner can do anything
         return true;
       }
-      if (ts.teamVariables.discordAdminCanMod === 'yes') {
+      if (ts.teamVariables.discordAdminCanMod === 'true') {
         // if yes, any discord mods can do team administrative stuff but won't officially appear in the "Mod" list
         const discordUser = guild.members.get(discordId);
         if (
@@ -533,7 +533,7 @@ class TS {
       return existingToken.discord_id;
     };
     /**
-     * Checks if the code is an SMM1 code. Should be true only when ts.teamVariables.allowSMM1=='yes'
+     * Checks if the code is an SMM1 code. Should be true only when ts.teamVariables.allowSMM1=='true'
      * @param {string} code Level code
      * @returns {boolean} is SMM1 code
      */

@@ -218,7 +218,7 @@ describe('!ammendcode', function () {
   });
 
   it('discord admin, with flags', async function () {
-    TEST.ts.teamVariables.discordAdminCanMod = 'yes';
+    TEST.ts.teamVariables.discordAdminCanMod = 'true';
     const result = await TEST.mockBotSend({
       cmd: '!ammendcode xxx-xxx-xxx xxx-xxx-xx3',
       channel: 'general',

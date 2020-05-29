@@ -131,13 +131,6 @@ before(async () => {
     },
     {
       guild_id: 1,
-      name: 'isTesting',
-      value: 'yes',
-      type: 'settings',
-      admin_id: 1,
-    },
-    {
-      guild_id: 1,
       name: 'VotesNeededReject',
       value: null,
       type: 'settings',

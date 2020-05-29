@@ -41,7 +41,7 @@ describe('ts.modOnly', function () {
   it('discord admin with  "discordAdminCanMod" flag == true', async function () {
     // we use bot for now as bot was set to have admin rights in test server
     // TODO: make admin test users
-    TEST.ts.teamVariables.discordAdminCanMod = 'yes';
+    TEST.ts.teamVariables.discordAdminCanMod = 'true';
     assert.isTrue(await TEST.ts.modOnly(TEST.bot_id));
   });
 });

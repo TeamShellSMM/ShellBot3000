@@ -479,7 +479,7 @@ describe('Web Apis', function () {
             code: 2,
             player: 4,
             type: 'approve',
-            reason: 'yes',
+            reason: 'true',
             difficulty_vote: 4,
           },
         ],
@@ -624,7 +624,7 @@ describe('Web Apis', function () {
         is_shellder: 0,
         type: 'approve',
         difficulty_vote: 4,
-        reason: 'yes',
+        reason: 'true',
         player_id: 4,
         level_id: 2,
       });
@@ -685,12 +685,12 @@ describe('Web Apis', function () {
         .send({
           url_slug: TEST.ts.url_slug,
           token: '123',
-          message: 'yes',
+          message: 'true',
         })
         .expect('Content-Type', /json/)
         .expect(200);
       const reply = done();
-      assert.match(reply, /\*\*\[[0-9a-f]+\]\*\*\n> yes/);
+      assert.match(reply, /\*\*\[[0-9a-f]+\]\*\*\n> true/);
       assert.deepEqual(body, {
         status: 'successful',
         url_slug: 'makerteam',

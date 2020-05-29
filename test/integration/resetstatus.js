@@ -208,7 +208,7 @@ describe('!resetstatus', function () {
   });
 
   it('discord admin, with flags', async function () {
-    TEST.ts.teamVariables.discordAdminCanMod = 'yes';
+    TEST.ts.teamVariables.discordAdminCanMod = 'true';
     const result = await TEST.mockBotSend({
       cmd: '!resetstatus xxx-xxx-xxx',
       channel: 'general',
