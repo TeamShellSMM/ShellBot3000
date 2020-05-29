@@ -250,6 +250,12 @@ module.exports = {
   'error.invalidMakerCode': '`{{code}}` is not a valid maker id',
   'error.wrongTokens':
     'There was something wrong with the secure tokens. Please try again',
+  'error.noSearch': "You didn't provide any search terms",
+
+  'search.foundNum':
+    ', we found {{levelsFound}} level{{plural levelsFound}}.',
+  'search.showingOnly':
+    ' Showing only {{num_shown}} level{{plural num_shown}}',
 
   'points.points':
     'You have {{1dp player.earned_points.clearPoints}} clear point{{plural player.earned_points.clearPoints}}. You have submitted {{player.earned_points.levelsMade}} level{{plural player.earned_points.levelsMade}} {{#if player.earned_points.freeSubmissions}} ({{player.earned_points.freeSubmissions}} free submission{{plural player.earned_points.freeSubmissions}}){{/if}}.',
