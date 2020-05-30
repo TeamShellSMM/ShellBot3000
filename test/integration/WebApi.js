@@ -23,43 +23,11 @@ describe('Web Apis', function () {
             is_banned: 1,
           },
         ],
-        Levels: [
-          {
-            level_name: 'EZ GG',
-            creator: 2,
-            code: 'XXX-XXX-XXX',
-            status: 1,
-            difficulty: 1,
-          },
-        ],
-        PendingVotes: [
-          {
-            code: 1,
-            player: 1,
-            type: 'approve',
-            difficulty_vote: 4,
-            reason: 'is good',
-          },
-        ],
         Tokens: [
           {
             discord_id: '128',
             token: '123',
             authenticated: 1,
-          },
-        ],
-        Plays: [
-          {
-            code: 1,
-            player: 1,
-            completed: 1,
-            liked: 1,
-          },
-          {
-            code: 1,
-            player: 3,
-            completed: 1,
-            liked: 0,
           },
         ],
       });
@@ -90,6 +58,59 @@ describe('Web Apis', function () {
             rules: '',
           },
         ],
+        tags: [
+          {
+            guild_id: 1,
+            name: 'seperate',
+            is_seperate: 1,
+            type: 'dark',
+          },
+        ],
+        levels: [
+          {
+            guild_id: 1,
+            level_name: 'EZ GG',
+            creator: 2,
+            code: 'XXX-XXX-XXX',
+            status: 1,
+            difficulty: 1,
+          },
+          {
+            guild_id: 1,
+            level_name: 'seperate',
+            creator: 2,
+            code: 'XXX-XXX-XX2',
+            status: 1,
+            difficulty: 1,
+            tags: 'seperate',
+          },
+        ],
+        pending_votes: [
+          {
+            guild_id: 1,
+            code: 1,
+            player: 1,
+            type: 'approve',
+            difficulty_vote: 4,
+            reason: 'is good',
+          },
+        ],
+        plays: [
+          {
+            guild_id: 1,
+            code: 1,
+            player: 1,
+            completed: 1,
+            liked: 1,
+          },
+          {
+            guild_id: 1,
+            code: 1,
+            player: 3,
+            completed: 1,
+            liked: 0,
+          },
+        ],
         competition_winners: [
           {
             admin_id: 1,
@@ -101,14 +122,8 @@ describe('Web Apis', function () {
             rank: 1,
           },
         ],
-        tags: [
-          {
-            guild_id: 1,
-            name: 'seperate',
-            is_seperate: 1,
-          },
-        ],
       });
+      await TEST.ts.load();
     });
 
     it('POST /json', async function () {

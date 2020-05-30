@@ -38,9 +38,7 @@ module.exports = async function (client) {
         });
     }
 
-    const tags = await ts
-      .knex('tags')
-      .where({ guild_id: ts.team.id });
+    const tags = await ts.getShownTags();
     const seasons = await ts
       .knex('seasons')
       .where({ guild_id: ts.team.id });
@@ -86,7 +84,7 @@ module.exports = async function (client) {
         ,levels.level_name
         ,levels.status
         ,levels.difficulty
-        ,levels.tags
+        ,COALESCE(group_concat(distinct tags.name order by tags.id),'') tags
         ,levels.videos
         ,levels.created_at
         ,levels.clears
@@ -109,6 +107,10 @@ module.exports = async function (client) {
         AND points.difficulty=levels.difficulty
       INNER JOIN members on
         levels.creator=members.id
+      LEFT JOIN level_tags on
+        levels.id=level_tags.level_id
+      LEFT JOIN tags on
+        level_tags.tag_id=tags.id
       ${registeredSql}
       WHERE
         levels.status IN (:statuses:)
@@ -627,15 +629,15 @@ module.exports = async function (client) {
       const data = await ts
         .knex('tags')
         .select(
-          'id',
-          'name',
-          'synonymous_to',
-          'type',
-          'color',
-          'is_seperate',
-          'add_lock',
-          'remove_lock',
-          'is_hidden',
+          'tags.id',
+          'tags.name',
+          'tags.synonymous_to',
+          'tags.type',
+          'tags.color',
+          'tags.is_seperate',
+          'tags.add_lock',
+          'tags.remove_lock',
+          'tags.is_hidden',
         )
         .where({ guild_id: ts.team.id });
       return { data: ts.secureData(data) };

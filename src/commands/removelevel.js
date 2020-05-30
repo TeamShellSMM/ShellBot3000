@@ -46,6 +46,10 @@ class tsremove extends TSCommand {
       .where({ code });
     await ts.recalculateAfterUpdate({ code });
 
+    if (ts.SHOWN_IN_LIST.indexOf(newStatus) === -1) {
+      await ts.checkTagsForRemoval();
+    }
+
     await ts.deleteDiscussionChannel(level.code, '!tsremove');
 
     // Send updates to to #shellbot-level-update

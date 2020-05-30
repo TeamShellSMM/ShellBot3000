@@ -1,23 +1,29 @@
 describe('!addtags,!removetags', () => {
   beforeEach(async () => {
-    await TEST.setupData({
-      Members: [
+    TEST.ts.teamVariables.whitelistedTagsOnly = 'false';
+    await TEST.clearDb();
+    await TEST.setupKnex({
+      members: [
         {
+          guild_id: 1,
           name: 'Mod',
           discord_id: '128',
           is_mod: 1,
         },
         {
+          guild_id: 1,
           name: 'Creator',
           discord_id: '256',
         },
         {
+          guild_id: 1,
           name: 'Other',
           discord_id: '512',
         },
       ],
-      Levels: [
+      levels: [
         {
+          guild_id: 1,
           level_name: 'approved level',
           creator: 2,
           code: 'XXX-XXX-XXX',
@@ -25,6 +31,7 @@ describe('!addtags,!removetags', () => {
           difficulty: 1,
         },
         {
+          guild_id: 1,
           level_name: 'pending level',
           creator: 2,
           code: 'XXX-XXX-XX2',
@@ -33,6 +40,7 @@ describe('!addtags,!removetags', () => {
           tags: 'removetag1,tag2,removetag3,all_locked,remove_locked',
         },
         {
+          guild_id: 1,
           level_name: 'pending level2',
           creator: 2,
           code: 'XXX-XXX-XX3',
@@ -41,54 +49,55 @@ describe('!addtags,!removetags', () => {
           tags: 'tag2',
         },
       ],
+      tags: [
+        {
+          guild_id: 1,
+          admin_id: 1,
+          name: 'tag1',
+          type: 'success',
+          is_seperate: null,
+          add_lock: null,
+          remove_lock: null,
+        },
+        {
+          guild_id: 1,
+          admin_id: 1,
+          name: 'tag2',
+          type: 'success',
+          is_seperate: null,
+          add_lock: null,
+          remove_lock: null,
+        },
+        {
+          guild_id: 1,
+          admin_id: 1,
+          name: 'seperate',
+          type: 'warning',
+          is_seperate: 1,
+          add_lock: null,
+          remove_lock: null,
+        },
+        {
+          guild_id: 1,
+          admin_id: 1,
+          name: 'all_locked',
+          type: 'success',
+          is_seperate: null,
+          add_lock: 1,
+          remove_lock: 1,
+        },
+        {
+          guild_id: 1,
+          admin_id: 1,
+          name: 'remove_locked',
+          type: 'success',
+          is_seperate: null,
+          add_lock: null,
+          remove_lock: 1,
+        },
+      ],
     });
-    await TEST.knex('tags').insert([
-      {
-        guild_id: 1,
-        admin_id: 1,
-        name: 'tag1',
-        type: 'success',
-        is_seperate: null,
-        add_lock: null,
-        remove_lock: null,
-      },
-      {
-        guild_id: 1,
-        admin_id: 1,
-        name: 'tag2',
-        type: 'success',
-        is_seperate: null,
-        add_lock: null,
-        remove_lock: null,
-      },
-      {
-        guild_id: 1,
-        admin_id: 1,
-        name: 'seperate',
-        type: 'warning',
-        is_seperate: 1,
-        add_lock: null,
-        remove_lock: null,
-      },
-      {
-        guild_id: 1,
-        admin_id: 1,
-        name: 'all_locked',
-        type: 'success',
-        is_seperate: null,
-        add_lock: 1,
-        remove_lock: 1,
-      },
-      {
-        guild_id: 1,
-        admin_id: 1,
-        name: 'remove_locked',
-        type: 'success',
-        is_seperate: null,
-        add_lock: null,
-        remove_lock: 1,
-      },
-    ]);
+    await TEST.ts.load();
   });
 
   it('!addtag no code given', async () => {
@@ -122,14 +131,16 @@ describe('!addtags,!removetags', () => {
       }),
       '<@256> Tags added for "approved level" by "Creator" \nCurrent tags:```\ntag1\ntag2\ntag3```',
     );
-    const level = await TEST.ts.db.Levels.query()
-      .where({ code: 'XXX-XXX-XXX' })
-      .first();
-    assert.equal(level.tags, 'tag1,tag2,tag3');
+    const tags = await TEST.knex('level_tags')
+      .where({ guild_id: 1 })
+      .where({ level_id: 1 });
+    assert.deepEqual(
+      tags.map((t) => t.tag_id),
+      [1, 2, 8],
+    );
   });
 
   it('!addtag whitelisted tags not mod', async () => {
-    const oldVal = TEST.ts.teamVariables.whitelistedTagsOnly;
     TEST.ts.teamVariables.whitelistedTagsOnly = 'true';
     assert.equal(
       await TEST.mockBotSend({
@@ -139,13 +150,11 @@ describe('!addtags,!removetags', () => {
       }),
       '`tag3` is not a tag that has been whitelisted. ',
     );
-    TEST.ts.teamVariables.whitelistedTagsOnly = oldVal;
   });
 
   it('!addtag whitelisted tags mod', async () => {
     const modOnly = sinon.stub(TEST.ts, 'modOnly');
     modOnly.returns(true);
-    const oldVal = TEST.ts.teamVariables.whitelistedTagsOnly;
     TEST.ts.teamVariables.whitelistedTagsOnly = 'true';
     const result = await TEST.mockBotSend({
       cmd: '!addtags xxx-xxx-xxx tag1,tag2,tag3',
@@ -157,11 +166,10 @@ describe('!addtags,!removetags', () => {
       result,
       '<@128> Tags added for "approved level" by "Creator" \nCurrent tags:```\ntag1\ntag2\ntag3```',
     );
-    TEST.ts.teamVariables.whitelistedTagsOnly = oldVal;
   });
 
   it('!addtag success no existing tags', async () => {
-    const getTags = sinon.stub(TEST.ts, 'getTags');
+    await TEST.clearTable('tags');
     assert.equal(
       await TEST.mockBotSend({
         cmd: '!addtags xxx-xxx-xxx tag1,tag2,tag3',
@@ -170,12 +178,13 @@ describe('!addtags,!removetags', () => {
       }),
       '<@256> Tags added for "approved level" by "Creator" \nCurrent tags:```\ntag1\ntag2\ntag3```',
     );
-    sinon.assert.calledOnce(getTags);
-    getTags.restore();
-    const level = await TEST.ts.db.Levels.query()
-      .where({ code: 'XXX-XXX-XXX' })
-      .first();
-    assert.equal(level.tags, 'tag1,tag2,tag3');
+    const tags = await TEST.knex('level_tags')
+      .where({ guild_id: 1 })
+      .where({ level_id: 1 });
+    assert.deepEqual(
+      tags.map((t) => t.tag_id),
+      [1, 2, 3],
+    );
   });
 
   it('!addtag new-tag with space after comma', async () => {
@@ -187,10 +196,13 @@ describe('!addtags,!removetags', () => {
       }),
       '<@256> Tags added for "approved level" by "Creator" \nCurrent tags:```\ntag1\nnew-tag```',
     );
-    const level = await TEST.ts.db.Levels.query()
-      .where({ code: 'XXX-XXX-XXX' })
-      .first();
-    assert.equal(level.tags, 'tag1,new-tag');
+    const tags = await TEST.knex('level_tags')
+      .where({ guild_id: 1 })
+      .where({ level_id: 1 });
+    assert.deepEqual(
+      tags.map((t) => t.tag_id),
+      [1, 8],
+    );
   });
 
   it('!addtag new-tag with 2 spaces after code', async () => {
@@ -200,21 +212,32 @@ describe('!addtags,!removetags', () => {
         channel: 'general',
         discord_id: '256',
       }),
-      '<@256> Tags added for "approved level" by "Creator" \nCurrent tags:```\nnew-tag\ntag1```',
+      '<@256> Tags added for "approved level" by "Creator" \nCurrent tags:```\ntag1\nnew-tag```',
     );
-    const level = await TEST.ts.db.Levels.query()
-      .where({ code: 'XXX-XXX-XXX' })
-      .first();
-    assert.equal(level.tags, 'new-tag,tag1');
+    const tags = await TEST.knex('level_tags')
+      .where({ guild_id: 1 })
+      .where({ level_id: 1 });
+    assert.deepEqual(
+      tags.map((t) => t.tag_id),
+      [1, 8],
+    );
   });
 
   it('!addtag none added', async () => {
+    const reply = await TEST.mockBotSend({
+      cmd: '!addtags XXX-XXX-XX2 tag2',
+      channel: 'general',
+      discord_id: '256',
+    });
+    const tags = await TEST.knex('level_tags')
+      .where({ guild_id: 1 })
+      .where({ level_id: 2 });
+    assert.deepEqual(
+      tags.map((t) => t.tag_id),
+      [6, 2, 7, 4, 5],
+    );
     assert.equal(
-      await TEST.mockBotSend({
-        cmd: '!addtags XXX-XXX-XX2 tag2',
-        channel: 'general',
-        discord_id: '256',
-      }),
+      reply,
       'No new tags added for "pending level" by "Creator"\nCurrent tags:```\nremovetag1\ntag2\nremovetag3\nall_locked\nremove_locked``` ',
     );
   });
@@ -239,13 +262,18 @@ describe('!addtags,!removetags', () => {
       }),
       '<@256> Tags removed for "pending level" by "Creator "\nCurrent tags:```\ntag2\nall_locked\nremove_locked```',
     );
-    const level = await TEST.ts.db.Levels.query()
-      .where({ code: 'XXX-XXX-XX2' })
-      .first();
-    assert.equal(level.tags, 'tag2,all_locked,remove_locked');
+    const tags = await TEST.knex('level_tags')
+      .where({ guild_id: 1 })
+      .where({ level_id: 2 });
+    assert.deepEqual(
+      tags.map((t) => t.tag_id),
+      [2, 4, 5],
+    );
   });
 
   it('!removetag success by mod', async () => {
+    const modOnly = sinon.stub(TEST.ts, 'modOnly');
+    modOnly.returns(true);
     assert.equal(
       await TEST.mockBotSend({
         cmd: '!removetags XXX-XXX-XX2 removetag1,removetag3',
@@ -254,10 +282,14 @@ describe('!addtags,!removetags', () => {
       }),
       '<@128> Tags removed for "pending level" by "Creator "\nCurrent tags:```\ntag2\nall_locked\nremove_locked```',
     );
-    const level = await TEST.ts.db.Levels.query()
-      .where({ code: 'XXX-XXX-XX2' })
-      .first();
-    assert.equal(level.tags, 'tag2,all_locked,remove_locked');
+    const tags = await TEST.knex('level_tags')
+      .where({ guild_id: 1 })
+      .where({ level_id: 2 });
+    assert.deepEqual(
+      tags.map((t) => t.tag_id),
+      [2, 4, 5],
+    );
+    modOnly.restore();
   });
 
   it('!removetag fail by other player', async () => {
@@ -269,12 +301,12 @@ describe('!addtags,!removetags', () => {
       }),
       'You can\'t remove tags from "pending level" by "Creator" ',
     );
-    const level = await TEST.ts.db.Levels.query()
-      .where({ code: 'XXX-XXX-XX2' })
-      .first();
-    assert.equal(
-      level.tags,
-      'removetag1,tag2,removetag3,all_locked,remove_locked',
+    const tags = await TEST.knex('level_tags')
+      .where({ guild_id: 1 })
+      .where({ level_id: 2 });
+    assert.deepEqual(
+      tags.map((t) => t.tag_id),
+      [6, 2, 7, 4, 5],
     );
   });
 

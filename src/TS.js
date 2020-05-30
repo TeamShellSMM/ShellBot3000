@@ -169,7 +169,9 @@ class TS {
       }
       this.validDifficulty = validDifficulty;
 
-      const allLevels = await this.getLevels();
+      const allLevels = await this.knex('levels')
+        .where({ guild_id: this.team.id })
+        .whereIn('status', this.SHOWN_IN_LIST);
       let allTags = allLevels.map((l) => l.tags);
       if (allTags.length !== 0) {
         allTags = allTags.reduce((total, t) => `${total},${t}`);
@@ -178,6 +180,37 @@ class TS {
         await this.addTags(allTags, trx);
       });
 
+      const existingLevelTags = await this.knex('level_tags')
+        .select()
+        .where({ guild_id: this.team.id });
+
+      if (existingLevelTags.length === 0) {
+        const existingTags = await this.knex('tags').where({
+          guild_id: this.team.id,
+        });
+        const tagMap = {};
+        existingTags.forEach((r) => {
+          tagMap[this.transformTag(r.name)] = r.id;
+        }, this);
+        const levelTags = [];
+        allLevels.forEach((l) => {
+          if (l.tags) {
+            const tags = l.tags.split(',');
+            tags.forEach((t) => {
+              const ret = {
+                level_id: l.id,
+                tag_id: tagMap[this.transformTag(t)] || -1,
+                guild_id: this.team.id,
+              };
+              levelTags.push(ret);
+            }, this);
+          }
+        }, this);
+        await this.knex.transaction(async (trx) => {
+          await trx('level_tags').insert(levelTags);
+        });
+      }
+      await this.checkTagsForRemoval();
       this.messages = {};
       TS.defaultMessages = {};
       Object.entries(DEFAULTMESSAGES).forEach((v) => {
@@ -273,11 +306,18 @@ class TS {
       return knex('levels')
         .select(
           knex.raw(
-            `levels.*, members.id creator_id,members.name creator`,
+            `levels.*, members.id creator_id,members.name creator,COALESCE(group_concat(tags.name),'') tags`,
           ),
         )
         .join('members', { 'levels.creator': 'members.id' })
-        .where('levels.guild_id', this.team.id);
+        .leftJoin('level_tags', {
+          'levels.id': 'level_tags.level_id',
+        })
+        .leftJoin('tags', {
+          'level_tags.tag_id': 'tags.id',
+        })
+        .where('levels.guild_id', this.team.id)
+        .groupBy('levels.id');
     };
     this.getPlays = () => {
       return knex('plays')
@@ -301,7 +341,7 @@ class TS {
         .join('members as creator_table', {
           'creator_table.id': 'levels.creator',
         })
-        .whereIn('levels.status', ts.SHOWN_IN_LIST)
+        .whereIn('levels.status', this.SHOWN_IN_LIST)
         .where('plays.guild_id', this.team.id);
     };
     this.getPendingVotes = () => {
@@ -1564,6 +1604,11 @@ class TS {
         .patch({ status: statusUpdate, difficulty })
         .where({ code });
       await ts.recalculateAfterUpdate({ code });
+
+      if (ts.SHOWN_IN_LIST.indexOf(statusUpdate) === -1) {
+        await ts.checkTagsForRemoval();
+      }
+
       const mention = this.message('general.heyListen', {
         discord_id: author.discord_id,
       });
@@ -1699,6 +1744,11 @@ class TS {
         })
         .where({ code });
       await ts.recalculateAfterUpdate({ code });
+
+      if (!approve) {
+        await ts.checkTagsForRemoval();
+      }
+
       const mention = this.message('general.heyListen', {
         discord_id: author.discord_id,
       });
@@ -1912,23 +1962,44 @@ class TS {
         .where({
           code: oldCode,
         });
+
       await ts.db.Levels.query()
         .patch({ new_code: newCode })
         .where({ new_code: oldCode });
       if (!newLevel) {
         // if no new level was found create a new level copying over the old data
+
         await ts.db.Levels.query().insert({
           code: newCode,
           level_name: level.level_name,
           creator: level.creator_id,
           difficulty: false,
           status: 0,
-          tags: level.tags,
+          tags: level.tags || '',
         });
         newLevel = await ts
           .getLevels()
           .where({ code: newCode })
           .first();
+
+        let oldTags = await ts
+          .knex('level_tags')
+          .where({ level_id: level.id });
+
+        oldTags = oldTags.map(
+          ({ guild_id, tag_id, user_id, created_at }) => {
+            return {
+              guild_id,
+              tag_id,
+              user_id,
+              created_at,
+              level_id: newLevel.id,
+            };
+          },
+        );
+        await ts.knex.transaction(async (trx) => {
+          await trx('level_tags').insert(oldTags);
+        });
       }
       await ts.db.PendingVotes.query()
         .patch({ code: newLevel.id })
@@ -2143,6 +2214,26 @@ class TS {
     );
   }
 
+  async getLevelTags(levelId) {
+    return this.knex('tags')
+      .join('level_tags', { 'level_tags.tag_id': 'tags.id' })
+      .where({ level_id: levelId });
+  }
+
+  async getShownTags() {
+    return this.knex('tags')
+      .select(knex.raw('tags.*,count(levels.id) num'))
+      .leftJoin('level_tags', {
+        'level_tags.tag_id': 'tags.id',
+      })
+      .leftJoin('levels', {
+        'levels.id': 'level_tags.level_id',
+      })
+      .where({ 'tags.guild_id': this.team.id })
+      .whereIn('levels.status', this.SHOWN_IN_LIST)
+      .groupBy('tags.id');
+  }
+
   /**
    * Parses a message from discord and converts it to an array of words
    * @param {object} message
@@ -2199,7 +2290,7 @@ class TS {
    * @param {string} [discordId]
    * @returns {string[]}  returns an array of tags
    */
-  async addTags(pTags, trx = knex, discordId) {
+  async addTags(pTags, trx = knex, discordId, insertTags = true) {
     let tags = pTags;
     if (!Array.isArray(tags) && typeof tags === 'string')
       tags = tags.split(/[,\n]/);
@@ -2241,11 +2332,27 @@ class TS {
         }
       }
     }
-    if (newTags.length !== 0) {
+    if (newTags.length !== 0 && insertTags) {
       await trx('tags').insert(newTags);
     }
 
     return tags;
+  }
+
+  /**
+   * checks and removes tags that are not being used, is not set by an admin, or has no type
+   */
+  async checkTagsForRemoval() {
+    await this.knex.raw(
+      `DELETE FROM tags WHERE ID in (select tags.id from tags
+      left join level_tags on tags.id=tag_id
+      left join levels on level_tags.level_id=levels.id
+      where (admin_id is null or type is null or type='')
+      and tags.guild_id=:guild_id
+      group by tags.id
+      having count(level_id)=0);`,
+      { guild_id: this.team.id },
+    );
   }
 
   /**
@@ -2312,10 +2419,6 @@ class TS {
       };
       return handlebar(obj);
     };
-  }
-
-  async getTags() {
-    return knex('tags').where({ guild_id: this.team.id });
   }
 
   /**

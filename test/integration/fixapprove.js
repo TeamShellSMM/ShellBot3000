@@ -96,6 +96,7 @@ describe('!fixapprove', function () {
         },
       ],
     });
+    await TEST.ts.load();
   });
 
   it('fixapprove pending not reupload', async () => {

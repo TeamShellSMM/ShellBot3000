@@ -336,7 +336,7 @@ describe('misc-unit', function () {
     });
   });
 
-  it('ts.parseCommand @curr', async () => {
+  it('ts.parseCommand', async () => {
     const result = TEST.ts.parseCommand({
       content: '!addvid xxx-xxx-xxx\n val1,val2',
     });
