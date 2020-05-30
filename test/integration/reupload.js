@@ -322,7 +322,7 @@ describe('!reupload', function () {
     );
   });
 
-  it('creator successful reupload pending level with just enough points @curr', async () => {
+  it('creator successful reupload pending level with just enough points', async () => {
     await TEST.clearChannels();
     TEST.ts.teamVariables['New Level'] = 1;
     await TEST.ts.db.Members.query()

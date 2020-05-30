@@ -928,8 +928,8 @@ class TS {
             listUsed,
           );
           if (match.bestMatch && match.bestMatch.rating >= 0.6) {
-            matchStr = ts.message('level.didYouMean', {
-              level_info: allLevels[match.bestMatch.target],
+            matchStr = ts.message('general.didYouMean', {
+              info: allLevels[match.bestMatch.target],
             });
           }
         }
@@ -1035,11 +1035,12 @@ class TS {
       const max = Math.floor(pMax);
       return Math.floor(Math.random() * (max - min)) + min; // The maximum is exclusive and the minimum is inclusive
     };
+
     /**
      * Gets a random level based on plays of the player/passed players and difficulty
      */
     this.randomLevel = async function (args) {
-      const { discord_id, players } = args;
+      const { discord_id, players, tag } = args;
       let { minDifficulty, maxDifficulty } = args;
       if (minDifficulty && !ts.valid_difficulty(minDifficulty)) {
         ts.userError(
@@ -1058,6 +1059,14 @@ class TS {
         const temp = maxDifficulty;
         maxDifficulty = minDifficulty;
         minDifficulty = temp;
+      }
+
+      let tagSql =
+        'AND (tags.is_seperate!=1 or tags.is_seperate is null)';
+      let tagId;
+      if (tag) {
+        tagId = (await this.findTag(tag)).id;
+        tagSql = 'AND tags.id=:tagId';
       }
 
       let playerIds;
@@ -1101,7 +1110,7 @@ class TS {
 
         if (!maxDifficulty) {
           minDifficulty = 0.5;
-          maxDifficulty = 100;
+          maxDifficulty = this.teamVariables.maxDifficulty || 10;
         }
       }
 
@@ -1122,6 +1131,7 @@ class TS {
         team_id: ts.team.id,
         min,
         max,
+        tagId,
         players: playerIds,
       };
       const [filteredLevels] = await knex.raw(
@@ -1129,6 +1139,8 @@ class TS {
     SELECT levels.*,members.name creator from
     levels
     inner join members on levels.creator=members.id
+    left join level_tags on levels.id=level_tags.level_id
+    left join tags on tags.id=level_tags.tag_id
     ${playsSQL1}
     where status=1
     ${playsSQL2}
@@ -1136,6 +1148,7 @@ class TS {
     and ( levels.not_default is null or levels.not_default!=1 )
     and levels.difficulty between :min and :max
     ${playsSQL3}
+    ${tagSql}
     group by levels.id
     order by likes;`,
         par,
@@ -1144,7 +1157,8 @@ class TS {
         ts.userError(
           ts.message('random.outOfLevels', {
             range: min === max ? min : `${min}-${max}`,
-          }),
+          }) +
+            (tag ? ts.message('random.outOfLevelsTag', { tag }) : ''),
         );
       }
       const borderLine = Math.floor(filteredLevels.length * 0.6);
@@ -2222,7 +2236,11 @@ class TS {
 
   async getShownTags() {
     return this.knex('tags')
-      .select(knex.raw('tags.*,count(levels.id) num'))
+      .select(
+        knex.raw(
+          `tags.*,regexp_replace(lower(name),'[^a-z0-9]','') tagComp,count(levels.id) num`,
+        ),
+      )
       .leftJoin('level_tags', {
         'level_tags.tag_id': 'tags.id',
       })
@@ -2281,6 +2299,34 @@ class TS {
    */
   transformTag(str) {
     return str.toLowerCase().replace(/[^a-z0-9]/g, '');
+  }
+
+  async findTag(tag) {
+    const existingTags = await this.getShownTags();
+    if (existingTags.length === 0) this.userError('tags.notDefined');
+
+    const foundTag = existingTags.find(function (t) {
+      return t.tagComp === this.transformTag(tag);
+    }, this);
+    if (foundTag) return foundTag;
+    const tagNames = existingTags.map((t) => t.tagComp);
+    const match = stringSimilarity.findBestMatch(
+      this.transformTag(tag),
+      tagNames,
+    );
+    let suggestion = '';
+    if (match.bestMatch && match.bestMatch.rating >= 0.6) {
+      suggestion = this.message('general.didYouMean', {
+        info: existingTags.find(
+          (t) => t.tagComp === match.bestMatch.target,
+        ).name,
+      });
+    }
+
+    return this.userError(
+      `${this.message('tag.notFound', { tag })}\n${suggestion}`,
+    );
+    // @curr
   }
 
   /**

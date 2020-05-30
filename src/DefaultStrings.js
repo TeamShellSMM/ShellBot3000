@@ -21,7 +21,10 @@ module.exports = {
   'login.expiredOTP': 'The OTP password given is already expired',
   'login.noOTP': 'No OTP provided',
 
-  'level.didYouMean': ' Did you mean:```\n{{{level_info}}}```',
+  'general.didYouMean': ' Did you mean:```\n{{{info}}}```',
+  'tag.notFound': "We couldn't find the tag `{{tag}}`",
+  'tag.noTag': "You didn't give a tag",
+  'tags.notDefined': 'There are no tags in the level list',
 
   'error.hadIdButNotInDb':
     'We got a row id, but we could not find it in the database',
@@ -72,6 +75,7 @@ module.exports = {
     '{{player}} is not found in the memory banks',
   'random.outOfLevels':
     'You have ran out of levels in this range ({{range}})',
+  'random.outOfLevelsTag': ' with tag: {{tag}}',
   'random.noPlayersGiven': 'You did not provide any players',
 
   'approval.invalidDifficulty': 'Invalid difficulty format!',

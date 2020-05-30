@@ -487,6 +487,10 @@ before(async () => {
   teamAdmin.restore();
 });
 
+afterEach(async () => {
+  sinon.restore();
+});
+
 describe('Setup test and check teams registration', function () {
   it('Creating discord connection and sending a message', async function () {
     assert.isOk(TEST.client, 'client is okay');
