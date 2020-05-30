@@ -86,7 +86,7 @@ module.exports = async function (client) {
         ,levels.level_name
         ,levels.status
         ,levels.difficulty
-        ,group_concat(distinct tags.name order by tags.id) tags
+        ,COALESCE(group_concat(distinct tags.name order by tags.id),'') tags
         ,levels.videos
         ,levels.created_at
         ,levels.clears

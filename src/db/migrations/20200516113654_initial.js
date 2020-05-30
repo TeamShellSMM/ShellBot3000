@@ -289,7 +289,7 @@ exports.up = function (knex) {
         .references('teams.id')
         .notNull();
 
-      t.string('name').notNull();
+      t.string('name').notNull().index();
       t.string('synonymous_to').nullable();
       t.string('type').nullable();
       t.string('color').nullable();
@@ -297,6 +297,8 @@ exports.up = function (knex) {
       t.boolean('add_lock').nullable();
       t.boolean('remove_lock').nullable();
       t.boolean('is_hidden').nullable();
+
+      t.index(['id', 'name']);
     });
 };
 
