@@ -32,6 +32,8 @@ after(async () => {
   await TEST.knex.destroy();
 });
 
+const RUNNING_COVERAGE = !!process.env.NYC_PROCESS_ID;
+
 before(async () => {
   debugTests('setting up client');
   global.TEST.client = new AkairoClient({
@@ -453,7 +455,9 @@ before(async () => {
     return ret;
   };
 
-  await TEST.initClearChannels();
+  if (RUNNING_COVERAGE) {
+    await TEST.initClearChannels();
+  }
 
   const teamAdmin = sinon.stub(TEST.ts, 'teamAdmin');
   teamAdmin.returns(true);
@@ -463,20 +467,23 @@ before(async () => {
     discord_id: TEST.ts.discord.botId(),
   });
 
-  await TEST.knex('team_settings').where({ type: 'channels' }).del();
+  if (RUNNING_COVERAGE) {
+    await TEST.knex('team_settings')
+      .where({ type: 'channels' })
+      .del();
 
-  await TEST.mockBotSend({
-    cmd: '!initchannels',
-    channel: 'general',
-    discord_id: TEST.ts.discord.botId(),
-  });
+    await TEST.mockBotSend({
+      cmd: '!initchannels',
+      channel: 'general',
+      discord_id: TEST.ts.discord.botId(),
+    });
 
-  await TEST.mockBotSend({
-    cmd: '!initchannels',
-    channel: 'general',
-    discord_id: TEST.ts.discord.botId(),
-  });
-
+    await TEST.mockBotSend({
+      cmd: '!initchannels',
+      channel: 'general',
+      discord_id: TEST.ts.discord.botId(),
+    });
+  }
   teamAdmin.restore();
 });
 
