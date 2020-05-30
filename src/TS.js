@@ -169,10 +169,9 @@ class TS {
       }
       this.validDifficulty = validDifficulty;
 
-      const allLevels = await this.getLevels().whereIn(
-        'status',
-        this.SHOWN_IN_LIST,
-      );
+      const allLevels = await this.knex('levels')
+        .where({ guild_id: this.team.id })
+        .whereIn('status', this.SHOWN_IN_LIST);
       let allTags = allLevels.map((l) => l.tags);
       if (allTags.length !== 0) {
         allTags = allTags.reduce((total, t) => `${total},${t}`);
@@ -211,13 +210,7 @@ class TS {
           await trx('level_tags').insert(levelTags);
         });
       }
-      const dbTags = (
-        await this.knex('tags').where({ guild_id: this.team.id })
-      ).map((x) => x.name);
-      await knex.transaction(async (trx) => {
-        await this.checkTagsForRemoval(dbTags, trx);
-      });
-
+      await this.checkTagsForRemoval();
       this.messages = {};
       TS.defaultMessages = {};
       Object.entries(DEFAULTMESSAGES).forEach((v) => {
@@ -348,7 +341,7 @@ class TS {
         .join('members as creator_table', {
           'creator_table.id': 'levels.creator',
         })
-        .whereIn('levels.status', ts.SHOWN_IN_LIST)
+        .whereIn('levels.status', this.SHOWN_IN_LIST)
         .where('plays.guild_id', this.team.id);
     };
     this.getPendingVotes = () => {
@@ -1613,7 +1606,7 @@ class TS {
       await ts.recalculateAfterUpdate({ code });
 
       if (ts.SHOWN_IN_LIST.indexOf(statusUpdate) === -1) {
-        ts.checkTagsForRemoval(level.tags, ts.knex);
+        await ts.checkTagsForRemoval();
       }
 
       const mention = this.message('general.heyListen', {
@@ -1753,7 +1746,7 @@ class TS {
       await ts.recalculateAfterUpdate({ code });
 
       if (!approve) {
-        ts.checkTagsForRemoval(level.tags, ts.knex);
+        await ts.checkTagsForRemoval();
       }
 
       const mention = this.message('general.heyListen', {
@@ -2227,6 +2220,20 @@ class TS {
       .where({ level_id: levelId });
   }
 
+  async getShownTags() {
+    return this.knex('tags')
+      .select(knex.raw('tags.*,count(levels.id) num'))
+      .leftJoin('level_tags', {
+        'level_tags.tag_id': 'tags.id',
+      })
+      .leftJoin('levels', {
+        'levels.id': 'level_tags.level_id',
+      })
+      .where({ 'tags.guild_id': this.team.id })
+      .whereIn('levels.status', this.SHOWN_IN_LIST)
+      .groupBy('tags.id');
+  }
+
   /**
    * Parses a message from discord and converts it to an array of words
    * @param {object} message
@@ -2333,58 +2340,19 @@ class TS {
   }
 
   /**
-   * Add tags to database if doesn't exist
-   * @param {string|string[]} tags Can pass a comma seperated string or an array of strings
-   * @param {knex} [trx] a transaction object
-   * @param {string} [discordId]
-   * @returns {string[]}  returns an array of tags that were removed
+   * checks and removes tags that are not being used, is not set by an admin, or has no type
    */
-  async checkTagsForRemoval(pTags, trx = knex) {
-    console.log('checking tags', pTags);
-    let tags = pTags;
-    if (!Array.isArray(tags) && typeof tags === 'string')
-      tags = tags.split(/[,\n]/);
-    if (!Array.isArray(tags))
-      throw TypeError('not a string or array of strings');
-
-    const checkTags = await trx('tags')
-      .where({
-        guild_id: this.team.id,
-      })
-      .whereIn('name', tags);
-
-    const removeTags = [];
-    const removeTagIds = [];
-    for (const checkTag of checkTags) {
-      const existingLevelTags = await this.knex('level_tags')
-        .join('levels', 'level_tags.level_id', '=', 'levels.id')
-        .select()
-        .where({ 'level_tags.guild_id': this.team.id })
-        .where('level_tags.tag_id', checkTag.id)
-        .whereIn('levels.status', this.SHOWN_IN_LIST);
-
-      if (!(existingLevelTags && existingLevelTags.length > 0)) {
-        removeTags.push(checkTag.name);
-        removeTagIds.push(checkTag.id);
-      }
-    }
-    if (removeTags.length > 0) {
-      console.log('removing unused tags: ', removeTags);
-      await trx('level_tags')
-        .where({
-          guild_id: this.team.id,
-        })
-        .whereIn('tag_id', removeTagIds)
-        .del();
-      await trx('tags')
-        .where({
-          guild_id: this.team.id,
-        })
-        .whereIn('name', removeTags)
-        .del();
-    }
-
-    return removeTags;
+  async checkTagsForRemoval() {
+    await this.knex.raw(
+      `DELETE FROM tags WHERE ID in (select tags.id from tags
+      left join level_tags on tags.id=tag_id
+      left join levels on level_tags.level_id=levels.id
+      where (admin_id is null or type is null or type='')
+      and tags.guild_id=:guild_id
+      group by tags.id
+      having count(level_id)=0);`,
+      { guild_id: this.team.id },
+    );
   }
 
   /**

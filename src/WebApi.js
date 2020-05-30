@@ -38,18 +38,7 @@ module.exports = async function (client) {
         });
     }
 
-    const tags = await ts
-      .knex('tags')
-      .select(knex.raw('tags.*,count(levels.id) num'))
-      .leftJoin('level_tags', {
-        'level_tags.tag_id': 'tags.id',
-      })
-      .leftJoin('levels', {
-        'levels.id': 'level_tags.level_id',
-      })
-      .where({ 'tags.guild_id': ts.team.id })
-      .whereIn('levels.status', ts.SHOWN_IN_LIST)
-      .groupBy('tags.id');
+    const tags = await ts.getShownTags();
     const seasons = await ts
       .knex('seasons')
       .where({ guild_id: ts.team.id });

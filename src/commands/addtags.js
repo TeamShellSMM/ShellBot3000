@@ -38,7 +38,6 @@ class TSAddtags extends TSCommand {
       ts.userError(ts.message('tags.noTags'));
     }
     newTags = newTags.split(/[,\n]/);
-    const argTags = newTags;
 
     const player = await ts.getUser(message);
     const level = await ts.getExistingLevel(code);
@@ -151,7 +150,7 @@ class TSAddtags extends TSCommand {
     const updatedTags = await ts.getLevelTags(level.id);
 
     if (addCommands.indexOf(command.command) === -1) {
-      await ts.checkTagsForRemoval(argTags, ts.knex);
+      await ts.checkTagsForRemoval();
     }
 
     await ts.discord.messageSend(

@@ -46,8 +46,8 @@ class tsremove extends TSCommand {
       .where({ code });
     await ts.recalculateAfterUpdate({ code });
 
-    if(ts.SHOWN_IN_LIST.indexOf(newStatus) === -1){
-      ts.checkTagsForRemoval(level.tags, ts.knex);
+    if (ts.SHOWN_IN_LIST.indexOf(newStatus) === -1) {
+      await ts.checkTagsForRemoval();
     }
 
     await ts.deleteDiscussionChannel(level.code, '!tsremove');
