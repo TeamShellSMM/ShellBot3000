@@ -40,7 +40,16 @@ module.exports = async function (client) {
 
     const tags = await ts
       .knex('tags')
-      .where({ guild_id: ts.team.id });
+      .select(knex.raw('tags.*,count(levels.id) num'))
+      .leftJoin('level_tags', {
+        'level_tags.tag_id': 'tags.id',
+      })
+      .leftJoin('levels', {
+        'levels.id': 'level_tags.level_id',
+      })
+      .where({ 'tags.guild_id': ts.team.id })
+      .whereIn('levels.status', ts.SHOWN_IN_LIST)
+      .groupBy('tags.id');
     const seasons = await ts
       .knex('seasons')
       .where({ guild_id: ts.team.id });
@@ -631,15 +640,15 @@ module.exports = async function (client) {
       const data = await ts
         .knex('tags')
         .select(
-          'id',
-          'name',
-          'synonymous_to',
-          'type',
-          'color',
-          'is_seperate',
-          'add_lock',
-          'remove_lock',
-          'is_hidden',
+          'tags.id',
+          'tags.name',
+          'tags.synonymous_to',
+          'tags.type',
+          'tags.color',
+          'tags.is_seperate',
+          'tags.add_lock',
+          'tags.remove_lock',
+          'tags.is_hidden',
         )
         .where({ guild_id: ts.team.id });
       return { data: ts.secureData(data) };
