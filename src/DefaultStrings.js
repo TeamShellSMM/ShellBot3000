@@ -10,20 +10,20 @@ module.exports = {
 • You can submit a level by using \`!add LEV-ELC-ODE level name\``,
 
   'ko.help': `
-  • 활동을 하려면 {{{registrationChannel}}} 에서 \`!register\` 를 사용하여 먼저 등록해야합니다.
-  • 레벨 목록을 보려면 {{TeamURI}}/levels 로 이동하십시오.
-  • 이제 \`!clear LEV-ELC-ODE\` 를 사용하여 레벨 클리어를 제출할 수 있습니다
-  • 당신은 또한 \`!login\` 을 할 수 있고 사이트에서 당신의 레벨 클리어를 제출할 수 있습니다
-  • \`!add LEV-ELC-ODE level name\` 을 사용하여 레벨을 제출할 수 있습니다.
+• 활동을 하려면 {{{registrationChannel}}} 에서 \`!register\` 를 사용하여 먼저 등록해야합니다.
+• 레벨 목록을 보려면 {{TeamURI}}/levels 로 이동하십시오.
+• 이제 \`!clear LEV-ELC-ODE\` 를 사용하여 레벨 클리어를 제출할 수 있습니다
+• 당신은 또한 \`!login\` 을 할 수 있고 사이트에서 당신의 레벨 클리어를 제출할 수 있습니다
+• \`!add LEV-ELC-ODE level name\` 을 사용하여 레벨을 제출할 수 있습니다.
 
 이것은 기계 번역입니다. 번역이 틀렸다면 알려주십시오. <:SpigRobo:628051703320805377>`,
 
   'de.help': `
-•Um irgendetwas zu tun musst du dich erst registrieren, indem du \`!register\` in dem {{{registrationChannel}}} Channel.
-•Um eine Liste mit allen Leveln zu bekommen geh zu {{TeamURI}}/levels.
-•Dann kannst du deine Abgeschlossenen Level einreichen mit \`!clear LEV-ELC-ODE\`
-•Du kannst auch \`!login\` benutzen und deine abgeschlossenen Level auf der Seite einreichen. 
-•Du kannst dein eigenes Level einreichen mit \`!add LEV-ELC-ODE\`
+• Bevor Du etwas tun kannst, musst Du dich zuerst registrieren, indem Du \`!register\` in dem {{{registrationChannel}}} channel benutzt.
+• Ein Liste mit allen Leveln findest Du unter {{TeamURI}}/levels.
+• Anschließend kannst Du den Abschluss eines Levels mit \`!clear LEV-ELC-ODE\` übermitteln.
+• Du kannst auch \`!login\` benutzen und den Abschluss des Levels auf der Seite bestätigen. 
+• Du kannst dein eigenes Level mit \`!add LEV-ELC-ODE\` einreichen.
 `,
 
   'website.loggedin': 'Your account was logged in on the website.',
