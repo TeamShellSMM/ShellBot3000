@@ -3,20 +3,23 @@ const TSCommand = require('../TSCommand.js');
 class TSHelp extends TSCommand {
   constructor() {
     super('help', {
-      aliases: ['help', 'commands', 'command', 'man', '?'],
+      aliases: ['help', '?'],
       args: [
         {
-          id: 'command',
+          id: 'language',
           type: 'string',
-          default: null,
+          default: '',
         },
       ],
       channelRestriction: 'guild',
     });
   }
 
-  async tsexec(ts, message) {
-    await ts.discord.reply(message, ts.message('help.basic'));
+  async tsexec(ts, message, { language }) {
+    await ts.discord.messageSend(
+      message,
+      ts.message(`${ts.languageCode(language)}help`),
+    );
   }
 }
 module.exports = TSHelp;

@@ -2293,6 +2293,22 @@ class TS {
   }
 
   /**
+   * get the language modifer
+   */
+  languageCode(language) {
+    const synonymousLanguages = {
+      ko: 'ko',
+      korean: 'ko',
+      korea: 'ko',
+    };
+
+    const languageSelected =
+      synonymousLanguages[language.toLowerCase()] || '';
+
+    return languageSelected ? `${languageSelected}.` : '';
+  }
+
+  /**
    * Function to convert a tag to lowercase, and stripped of all special characters for comparison
    * @param {string} str tag to be tranformed
    * @returns {string}
