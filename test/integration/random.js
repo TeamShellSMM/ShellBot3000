@@ -106,7 +106,7 @@ describe('!random / !playersRandom', function () {
     );
   });
 
-  it('!randomtag nothing @curr', async function () {
+  it('!randomtag nothing', async function () {
     const result = await TEST.mockBotSend({
       cmd: '!randomtag',
       channel: 'general',
@@ -146,7 +146,7 @@ describe('!random / !playersRandom', function () {
     );
   });
 
-  it('!randomtag ran out of levels @curr', async function () {
+  it('!randomtag ran out of levels', async function () {
     await TEST.ts.load();
     const result = await TEST.mockBotSend({
       cmd: '!randomtag tag1',

@@ -140,6 +140,31 @@ describe('!addtags,!removetags', () => {
     );
   });
 
+  it('!addtag in channel', async () => {
+    const getChannel = sinon.stub(
+      TEST.ts.discord,
+      'messageGetChannelName',
+    );
+    getChannel.returns('xxx-xxx-xxx');
+    assert.equal(
+      await TEST.mockBotSend({
+        cmd: '!addtags tag1,tag2,tag3',
+        channel: 'general',
+        discord_id: '256',
+      }),
+      '<@256> Tags added for "approved level" by "Creator" \nCurrent tags:```\ntag1\ntag2\ntag3```',
+    );
+    const tags = await TEST.knex('level_tags')
+      .where({ guild_id: 1 })
+      .where({ level_id: 1 });
+    assert.deepEqual(
+      tags.map((t) => t.tag_id),
+      [1, 2, 8],
+    );
+
+    getChannel.restore();
+  });
+
   it('!addtag whitelisted tags not mod', async () => {
     TEST.ts.teamVariables.whitelistedTagsOnly = 'true';
     assert.equal(

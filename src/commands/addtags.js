@@ -26,7 +26,15 @@ class TSAddtags extends TSCommand {
     ];
 
     const command = ts.parseCommand(message);
-    let code = command.arguments.shift();
+    // Check if in level discussion channel
+
+    let code;
+    if (ts.validCode(ts.discord.messageGetChannelName(message))) {
+      code = ts.discord.messageGetChannelName(message).toUpperCase();
+    } else {
+      code = command.arguments.shift();
+    }
+
     if (code) {
       code = code.toUpperCase();
     } else {

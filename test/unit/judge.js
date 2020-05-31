@@ -323,7 +323,7 @@ describe('judge:processVotes', function () {
       );
     });
 
-    it('3 approve needed, 2 fix needed, 2 approves=not enough votes @curr', async () => {
+    it('3 approve needed, 2 fix needed, 2 approves=not enough votes', async () => {
       assert.throws(
         () =>
           TEST.ts.processVotes({
