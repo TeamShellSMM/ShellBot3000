@@ -1464,7 +1464,7 @@ class TS {
       } = args;
       let { approvalVotesNeeded = 0, fixVotesNeeded = 0 } = args;
       const fixAndApproveVoteCount =
-        fixVotesCount + approvalVotesCount;
+        fixVotesCount > 0 ? fixVotesCount + approvalVotesCount : 0;
       const VotesNeeded = parseInt(ts.teamVariables.VotesNeeded, 10);
       approvalVotesNeeded =
         approvalVotesNeeded ||

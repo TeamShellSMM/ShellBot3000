@@ -322,6 +322,19 @@ describe('judge:processVotes', function () {
         TEST.ts.LEVEL_STATUS.NEED_FIX,
       );
     });
+
+    it('3 approve needed, 2 fix needed, 2 approves=not enough votes @curr', async () => {
+      assert.throws(
+        () =>
+          TEST.ts.processVotes({
+            approvalVotesNeeded: 3,
+            fixVotesNeeded: 2,
+            approvalVotesCount: 2,
+          }),
+        TEST.ts.UserError,
+        TEST.ts.message('approval.numVotesNeeded'),
+      );
+    });
   });
 });
 
