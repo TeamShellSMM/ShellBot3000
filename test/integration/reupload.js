@@ -336,7 +336,7 @@ describe('!reupload', function () {
         channel: 'general',
         discord_id: '64',
       }),
-      'You need 1.0 more point to upload a new level . Check how the points are mapped on http://localhost:8080//makerteam ',
+      'You need 1.0 more point to upload a new level . Check how the points are mapped on http://localhost:8080/makerteam ',
     );
 
     assert.notExists(

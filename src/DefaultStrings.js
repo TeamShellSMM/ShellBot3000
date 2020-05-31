@@ -4,19 +4,27 @@
 module.exports = {
   help: `
 • To do anything, you will have to register first by using \`!register\` in the right channel.
-• To get a list of levels go to SITE_URL/levels.
+• To get a list of levels go to {{TeamURI}}/levels.
 • Then you can now submit your clears of level by using \`!clear LEV-ELC-ODE\`
 • You can also \`!login\` and submit your clears in the site
 • You can submit a level by using \`!add LEV-ELC-ODE level name\``,
 
   'ko.help': `
 • 무엇이든하려면 오른쪽 채널에서 \`!register\` 를 사용하여 먼저 등록해야합니다.
-• 레벨 목록을 보려면 SITE_URL/levels 로 이동하십시오.
+• 레벨 목록을 보려면 {{TeamURI}}/levels 로 이동하십시오.
 • 이제 \`!clear LEV-ELC-OD\` 를 사용하여 레벨 클리어를 제출할 수 있습니다
 • 당신은 또한 \`!login\` 을 할 수 있고 사이트에서 당신의 비운을 제출할 수 있습니다
 • \`!add LEV-ELC-ODE level name\` 을 사용하여 레벨을 제출할 수 있습니다.
 
 이것은 기계 번역입니다. 번역이 틀렸다면 알려주십시오. <:SpigRobo:628051703320805377>`,
+
+  'de.help': `
+•Um irgendetwas zu tun musst du dich erst registrieren, indem du \`!register\` in dem richtigen Channel benutzt.
+•Um eine Liste mit allen Leveln zu bekommen geh zu {{TeamURI}}/levels.
+•Dann kannst du deine Abgeschlossenen Level einreichen mit \`!clear LEV-ELC-ODE\`
+•Du kannst auch \`!login\` benutzen und deine abgeschlossenen Level auf der Seite einreichen. 
+•Du kannst dein eigenes Level einreichen mit \`!add LEV-ELC-ODE\`
+`,
 
   'website.loggedin': 'Your account was logged in on the website.',
   'website.tokenError': 'Token expired. Need to relogin',
@@ -282,7 +290,7 @@ module.exports = {
   'points.canUpload':
     'You have enough points to upload a level {{{PigChamp}}}',
   'points.cantUpload':
-    'You need {{1dp points_needed}} more point{{plural points_needed}} to upload a new level {{{buzzyS}}}. Check how the points are mapped on {{teamurl}}',
+    'You need {{1dp points_needed}} more point{{plural points_needed}} to upload a new level {{{buzzyS}}}. Check how the points are mapped on {{TeamURI}}',
   'points.rank':
     ' You have earned the rank **{{player.rank.rank}}** {{{player.rank.pips}}}',
 

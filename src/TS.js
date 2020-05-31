@@ -136,8 +136,8 @@ class TS {
       this.channels = {};
       this.customStrings = {
         levelInfo: '@@LEVELPLACEHOLDER@@',
-        teamurl: `${ts.page_url}/${this.url_slug}`,
         BotName: 'ShellBot3000',
+        TeamURI: `${ts.page_url}${this.url_slug}`,
       };
 
       const data = await knex('team_settings')
@@ -2300,6 +2300,9 @@ class TS {
       ko: 'ko',
       korean: 'ko',
       korea: 'ko',
+      de: 'de',
+      german: 'de',
+      ger: 'de',
     };
 
     const languageSelected =

@@ -168,7 +168,7 @@ describe('!points', function () {
         channel: 'general',
         discord_id: '128',
       }),
-      '<@128> You have 1.0 clear point. You have submitted 0 levels .You need 9.0 more points to upload a new level . Check how the points are mapped on http://localhost:8080//makerteam You have earned the rank **no rank** ',
+      '<@128> You have 1.0 clear point. You have submitted 0 levels .You need 9.0 more points to upload a new level . Check how the points are mapped on http://localhost:8080/makerteam You have earned the rank **no rank** ',
     );
   });
 
@@ -186,7 +186,7 @@ describe('!points', function () {
         channel: 'general',
         discord_id: '128',
       }),
-      '<@128> You have 5.0 clear points. You have submitted 0 levels .You need 5.0 more points to upload a new level . Check how the points are mapped on http://localhost:8080//makerteam You have earned the rank **rank1** ',
+      '<@128> You have 5.0 clear points. You have submitted 0 levels .You need 5.0 more points to upload a new level . Check how the points are mapped on http://localhost:8080/makerteam You have earned the rank **rank1** ',
     );
 
     sinon.assert.calledOnce(addRole);
