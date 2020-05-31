@@ -113,6 +113,14 @@ const defaultVariables = Object.freeze([
       "What the bot will refer to itself in it's responses",
   },
   {
+    name: 'RegistrationChannel',
+    caption: 'Registration Channel',
+    default: 'registration',
+    type: 'text',
+    description:
+      'The channel which ShellBot will suggest where registration should be done',
+  },
+  {
     name: 'Minimum Point',
     caption: 'First Level Points',
     default: 0,

@@ -136,7 +136,11 @@ describe('misc-integration', () => {
     });
     assert.equal(
       result,
-      '\n• To do anything, you will have to register first by using `!register` in the right channel.\n• To get a list of levels go to http://localhost:8080/makerteam/levels.\n• Then you can now submit your clears of level by using `!clear LEV-ELC-ODE`\n• You can also `!login` and submit your clears in the site\n• You can submit a level by using `!add LEV-ELC-ODE level name`',
+      TEST.ts.message(`help`, {
+        registrationChannel: TEST.ts.discord.channel(
+          TEST.ts.teamVariables.RegistrationChannel,
+        ),
+      }),
     );
   });
 
@@ -148,7 +152,11 @@ describe('misc-integration', () => {
     });
     assert.equal(
       result,
-      '\n• To do anything, you will have to register first by using `!register` in the right channel.\n• To get a list of levels go to http://localhost:8080/makerteam/levels.\n• Then you can now submit your clears of level by using `!clear LEV-ELC-ODE`\n• You can also `!login` and submit your clears in the site\n• You can submit a level by using `!add LEV-ELC-ODE level name`',
+      TEST.ts.message(`help`, {
+        registrationChannel: TEST.ts.discord.channel(
+          TEST.ts.teamVariables.RegistrationChannel,
+        ),
+      }),
     );
   });
 
@@ -160,7 +168,11 @@ describe('misc-integration', () => {
     });
     assert.equal(
       result,
-      '\n• 무엇이든하려면 오른쪽 채널에서 `!register` 를 사용하여 먼저 등록해야합니다.\n• 레벨 목록을 보려면 http://localhost:8080/makerteam/levels 로 이동하십시오.\n• 이제 `!clear LEV-ELC-OD` 를 사용하여 레벨 클리어를 제출할 수 있습니다\n• 당신은 또한 `!login` 을 할 수 있고 사이트에서 당신의 비운을 제출할 수 있습니다\n• `!add LEV-ELC-ODE level name` 을 사용하여 레벨을 제출할 수 있습니다.\n\n이것은 기계 번역입니다. 번역이 틀렸다면 알려주십시오. <:SpigRobo:628051703320805377>',
+      TEST.ts.message(`ko.help`, {
+        registrationChannel: TEST.ts.discord.channel(
+          TEST.ts.teamVariables.RegistrationChannel,
+        ),
+      }),
     );
   });
 
@@ -172,7 +184,11 @@ describe('misc-integration', () => {
     });
     assert.equal(
       result,
-      '\n• 무엇이든하려면 오른쪽 채널에서 `!register` 를 사용하여 먼저 등록해야합니다.\n• 레벨 목록을 보려면 http://localhost:8080/makerteam/levels 로 이동하십시오.\n• 이제 `!clear LEV-ELC-OD` 를 사용하여 레벨 클리어를 제출할 수 있습니다\n• 당신은 또한 `!login` 을 할 수 있고 사이트에서 당신의 비운을 제출할 수 있습니다\n• `!add LEV-ELC-ODE level name` 을 사용하여 레벨을 제출할 수 있습니다.\n\n이것은 기계 번역입니다. 번역이 틀렸다면 알려주십시오. <:SpigRobo:628051703320805377>',
+      TEST.ts.message(`ko.help`, {
+        registrationChannel: TEST.ts.discord.channel(
+          TEST.ts.teamVariables.RegistrationChannel,
+        ),
+      }),
     );
   });
 });

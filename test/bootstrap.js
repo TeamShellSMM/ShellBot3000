@@ -98,6 +98,13 @@ before(async () => {
     },
     {
       guild_id: 1,
+      name: 'RegistrationChannel',
+      value: 'general',
+      type: 'settings',
+      admin_id: 1,
+    },
+    {
+      guild_id: 1,
       name: 'BotName',
       value: 'Autobot',
       type: 'settings',
