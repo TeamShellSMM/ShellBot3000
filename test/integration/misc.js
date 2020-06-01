@@ -53,6 +53,7 @@ describe('misc-integration', () => {
         },
       ],
     });
+    TEST.ts.teamVariables.ChannelsShellbotAllowed = null;
   });
 
   it('!refresh', async () => {
@@ -185,6 +186,67 @@ describe('misc-integration', () => {
     assert.equal(
       result,
       TEST.ts.message(`ko.help`, {
+        registrationChannel: TEST.ts.discord.channel(
+          TEST.ts.teamVariables.RegistrationChannel,
+        ),
+      }),
+    );
+  });
+
+  it('!points shellbot not allowed=fail', async () => {
+    TEST.ts.teamVariables.ChannelsShellbotAllowed = 'not-general';
+    const result = await TEST.mockBotSend({
+      cmd: '!points',
+      waitFor: 100,
+      channel: 'general',
+      discord_id: '256',
+    });
+    assert.lengthOf(result, 0);
+  });
+
+  it('!help shellbot not allowed=show help', async () => {
+    TEST.ts.teamVariables.ChannelsShellbotAllowed = 'not-general';
+    const result = await TEST.mockBotSend({
+      cmd: '!help',
+      waitFor: 100,
+      channel: 'general',
+      discord_id: '256',
+    });
+    assert.equal(
+      result,
+      TEST.ts.message(`help`, {
+        registrationChannel: TEST.ts.discord.channel(
+          TEST.ts.teamVariables.RegistrationChannel,
+        ),
+      }),
+    );
+  });
+
+  it('!points shellbot in allowed', async () => {
+    TEST.ts.teamVariables.ChannelsShellbotAllowed = 'general';
+    const result = await TEST.mockBotSend({
+      cmd: '!points',
+      waitFor: 100,
+      channel: 'general',
+      discord_id: '256',
+    });
+    assert.equal(
+      result,
+      '<@256> You have 0.0 clear points. You have submitted 4 levels .You have enough points to upload a level  You have earned the rank **no rank** ',
+    );
+  });
+
+  it('!help shellbot allowed', async () => {
+    TEST.ts.teamVariables.ChannelsShellbotAllowed = 'general';
+    const result = await TEST.mockBotSend({
+      cmd: '!help',
+      waitFor: 100,
+      channel: 'general',
+      discord_id: '256',
+    });
+    assert.equal(
+      result,
+      TEST.ts.message(`help`, {
         registrationChannel: TEST.ts.discord.channel(
           TEST.ts.teamVariables.RegistrationChannel,
         ),

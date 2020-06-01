@@ -113,6 +113,14 @@ const defaultVariables = Object.freeze([
       "What the bot will refer to itself in it's responses",
   },
   {
+    name: 'ChannelsShellbotAllowed',
+    caption: 'Allow ShellBot in channels/categories',
+    default: '',
+    type: 'text',
+    description:
+      'Channels/Category names seperated by commas. If set, ShellBot will only run most commands in the set channels/categories. Help commands will still run anywhere else though',
+  },
+  {
     name: 'RegistrationChannel',
     caption: 'Registration Channel',
     default: 'registration',

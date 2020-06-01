@@ -11,6 +11,7 @@ class TSHelp extends TSCommand {
           default: '',
         },
       ],
+      category: 'help',
       channelRestriction: 'guild',
     });
   }

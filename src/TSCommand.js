@@ -24,6 +24,27 @@ class TSCommand extends Command {
     let ts;
     try {
       ts = TS.teams(TS.DiscordWrapper.messageGetGuild(message));
+      if (
+        ts.teamVariables.ChannelsShellbotAllowed &&
+        this.category.id !== 'help'
+      ) {
+        const allowed = ts.teamVariables.ChannelsShellbotAllowed.split(
+          ',',
+        );
+        if (
+          !allowed.find((c) => {
+            return (
+              c.toLowerCase() ===
+                message.channel.name.toLowerCase() ||
+              (message.channel.parent &&
+                c.toLowerCase() ===
+                  message.channel.parent.name.toLowerCase())
+            );
+          })
+        )
+          return false;
+      }
+
       if (!(await this.canRun(ts, message))) {
         DiscordLog.log(
           ts.makeErrorObj(`can't run: ${message.content}`, message),
