@@ -267,7 +267,8 @@ module.exports = {
     "Your reason/comment can't be longer than {{maxLength}}",
   'error.notApproved': 'Level is not approved',
   'error.userBanned': 'You have been barred from using this service',
-  'error.notRegistered': 'You are not yet registered',
+  'error.notRegistered':
+    'You are not yet registered. You will have to register first by using `!register` in {{{RegistrationChannel}}}',
   'error.emptyLevelList': 'No levels found buzzyS',
   'error.afterUserDiscord': ' {{{think}}}',
   'error.afterUserWeb': '',
@@ -346,7 +347,11 @@ module.exports = {
   'register.nameTaken':
     "'{{name}}' has already been registered by someone else. Please use another nickname",
   'register.success':
-    "You are now registered as '{{name}}'. You can now start submitting your clears in #level-clears {{{bam}}}",
+    "You are now registered as '{{name}}'.  {{{bam}}}\n‣ You can find the levels in {{TeamURI}}/levels\n‣ You can submit your clears with `!clear LEV-ELC-ODE` in {{{LevelClearChannel}}}\n‣ You can also submit your clears in the website by logging in with `!login`",
+  'register.noPointsNeeded':
+    '\n‣ To submit a level to {{TeamName}}, you can use `!add LEV-ELC-ODE level name` in {{{LevelSubmissionChannel}}}',
+  'register.pointsNeeded':
+    '\n‣ To submit a level to {{TeamName}}, you need {{1dp minPoints}} clear points',
 
   'initmembers.success':
     '{{registeredCount}} members have been registered with their discord name, {{alreadyRegisteredCount}} have been skipped because they were already registered.',

@@ -53,9 +53,14 @@ class TSRegister extends TSCommand {
       discord_name: ts.discord.getUsername(message),
     });
 
+    const minPoints = Number(ts.teamVariables['Minimum Point']);
+
     await ts.discord.reply(
       message,
-      ts.message('register.success', { name: nickname }),
+      ts.message('register.success', { name: nickname }) +
+        (minPoints > 0
+          ? ts.message('register.pointsNeeded', { minPoints })
+          : ts.message('register.noPointsNeeded')),
     );
   }
 }

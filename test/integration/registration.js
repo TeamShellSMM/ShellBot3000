@@ -1,5 +1,7 @@
 describe('registration', function () {
   before(async () => {
+    TEST.ts.teamVariables.LevelSubmissionChannel = 'general';
+    TEST.ts.teamVariables.LevelClearChannel = 'general';
     await TEST.setupData({
       Members: [
         {
@@ -138,19 +140,10 @@ describe('registration', function () {
       discord_id: '512',
     });
     assert.lengthOf(dbResult, 1, 'Should only have one item');
+    assert.equal(dbResult[0].name, TEST.client.user.username);
     assert.equal(
-      dbResult[0].name,
-      TEST.client.user.username,
-      'name is stored',
-    );
-    assert.deepEqual(
       result,
-      await TEST.mockMessage(
-        'register.success',
-        {},
-        { name: TEST.client.user.username },
-      ),
-      'message is correct',
+      "You are now registered as 'auniqShellbotTest'.  \n‣ You can find the levels in http://localhost:8080/makerteam/levels\n‣ You can submit your clears with `!clear LEV-ELC-ODE` in general\n‣ You can also submit your clears in the website by logging in with `!login`\n‣ To submit a level to AutoTest, you can use `!add LEV-ELC-ODE level name` in general",
     );
   });
   it('successful registration with supplied nickname', async function () {
@@ -164,13 +157,9 @@ describe('registration', function () {
     });
     assert.lengthOf(dbResult, 1, 'Should only have one item');
     assert.equal(dbResult[0].name, 'my_name', 'name is stored');
-    assert.deepEqual(
+    assert.equal(
       result,
-      await TEST.mockMessage(
-        'register.success',
-        {},
-        { name: 'my_name' },
-      ),
+      "You are now registered as 'my_name'.  \n‣ You can find the levels in http://localhost:8080/makerteam/levels\n‣ You can submit your clears with `!clear LEV-ELC-ODE` in general\n‣ You can also submit your clears in the website by logging in with `!login`\n‣ To submit a level to AutoTest, you can use `!add LEV-ELC-ODE level name` in general",
     );
   });
   let otp;
