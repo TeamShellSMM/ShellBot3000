@@ -150,6 +150,18 @@ class TS {
         this[dbToMap[d.type]][d.name] = d.value;
       });
 
+      const suggestedChannels = [
+        'RegistrationChannel',
+        'LevelSubmissionChannel',
+        'LevelClearChannel',
+        'MiscChannel',
+      ];
+      suggestedChannels.forEach((c) => {
+        const channelName = this.teamVariables[c];
+        if (channelName && this.discord.channel(channelName))
+          this.teamVariables[c] = this.discord.channel(channelName);
+      }, this);
+
       this.emotes = {
         think: this.teamVariables.userErrorEmote,
         PigChamp: this.teamVariables.pogEmote,

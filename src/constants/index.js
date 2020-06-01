@@ -129,6 +129,30 @@ const defaultVariables = Object.freeze([
       'The channel which ShellBot will suggest where registration should be done',
   },
   {
+    name: 'LevelSubmissionChannel',
+    caption: 'Level Submission Channel',
+    default: 'level-submission',
+    type: 'text',
+    description:
+      'The channel which ShellBot will suggest where level submissions should be done',
+  },
+  {
+    name: 'LevelClearChannel',
+    caption: 'Clear Submission Channel',
+    default: 'level-clears',
+    type: 'text',
+    description:
+      'The channel which ShellBot will suggest where level clears should be done',
+  },
+  {
+    name: 'MiscChannel',
+    caption: 'Misc Channel',
+    default: 'misc-commands',
+    type: 'text',
+    description:
+      'The channel which ShellBot will suggest for other commands',
+  },
+  {
     name: 'Minimum Point',
     caption: 'First Level Points',
     default: 0,

@@ -19,11 +19,7 @@ class TSHelp extends TSCommand {
   async tsexec(ts, message, { language }) {
     await ts.discord.messageSend(
       message,
-      ts.message(`${ts.languageCode(language)}help`, {
-        registrationChannel: ts.discord.channel(
-          ts.teamVariables.RegistrationChannel,
-        ),
-      }),
+      ts.message(`${ts.languageCode(language)}help`),
     );
   }
 }

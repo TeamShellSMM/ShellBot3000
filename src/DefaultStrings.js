@@ -3,14 +3,13 @@
  */
 module.exports = {
   help: `
-• To do anything, you will have to register first by using \`!register\` in {{{registrationChannel}}}.
+• To do anything, you will have to register first by using \`!register\` in {{{RegistrationChannel}}}.
 • To get a list of levels go to {{TeamURI}}/levels.
-• Then you can now submit your clears of level by using \`!clear LEV-ELC-ODE\`
+• Then you can now submit your clears of level by using \`!clear LEV-ELC-ODE\` in {{{LevelClearChannel}}}
 • You can also \`!login\` and submit your clears in the site
-• You can submit a level by using \`!add LEV-ELC-ODE level name\``,
-
+• You can submit a level by using \`!add LEV-ELC-ODE level name\` in {{{LevelSubmissionChannel}}}`,
   'ko.help': `
-• 활동을 하려면 {{{registrationChannel}}} 에서 \`!register\` 를 사용하여 먼저 등록해야합니다.
+• 활동을 하려면 {{{RegistrationChannel}}} 에서 \`!register\` 를 사용하여 먼저 등록해야합니다.
 • 레벨 목록을 보려면 {{TeamURI}}/levels 로 이동하십시오.
 • 이제 \`!clear LEV-ELC-ODE\` 를 사용하여 레벨 클리어를 제출할 수 있습니다
 • 당신은 또한 \`!login\` 을 할 수 있고 사이트에서 당신의 레벨 클리어를 제출할 수 있습니다
@@ -19,18 +18,18 @@ module.exports = {
 이것은 기계 번역입니다. 번역이 틀렸다면 알려주십시오. <:SpigRobo:628051703320805377>`,
 
   'de.help': `
-• Bevor Du etwas tun kannst, musst Du dich zuerst registrieren, indem Du \`!register\` in dem {{{registrationChannel}}} channel benutzt.
-• Ein Liste mit allen Leveln findest Du unter {{TeamURI}}/levels.
-• Anschließend kannst Du den Abschluss eines Levels mit \`!clear LEV-ELC-ODE\` übermitteln.
-• Du kannst auch \`!login\` benutzen und den Abschluss des Levels auf der Seite bestätigen. 
-• Du kannst dein eigenes Level mit \`!add LEV-ELC-ODE\` einreichen.`,
+• Um loszulegen musst du dich zuerst registrieren, indem du \`!register\` in dem {{{RegistrationChannel}}} benutzt. 
+• Eine Liste mit allen Leveln findest du unter https://makerteams.net/teamshell/levels. 
+• Den Abschluss eines Levels kannst du mit \`!clear LEV-ELC-ODE\` in dem {{{LevelClearChannel}}} übermitteln. 
+• Du kannst auch !login benutzen, um den Abschluss eines Levels stattdessen über die Webseite zu bestätigen. 
+• Dein eigenes Level kannst du mit \`!add LEV-ELC-ODE level name\` in dem {{{LevelSubmissionChannel}}} einreichen.`,
 
   'ru.help': `
-• Для того, чтобы сделать что-нибудь, сначала нужно зарегистрироваться, используя \`!register\` в {{{registrationChannel}}}.
+• Для того, чтобы сделать что-нибудь, сначала нужно зарегистрироваться, используя \`!register\` в {{{RegistrationChannel}}}.
 • Чтобы получить список уровней, перейдите на {{TeamURI}}/levels.
-• Затем вы можете отправить свои пройденные уровни, используя \`!clear LEV-ELC-ODE\`.
+• Затем вы можете отправить свои пройденные уровни, используя \`!clear LEV-ELC-ODE\` в {{{LevelClearChannel}}}.
 • Вы также можете \`!login\` и отправить свои завершения на сайте.
-• Вы можете отправить уровень, используя \`!add LEV-ELC-ODE\` название уровня.`,
+• Вы можете отправить уровень, используя \`!add LEV-ELC-ODE название уровня\` в {{{LevelSubmissionChannel}}}.`,
 
   'website.loggedin': 'Your account was logged in on the website.',
   'website.tokenError': 'Token expired. Need to relogin',
