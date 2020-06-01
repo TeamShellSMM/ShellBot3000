@@ -2298,11 +2298,15 @@ class TS {
   languageCode(language) {
     const synonymousLanguages = {
       ko: 'ko',
+      kr: 'ko',
       korean: 'ko',
       korea: 'ko',
       de: 'de',
       german: 'de',
       ger: 'de',
+      ru: 'ru',
+      russian: 'ru',
+      russia: 'ru',
     };
 
     const languageSelected =

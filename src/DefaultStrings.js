@@ -23,8 +23,14 @@ module.exports = {
 • Ein Liste mit allen Leveln findest Du unter {{TeamURI}}/levels.
 • Anschließend kannst Du den Abschluss eines Levels mit \`!clear LEV-ELC-ODE\` übermitteln.
 • Du kannst auch \`!login\` benutzen und den Abschluss des Levels auf der Seite bestätigen. 
-• Du kannst dein eigenes Level mit \`!add LEV-ELC-ODE\` einreichen.
-`,
+• Du kannst dein eigenes Level mit \`!add LEV-ELC-ODE\` einreichen.`,
+
+  'ru.help': `
+• Для того, чтобы сделать что-нибудь, сначала нужно зарегистрироваться, используя \`!register\` в {{{registrationChannel}}}.
+• Чтобы получить список уровней, перейдите на {{TeamURI}}/levels.
+• Затем вы можете отправить свои пройденные уровни, используя \`!clear LEV-ELC-ODE\`.
+• Вы также можете \`!login\` и отправить свои завершения на сайте.
+• Вы можете отправить уровень, используя \`!add LEV-ELC-ODE\` название уровня.`,
 
   'website.loggedin': 'Your account was logged in on the website.',
   'website.tokenError': 'Token expired. Need to relogin',
