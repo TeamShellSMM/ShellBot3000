@@ -120,7 +120,7 @@ describe('!rename', function () {
     });
     assert.equal(
       result,
-      '<@256> The level level1" (XXX-XXX-XXX) has been renamed to "new long name" ',
+      '<@256> The level "level1" (XXX-XXX-XXX) has been renamed to "new long name" ',
     );
     const level = await TEST.ts
       .getLevels()

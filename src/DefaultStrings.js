@@ -229,7 +229,7 @@ module.exports = {
   'rename.noNewName': "You didn't give a new level name",
   'rename.alreadyName': 'Level name is already "{{{level_name}}}"',
   'rename.success':
-    'The level {{level_name}}" ({{code}}) has been renamed to "{{new_level_name}}" {{{bam}}}',
+    'The level "{{{level_name}}}" ({{code}}) has been renamed to "{{{new_level_name}}}" {{{bam}}}',
   'rename.noPermission':
     "You can't rename '{{{level_name}}}' by {{creator}}",
 
@@ -316,15 +316,15 @@ module.exports = {
   'tags.noTags': "You didn't give any tags",
   'tags.cantAdd': "You can't add the tag '{{tag}}'",
   'tags.noNew':
-    'No new tags added for "{{level_name}}" by "{{creator}}"\n',
+    'No new tags added for "{{{level_name}}}" by "{{creator}}"\n',
   'tags.noRemoved':
-    'No tags have been removed for "{{level_name}}" by "{{creator}}"\n',
+    'No tags have been removed for "{{{level_name}}}" by "{{creator}}"\n',
   'tags.haveNew':
-    'Tags added for "{{level_name}}" by "{{creator}}" {{{bam}}}\n',
+    'Tags added for "{{{level_name}}}" by "{{creator}}" {{{bam}}}\n',
   'tags.haveRemoved':
     'Tags removed for "{{level_name}}" by "{{creator}} {{{bam}}}"\n',
   'tags.noPermission':
-    'You can\'t remove tags from "{{level_name}}" by "{{creator}}"',
+    'You can\'t remove tags from "{{{level_name}}}" by "{{creator}}"',
   'tags.cantRemove': 'You can\'t remove the tag "{{tag}}"',
   'tags.currentTags': 'Current tags:```\n{{tags_str}}```',
   'tags.duplicateTags': 'There were duplicate tags for {{tag}}',
@@ -332,16 +332,16 @@ module.exports = {
     '`{{tag}}` is not a tag that has been whitelisted.',
 
   'addVids.noPermission':
-    'You can\'t remove videos from "{{level_name}}" by "{{creator}}"',
+    'You can\'t remove videos from "{{{level_name}}}" by "{{creator}}"',
   'addVids.haveNew':
-    'Clear videos added for "{{level_name}}" by "{{creator}}" {{{bam}}}\n',
+    'Clear videos added for "{{{level_name}}}" by "{{creator}}" {{{bam}}}\n',
   'addVids.currentVideos': 'Current videos:```\n{{videos_str}}```',
   'addVids.haveRemoved':
-    'Clear videos removed for "{{level_name}}" by "{{creator}}" {{{bam}}}\n',
+    'Clear videos removed for "{{{level_name}}}" by "{{creator}}" {{{bam}}}\n',
   'addVids.noNew':
-    'No new videos added for "{{level_name}}" by "{{creator}}"\n',
+    'No new videos added for "{{{level_name}}}" by "{{creator}}"\n',
   'addVids.noRemoved':
-    'No videos have been removed for "{{level_name}}" by "{{creator}}"\n',
+    'No videos have been removed for "{{{level_name}}}" by "{{creator}}"\n',
 
   'register.already': "You're already registered as **{{name}}**",
   'register.nameTaken':
