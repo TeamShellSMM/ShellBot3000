@@ -42,11 +42,15 @@ class DiscordWrapper {
 
     const searchl = search.toLowerCase();
     const parent = parentID ? this.channel(parentID) : null;
-    return this.guild().channels.find(
-      (c) =>
-        (c.name === searchl || c.id === searchl) &&
-        (!parent || (parent && parent.id === c.parentID)),
-    );
+    return this.guild().channels.find((c) => {
+      const untaggedName = c.name.toLowerCase().split(/[^0-9a-z-]/g);
+      return (
+        (untaggedName[untaggedName.length - 1] === searchl ||
+          c.name === searchl ||
+          c.id === searchl) &&
+        (!parent || (parent && parent.id === c.parentID))
+      );
+    });
   }
 
   channelSize(search) {

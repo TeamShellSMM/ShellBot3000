@@ -42,7 +42,9 @@ class TSFixApprove extends TSCommand {
       )
     ) {
       inReuploadChannel = true;
-      code = ts.discord.messageGetChannelName(message).toUpperCase();
+      code = ts.getUnlabledName(
+        ts.discord.messageGetChannelName(message),
+      );
     } else {
       // Check the code only if not in discussion channel
     }

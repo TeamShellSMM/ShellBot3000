@@ -584,6 +584,7 @@ class TS {
       }
       return existingToken.discord_id;
     };
+
     /**
      * Checks if the code is an SMM1 code. Should be true only when ts.teamVariables.allowSMM1=='true'
      * @param {string} code Level code
@@ -613,10 +614,11 @@ class TS {
      */
     this.validCode = function (code) {
       if (code == null) return false;
+      const processedCode = this.getUnlabledName(code);
       return (
-        this.is_smm2(code) ||
+        this.is_smm2(processedCode) ||
         (this.teamVariables.allowSMM1 === 'true' &&
-          this.is_smm1(code))
+          this.is_smm1(processedCode))
       );
     };
     /**
@@ -2089,6 +2091,17 @@ class TS {
       await ts.recalculateAfterUpdate();
       return userReply + reply;
     };
+  }
+
+  /**
+   * Clean a channel name to remove any possible emote labels
+   */
+  getUnlabledName(str) {
+    if (str == null) return false;
+    return str
+      .toUpperCase()
+      .split(/[^0-9A-Z-]/g)
+      .pop();
   }
 
   async fixModPing(code) {

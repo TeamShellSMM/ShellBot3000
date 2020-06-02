@@ -16,9 +16,9 @@ class TSJudge extends TSCommand {
         ts.discord.messageGetChannelName(message).toUpperCase(),
       )
     ) {
-      const levelCode = ts.discord
-        .messageGetChannelName(message)
-        .toUpperCase();
+      const levelCode = ts.getUnlabledName(
+        ts.discord.messageGetChannelName(message),
+      );
       if (
         ts.discord.messageGetParent(message) ===
         ts.channels.levelDiscussionCategory

@@ -89,9 +89,9 @@ class TSApprove extends TSCommand {
       inCodeDiscussionChannel = true;
       args.reason = args.difficulty;
       args.difficulty = args.code;
-      args.code = ts.discord
-        .messageGetChannelName(message)
-        .toUpperCase();
+      args.code = ts.getUnlabledName(
+        ts.discord.messageGetChannelName(message),
+      );
     } else if (!args.code) {
       ts.userError('error.noCode');
     }

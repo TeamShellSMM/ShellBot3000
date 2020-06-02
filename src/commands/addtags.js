@@ -30,7 +30,9 @@ class TSAddtags extends TSCommand {
 
     let code;
     if (ts.validCode(ts.discord.messageGetChannelName(message))) {
-      code = ts.discord.messageGetChannelName(message).toUpperCase();
+      code = ts.getUnlabledName(
+        ts.discord.messageGetChannelName(message),
+      );
     } else {
       code = command.arguments.shift();
     }

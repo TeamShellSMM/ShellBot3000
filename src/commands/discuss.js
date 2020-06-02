@@ -28,7 +28,9 @@ class TSDiscussChannel extends TSCommand {
         ts.discord.messageGetChannelName(message).toUpperCase(),
       )
     ) {
-      code = ts.discord.messageGetChannelName(message).toUpperCase();
+      code = ts.getUnlabledName(
+        ts.discord.messageGetChannelName(message),
+      );
     }
 
     if (code) {
