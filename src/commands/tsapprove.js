@@ -27,7 +27,7 @@ class TSApprove extends TSCommand {
       args: [
         {
           id: 'code',
-          type: 'uppercase',
+          type: 'string',
           default: null,
         },
         {
