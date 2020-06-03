@@ -7,7 +7,10 @@ module.exports = {
 • To get a list of levels go to {{TeamURI}}/levels.
 • Then you can now submit your clears of level by using \`!clear LEV-ELC-ODE\` in {{{LevelClearChannel}}}
 • You can also \`!login\` and submit your clears in the site
-• You can submit a level by using \`!add LEV-ELC-ODE level name\` in {{{LevelSubmissionChannel}}}`,
+• You can submit a level by using \`!add LEV-ELC-ODE level name\` in {{{LevelSubmissionChannel}}}
+• 🇰🇷 \`!help kr\`
+• 🇷🇺 \`!help ru\`
+• 🇩🇪 \`!help de\``,
   'ko.help': `
 • 활동을 하려면 {{{RegistrationChannel}}} 에서 \`!register\` 를 사용하여 먼저 등록해야합니다.
 • 레벨 목록을 보려면 {{TeamURI}}/levels 로 이동하십시오.
@@ -267,8 +270,10 @@ module.exports = {
     "Your reason/comment can't be longer than {{maxLength}}",
   'error.notApproved': 'Level is not approved',
   'error.userBanned': 'You have been barred from using this service',
-  'error.notRegistered':
-    'You are not yet registered. You will have to register first by using `!register` in {{{RegistrationChannel}}}',
+  'error.notRegistered': `You are not yet registered. You will have to register first by using \`!register\` in {{{RegistrationChannel}}}
+‣ 🇰🇷 \`!help kr\`
+‣ 🇷🇺 \`!help ru\`
+‣ 🇩🇪 \`!help de\``,
   'error.emptyLevelList': 'No levels found buzzyS',
   'error.afterUserDiscord': ' {{{think}}}',
   'error.afterUserWeb': '',
@@ -346,8 +351,14 @@ module.exports = {
   'register.already': "You're already registered as **{{name}}**",
   'register.nameTaken':
     "'{{name}}' has already been registered by someone else. Please use another nickname",
-  'register.success':
-    "You are now registered as '{{name}}'.  {{{bam}}}\n‣ You can find the levels in {{TeamURI}}/levels\n‣ You can submit your clears with `!clear LEV-ELC-ODE` in {{{LevelClearChannel}}}\n‣ You can also submit your clears in the website by logging in with `!login`",
+  'register.success': `You are now registered as '{{name}}'.  {{{bam}}}
+ ‣ You can find the levels in {{TeamURI}}/levels
+ ‣ You can submit your clears with \`!clear LEV-ELC-ODE\` in {{{LevelClearChannel}}}
+ ‣ You can also submit your clears in the website by logging in with \`!login\`
+ ‣ English - \`!help\`
+ ‣ 🇰🇷 \`!help kr\`
+ ‣ 🇷🇺 \`!help ru\`
+ ‣ 🇩🇪 \`!help de\``,
   'register.noPointsNeeded':
     '\n‣ To submit a level to {{TeamName}}, you can use `!add LEV-ELC-ODE level name` in {{{LevelSubmissionChannel}}}',
   'register.pointsNeeded':
