@@ -33,7 +33,8 @@ class DiscordWrapper {
     return DiscordWrapper.client.user.id;
   }
 
-  channel(search, parentID) {
+  channel(search, parentID, exact = false) {
+    debug(`finding ${search}`);
     if (search == null) {
       throw new Error(
         `Empty channel name or id is passed to discordwrapper.channel`,
@@ -45,7 +46,8 @@ class DiscordWrapper {
     return this.guild().channels.find((c) => {
       const untaggedName = c.name.toLowerCase().split(/[^0-9a-z-]/g);
       return (
-        (untaggedName[untaggedName.length - 1] === searchl ||
+        ((!exact &&
+          untaggedName[untaggedName.length - 1] === searchl) ||
           c.name === searchl ||
           c.id === searchl) &&
         (!parent || (parent && parent.id === c.parentID))
@@ -67,14 +69,24 @@ class DiscordWrapper {
     return channel.children.size;
   }
 
-  async renameChannel(oldName, newName) {
+  renameChannel(oldName, newName) {
     debug(`renaming ${oldName} to ${newName}`);
     const oldChannel = this.channel(oldName);
-    const newChannel = this.channel(newName);
+    const newChannel = this.channel(newName, null, true);
 
-    if (oldChannel && !newChannel) {
+    if (!oldChannel) return false;
+
+    if (oldChannel.name === newName) {
+      debug(`channel already ${newName}`);
+      return false;
+    }
+
+    if (!newChannel) {
+      debug(`found oldChannel and no newChannel. renaming`);
+      // TODO: it seems that we ger rate limited here
       return oldChannel.setName(newName);
     }
+    debug(`Did not find old channel or found new channel`);
     return false;
   }
 
@@ -122,6 +134,7 @@ class DiscordWrapper {
 
   async setChannelParent(search, parent) {
     this.checkChannelFull(parent);
+    if (!parent) return false;
     const channel = this.channel(search);
     const parentCategory = this.channel(parent);
     if (
