@@ -42,7 +42,7 @@ class TSDiscussChannel extends TSCommand {
     const level = await ts.getLevels().where({ code }).first();
 
     if (!level) {
-      ts.discord.removeChannel(level.code);
+      ts.discord.removeChannel(code);
       ts.userError(ts.message('error.levelNotFound', { code }));
     }
 
