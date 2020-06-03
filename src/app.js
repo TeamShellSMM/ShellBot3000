@@ -1,4 +1,5 @@
 const { AkairoClient } = require('discord-akairo');
+const debug = require('debug')('shellbot3000:discord');
 const knex = require('./db/knex');
 const TS = require('./TS.js');
 const DiscordLog = require('./DiscordLog');
@@ -26,6 +27,15 @@ const client = new AkairoClient({
 client.on('guildCreate', async (guild) => {
   DiscordLog.log(`Joined a new guild: ${guild.name}`, client);
 });
+
+client.on('rateLimit', (info) => {
+  debug(
+    `Discord API rateLimit reached! ${info.limit} max requests allowed`,
+  );
+  debug(info);
+});
+
+client.on('debug', debug);
 
 client.on('ready', async () => {
   await DiscordLog.log(
