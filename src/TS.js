@@ -2438,6 +2438,12 @@ class TS {
    */
   languageCode(language) {
     const synonymousLanguages = {
+      lang: 'lang',
+      fr: 'fr',
+      french: 'fr',
+      no: 'no',
+      nor: 'no',
+      norwegian: 'no',
       ko: 'ko',
       kr: 'ko',
       korean: 'ko',

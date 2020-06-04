@@ -2,15 +2,22 @@
  * Default strings for messages to be used to ts.message()
  */
 module.exports = {
+  'lang.help': `
+🇰🇷 \`!help kr\`
+🇷🇺 \`!help ru\`
+🇩🇪 \`!help de\`
+🇫🇷 \`!help fr\`
+🇳🇴 \`!help no\`
+`,
   help: `
 • To do anything, you will have to register first by using \`!register\` in {{{RegistrationChannel}}}.
 • To get a list of levels go to {{TeamURI}}/levels.
 • Then you can now submit your clears of level by using \`!clear LEV-ELC-ODE\` in {{{LevelClearChannel}}}
 • You can also \`!login\` and submit your clears in the site
 • You can submit a level by using \`!add LEV-ELC-ODE level name\` in {{{LevelSubmissionChannel}}}
-• 🇰🇷 \`!help kr\`
-• 🇷🇺 \`!help ru\`
-• 🇩🇪 \`!help de\``,
+🇰🇷 \`!help kr\`
+🇷🇺 \`!help ru\`
+🌐 \`!help lang\``,
   'ko.help': `
 • 활동을 하려면 {{{RegistrationChannel}}} 에서 \`!register\` 를 사용하여 먼저 등록해야합니다.
 • 레벨 목록을 보려면 {{TeamURI}}/levels 로 이동하십시오.
@@ -19,10 +26,23 @@ module.exports = {
 • \`!add LEV-ELC-ODE level name\` 을 사용하여 레벨을 제출할 수 있습니다.
 
 이것은 기계 번역입니다. 번역이 틀렸다면 알려주십시오. <:SpigRobo:628051703320805377>`,
+  'no.help': `
+• For å gjøre noe, må du registrere deg først ved bruk av \`!register\` i {{{RegistrationChannel}}} . 
+• for og få en liste av leveler gå til {{TeamURI}}/levels. 
+• Etter det kan du sende inn dine clears på leveler ved bruk av \`!clear LEV-ELC-ODE\` i {{{LevelClearChannel}}} 
+• Du kan også bruke \`!login\` og sende inn dine clears på nettsiden
+• Du kan sende inn dine leveler ved bruk av \`!add LEV-ELC-ODE level navn\` i {{{LevelSubmissionChannel}}}`,
+
+  'fr.help': `
+• Avant tout, il faut faire la commande \`!register\` dans {{{RegistrationChannel}}}.
+• Pour accéder à la liste des niveaux va sur {{TeamURI}}/levels.
+• Quand tu bats un niveau de la liste, fais \`!clear LEV-ELC-ODE\` dans {{{LevelClearChannel}}}.
+• Tu peux aussi faire !login et mettre les niveaux que tu as battu directement sur le site.
+• Si tu veux proposer un niveau, fais \`!add LEV-ELC-ODE nom\` dans {{{LevelSubmissionChannel}}}.`,
 
   'de.help': `
 • Um loszulegen musst du dich zuerst registrieren, indem du \`!register\` in dem {{{RegistrationChannel}}} benutzt. 
-• Eine Liste mit allen Leveln findest du unter https://makerteams.net/teamshell/levels. 
+• Eine Liste mit allen Leveln findest du unter {{TeamURI}}/levels. 
 • Den Abschluss eines Levels kannst du mit \`!clear LEV-ELC-ODE\` in dem {{{LevelClearChannel}}} übermitteln. 
 • Du kannst auch !login benutzen, um den Abschluss eines Levels stattdessen über die Webseite zu bestätigen. 
 • Dein eigenes Level kannst du mit \`!add LEV-ELC-ODE level name\` in dem {{{LevelSubmissionChannel}}} einreichen.`,
@@ -271,9 +291,9 @@ module.exports = {
   'error.notApproved': 'Level is not approved',
   'error.userBanned': 'You have been barred from using this service',
   'error.notRegistered': `You are not yet registered. You will have to register first by using \`!register\` in {{{RegistrationChannel}}}
-‣ 🇰🇷 \`!help kr\`
-‣ 🇷🇺 \`!help ru\`
-‣ 🇩🇪 \`!help de\``,
+🇰🇷 \`!help kr\`
+🇷🇺 \`!help ru\`
+🌐 \`!help lang\``,
   'error.emptyLevelList': 'No levels found buzzyS',
   'error.afterUserDiscord': ' {{{think}}}',
   'error.afterUserWeb': '',
@@ -356,9 +376,9 @@ module.exports = {
  ‣ You can submit your clears with \`!clear LEV-ELC-ODE\` in {{{LevelClearChannel}}}
  ‣ You can also submit your clears in the website by logging in with \`!login\`
  ‣ English - \`!help\`
- ‣ 🇰🇷 \`!help kr\`
- ‣ 🇷🇺 \`!help ru\`
- ‣ 🇩🇪 \`!help de\``,
+ 🇰🇷 \`!help kr\`
+ 🇷🇺 \`!help ru\`
+ 🌐 \`!help lang\``,
   'register.noPointsNeeded':
     '\n‣ To submit a level to {{TeamName}}, you can use `!add LEV-ELC-ODE level name` in {{{LevelSubmissionChannel}}}',
   'register.pointsNeeded':

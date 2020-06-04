@@ -143,7 +143,7 @@ describe('registration', function () {
     assert.equal(dbResult[0].name, TEST.client.user.username);
     assert.equal(
       result,
-      `You are now registered as '${TEST.client.user.username}'.  \n ‣ You can find the levels in http://localhost:8080/makerteam/levels\n ‣ You can submit your clears with \`!clear LEV-ELC-ODE\` in general\n ‣ You can also submit your clears in the website by logging in with \`!login\`\n ‣ English - \`!help\`\n ‣ 🇰🇷 \`!help kr\`\n ‣ 🇷🇺 \`!help ru\`\n ‣ 🇩🇪 \`!help de\`\n‣ To submit a level to AutoTest, you can use \`!add LEV-ELC-ODE level name\` in general`,
+      `You are now registered as '${TEST.client.user.username}'.  \n ‣ You can find the levels in http://localhost:8080/makerteam/levels\n ‣ You can submit your clears with \`!clear LEV-ELC-ODE\` in general\n ‣ You can also submit your clears in the website by logging in with \`!login\`\n ‣ English - \`!help\`\n 🇰🇷 \`!help kr\`\n 🇷🇺 \`!help ru\`\n 🌐 \`!help lang\`\n‣ To submit a level to AutoTest, you can use \`!add LEV-ELC-ODE level name\` in general`,
     );
   });
   it('successful registration with supplied nickname', async function () {
@@ -159,7 +159,7 @@ describe('registration', function () {
     assert.equal(dbResult[0].name, 'my_name', 'name is stored');
     assert.equal(
       result,
-      "You are now registered as 'my_name'.  \n ‣ You can find the levels in http://localhost:8080/makerteam/levels\n ‣ You can submit your clears with `!clear LEV-ELC-ODE` in general\n ‣ You can also submit your clears in the website by logging in with `!login`\n ‣ English - `!help`\n ‣ 🇰🇷 `!help kr`\n ‣ 🇷🇺 `!help ru`\n ‣ 🇩🇪 `!help de`\n‣ To submit a level to AutoTest, you can use `!add LEV-ELC-ODE level name` in general",
+      `You are now registered as 'my_name'.  \n ‣ You can find the levels in http://localhost:8080/makerteam/levels\n ‣ You can submit your clears with \`!clear LEV-ELC-ODE\` in general\n ‣ You can also submit your clears in the website by logging in with \`!login\`\n ‣ English - \`!help\`\n 🇰🇷 \`!help kr\`\n 🇷🇺 \`!help ru\`\n 🌐 \`!help lang\`\n‣ To submit a level to AutoTest, you can use \`!add LEV-ELC-ODE level name\` in general`,
     );
   });
   let otp;
