@@ -54,7 +54,10 @@ class AmmendCode extends TSCommand {
 
     const existingChannel = ts.discord.channel(oldCode);
     if (existingChannel) {
-      await ts.discord.renameChannel(oldCode, newCode);
+      await ts.labelLevel(
+        { ...existingLevel, code: newCode },
+        oldCode,
+      );
       await ts.discord.send(
         newCode,
         ts.message('ammendcode.notify', { oldCode, newCode }),

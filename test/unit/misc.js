@@ -280,7 +280,7 @@ describe('misc-unit', function () {
     assert.lengthOf(embed.fields, 0);
   });
 
-  it('ts.discussionChannel old and new exists', async () => {
+  it('ts.discussionChannel old and new exists @curr', async () => {
     const channel = sinon.stub(TEST.ts.discord, 'channel');
     const removeChannel = sinon.stub(
       TEST.ts.discord,

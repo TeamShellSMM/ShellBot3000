@@ -230,12 +230,7 @@ before(async () => {
   );
 
   global.TEST.findChannel = ({ name, parentID }) => {
-    const aguild = global.TEST.ts.getGuild();
-    return aguild.channels.find(
-      (channel) =>
-        (!parentID || (parentID && channel.parentID === parentID)) &&
-        channel.name === name.toLowerCase(),
-    );
+    return TEST.ts.discord.channel(name, parentID);
   };
 
   TEST.bot_id = TEST.client.user.id;

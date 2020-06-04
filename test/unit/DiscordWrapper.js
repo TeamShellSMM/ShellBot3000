@@ -59,7 +59,7 @@ describe('DiscordWrapper', function () {
     );
   });
 
-  it('rename @curr', async () => {
+  it('rename', async () => {
     const oldName = 'oldName';
     const newName = 'newName';
     await TEST.createChannel({ name: oldName });

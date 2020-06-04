@@ -69,14 +69,14 @@ class DiscordWrapper {
     return channel.children.size;
   }
 
-  renameChannel(oldName, newName) {
+  async renameChannel(oldName, newName) {
     debug(`renaming ${oldName} to ${newName}`);
     const oldChannel = this.channel(oldName);
     const newChannel = this.channel(newName, null, true);
 
     if (!oldChannel) return false;
 
-    if (oldChannel.name === newName) {
+    if (oldChannel.name.toLowerCase() === newName.toLowerCase()) {
       debug(`channel already ${newName}`);
       return false;
     }
@@ -84,7 +84,7 @@ class DiscordWrapper {
     if (!newChannel) {
       debug(`found oldChannel and no newChannel. renaming`);
       // TODO: it seems that we ger rate limited here
-      return oldChannel.setName(newName);
+      await oldChannel.setName(newName);
     }
     debug(`Did not find old channel or found new channel`);
     return false;

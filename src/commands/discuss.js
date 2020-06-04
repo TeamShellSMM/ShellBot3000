@@ -54,7 +54,6 @@ class TSDiscussChannel extends TSCommand {
     );
     const voteEmbed = await ts.makeVoteEmbed(level);
     await ts.discord.updatePinned(channel, voteEmbed);
-    await ts.labelLevel(level);
   }
 }
 module.exports = TSDiscussChannel;

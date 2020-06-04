@@ -1223,6 +1223,7 @@ class TS {
 
       return player;
     };
+
     /**
      * This extends the levelEmbed and add all the pending votes associated with this level. to be used in the level discussion channels
      */
@@ -1383,15 +1384,17 @@ class TS {
       if (!parentID) throw new TypeError('undefined parentID');
       let created = false;
       let discussionChannel = ts.discord.channel(channelName);
+      const level = await this.getLevels()
+        .where({ code: channelName.toUpperCase() })
+        .first();
+      let labeled = false;
       if (oldChannelName) {
         const oldChannel = ts.discord.channel(oldChannelName);
         if (oldChannel) {
           if (!discussionChannel) {
-            await this.discord.renameChannel(
-              oldChannelName,
-              channelName,
-            );
+            await this.labelLevel(level, oldChannelName);
             discussionChannel = oldChannel;
+            labeled = true;
           } else {
             await ts.discord.removeChannel(
               oldChannelName,
@@ -1404,12 +1407,17 @@ class TS {
         }
       }
       if (!discussionChannel) {
-        await ts.discord.createChannel(channelName, {
-          parent: parentID,
-        });
+        await ts.discord.createChannel(
+          `${await this.makeLabel(level)}${channelName}`,
+          {
+            parent: parentID,
+          },
+        );
         created = true;
+        labeled = true;
       }
 
+      if (!labeled) await this.labelLevel(level);
       await ts.discord.setChannelParent(channelName, parentID);
       return { channel: channelName, created };
     };
@@ -1460,9 +1468,47 @@ class TS {
         ts.embedAddLongField(embed, comments[i].reason, embedHeader);
       }
     };
+
+    this.checkUserError = (callback) => {
+      try {
+        callback();
+      } catch (error) {
+        if (error instanceof UserError) {
+          return error.message;
+        }
+        throw error;
+      }
+      return false;
+    };
+
     /**
-     *
+     * Checks if a level is a vote away to being judgegable.
      */
+    this.oneVoteAway = (args) => {
+      if (!args) return false;
+
+      const plusOneVotes = [
+        {
+          ...args,
+          approvalVotesCount: (args.approvalVotesCount || 0) + 1,
+        },
+        {
+          ...args,
+          rejectVotesCount: (args.rejectVotesCount || 0) + 1,
+        },
+        {
+          ...args,
+          fixVotesCount: (args.fixVotesCount || 0) + 1,
+        },
+      ];
+
+      for (const o of plusOneVotes) {
+        if (!this.checkUserError(() => this.processVotes(o)))
+          return this.processVotes(o);
+      }
+
+      return 'none';
+    };
     /**
      * @description This will process vote counts and get the respective votes needed and returns the result as a status update
      * @return {LevelStatus} returns the status update if any
@@ -1501,6 +1547,23 @@ class TS {
       const fixApproveRatio = fixAndApproveVoteCount / fixVotesNeeded;
       const approvalFixRatio =
         fixAndApproveVoteCount / approvalVotesNeeded;
+      debug({
+        arguments: {
+          ...args,
+        },
+        votesNeeded: {
+          approvalVotesNeeded,
+          rejectVotesNeeded,
+          fixVotesNeeded,
+        },
+        calculations: {
+          approvalRatio,
+          rejectionRatio,
+          fixRatio,
+          fixApproveRatio,
+          approvalFixRatio,
+        },
+      });
       let statusUpdate;
       if (
         (!isFix &&
@@ -1571,15 +1634,8 @@ class TS {
       });
       return max - min <= AgreeingMaxDifference;
     };
-    this.judge = async function (code, fromFix = false) {
-      const level = await ts.getExistingLevel(code, fromFix);
-      const author = await ts.db.Members.query()
-        .where({ name: level.creator })
-        .first();
-      if (!PENDING_LEVELS.includes(level.status)) {
-        ts.userError(ts.message('approval.levelNotPending'));
-      }
-      // Get all current votes for this level
+
+    this.processStatusUpdate = async (level, fromFix, noAgree) => {
       const approvalVotes = await ts
         .getPendingVotes()
         .where('levels.id', level.id)
@@ -1597,21 +1653,48 @@ class TS {
         ts.teamVariables.AgreeingVotesNeeded || 0;
       const AgreeingMaxDifference =
         ts.teamVariables.AgreeingMaxDifference || 0;
-      const inAgreement = ts.checkForAgreement({
-        AgreeingVotesNeeded,
-        AgreeingMaxDifference,
+      const inAgreement = noAgree
+        ? false
+        : ts.checkForAgreement({
+            AgreeingVotesNeeded,
+            AgreeingMaxDifference,
+            approvalVotes,
+            fixVotes,
+            rejectVotes,
+          });
+      return {
         approvalVotes,
         fixVotes,
         rejectVotes,
-      });
-      const statusUpdate = this.processVotes({
-        approvalVotesNeeded: inAgreement ? AgreeingVotesNeeded : null,
-        fixVotesNeeded: inAgreement ? AgreeingVotesNeeded : null,
-        approvalVotesCount: approvalVotes.length,
-        rejectVotesCount: rejectVotes.length,
-        fixVotesCount: fixVotes.length,
-        isFix: fromFix,
-      });
+        voteArgs: {
+          approvalVotesNeeded: inAgreement
+            ? AgreeingVotesNeeded
+            : null,
+          fixVotesNeeded: inAgreement ? AgreeingVotesNeeded : null,
+          approvalVotesCount: approvalVotes.length,
+          rejectVotesCount: rejectVotes.length,
+          fixVotesCount: fixVotes.length,
+          isFix: fromFix,
+        },
+      };
+    };
+
+    this.judge = async function (code, fromFix = false) {
+      const level = await ts.getExistingLevel(code, fromFix);
+      const author = await ts.db.Members.query()
+        .where({ name: level.creator })
+        .first();
+      if (!PENDING_LEVELS.includes(level.status)) {
+        ts.userError(ts.message('approval.levelNotPending'));
+      }
+
+      const {
+        approvalVotes,
+        fixVotes,
+        rejectVotes,
+        voteArgs,
+      } = await this.processStatusUpdate(level, fromFix);
+      const statusUpdate = this.processVotes(voteArgs);
       let difficulty;
       if (statusUpdate === ts.LEVEL_STATUS.APPROVED) {
         ts.initiate(author);
@@ -1666,6 +1749,39 @@ class TS {
       await ts.deleteDiscussionChannel(
         level.code,
         ts.message('approval.channelDeleted'),
+      );
+    };
+
+    this.makeLabel = async (level) => {
+      const labels = [];
+      const creator = await this.db.Members.query()
+        .where({
+          id: level.creator_id,
+        })
+        .first();
+      if (creator && !creator.is_member) labels.push('🔰');
+      const { voteArgs } = await this.processStatusUpdate(
+        level,
+        false,
+        true,
+      );
+      const oneVote = this.oneVoteAway(voteArgs);
+      const voteLabel = {
+        [LEVEL_STATUS.APPROVED]: '📗',
+        [LEVEL_STATUS.REJECTED]: '📕',
+        [LEVEL_STATUS.NEED_FIX]: '📙',
+        none: '',
+      };
+      labels.push(voteLabel[oneVote]);
+      return labels.join('');
+    };
+
+    this.labelLevel = async (level, renameFrom) => {
+      if (!level) return false;
+      const labels = await this.makeLabel(level);
+      return this.discord.renameChannel(
+        renameFrom || level.code,
+        `${labels}${level.code}`,
       );
     };
 

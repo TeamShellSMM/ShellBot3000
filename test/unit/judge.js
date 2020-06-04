@@ -454,3 +454,81 @@ describe('judge:checkForAgreement', () => {
     );
   });
 });
+
+describe('oneVoteAway', function () {
+  before(() => {
+    TEST.ts.teamVariables.VotesNeeded = 3;
+    TEST.ts.teamVariables.ApprovalVotesNeeded = 3;
+    TEST.ts.teamVariables.RejectVotesNeeded = 3;
+    TEST.ts.teamVariables.FixVotesNeeded = 3;
+  });
+
+  it('no votes', async () => {
+    assert.isFalse(TEST.ts.oneVoteAway());
+  });
+
+  it('1 votes', async () => {
+    assert.equal(
+      TEST.ts.oneVoteAway({
+        rejectVotesCount: 1,
+        fixVotesCount: 1,
+      }),
+      'none',
+    );
+  });
+
+  it('1 votes away approve', async () => {
+    assert.equal(
+      TEST.ts.oneVoteAway({
+        rejectVotesCount: 1,
+        approvalVotesCount: 2,
+        fixVotesCount: 1,
+      }),
+      TEST.ts.LEVEL_STATUS.APPROVED,
+    );
+  });
+
+  it('1 votes away reject', async () => {
+    assert.equal(
+      TEST.ts.oneVoteAway({
+        rejectVotesCount: 2,
+        fixVotesCount: 1,
+      }),
+      TEST.ts.LEVEL_STATUS.REJECTED,
+    );
+  });
+
+  it('1 votes away fix', async () => {
+    assert.equal(
+      TEST.ts.oneVoteAway({
+        fixVotesCount: 2,
+      }),
+      TEST.ts.LEVEL_STATUS.NEED_FIX,
+    );
+  });
+
+  it('1 votes away fix (w approve)', async () => {
+    assert.equal(
+      TEST.ts.oneVoteAway({
+        fixVotesCount: 1,
+        approvalVotesCount: 1,
+      }),
+      TEST.ts.LEVEL_STATUS.NEED_FIX,
+    );
+  });
+
+  it('unknown error', async () => {
+    const processVotes = sinon.stub(TEST.ts, 'processVotes');
+    processVotes.throws(new Error('unknown'));
+    assert.throws(
+      () =>
+        TEST.ts.oneVoteAway({
+          fixVotesCount: 1,
+          approvalVotesCount: 1,
+        }),
+      Error,
+      'unknown',
+    );
+    processVotes.restore();
+  });
+});
