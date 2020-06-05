@@ -342,6 +342,7 @@ class TS {
         levels.id level_id,
         levels.code code,
         levels.difficulty,
+        points.score,
         levels.level_name,
         levels.videos,
         levels.tags,
@@ -352,6 +353,12 @@ class TS {
         .join('levels', { 'plays.code': 'levels.id' })
         .join('members as creator_table', {
           'creator_table.id': 'levels.creator',
+        })
+        .leftJoin('points', function () {
+          this.on('points.difficulty', 'levels.difficulty').on(
+            'points.guild_id',
+            'levels.guild_id',
+          );
         })
         .whereIn('levels.status', this.SHOWN_IN_LIST)
         .where('plays.guild_id', this.team.id);
