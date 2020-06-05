@@ -72,8 +72,9 @@ module.exports = async function (client) {
     `
         : ``;
 
-    const [levels] = await knex.raw(
-      `
+    const [levels] = await knex
+      .raw(
+        `
       SELECT
         levels.row_num no
         ,levels.id
@@ -102,8 +103,8 @@ module.exports = async function (client) {
         levels
       INNER JOIN teams on
         levels.guild_id=teams.id
-      INNER JOIN points on
-        levels.guild_id=teams.id
+      LEFT JOIN points on
+        points.guild_id=teams.id
         AND points.difficulty=levels.difficulty
       INNER JOIN members on
         levels.creator=members.id
@@ -119,14 +120,15 @@ module.exports = async function (client) {
       GROUP BY levels.id
       order by levels.id
     `,
-      {
-        guild_id: ts.guild_id,
-        code,
-        name,
-        player_id: user ? user.id : -1,
-        statuses: ts.SHOWN_IN_LIST,
-      },
-    );
+        {
+          guild_id: ts.guild_id,
+          code,
+          name,
+          player_id: user ? user.id : -1,
+          statuses: ts.SHOWN_IN_LIST,
+        },
+      )
+      .debug();
 
     const seperate = tags
       .filter((t) => t.is_seperate)
@@ -482,7 +484,6 @@ module.exports = async function (client) {
             if (ts.teamAdmin(req.body.discord_id)) {
               data.teamAdmin = true;
             }
-            debug(data);
             res.send(JSON.stringify(data));
           }
         } catch (error) {
