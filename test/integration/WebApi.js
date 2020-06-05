@@ -301,9 +301,8 @@ describe('Web Apis', function () {
         })
         .expect('Content-Type', /json/)
         .expect(200);
-
       assert.notEqual(body.status, 'error');
-      assert.deepInclude(body[2].wonComps[0], {
+      assert.deepInclude(body[1].wonComps[0], {
         name: 'winner',
         rank: 1,
       });

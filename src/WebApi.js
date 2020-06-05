@@ -72,9 +72,8 @@ module.exports = async function (client) {
     `
         : ``;
 
-    const [levels] = await knex
-      .raw(
-        `
+    const [levels] = await knex.raw(
+      `
       SELECT
         levels.row_num no
         ,levels.id
@@ -107,7 +106,8 @@ module.exports = async function (client) {
         points.guild_id=teams.id
         AND points.difficulty=levels.difficulty
       INNER JOIN members on
-        levels.creator=members.id
+        levels.creator=members.id and
+        members.is_banned is null
       LEFT JOIN level_tags on
         levels.id=level_tags.level_id
       LEFT JOIN tags on
@@ -120,15 +120,14 @@ module.exports = async function (client) {
       GROUP BY levels.id
       order by levels.id
     `,
-        {
-          guild_id: ts.guild_id,
-          code,
-          name,
-          player_id: user ? user.id : -1,
-          statuses: ts.SHOWN_IN_LIST,
-        },
-      )
-      .debug();
+      {
+        guild_id: ts.guild_id,
+        code,
+        name,
+        player_id: user ? user.id : -1,
+        statuses: ts.SHOWN_IN_LIST,
+      },
+    );
 
     const seperate = tags
       .filter((t) => t.is_seperate)
@@ -175,6 +174,7 @@ module.exports = async function (client) {
           AND members.id=a.creator
         WHERE members.name=:name
         AND members.guild_id=:guild_id
+        AND members.is_banned is null
       `,
         {
           guild_id: ts.team.id,
@@ -203,7 +203,7 @@ module.exports = async function (client) {
           ,count(members.id)-sum(members.is_member) unoffocial
           ,sum(members.is_mod) mods
         FROM members
-        where guild_id=:guild_id
+        where guild_id=:guild_id AND members.is_banned is null
       `,
         { guild_id: ts.team.id },
       );
@@ -261,6 +261,7 @@ module.exports = async function (client) {
           from members
           left join competition_winners on members.id=competition_winners.creator
           where members.guild_id=:guild_id ${memberFilterSql}
+          AND members.is_banned is null
           group by members.id
           order by clear_score_sum desc
         `,
