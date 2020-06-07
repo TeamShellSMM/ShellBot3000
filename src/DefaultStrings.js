@@ -440,4 +440,9 @@ module.exports = {
     "This level is already pending. This command only resets a level's status to PENDING",
   'resetStatus.successful':
     '"{{{level_name}}}" by {{{creator}}} has been reset to PENDING',
+
+  'vote.noVoteSubmitted':
+    'You have not submitted any votes for "{{{level_name}}}" by {{{creator}}}',
+  'vote.voteRemoved':
+    'You have removed your vote for "{{{level_name}}}" by {{{creator}}}',
 };

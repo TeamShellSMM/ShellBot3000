@@ -25,23 +25,7 @@ class TSAddtags extends TSCommand {
       'addtag',
     ];
 
-    const command = ts.parseCommand(message);
-    // Check if in level discussion channel
-
-    let code;
-    if (ts.validCode(ts.discord.messageGetChannelName(message))) {
-      code = ts.getUnlabledName(
-        ts.discord.messageGetChannelName(message),
-      );
-    } else {
-      code = command.arguments.shift();
-    }
-
-    if (code) {
-      code = code.toUpperCase();
-    } else {
-      ts.userError(ts.message('error.noCode'));
-    }
+    const { code, command } = ts.getCodeArgument(message);
 
     let newTags = command.arguments.join(' ');
     if (!newTags) {

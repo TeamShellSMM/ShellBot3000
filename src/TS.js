@@ -2597,6 +2597,35 @@ class TS {
   }
 
   /**
+   * Function to get code either from the channel name or the first argument of the command
+   * @param {Message} message A message object
+   */
+  getCodeArgument(message) {
+    const command = this.parseCommand(message);
+    // Check if in level discussion channel
+
+    let code;
+    if (this.validCode(this.discord.messageGetChannelName(message))) {
+      code = this.getUnlabledName(
+        this.discord.messageGetChannelName(message),
+      );
+    } else {
+      code = command.arguments.shift();
+    }
+
+    if (code) {
+      code = code.toUpperCase();
+    } else {
+      this.userError('error.noCode');
+    }
+
+    return {
+      code,
+      command,
+    };
+  }
+
+  /**
    * Helper function to help verified secure data being recieved. Checks for id
    * @param {RowPacket[]} data Rows of data recieved from user. each row should contain SECURE_TOKEN created in secureData
    * @returns {RowPacket[]} returns the same data but removes SECURE_TOKEN after verifying it.
