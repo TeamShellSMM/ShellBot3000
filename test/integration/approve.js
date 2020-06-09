@@ -156,7 +156,7 @@ describe('!approve', function () {
       description:
         'made by [Creator](http://localhost:8080/makerteam/maker/Creator)\n' +
         'Difficulty: 0, Clears: 0, Likes: 0\n' +
-        'Tags: [tag1](http://localhost:8080/makerteam/levels/tag1),[tag2](http://localhost:8080/makerteam/levels/tag2),[tag3](http://localhost:8080/makerteam/levels/tag3)\n' +
+        'Tags: [tag1](http://localhost:8080/makerteam/levels/tags/tag1),[tag2](http://localhost:8080/makerteam/levels/tags/tag2),[tag3](http://localhost:8080/makerteam/levels/tags/tag3)\n' +
         'Clear Video: [ 🎬 ](http://twitch.tv),[ 🎬 ](http://youtube.com)',
       url: 'http://localhost:8080/makerteam/level/XXX-XXX-XXX',
       color: 106911,
@@ -285,7 +285,7 @@ describe('!approve', function () {
       description:
         'made by [Creator](http://localhost:8080/makerteam/maker/Creator)\n' +
         'Difficulty: 0, Clears: 0, Likes: 0\n' +
-        'Tags: [tag1](http://localhost:8080/makerteam/levels/tag1),[tag2](http://localhost:8080/makerteam/levels/tag2),[tag3](http://localhost:8080/makerteam/levels/tag3)\n' +
+        'Tags: [tag1](http://localhost:8080/makerteam/levels/tags/tag1),[tag2](http://localhost:8080/makerteam/levels/tags/tag2),[tag3](http://localhost:8080/makerteam/levels/tags/tag3)\n' +
         'Clear Video: [ 🎬 ](http://twitch.tv),[ 🎬 ](http://youtube.com)',
     });
     assert.match(result[1], /Your vote was added to <#[0-9]+>!/);
@@ -349,7 +349,7 @@ describe('!approve', function () {
       description:
         'made by [Creator](http://localhost:8080/makerteam/maker/Creator)\n' +
         'Difficulty: 0, Clears: 0, Likes: 0\n' +
-        'Tags: [tag1](http://localhost:8080/makerteam/levels/tag1),[tag2](http://localhost:8080/makerteam/levels/tag2),[tag3](http://localhost:8080/makerteam/levels/tag3)\n' +
+        'Tags: [tag1](http://localhost:8080/makerteam/levels/tags/tag1),[tag2](http://localhost:8080/makerteam/levels/tags/tag2),[tag3](http://localhost:8080/makerteam/levels/tags/tag3)\n' +
         'Clear Video: [ 🎬 ](http://twitch.tv),[ 🎬 ](http://youtube.com)',
       author: {
         name: 'The Judgement  has now begun for this level:',

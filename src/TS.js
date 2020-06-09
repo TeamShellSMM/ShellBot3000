@@ -1977,7 +1977,7 @@ class TS {
           tagStr.push(
             `[${tag}](${ts.page_url}${
               ts.url_slug
-            }/levels/${encodeURIComponent(tag)})`,
+            }/levels/tags/${encodeURIComponent(tag)})`,
           );
       });
       tagStr = tagStr.join(',');

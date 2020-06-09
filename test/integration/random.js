@@ -172,7 +172,7 @@ describe('!random / !playersRandom', function () {
       description:
         'made by [Creator](http://localhost:8080/makerteam/maker/Creator)\n' +
         'Difficulty: 1, Clears: 0, Likes: 0\n' +
-        'Tags: [tag1](http://localhost:8080/makerteam/levels/tag1)\n',
+        'Tags: [tag1](http://localhost:8080/makerteam/levels/tags/tag1)\n',
       url: 'http://localhost:8080/makerteam/level/XXX-XXX-XXX',
     });
   });
