@@ -2640,10 +2640,11 @@ class TS {
         }
         try {
           const decoded = jwt.verify(d.SECURE_TOKEN, this.config.key);
-          if (decoded.id !== d.id) {
+          if (Number(decoded.id) !== Number(d.id)) {
             this.userError(this.message('error.wrongTokens'));
           }
         } catch (error) {
+          debug(error);
           this.userError(this.message('error.wrongTokens'));
         }
       } else {

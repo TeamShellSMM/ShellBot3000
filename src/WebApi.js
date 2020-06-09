@@ -673,7 +673,8 @@ module.exports = async function (client) {
         data.forEach((d) => {
           if (
             existingTags.find(
-              (e) => d.name === e.name && d.id !== e.id,
+              (e) =>
+                d.name === e.name && Number(d.id) !== Number(e.id),
             )
           ) {
             ts.userError('tags.duplicateTags', { tag: d.name });
@@ -682,8 +683,9 @@ module.exports = async function (client) {
 
         for (let i = 0; i < data.length; i += 1) {
           const currentID = data[i].id;
+          console.log(data[i].id);
           const newData = {
-            id: data[i].id,
+            id: data[i].id ? Number(data[i].id) : null,
             name: data[i].name,
             synonymous_to: data[i].synonymous_to,
             type: data[i].type,
@@ -711,7 +713,7 @@ module.exports = async function (client) {
           };
           if (currentID) {
             const existing = existingTags.find(
-              (t) => t.id === currentID,
+              (t) => Number(t.id) === Number(currentID),
             );
             if (!existing) ts.userError('error.hadIdButNotInDb');
             if (!deepEqual(newData, existing)) {
