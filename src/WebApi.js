@@ -188,12 +188,15 @@ module.exports = async function (client) {
           const [maker] = json.maker;
           json.maker = maker;
 
-          let makerMember = ts.discord.getMember(maker.discord_id);
+          const makerMember = ts.discord.getMember(maker.discord_id);
 
-          if(makerMember){
+          if (makerMember) {
             json.maker.hexColor = makerMember.displayHexColor;
-            if(makerMember.user.avatarURL){
-              json.maker.avatarURL = makerMember.user.avatarURL.replace(/size=.*/g, "size=128")
+            if (makerMember.user.avatarURL) {
+              json.maker.avatarURL = makerMember.user.avatarURL.replace(
+                /size=.*/g,
+                'size=128',
+              );
             }
           }
 

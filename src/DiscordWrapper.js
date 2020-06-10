@@ -138,10 +138,7 @@ class DiscordWrapper {
    */
   getMember(discord_id) {
     const guild = this.guild();
-    return guild.members
-      .find((m) =>
-        m.id == discord_id
-      );
+    return guild.members.find((m) => m.id === discord_id);
   }
 
   async setChannelParent(search, parent) {
