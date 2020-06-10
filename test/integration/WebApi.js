@@ -921,7 +921,7 @@ describe('Web Apis', function () {
       teamAdmin.restore();
     });
 
-    it('POST /teams/tags @curr', async () => {
+    it('POST /teams/tags', async () => {
       const teamAdmin = sinon.stub(TEST.ts, 'teamAdmin');
       teamAdmin.returns(true);
       const done = TEST.acceptReply();

@@ -683,7 +683,6 @@ module.exports = async function (client) {
 
         for (let i = 0; i < data.length; i += 1) {
           const currentID = data[i].id;
-          console.log(data[i].id);
           const newData = {
             id: data[i].id ? Number(data[i].id) : null,
             name: data[i].name,

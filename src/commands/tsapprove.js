@@ -45,7 +45,7 @@ class TSApprove extends TSCommand {
     });
   }
 
-  async tsexec(ts, message, pArgs) {
+  async tsexec(ts, message) {
     /*
         Possible command syntax:
         !tsapprove code difficulty reason
@@ -80,23 +80,13 @@ class TSApprove extends TSCommand {
       'fix+lc',
     ];
 
-    const args = pArgs;
-    const command = ts.parseCommand(message);
-    let inCodeDiscussionChannel = false;
+    const {
+      code,
+      command,
+      inCodeDiscussionChannel,
+    } = ts.getCodeArgument(message);
+    const args = { code };
 
-    // Check if in level discussion channel
-    if (ts.validCode(ts.discord.messageGetChannelName(message))) {
-      inCodeDiscussionChannel = true;
-      args.reason = args.difficulty;
-      args.difficulty = args.code;
-      args.code = ts.getUnlabledName(
-        ts.discord.messageGetChannelName(message),
-      );
-    } else if (!args.code) {
-      ts.userError('error.noCode');
-    }
-
-    args.code = args.code.toUpperCase();
     if (
       !(
         (
@@ -110,11 +100,14 @@ class TSApprove extends TSCommand {
     )
       return false; // silently fail
 
-    if (command.command.indexOf('reject') !== -1) {
+    if (command.command.indexOf('reject') === -1) {
       // Difficulty doesn't exist in reject, so it get replaced by reason
-      args.reason = args.difficulty;
+      args.difficulty = command.next();
+    } else {
       args.difficulty = null;
     }
+
+    args.reason = command.rest();
 
     // Then Check the other args
     if (
@@ -124,7 +117,7 @@ class TSApprove extends TSCommand {
     ) {
       // We only check difficulty in tsapprove mode
       if (!ts.valid_difficulty(args.difficulty)) {
-        ts.userError(ts.message('approval.invalidDifficulty'));
+        ts.userError('approval.invalidDifficulty');
       }
     }
 

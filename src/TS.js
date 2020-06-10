@@ -2402,19 +2402,39 @@ class TS {
       .groupBy('tags.id');
   }
 
+  splitOnce(str) {
+    const pos = str.search(/[ \n]/);
+    if (pos === -1) return [str, ''];
+    return [str.substr(0, pos), str.substr(pos + 1)];
+  }
+
   /**
    * Parses a message from discord and converts it to an array of words
    * @param {object} message
    * @returns {object} returns command
    */
   parseCommand(message) {
-    let rawCommand = message.content.trim();
+    let rawCommand = message.content.trim().substring(1).trim();
+    const storedCommand = rawCommand;
     rawCommand = rawCommand.split(/[ \n]/);
-    const sbCommand = rawCommand.shift().toLowerCase().substring(1); // remove first character
+    let [cmd, args] = this.splitOnce(storedCommand);
+    cmd = cmd.toLowerCase();
+    const sbCommand = rawCommand.shift().toLowerCase(); // remove first character
     if (!sbCommand) rawCommand.shift().toLowerCase();
     let filtered = [];
     filtered = rawCommand.filter((s) => s);
+    const that = this;
     return {
+      cmd,
+      next: function () {
+        if (!args) return false;
+        const [first, second] = that.splitOnce(args);
+        args = second;
+        return first;
+      },
+      rest: function () {
+        return args;
+      },
       command: sbCommand,
       arguments: filtered,
       argumentString: filtered.join(' '),
@@ -2603,16 +2623,18 @@ class TS {
    * @param {Message} message A message object
    */
   getCodeArgument(message) {
+    let inCodeDiscussionChannel = false;
     const command = this.parseCommand(message);
     // Check if in level discussion channel
 
     let code;
     if (this.validCode(this.discord.messageGetChannelName(message))) {
+      inCodeDiscussionChannel = true;
       code = this.getUnlabledName(
         this.discord.messageGetChannelName(message),
       );
     } else {
-      code = command.arguments.shift();
+      code = command.next();
     }
 
     if (code) {
@@ -2624,6 +2646,7 @@ class TS {
     return {
       code,
       command,
+      inCodeDiscussionChannel,
     };
   }
 

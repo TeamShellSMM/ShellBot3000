@@ -280,7 +280,7 @@ describe('misc-unit', function () {
     assert.lengthOf(embed.fields, 0);
   });
 
-  it('ts.discussionChannel old and new exists @curr', async () => {
+  it('ts.discussionChannel old and new exists', async () => {
     const channel = sinon.stub(TEST.ts.discord, 'channel');
     const removeChannel = sinon.stub(
       TEST.ts.discord,
@@ -340,11 +340,24 @@ describe('misc-unit', function () {
     const result = TEST.ts.parseCommand({
       content: '!addvid xxx-xxx-xxx\n val1,val2',
     });
-    assert.deepEqual(result, {
+    assert.deepInclude(result, {
       command: 'addvid',
       arguments: ['xxx-xxx-xxx', 'val1,val2'],
       argumentString: 'xxx-xxx-xxx val1,val2',
     });
+  });
+
+  it('ts.parseCommand new @curr', async () => {
+    const result = TEST.ts.parseCommand({
+      content:
+        '!command 5 this is long sentence.\nthis is the next line',
+    });
+    assert.equal(result.cmd, 'command');
+    assert.equal(result.next(), '5');
+    assert.equal(
+      result.rest(),
+      'this is long sentence.\nthis is the next line',
+    );
   });
 
   it('ts.addTags() not string or array', async () => {

@@ -27,7 +27,7 @@ class TSAddtags extends TSCommand {
 
     const { code, command } = ts.getCodeArgument(message);
 
-    let newTags = command.arguments.join(' ');
+    let newTags = command.rest();
     if (!newTags) {
       ts.userError(ts.message('tags.noTags'));
     }

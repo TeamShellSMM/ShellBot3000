@@ -1,4 +1,4 @@
-describe('!removevote @curr', function () {
+describe('!removevote', function () {
   const initData = {
     Members: [
       {
