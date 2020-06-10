@@ -132,6 +132,18 @@ class DiscordWrapper {
       .map((m) => m.user.id);
   }
 
+  /**
+   * @param {string} discord_id discord id of the member you want
+   * @returns {GuildMember} the found guild member
+   */
+  getMember(discord_id) {
+    const guild = this.guild();
+    return guild.members
+      .find((m) =>
+        m.id == discord_id
+      );
+  }
+
   async setChannelParent(search, parent) {
     this.checkChannelFull(parent);
     if (!parent) return false;
