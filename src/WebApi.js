@@ -192,7 +192,9 @@ module.exports = async function (client) {
 
           if(makerMember){
             json.maker.hexColor = makerMember.displayHexColor;
-            json.maker.avatarURL = makerMember.user.avatarURL.replace(/size=.*/g, "size=128")
+            if(makerMember.user.avatarURL){
+              json.maker.avatarURL = makerMember.user.avatarURL.replace(/size=.*/g, "size=128")
+            }
           }
 
           delete json.maker.discord_id;
