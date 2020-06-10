@@ -187,6 +187,16 @@ module.exports = async function (client) {
         if (json.maker.length > 0) {
           const [maker] = json.maker;
           json.maker = maker;
+
+          let makerMember = ts.discord.getMember(maker.discord_id);
+
+          if(makerMember){
+            json.maker.hexColor = makerMember.displayHexColor;
+            if(makerMember.user.avatarURL){
+              json.maker.avatarURL = makerMember.user.avatarURL.replace(/size=.*/g, "size=128")
+            }
+          }
+
           delete json.maker.discord_id;
           delete json.maker.guild_id;
           json.plays = await ts
@@ -295,7 +305,7 @@ module.exports = async function (client) {
       }
 
       [json] = await ts.knex.raw(
-        `select 
+        `select
               ROW_NUMBER() OVER ( ORDER BY clear_score_sum desc ) as id,
               members.name,
               maker_id,
