@@ -1157,7 +1157,9 @@ class TS {
       };
       const [filteredLevels] = await knex.raw(
         `
-    SELECT levels.*,members.name creator from
+    SELECT levels.*, members.id creator_id,
+    members.name creator,
+    COALESCE(group_concat(tags.name),'') tags from
     levels
     inner join members on levels.creator=members.id
     left join level_tags on levels.id=level_tags.level_id
