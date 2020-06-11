@@ -360,6 +360,19 @@ describe('misc-unit', function () {
     );
   });
 
+  it('ts.parseCommand newline args, extra space', async () => {
+    const result = TEST.ts.parseCommand({
+      content:
+        '!command  5 this is long sentence.\nthis is the next line',
+    });
+    assert.equal(result.cmd, 'command');
+    assert.equal(result.next(), '5');
+    assert.equal(
+      result.rest(),
+      'this is long sentence.\nthis is the next line',
+    );
+  });
+
   it('ts.addTags() not string or array', async () => {
     const result = await TEST.ts
       .addTags({ name: 'general' })

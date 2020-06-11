@@ -199,7 +199,7 @@ describe('Web Apis', function () {
       assert.equal(body.levels[0].creator, 'Creator');
     });
 
-    it('POST /json, maker details @curr', async function () {
+    it('POST /json, maker details', async function () {
       const getMember = sinon.stub(TEST.ts.discord, 'getMember');
       getMember.returns({
         hexColor: '#000',
@@ -223,7 +223,7 @@ describe('Web Apis', function () {
       assert.equal(body.levels[0].creator, 'Creator');
     });
 
-    it('POST /json, maker details no avatar @curr', async function () {
+    it('POST /json, maker details no avatar', async function () {
       const getMember = sinon.stub(TEST.ts.discord, 'getMember');
       getMember.returns({
         hexColor: '#000',

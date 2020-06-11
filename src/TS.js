@@ -2414,7 +2414,7 @@ class TS {
   splitOnce(str) {
     const pos = str.search(/[ \n]/);
     if (pos === -1) return [str, ''];
-    return [str.substr(0, pos), str.substr(pos + 1)];
+    return [str.substr(0, pos).trim(), str.substr(pos + 1).trim()];
   }
 
   /**

@@ -182,7 +182,6 @@ module.exports = async function (client) {
           status: ts.LEVEL_STATUS.APPROVED,
         },
       );
-      console.log(makerDetails);
       if (makerDetails) {
         json.maker = makerDetails;
         if (json.maker.length > 0) {
@@ -190,7 +189,6 @@ module.exports = async function (client) {
           json.maker = maker;
 
           const makerMember = ts.discord.getMember(maker.discord_id);
-          console.log(makerMember);
           if (makerMember) {
             json.maker.hexColor = makerMember.displayHexColor;
             if (makerMember.user.avatarURL) {
