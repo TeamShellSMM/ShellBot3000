@@ -1061,7 +1061,8 @@ class TS {
      * Gets a random level based on plays of the player/passed players and difficulty
      */
     this.randomLevel = async function (args) {
-      const { discord_id, players, tag } = args;
+      debug(args);
+      const { discord_id, players, tag, randomAll } = args;
       let { minDifficulty, maxDifficulty } = args;
       if (minDifficulty && !ts.valid_difficulty(minDifficulty)) {
         ts.userError(
@@ -1184,12 +1185,20 @@ class TS {
             (tag ? ts.message('random.outOfLevelsTag', { tag }) : ''),
         );
       }
-      const borderLine = Math.floor(filteredLevels.length * 0.6);
       let randNum;
-      if (Math.random() < 0.2) {
-        randNum = ts.getRandomInt(0, borderLine);
+      if (randomAll) {
+        randNum = ts.getRandomInt(0, filteredLevels.length);
       } else {
-        randNum = ts.getRandomInt(borderLine, filteredLevels.length);
+        const borderLine = Math.floor(filteredLevels.length * 0.6);
+
+        if (Math.random() < 0.2) {
+          randNum = ts.getRandomInt(0, borderLine);
+        } else {
+          randNum = ts.getRandomInt(
+            borderLine,
+            filteredLevels.length,
+          );
+        }
       }
       const level = filteredLevels[randNum];
       return {

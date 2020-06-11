@@ -82,6 +82,18 @@ describe('!random / !playersRandom', function () {
     );
   });
 
+  it('!randomall @curr', async function () {
+    const random = sinon.stub(TEST.ts, 'getRandomInt');
+    random.returns(0);
+    const result = await TEST.mockBotSend({
+      cmd: '!randomall',
+      channel: 'general',
+      discord_id: '128',
+    });
+    assert.deepInclude(result[1], { title: 'level1 (XXX-XXX-XXX)' });
+    random.restore();
+  });
+
   it('!random check difficulty swapped min and max', async function () {
     const result = await TEST.mockBotSend({
       cmd: '!random 3 1',
