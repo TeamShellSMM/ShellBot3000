@@ -82,7 +82,7 @@ describe('!random / !playersRandom', function () {
     );
   });
 
-  it('!randomall @curr', async function () {
+  it('!randomall', async function () {
     const random = sinon.stub(TEST.ts, 'getRandomInt');
     random.returns(0);
     const result = await TEST.mockBotSend({

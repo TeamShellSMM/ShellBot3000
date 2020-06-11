@@ -347,7 +347,7 @@ describe('misc-unit', function () {
     });
   });
 
-  it('ts.parseCommand new @curr', async () => {
+  it('ts.parseCommand newline args no quote', async () => {
     const result = TEST.ts.parseCommand({
       content:
         '!command 5 this is long sentence.\nthis is the next line',
