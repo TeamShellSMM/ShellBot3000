@@ -199,10 +199,42 @@ describe('Web Apis', function () {
       assert.equal(body.levels[0].creator, 'Creator');
     });
 
-    it('POST /json, maker details', async function () {
+    it('POST /json, maker details @curr', async function () {
+      const getMember = sinon.stub(TEST.ts.discord, 'getMember');
+      getMember.returns({
+        hexColor: '#000',
+        user: {
+          avatarURL: 'have',
+        },
+      });
+
       const { body } = await TEST.request(app)
         .post('/json')
-        .send({ url_slug: TEST.ts.url_slug, creator: 'Creator' })
+        .send({ url_slug: TEST.ts.url_slug, name: 'Creator' })
+        .expect('Content-Type', /json/)
+        .expect(200);
+
+      assert.notEqual(body.status, 'error');
+
+      delete body.levels[0].created_at;
+      delete body.levels[0].id;
+      assert.equal(body.levels[0].code, 'XXX-XXX-XXX');
+      assert.equal(body.levels[0].level_name, 'EZ GG');
+      assert.equal(body.levels[0].creator, 'Creator');
+    });
+
+    it('POST /json, maker details no avatar @curr', async function () {
+      const getMember = sinon.stub(TEST.ts.discord, 'getMember');
+      getMember.returns({
+        hexColor: '#000',
+        user: {
+          avatarURL: null,
+        },
+      });
+
+      const { body } = await TEST.request(app)
+        .post('/json')
+        .send({ url_slug: TEST.ts.url_slug, name: 'Creator' })
         .expect('Content-Type', /json/)
         .expect(200);
 
