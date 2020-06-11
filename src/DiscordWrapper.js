@@ -184,9 +184,20 @@ class DiscordWrapper {
     return this.member(discordId).removeRoles(roleId);
   }
 
+  hasRole(discordId, roleId) {
+    const currMember = this.member(discordId);
+    if (!currMember) return false;
+    return currMember.roles.some(
+      (r) =>
+        r.id === roleId ||
+        r.name.toLowerCase() === roleId.toLowerCase(),
+    );
+  }
+
   async addRole(discordId, roleId) {
     const currMember = this.member(discordId);
     if (!currMember) return false;
+    if (this.hasRole(discordId, roleId)) return false;
     return currMember.addRole(roleId);
   }
 

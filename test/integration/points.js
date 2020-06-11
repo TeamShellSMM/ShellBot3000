@@ -173,7 +173,7 @@ describe('!points', function () {
   });
 
   // TODO: make these tests independent of one another
-  it('!points role, get discord role', async function () {
+  it('!points, mock roles', async function () {
     const addRole = sinon.stub(TEST.ts.discord, 'addRole');
     const removeRoles = sinon.stub(TEST.ts.discord, 'removeRoles');
     await TEST.ts.db.Members.query()
@@ -182,7 +182,7 @@ describe('!points', function () {
 
     assert.equal(
       await TEST.mockBotSend({
-        cmd: '!points role',
+        cmd: '!points',
         channel: 'general',
         discord_id: '128',
       }),

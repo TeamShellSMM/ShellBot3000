@@ -809,7 +809,6 @@ class TS {
         if (completed != null) updated.completed = true;
         if (liked != null) updated.liked = true;
         if (difficulty != null) updated.difficulty = true;
-        await ts.recalculateAfterUpdate({ name: player.name });
       }
       if ([0, 1].includes(completed)) {
         if (updated.completed) {
@@ -872,9 +871,11 @@ class TS {
           );
         }
       }
+      await ts.recalculateAfterUpdate({ name: player.name });
+      const updatedPlayer = await ts.getUser(discord_id);
       const userReply = playerDontAtMe
-        ? player.userReply_dontatme
-        : player.userReply;
+        ? updatedPlayer.userReply_dontatme
+        : updatedPlayer.userReply;
       return (
         (strOnly ? '' : userReply) +
         ts.processClearMessage({ msg, creatorStr, level })
@@ -1230,6 +1231,18 @@ class TS {
         pipes: '',
         discord_role: '',
       };
+
+      if (
+        player.rank.discord_role &&
+        !this.discord.hasRole(discord_id, player.rank.discord_role)
+      ) {
+        await ts.discord.removeRoles(discord_id, ts.rank_ids);
+        await ts.discord.addRole(
+          discord_id,
+          player.rank.discord_role,
+        );
+      }
+
       player.rank.pips = player.rank.pips || '';
       player.atme_str = player.atme
         ? `<@${player.discord_id}>`

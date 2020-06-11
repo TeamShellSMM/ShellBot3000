@@ -15,20 +15,8 @@ class points extends TSCommand {
     });
   }
 
-  async tsexec(ts, message, { role }) {
+  async tsexec(ts, message) {
     const player = await ts.getUser(message);
-    if (role === 'role' || role === 'norole') {
-      await ts.discord.removeRoles(
-        ts.discord.getAuthor(message),
-        ts.rank_ids,
-      );
-    }
-    if (role === 'role' && player.rank.discord_role) {
-      await ts.discord.addRole(
-        ts.discord.getAuthor(message),
-        player.rank.discord_role,
-      );
-    }
 
     let msg = ts.message('points.points', { player });
 

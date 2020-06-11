@@ -181,6 +181,7 @@ describe('DiscordWrapper', function () {
         .member(botId)
         .roles.find((r) => r.name === 'role1-test'),
     );
+    assert.isTrue(TEST.ts.discord.hasRole(botId, 'role1-test'));
     const memberWithRoles = TEST.ts.discord.getMembersWithRole(
       'role1-test',
     );
