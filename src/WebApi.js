@@ -497,6 +497,7 @@ module.exports = async function (client) {
             if (ts.teamAdmin(req.body.discord_id)) {
               data.teamAdmin = true;
             }
+            data.teamSettings = await ts.getSettings('settings');
             res.send(JSON.stringify(data));
           }
         } catch (error) {

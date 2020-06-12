@@ -113,6 +113,51 @@ const defaultVariables = Object.freeze([
       "What the bot will refer to itself in it's responses",
   },
   {
+    name: 'DiscordInvite',
+    caption: 'Discord Invite Link',
+    default: '',
+    type: 'text',
+    description:
+      'A discord link, ideally a non expiring one pointing towards your rules channel or registration channel',
+  },
+  {
+    name: 'AddLevelRequirements',
+    caption: 'Requirements for adding a level',
+    default: '',
+    type: 'text',
+    description:
+      'This will be shown as part of the fourth step in "How to become part of the team"',
+  },
+  {
+    name: 'TwitterUser',
+    caption: 'Twitter User of the Team',
+    default: '',
+    type: 'text',
+    description:
+      'If provided we will embed your twitter timeline in the homepage',
+  },
+  {
+    name: 'Favicon',
+    caption: 'Team Favicon',
+    default: '',
+    type: 'text',
+    description: 'The devs might have already set this',
+  },
+  {
+    name: 'PrimaryColor',
+    caption: 'Primary Color',
+    default: '#888888',
+    type: 'text',
+    description: 'Primary color for your team',
+  },
+  {
+    name: 'SecondaryColor',
+    caption: 'Secondary Color',
+    default: '#888888',
+    type: 'text',
+    description: 'Secondary color for your team',
+  },
+  {
     name: 'ChannelsShellbotAllowed',
     caption: 'Allow ShellBot in channels/categories',
     default: '',

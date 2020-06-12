@@ -737,7 +737,7 @@ describe('Web Apis', function () {
         .expect(200);
       const reply = done();
       assert.match(reply, /\*\*\[[0-9a-f]+\]\*\*\n> true/);
-      assert.deepEqual(body, {
+      assert.deepInclude(body, {
         status: 'successful',
         url_slug: 'makerteam',
       });
@@ -928,7 +928,7 @@ describe('Web Apis', function () {
         .expect('Content-Type', /json/)
         .expect(200);
 
-      assert.deepEqual(result2.body, {
+      assert.deepInclude(result2.body, {
         status: 'successful',
         url_slug: 'makerteam',
         teamAdmin: true,
@@ -944,7 +944,7 @@ describe('Web Apis', function () {
         .expect('Content-Type', /json/)
         .expect(200);
 
-      assert.deepEqual(result3.body, {
+      assert.deepInclude(result3.body, {
         status: 'successful',
         url_slug: 'makerteam',
         teamAdmin: true,

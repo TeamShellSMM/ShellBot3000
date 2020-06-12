@@ -67,11 +67,11 @@ class TS {
 
     this.devs = process.env.DEVS.split(',');
     this.page_url = process.env.PAGE_URL;
-    this.getSettings = async (type, map = false) => {
+    this.getSettings = async (type, dontMap = false) => {
       const rows = await knex('team_settings')
         .where({ guild_id: this.team.id })
         .where({ type });
-      if (map) return rows;
+      if (dontMap) return rows;
 
       const ret = {};
       rows.forEach((r) => {
