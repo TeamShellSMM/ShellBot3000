@@ -137,11 +137,20 @@ const defaultVariables = Object.freeze([
       'If provided we will embed your twitter timeline in the homepage',
   },
   {
-    name: 'Favicon',
-    caption: 'Team Favicon',
-    default: '',
+    name: 'HaveFun',
+    caption: 'Have Fun Message',
+    default: 'Have fun.',
     type: 'text',
-    description: 'The devs might have already set this',
+    description:
+      'Short message after the "How to become part of the team"',
+  },
+  {
+    name: 'FrontPageDescription',
+    caption: 'Team Summary/Description',
+    default: 'We are a team.',
+    type: 'text',
+    description:
+      'The description which will be shown in the front page',
   },
   {
     name: 'PrimaryColor',
