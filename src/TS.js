@@ -397,9 +397,9 @@ class TS {
 
     this.modOnly = async (discordId) => {
       if (!discordId) return false;
-      if (this.devs && this.devs.indexOf(discordId) !== -1) {
-        return true;
-      }
+      // if (this.devs && this.devs.indexOf(discordId) !== -1) {
+      //  return true;
+      // }
       const guild = await this.discord.guild();
       if (guild.owner.user.id === discordId) {
         // owner can do anything

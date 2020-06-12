@@ -445,4 +445,7 @@ module.exports = {
     'You have not submitted any votes for "{{{level_name}}}" by {{{creator}}}',
   'vote.voteRemoved':
     'You have removed your vote for "{{{level_name}}}" by {{{creator}}}',
+
+  'clearDifficulty.success':
+    'You have cleared the difficulty votes for "{{{level_name}}}" by {{{creator}}}',
 };

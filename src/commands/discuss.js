@@ -3,15 +3,7 @@ const TSCommand = require('../TSCommand.js');
 class TSDiscussChannel extends TSCommand {
   constructor() {
     super('discusschannel', {
-      aliases: ['discusschannel', 'fixdiscuss'],
-      split: 'quoted',
-      args: [
-        {
-          id: 'code',
-          type: 'uppercase',
-          default: null,
-        },
-      ],
+      aliases: ['discusschannel', 'fixdiscuss', 'discuss'],
       channelRestriction: 'guild',
     });
   }
@@ -20,24 +12,8 @@ class TSDiscussChannel extends TSCommand {
     return ts.modOnly(ts.discord.getAuthor(message));
   }
 
-  async tsexec(ts, message, args) {
-    let { code } = args;
-    // Check if in level discussion channel
-    if (
-      ts.validCode(
-        ts.discord.messageGetChannelName(message).toUpperCase(),
-      )
-    ) {
-      code = ts.getUnlabledName(
-        ts.discord.messageGetChannelName(message),
-      );
-    }
-
-    if (code) {
-      code = code.toUpperCase();
-    } else {
-      ts.userError(ts.message('error.noCode'));
-    }
+  async tsexec(ts, message) {
+    const { code } = ts.getCodeArgument(message);
 
     const level = await ts.getLevels().where({ code }).first();
 
