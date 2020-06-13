@@ -457,6 +457,190 @@ module.exports = async function (client) {
     };
   }
 
+  async function generateRacesJson(ts, data) {
+    let { currentTimeMillis, mode } = data;
+    const { discord_id } = data;
+    const player = await ts.getUser(discord_id);
+
+    let serverTimeOffset = moment().valueOf() - currentTimeMillis;
+
+    let stati = [];
+    if(mode == 'current'){
+      stati = ["upcoming", "active"];
+    } else {
+      stati = ["finished"];
+    }
+
+    const [json] = await knex.raw(
+      `select
+        races.id,
+        races.name,
+        races.status,
+        races.start_date,
+        races.end_date,
+        races.race_type,
+        races.level_type,
+        races.level_filter_diff_from,
+        races.level_filter_diff_to,
+        races.level_filter_submission_time_type,
+        races.level_filter_failed,
+        tags.id as tag_id,
+        tags.name as tag_name,
+        tags.type as tag_type,
+        races.level_id as level_id,
+        levels.code as level_code,
+        levels.difficulty as level_difficulty,
+        levels.level_name as level_name,
+        creators.id as creator_id,
+        creators.name as creator_name,
+        race_entrants.id as race_entrant_id,
+        race_entrants.finished_date as race_entrant_finished_date,
+        race_entrants.rank as race_entrant_rank,
+        race_members.id as race_member_id,
+        race_members.name as race_member_name,
+        race_members.discord_id as race_member_discord_id
+      from
+        races
+        left join tags on races.level_filter_tag_id = tags.id
+        left join levels on races.level_id = levels.id
+        left join members creators on levels.creator = creators.id
+        left join race_entrants on races.id = race_entrants.race_id
+        left join members race_members on race_entrants.member_id = race_members.id
+      where
+        races.guild_id = :guild_id AND
+        races.status in (:stati) AND
+        (tags.is_hidden = 0 or tags.is_hidden is null)
+      order by races.start_date ` + (mode == "current" ? "asc": "desc"),
+      {
+        guild_id: ts.team.id,
+        stati: stati
+      },
+    );
+
+    let raceData = {};
+
+    for(let row of json){
+      if(!raceData[row.id]){
+        raceData[row.id] = {
+          id: row.id,
+          name: row.name,
+          status: row.status,
+          start_date: row.start_date,
+          end_date: row.end_date,
+          race_type: row.race_type,
+          level_type: row.level_type,
+          level_filter_diff_from: row.level_filter_diff_from,
+          level_filter_diff_to: row.level_filter_diff_to,
+          level_filter_submission_time_type: row.level_filter_submission_time_type,
+          level_filter_failed: row.level_filter_failed,
+          race_entrants: {}
+        }
+
+        if(row.tag_id){
+          raceData[row.id]["level_filter_tag"] = {
+            id: row.tag_id,
+            name: row.tag_name,
+            type: row.tag_type
+          };
+        }
+
+        if(row.level_id){
+          raceData[row.id]["level"] = {
+            id: row.level_id,
+            code: row.level_code,
+            difficulty: row.level_difficulty,
+            level_name: row.level_name
+          };
+
+          if(row.creator_id){
+            raceData[row.id]["level"]["creator"] = {
+              id: row.creator_id,
+              name: row.creator_name
+            }
+          }
+        }
+      }
+
+      if(row.race_entrant_id){
+        if(!raceData[row.id][row.race_entrant_id]){
+          raceData[row.id].race_entrants[row.race_entrant_id] = {
+            id: row.race_entrant_id,
+            finished_date: row.race_entrant_finished_date,
+            rank: row.race_entrant_rank
+          }
+
+          if(row.race_member_id){
+            raceData[row.id].race_entrants[row.race_entrant_id]["member"] = {
+              id: row.race_member_id,
+              name: row.race_member_name
+            };
+
+            const raceMember = ts.discord.getMember(row.race_member_discord_id);
+            if (raceMember) {
+              raceData[row.id].race_entrants[row.race_entrant_id]["member"].hexColor = raceMember.displayHexColor;
+              if (raceMember.user.avatarURL) {
+                raceData[row.id].race_entrants[row.race_entrant_id]["member"].avatarURL = raceMember.user.avatarURL.replace(
+                  /size=.*/g,
+                  'size=128',
+                );
+              }
+            }
+          }
+        }
+      }
+    }
+
+    let races = {
+      "active": [],
+      "upcoming": [],
+      "finished": []
+    };
+
+    for(let id in raceData){
+      let race = raceData[id];
+
+      if(race.level && (!player.is_mod || race.status == 'upcoming')){
+        delete race.level;
+      }
+
+      let race_entrants = [];
+      for(let race_entrant_id in race.race_entrants){
+        let race_entrant = race.race_entrants[race_entrant_id];
+        race_entrants.push(race_entrant);
+      }
+
+      race_entrants.sort(function(a, b){
+        if(a && b){
+          return b.rank - a.rank;
+        } else if (!a){
+          return -1;
+        } else if (!b){
+          return 1;
+        } else {
+          return 0;
+        }
+      });
+
+      race.race_entrants = race_entrants;
+
+      races[race.status].push(race);
+    }
+
+    let tags = await ts.db.Tags.query();
+
+    let whitelistedKeys = ['id', 'name', 'type'];
+
+    for(let tag of tags){
+      Object.keys(tag).forEach((key)=> whitelistedKeys.includes(key) || delete tag[key]);
+    }
+
+    return {
+      data: races,
+      tags: tags,
+      serverTimeOffset: serverTimeOffset
+    };
+  }
+
   const adminChecks = Object.freeze({
     admin: 'teamAdmin',
     mod: 'modOnly',
@@ -820,6 +1004,14 @@ module.exports = async function (client) {
   );
 
   app.post(
+    '/json/races',
+    webTS(async (ts, req) => {
+      const json = await generateRacesJson(ts, req.body);
+      return json;
+    }),
+  );
+
+  app.post(
     '/clear',
     webTS(async (ts, req) => {
       const msg = await ts.clear({
@@ -827,6 +1019,66 @@ module.exports = async function (client) {
         playerDontAtMe: true,
       });
       await ts.discord.send(ts.channels.commandFeed, msg);
+      const json = { status: 'successful', msg: msg };
+      return json;
+    }, true),
+  );
+
+  app.post(
+    '/race',
+    webTS(async (ts, req) => {
+      const msg = await ts.addRace({
+        ...req.body
+      });
+
+      const json = { status: 'successful', msg: msg };
+      return json;
+    }, true),
+  );
+
+  app.patch(
+    '/race',
+    webTS(async (ts, req) => {
+      const msg = await ts.editRace({
+        ...req.body
+      });
+
+      const json = { status: 'successful', msg: msg };
+      return json;
+    }, true),
+  );
+
+  app.post(
+    '/race/enter',
+    webTS(async (ts, req) => {
+      const msg = await ts.enterRace({
+        ...req.body
+      });
+
+      const json = { status: 'successful', msg: msg };
+      return json;
+    }, true),
+  );
+
+  app.post(
+    '/race/leave',
+    webTS(async (ts, req) => {
+      const msg = await ts.leaveRace({
+        ...req.body
+      });
+
+      const json = { status: 'successful', msg: msg };
+      return json;
+    }, true),
+  );
+
+  app.post(
+    '/race/finish',
+    webTS(async (ts, req) => {
+      const msg = await ts.finishRace({
+        ...req.body
+      });
+
       const json = { status: 'successful', msg: msg };
       return json;
     }, true),

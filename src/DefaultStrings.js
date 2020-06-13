@@ -27,9 +27,9 @@ module.exports = {
 
 이것은 기계 번역입니다. 번역이 틀렸다면 알려주십시오. <:SpigRobo:628051703320805377>`,
   'no.help': `
-• For å gjøre noe, må du registrere deg først ved bruk av \`!register\` i {{{RegistrationChannel}}} . 
-• for og få en liste av leveler gå til {{TeamURI}}/levels. 
-• Etter det kan du sende inn dine clears på leveler ved bruk av \`!clear LEV-ELC-ODE\` i {{{LevelClearChannel}}} 
+• For å gjøre noe, må du registrere deg først ved bruk av \`!register\` i {{{RegistrationChannel}}} .
+• for og få en liste av leveler gå til {{TeamURI}}/levels.
+• Etter det kan du sende inn dine clears på leveler ved bruk av \`!clear LEV-ELC-ODE\` i {{{LevelClearChannel}}}
 • Du kan også bruke \`!login\` og sende inn dine clears på nettsiden
 • Du kan sende inn dine leveler ved bruk av \`!add LEV-ELC-ODE level navn\` i {{{LevelSubmissionChannel}}}`,
 
@@ -41,10 +41,10 @@ module.exports = {
 • Si tu veux proposer un niveau, fais \`!add LEV-ELC-ODE nom\` dans {{{LevelSubmissionChannel}}}.`,
 
   'de.help': `
-• Um loszulegen musst du dich zuerst registrieren, indem du \`!register\` in dem {{{RegistrationChannel}}} benutzt. 
-• Eine Liste mit allen Leveln findest du unter {{TeamURI}}/levels. 
-• Den Abschluss eines Levels kannst du mit \`!clear LEV-ELC-ODE\` in dem {{{LevelClearChannel}}} übermitteln. 
-• Du kannst auch !login benutzen, um den Abschluss eines Levels stattdessen über die Webseite zu bestätigen. 
+• Um loszulegen musst du dich zuerst registrieren, indem du \`!register\` in dem {{{RegistrationChannel}}} benutzt.
+• Eine Liste mit allen Leveln findest du unter {{TeamURI}}/levels.
+• Den Abschluss eines Levels kannst du mit \`!clear LEV-ELC-ODE\` in dem {{{LevelClearChannel}}} übermitteln.
+• Du kannst auch !login benutzen, um den Abschluss eines Levels stattdessen über die Webseite zu bestätigen.
 • Dein eigenes Level kannst du mit \`!add LEV-ELC-ODE level name\` in dem {{{LevelSubmissionChannel}}} einreichen.`,
 
   'ru.help': `
@@ -81,6 +81,7 @@ module.exports = {
   'error.hadIdButNotInDb':
     'We got a row id, but we could not find it in the database',
   'error.noDiscordId': "We couldn't find your discord id",
+  'error.noAdmin': "You are not an admin in this team, you have no permission to do this.",
   'clear.noArgs': 'There were no arguments in the request',
   'clear.invalidDifficulty':
     'You did not provide a valid difficulty vote',
@@ -299,6 +300,10 @@ module.exports = {
   'error.afterUserWeb': '',
   'error.levelNotFound':
     "The code `{{code}}` was not found in {{TeamName}}'s list.",
+  'error.raceNotFound':
+      "The race could not be found.",
+  'error.raceHasStarted':
+      "This race has already started.",
   'error.levelIsFixing':
     "The level '{{{level.level_name}}}' is under 'Request to fix' status",
   'error.levelIsRemoved':
@@ -448,4 +453,13 @@ module.exports = {
 
   'clearDifficulty.success':
     'You have cleared the difficulty votes for "{{{level_name}}}" by {{{creator}}}',
+
+  'race.newRaceAdded':
+    'A new race has been added: "{{{name}}}", you can check it out at <https://makerteams.net/{{{url_slug}}}/races>.',
+  'race.newRaceEntrant':
+    '<@{{{discord_id}}}> has entered the race "{{{name}}}".',
+  'race.entrantLeftRace':
+    '<@{{{discord_id}}}> has left the race "{{{name}}}".',
+  'race.entrantFinishedRace':
+    '<@{{{discord_id}}}> just finished the race "{{{name}}}" (Rank: #{{{rank}}}). Please post some verification of your clear.',
 };

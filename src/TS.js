@@ -17,6 +17,9 @@ const PendingVotes = require('./models/PendingVotes');
 const Members = require('./models/Members');
 const Levels = require('./models/Levels');
 const Points = require('./models/Points');
+const Races = require('./models/Races');
+const RaceEntrants = require('./models/RaceEntrants');
+const Tags = require('./models/Tags');
 const {
   defaultChannels,
   defaultVariables,
@@ -98,6 +101,9 @@ class TS {
         Members: Members(this.team.id),
         Levels: Levels(this.team.id),
         Points: Points(this.team.id),
+        Races: Races(this.team.id),
+        RaceEntrants: RaceEntrants(this.team.id),
+        Tags: Tags(this.team.id),
       };
 
       this.url_slug = this.team.url_slug;
@@ -2238,6 +2244,246 @@ class TS {
       await ts.recalculateAfterUpdate();
       return userReply + reply;
     };
+
+    /**
+     * @typedef {Object.<Object>} TsAddRaceParam
+     * @property {Object} race   - The race daata
+     */
+    /**
+     * @description This function adds a new race
+     * @param {...TsClearParam} args Arguments to be supplied
+     * @return {string} A response string to be sent to the user.
+     */
+    this.addRace = async (args = {}) => {
+      let { name, startDate, endDate, raceType, levelType, submissionTimeType, minDifficulty, maxDifficulty, levelTagId, levelCode } = args;
+      const { discord_id } = args;
+
+      if (!discord_id) ts.userError(ts.message('error.noDiscordId'));
+
+      const player = await ts.getUser(discord_id);
+
+      if(!player.is_mod){
+        ts.userError(ts.message('error.noAdmin'));
+      }
+
+      let race = {};
+
+      if(startDate){
+        race.start_date = moment(startDate, "YYYY-MM-DD HH:mm").format("YYYY-MM-DD HH:mm:ss");
+      }
+      if(endDate){
+        race.end_date = moment(endDate, "YYYY-MM-DD HH:mm").format("YYYY-MM-DD HH:mm:ss");
+      }
+
+      race.name = name;
+      race.race_type = raceType;
+      race.level_type = levelType;
+
+      if(levelType == 'specific'){
+        let level = await ts.getExistingLevel(levelCode);
+        race.level_id = level.id;
+        race.level_filter_tag_id = null;
+        race.level_filter_submission_time_type = "all";
+        race.level_filter_diff_from = null;
+        race.level_filter_diff_to = null;
+      } else {
+        if(levelTagId){
+          race.level_filter_tag_id = levelTagId;
+        }
+        race.level_filter_submission_time_type = submissionTimeType;
+        race.level_filter_diff_from = minDifficulty;
+        race.level_filter_diff_to = maxDifficulty;
+        race.level_id = null;
+      }
+
+      race.status = "upcoming";
+
+      await ts.db.Races.query().insert(race);
+
+      if(ts.channels.raceChannel){
+        await ts.discord.send(ts.channels.raceChannel, ts.message('race.newRaceAdded', {
+          name: race.name,
+          url_slug: this.url_slug
+        }));
+      }
+
+      return "success";
+    };
+
+    /**
+     * @typedef {Object.<Object>} TsAddRaceParam
+     * @property {Object} race   - The race daata
+     */
+    /**
+     * @description This function adds a new race
+     * @param {...TsClearParam} args Arguments to be supplied
+     * @return {string} A response string to be sent to the user.
+     */
+    this.editRace = async (args = {}) => {
+      let { name, startDate, endDate, raceType, levelType, submissionTimeType, minDifficulty, maxDifficulty, levelTagId, id, levelCode } = args;
+      const { discord_id } = args;
+
+      if (!discord_id) ts.userError(ts.message('error.noDiscordId'));
+
+      const player = await ts.getUser(discord_id);
+
+      if(!player.is_mod){
+        ts.userError(ts.message('error.noAdmin'));
+      }
+
+      let race = {};
+
+      if(startDate){
+        race.start_date = moment(startDate, "YYYY-MM-DD HH:mm").format("YYYY-MM-DD HH:mm:ss");
+      }
+      if(endDate){
+        race.end_date = moment(endDate, "YYYY-MM-DD HH:mm").format("YYYY-MM-DD HH:mm:ss");
+      }
+
+      race.name = name;
+      race.race_type = raceType;
+      race.level_type = levelType;
+
+      if(levelType == 'specific'){
+        let level = await ts.getExistingLevel(levelCode);
+        race.level_id = level.id;
+        race.level_filter_tag_id = null;
+        race.level_filter_submission_time_type = "all";
+        race.level_filter_diff_from = 0;
+        race.level_filter_diff_to = 10;
+      } else {
+        if(levelTagId){
+          race.level_filter_tag_id = levelTagId;
+        }
+        race.level_filter_submission_time_type = submissionTimeType;
+        race.level_filter_diff_from = minDifficulty;
+        race.level_filter_diff_to = maxDifficulty;
+        race.level_id = null;
+      }
+
+      await ts.db.Races.query().patch(race).where('id', '=', id);
+
+      return "success";
+    };
+
+    this.enterRace = async (args = {}) => {
+      let { raceId } = args;
+      const { discord_id } = args;
+
+      if (!discord_id) ts.userError(ts.message('error.noDiscordId'));
+
+      const player = await ts.getUser(discord_id);
+
+      let race = await ts.db.Races.query().where({id: raceId}).first();
+
+      if(!race){
+        ts.userError(ts.message('error.raceNotFound'));
+      }
+
+      if(race.status != 'upcoming'){
+        ts.userError(ts.message('error.raceHasStarted'));
+      }
+
+      let entrant = await ts.db.RaceEntrants.query().where({
+        race_id: raceId,
+        member_id: player.id
+      }).first();
+
+      if(!entrant){
+        await ts.db.RaceEntrants.query().insert({
+          race_id: raceId,
+          member_id: player.id
+        });
+      }
+
+      if(ts.channels.raceChannel){
+        await ts.discord.send(ts.channels.raceChannel, ts.message('race.newRaceEntrant', {
+          name: race.name,
+          discord_id: discord_id
+        }));
+      }
+
+      return "success";
+    };
+
+
+    this.leaveRace = async (args = {}) => {
+      let { raceId } = args;
+      const { discord_id } = args;
+
+      if (!discord_id) ts.userError(ts.message('error.noDiscordId'));
+
+      const player = await ts.getUser(discord_id);
+
+      let race = await ts.db.Races.query().where({id: raceId}).first();
+
+      if(!race){
+        ts.userError(ts.message('error.raceNotFound'));
+      }
+
+      if(race.status != 'upcoming'){
+        ts.userError(ts.message('error.raceHasStarted'));
+      }
+
+      await ts.db.RaceEntrants.query().where({
+        race_id: raceId,
+        member_id: player.id
+      }).del();
+
+      if(ts.channels.raceChannel){
+        await ts.discord.send(ts.channels.raceChannel, ts.message('race.entrantLeftRace', {
+          name: race.name,
+          discord_id: discord_id
+        }));
+      }
+
+      return "success";
+    };
+
+    this.finishRace = async (args = {}) => {
+      let { raceId } = args;
+      const { discord_id } = args;
+
+      if (!discord_id) ts.userError(ts.message('error.noDiscordId'));
+
+      const player = await ts.getUser(discord_id);
+
+      let race = await ts.db.Races.query().where({id: raceId}).first();
+
+      if(!race){
+        ts.userError(ts.message('error.raceNotFound'));
+      }
+
+      let raceEntrants = await ts.db.RaceEntrants.query().where({
+        race_id: raceId
+      });
+
+      let maxRank = 0;
+      for(let entrant in raceEntrants){
+        if(entrant.rank && entrant.rank > maxRank){
+          maxRank = entrant.rank;
+        }
+      }
+
+      await ts.db.RaceEntrants.query().where({
+        race_id: raceId,
+        member_id: player.id
+      }).update({
+        finished_date: moment().format('YYYY-MM-DD HH:mm:ss'),
+        rank: maxRank + 1
+      })
+
+      if(ts.channels.raceChannel){
+        await ts.discord.send(ts.channels.raceChannel, ts.message('race.entrantFinishedRace', {
+          name: race.name,
+          discord_id: discord_id,
+          rank: maxRank + 1
+        }));
+      }
+
+      return "success";
+    };
+
   }
 
   /**
