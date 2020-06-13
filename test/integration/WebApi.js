@@ -323,24 +323,6 @@ describe('Web Apis', function () {
       // TODO: do more comprehensive checks of the data
     });
 
-    it('POST /json/members competitionWinners', async function () {
-      const { body } = await TEST.request(app)
-        .post('/json/members')
-        .send({
-          url_slug: TEST.ts.url_slug,
-          timePeriod: 1,
-          timePeriod2: 1,
-        })
-        .expect('Content-Type', /json/)
-        .expect(200);
-      assert.notEqual(body.status, 'error');
-      assert.deepInclude(body[1].wonComps[0], {
-        name: 'winner',
-        rank: 1,
-      });
-      // TODO: do more comprehensive checks of the data
-    });
-
     it('POST /json/makers', async function () {
       // const user=await TEST.ts.getUser(discord_id)
       const { body } = await TEST.request(app)
