@@ -30,6 +30,8 @@ const {
 } = require('./constants');
 const CONSTANTS = require('./constants');
 
+const cron = require('node-cron');
+
 Handlebars.registerHelper('plural', function (_num) {
   const num = Number(_num);
   return num !== 1 ? 's' : '';
@@ -312,6 +314,171 @@ class TS {
           }
         });
       }
+
+      if(process.env.NODE_ENV != "testing" && process.env.NODE_ENV != "test"){
+        console.log("Starting race cron schedule for ", this.teamVariables.TeamName);
+        cron.schedule('* * * * *', async () => {
+          let nowDate = new Date();
+          //Going through all upcoming races
+          let upcomingRaces = await ts.db.Races.query().where('start_date', '<=', nowDate).where('status', '=', 'upcoming');
+
+          for(let race of upcomingRaces){
+            let raceEntrants = await ts.db.RaceEntrants.query().where({
+              race_id: race.id
+            });
+
+            let mentionsArr = [];
+            let memberIds = [];
+            for(let raceEntrant of raceEntrants){
+              let member = await ts.db.Members.query().where({
+                id: raceEntrant.member_id
+              }).first();
+
+              memberIds.push(raceEntrant.id);
+
+              mentionsArr.push("<@" + member.discord_id + ">");
+            }
+
+            race.status = 'active';
+            //race.level = findlevel
+            if(race.level_type == 'random'){
+              let bindings = {
+                guild_id: ts.team.id,
+              };
+
+              let sql = `select
+              distinct levels.id as level_id
+                from
+                  levels
+                  left join level_tags on levels.id = level_tags.level_id
+                where
+                  levels.guild_id = :guild_id
+                  and status = 1
+                  and difficulty >= 0.5
+                  and difficulty <= 8`;
+
+              if(race.level_filter_submission_time_type == 'month'){
+                sql += ` and levels.created_at > DATE_SUB(NOW(), interval 30 day) `;
+              } else if (race.level_filter_submission_time_type == 'week') {
+                sql += ` and levels.created_at > DATE_SUB(NOW(), interval 7 day) `;
+              }
+
+              if(race.level_filter_tag_id){
+                sql += ` and level_tags.tag_id = :tag_id `;
+                bindings["tag_id"] = race.level_filter_tag_id
+              }
+
+              const [json] = await knex.raw(
+                sql,
+                bindings
+              );
+
+              if(json.length > 0){
+                let rand = Math.floor(Math.random() * json.length);
+                race.level_id = json[rand].level_id;
+                race.level_filter_failed = false;
+              } else {
+                race.level_filter_failed = true;
+                race.status = 'upcoming';
+                race.start_date = new Date(race.start_date.getTime() + 5*60000);
+                race.end_date = new Date(race.end_date.getTime() + 5*60000);
+              }
+            } else if (race.level_type == 'random-uncleared' && memberIds.length > 0){
+              let bindings = {
+                guild_id: ts.team.id,
+                member_ids: memberIds
+              };
+
+              let sql = `select
+              distinct levels.id as level_id
+                from
+                  levels
+                  left join level_tags on levels.id = level_tags.level_id
+                where
+                  levels.guild_id = :guild_id
+                  and status = 1
+                  and difficulty >= 0.5
+                  and difficulty <= 8`;
+
+              if(race.level_filter_submission_time_type == 'month'){
+                sql += ` and levels.created_at > DATE_SUB(NOW(), interval 30 day) `;
+              } else if (race.level_filter_submission_time_type == 'week') {
+                sql += ` and levels.created_at > DATE_SUB(NOW(), interval 7 day) `;
+              }
+
+              if(race.level_filter_tag_id){
+                sql += ` and level_tags.tag_id = :tag_id `;
+                bindings["tag_id"] = race.level_filter_tag_id
+              }
+
+              sql += ` and (SELECT COUNT(*) FROM plays where plays.code = levels.id and plays.completed = 1 and plays.player in (:member_ids)) = 0;`
+
+              const [json] = await knex.raw(
+                sql,
+                bindings
+              );
+
+              if(json.length > 0){
+                let rand = Math.floor(Math.random() * json.length);
+                race.level_id = json[rand].level_id;
+                race.level_filter_failed = false;
+              } else {
+                race.level_filter_failed = true;
+                race.status = 'upcoming';
+                race.start_date = new Date(race.start_date.getTime() + 5*60000);
+                race.end_date = new Date(race.end_date.getTime() + 5*60000);
+              }
+            }
+
+            if(ts.channels.raceChannel && !race.level_filter_failed){
+              await ts.discord.send(ts.channels.raceChannel, ts.message('race.raceStarted', {
+                name: race.name,
+                mentions: mentionsArr.join(", ")
+              }));
+            } else if(ts.channels.raceChannel && race.level_filter_failed){
+              await ts.discord.send(ts.channels.raceChannel, ts.message('race.raceFailed', {
+                name: race.name,
+                mentions: mentionsArr.join(", ")
+              }));
+            }
+
+            await ts.db.Races.query().where('id', race.id).update(race);
+          }
+
+
+          //Going through all active races
+          let activeRaces = await ts.db.Races.query().where('end_date', '<=', nowDate).where('status', '=', 'active');
+
+          for(let race of activeRaces){
+            let raceEntrants = await ts.db.RaceEntrants.query().where({
+              race_id: race.id
+            });
+
+            console.log(raceEntrants);
+
+            let mentionsArr = [];
+            for(let raceEntrant of raceEntrants){
+              let member = await ts.db.Members.query().where({
+                id: raceEntrant.member_id
+              }).first();
+
+              mentionsArr.push("<@" + member.discord_id + ">");
+            }
+
+            if(ts.channels.raceChannel){
+              await ts.discord.send(ts.channels.raceChannel, ts.message('race.raceEnded', {
+                name: race.name,
+                mentions: mentionsArr.join(", "),
+                url_slug: this.url_slug
+              }));
+            }
+
+            race.status = 'finished';
+            await ts.db.Races.query().where('id', race.id).update(race);
+          }
+        });
+      }
+
       await DiscordLog.log(
         `Data loaded for ${this.teamVariables.TeamName}`,
       );
@@ -2289,6 +2456,8 @@ class TS {
       } else {
         if(levelTagId){
           race.level_filter_tag_id = levelTagId;
+        } else {
+          race.level_filter_tag_id = null;
         }
         race.level_filter_submission_time_type = submissionTimeType;
         race.level_filter_diff_from = minDifficulty;
@@ -2354,6 +2523,8 @@ class TS {
       } else {
         if(levelTagId){
           race.level_filter_tag_id = levelTagId;
+        } else {
+          race.level_filter_tag_id = null;
         }
         race.level_filter_submission_time_type = submissionTimeType;
         race.level_filter_diff_from = minDifficulty;

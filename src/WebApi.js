@@ -624,7 +624,21 @@ module.exports = async function (client) {
       race.race_entrants = race_entrants;
 
       races[race.status].push(race);
+
+      console.log(race.status);
     }
+
+    races.active.sort(function(a, b){
+      return a.start_date.getTime() - b.start_date.getTime();
+    });
+
+    races.upcoming.sort(function(a, b){
+      return a.start_date.getTime() - b.start_date.getTime();
+    });
+
+    races.finished.sort(function(a, b){
+      return b.start_date.getTime() - a.start_date.getTime();
+    });
 
     let tags = await ts.db.Tags.query();
 

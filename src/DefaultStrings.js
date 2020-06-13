@@ -462,4 +462,10 @@ module.exports = {
     '<@{{{discord_id}}}> has left the race "{{{name}}}".',
   'race.entrantFinishedRace':
     '<@{{{discord_id}}}> just finished the race "{{{name}}}" (Rank: #{{{rank}}}). Please post some verification of your clear.',
+  'race.raceStarted':
+    '{{{mentions}}}: The race "{{{name}}}" has just started, good luck and have fun!',
+  'race.raceFailed':
+    '{{{mentions}}}: The race "{{{name}}}" could not be started, no level was found that fits all the criteria. The race has been postponed by 5 minutes, please change the criterias!',
+  'race.raceEnded':
+    '{{{mentions}}}: The race "{{{name}}}" has just finished, congratulations to the winners, you can check out the full ranking at <https://makerteams.net/{{{url_slug}}}/races/history>!',
 };
