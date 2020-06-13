@@ -318,7 +318,8 @@ class TS {
 
       if (
         process.env.NODE_ENV !== 'testing' &&
-        process.env.NODE_ENV !== 'test' && this.firstLoad
+        process.env.NODE_ENV !== 'test' &&
+        this.firstLoad
       ) {
         this.firstLoad = false;
         console.log(
