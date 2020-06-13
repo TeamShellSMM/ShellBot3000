@@ -14,7 +14,7 @@ exports.up = function (knex) {
         .notNull();
 
       t.string('name').nullable();
-      t.string('status').notNull().defaultTo("upcoming");
+      t.string('status').notNull().defaultTo('upcoming');
       t.dateTime('start_date').nullable();
       t.dateTime('end_date').nullable();
 
@@ -23,14 +23,19 @@ exports.up = function (knex) {
         .references('levels.id')
         .nullable();
 
-      t.string('race_type').notNull().defaultTo("FC");
-      t.string('level_type').notNull().defaultTo("random-uncleared");
+      t.string('race_type').notNull().defaultTo('FC');
+      t.string('level_type').notNull().defaultTo('random-uncleared');
 
       t.decimal('level_filter_diff_from', 4, 1).notNull();
       t.decimal('level_filter_diff_to', 4, 1).notNull();
 
-      t.integer('level_filter_tag_id').unsigned().references('tags.id').nullable();
-      t.string('level_filter_submission_time_type').notNull().defaultTo("all");
+      t.integer('level_filter_tag_id')
+        .unsigned()
+        .references('tags.id')
+        .nullable();
+      t.string('level_filter_submission_time_type')
+        .notNull()
+        .defaultTo('all');
       t.boolean('level_filter_failed').notNull().defaultTo(false);
 
       t.index(['guild_id', 'level_id']);
@@ -66,7 +71,5 @@ exports.up = function (knex) {
 };
 
 exports.down = function (knex) {
-  return knex.schema
-    .dropTable('race_entrants')
-    .dropTable('races');
+  return knex.schema.dropTable('race_entrants').dropTable('races');
 };

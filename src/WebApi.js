@@ -458,17 +458,17 @@ module.exports = async function (client) {
   }
 
   async function generateRacesJson(ts, data) {
-    let { currentTimeMillis, mode } = data;
+    const { currentTimeMillis, mode } = data;
     const { discord_id } = data;
     const player = await ts.getUser(discord_id);
 
-    let serverTimeOffset = moment().valueOf() - currentTimeMillis;
+    const serverTimeOffset = moment().valueOf() - currentTimeMillis;
 
     let stati = [];
-    if(mode == 'current'){
-      stati = ["upcoming", "active"];
+    if (mode === 'current') {
+      stati = ['upcoming', 'active'];
     } else {
-      stati = ["finished"];
+      stati = ['finished'];
     }
 
     const [json] = await knex.raw(
@@ -510,17 +510,19 @@ module.exports = async function (client) {
         races.guild_id = :guild_id AND
         races.status in (:stati) AND
         (tags.is_hidden = 0 or tags.is_hidden is null)
-      order by races.start_date ` + (mode == "current" ? "asc": "desc"),
+      order by races.start_date ${
+        mode === 'current' ? 'asc' : 'desc'
+      }`,
       {
         guild_id: ts.team.id,
-        stati: stati
+        stati: stati,
       },
     );
 
-    let raceData = {};
+    const raceData = {};
 
-    for(let row of json){
-      if(!raceData[row.id]){
+    for (const row of json) {
+      if (!raceData[row.id]) {
         raceData[row.id] = {
           id: row.id,
           name: row.name,
@@ -531,55 +533,64 @@ module.exports = async function (client) {
           level_type: row.level_type,
           level_filter_diff_from: row.level_filter_diff_from,
           level_filter_diff_to: row.level_filter_diff_to,
-          level_filter_submission_time_type: row.level_filter_submission_time_type,
+          level_filter_submission_time_type:
+            row.level_filter_submission_time_type,
           level_filter_failed: row.level_filter_failed,
-          race_entrants: {}
-        }
+          race_entrants: {},
+        };
 
-        if(row.tag_id){
-          raceData[row.id]["level_filter_tag"] = {
+        if (row.tag_id) {
+          raceData[row.id].level_filter_tag = {
             id: row.tag_id,
             name: row.tag_name,
-            type: row.tag_type
+            type: row.tag_type,
           };
         }
 
-        if(row.level_id){
-          raceData[row.id]["level"] = {
+        if (row.level_id) {
+          raceData[row.id].level = {
             id: row.level_id,
             code: row.level_code,
             difficulty: row.level_difficulty,
-            level_name: row.level_name
+            level_name: row.level_name,
           };
 
-          if(row.creator_id){
-            raceData[row.id]["level"]["creator"] = {
+          if (row.creator_id) {
+            raceData[row.id].level.creator = {
               id: row.creator_id,
-              name: row.creator_name
-            }
+              name: row.creator_name,
+            };
           }
         }
       }
 
-      if(row.race_entrant_id){
-        if(!raceData[row.id][row.race_entrant_id]){
+      if (row.race_entrant_id) {
+        if (!raceData[row.id][row.race_entrant_id]) {
           raceData[row.id].race_entrants[row.race_entrant_id] = {
             id: row.race_entrant_id,
             finished_date: row.race_entrant_finished_date,
-            rank: row.race_entrant_rank
-          }
+            rank: row.race_entrant_rank,
+          };
 
-          if(row.race_member_id){
-            raceData[row.id].race_entrants[row.race_entrant_id]["member"] = {
+          if (row.race_member_id) {
+            raceData[row.id].race_entrants[
+              row.race_entrant_id
+            ].member = {
               id: row.race_member_id,
-              name: row.race_member_name
+              name: row.race_member_name,
             };
 
-            const raceMember = ts.discord.getMember(row.race_member_discord_id);
+            const raceMember = ts.discord.getMember(
+              row.race_member_discord_id,
+            );
             if (raceMember) {
-              raceData[row.id].race_entrants[row.race_entrant_id]["member"].hexColor = raceMember.displayHexColor;
+              raceData[row.id].race_entrants[
+                row.race_entrant_id
+              ].member.hexColor = raceMember.displayHexColor;
               if (raceMember.user.avatarURL) {
-                raceData[row.id].race_entrants[row.race_entrant_id]["member"].avatarURL = raceMember.user.avatarURL.replace(
+                raceData[row.id].race_entrants[
+                  row.race_entrant_id
+                ].member.avatarURL = raceMember.user.avatarURL.replace(
                   /size=.*/g,
                   'size=128',
                 );
@@ -590,68 +601,71 @@ module.exports = async function (client) {
       }
     }
 
-    let races = {
-      "active": [],
-      "upcoming": [],
-      "finished": []
+    const races = {
+      active: [],
+      upcoming: [],
+      finished: [],
     };
 
-    for(let id in raceData){
-      let race = raceData[id];
-
-      if(race.level && (!player.is_mod || race.status == 'upcoming')){
+    for (const race of raceData) {
+      if (
+        race.level &&
+        (!player.is_mod || race.status === 'upcoming')
+      ) {
         delete race.level;
       }
 
-      let race_entrants = [];
-      for(let race_entrant_id in race.race_entrants){
-        let race_entrant = race.race_entrants[race_entrant_id];
-        race_entrants.push(race_entrant);
+      const raceEntrants = [];
+      for (const raceEntrant of race.race_entrants) {
+        raceEntrant.push(raceEntrant);
       }
 
-      race_entrants.sort(function(a, b){
-        if(a && b){
+      raceEntrants.sort(function (a, b) {
+        if (a && b) {
           return b.rank - a.rank;
-        } else if (!a){
-          return -1;
-        } else if (!b){
-          return 1;
-        } else {
-          return 0;
         }
+        if (!a) {
+          return -1;
+        }
+        if (!b) {
+          return 1;
+        }
+        return 0;
       });
 
-      race.race_entrants = race_entrants;
+      race.race_entrants = raceEntrants;
 
       races[race.status].push(race);
 
       console.log(race.status);
     }
 
-    races.active.sort(function(a, b){
+    races.active.sort(function (a, b) {
       return a.start_date.getTime() - b.start_date.getTime();
     });
 
-    races.upcoming.sort(function(a, b){
+    races.upcoming.sort(function (a, b) {
       return a.start_date.getTime() - b.start_date.getTime();
     });
 
-    races.finished.sort(function(a, b){
+    races.finished.sort(function (a, b) {
       return b.start_date.getTime() - a.start_date.getTime();
     });
 
-    let tags = await ts.db.Tags.query();
+    const tags = await ts.db.Tags.query();
 
-    let whitelistedKeys = ['id', 'name', 'type'];
+    const whitelistedKeys = ['id', 'name', 'type'];
 
-    for(let tag of tags){
-      Object.keys(tag).forEach((key)=> whitelistedKeys.includes(key) || delete tag[key]);
+    for (const tag of tags) {
+      Object.keys(tag).forEach(
+        (key) => whitelistedKeys.includes(key) || delete tag[key],
+      );
     }
 
     return {
       data: races,
       tags: tags,
-      serverTimeOffset: serverTimeOffset
+      serverTimeOffset: serverTimeOffset,
     };
   }
 
@@ -1042,7 +1056,7 @@ module.exports = async function (client) {
     '/race',
     webTS(async (ts, req) => {
       const msg = await ts.addRace({
-        ...req.body
+        ...req.body,
       });
 
       const json = { status: 'successful', msg: msg };
@@ -1054,7 +1068,7 @@ module.exports = async function (client) {
     '/race',
     webTS(async (ts, req) => {
       const msg = await ts.editRace({
-        ...req.body
+        ...req.body,
       });
 
       const json = { status: 'successful', msg: msg };
@@ -1066,7 +1080,7 @@ module.exports = async function (client) {
     '/race/enter',
     webTS(async (ts, req) => {
       const msg = await ts.enterRace({
-        ...req.body
+        ...req.body,
       });
 
       const json = { status: 'successful', msg: msg };
@@ -1078,7 +1092,7 @@ module.exports = async function (client) {
     '/race/leave',
     webTS(async (ts, req) => {
       const msg = await ts.leaveRace({
-        ...req.body
+        ...req.body,
       });
 
       const json = { status: 'successful', msg: msg };
@@ -1090,7 +1104,7 @@ module.exports = async function (client) {
     '/race/finish',
     webTS(async (ts, req) => {
       const msg = await ts.finishRace({
-        ...req.body
+        ...req.body,
       });
 
       const json = { status: 'successful', msg: msg };

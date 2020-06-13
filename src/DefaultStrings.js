@@ -81,7 +81,8 @@ module.exports = {
   'error.hadIdButNotInDb':
     'We got a row id, but we could not find it in the database',
   'error.noDiscordId': "We couldn't find your discord id",
-  'error.noAdmin': "You are not an admin in this team, you have no permission to do this.",
+  'error.noAdmin':
+    'You are not an admin in this team, you have no permission to do this.',
   'clear.noArgs': 'There were no arguments in the request',
   'clear.invalidDifficulty':
     'You did not provide a valid difficulty vote',
@@ -300,10 +301,8 @@ module.exports = {
   'error.afterUserWeb': '',
   'error.levelNotFound':
     "The code `{{code}}` was not found in {{TeamName}}'s list.",
-  'error.raceNotFound':
-      "The race could not be found.",
-  'error.raceHasStarted':
-      "This race has already started.",
+  'error.raceNotFound': 'The race could not be found.',
+  'error.raceHasStarted': 'This race has already started.',
   'error.levelIsFixing':
     "The level '{{{level.level_name}}}' is under 'Request to fix' status",
   'error.levelIsRemoved':
