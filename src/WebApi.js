@@ -250,6 +250,10 @@ module.exports = async function (client) {
     timePeriod = timePeriod ? parseInt(timePeriod, 10) : 1;
     timePeriod2 = timePeriod2 ? parseInt(timePeriod2, 10) : 1;
 
+    const competitionWinners = await ts
+      .knex('competition_winners')
+      .where({ guild_id: ts.team.id });
+
     let memberFilterSql = '';
     if (membershipStatus === 1) {
       memberFilterSql = 'AND is_member=1';
@@ -259,19 +263,18 @@ module.exports = async function (client) {
       memberFilterSql = 'AND (is_member=0 or is_member is null)';
     }
 
-    let json = [];
+    const json = {};
     if (timePeriod === 1 && timePeriod2 === 1) {
-      [json] = await ts.knex.raw(
+      const [rows] = await ts.knex.raw(
         `SELECT
           ROW_NUMBER() OVER ( ORDER BY clear_score_sum desc ) as id,
           members.name,
+          members.id member_id,
           members.maker_id,
           clear_score_sum,
           levels_created,
-          levels_cleared,
-          group_concat(concat_ws('@@',details,rank) order by competition_id,rank separator '||') wonComps
+          levels_cleared
           from members
-          left join competition_winners on members.id=competition_winners.creator
           where members.guild_id=:guild_id ${memberFilterSql}
           AND members.is_banned is null
           group by members.id
@@ -281,6 +284,7 @@ module.exports = async function (client) {
           guild_id: ts.team.id,
         },
       );
+      json.data = rows;
     } else {
       let levelFilter = '';
       if (timePeriod === 2) {
@@ -306,11 +310,12 @@ module.exports = async function (client) {
           "AND DATE_FORMAT(plays.created_at,'%j-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%j-%Y')";
       }
 
-      [json] = await ts.knex.raw(
+      const [rows] = await ts.knex.raw(
         `select
               ROW_NUMBER() OVER ( ORDER BY clear_score_sum desc ) as id,
               members.name,
               maker_id,
+              members.id member_id,
               calculated_levels_created levels_created,
               COALESCE(total_score,0)+if(:include_own_score,COALESCE(own_levels.own_score,0),0) clear_score_sum,
               COALESCE(total_cleared,0) levels_cleared
@@ -365,20 +370,10 @@ module.exports = async function (client) {
             ts.teamVariables.includeOwnPoints === 'true' || false,
         },
       );
+      json.data = rows;
     }
 
-    for (let i = 0; i < json.length; i += 1) {
-      if (json[i].wonComps) {
-        json[i].wonComps = json[i].wonComps.split('||');
-        for (let j = 0; j < json[i].wonComps.length; j += 1) {
-          const comp = json[i].wonComps[j].split('@@');
-          comp[1] = parseInt(comp[1], 10);
-          json[i].wonComps[j] = { name: comp[0], rank: comp[1] };
-        }
-      } else {
-        json[i].wonComps = null;
-      }
-    }
+    json.competition_winners = competitionWinners;
     return json;
   }
 
