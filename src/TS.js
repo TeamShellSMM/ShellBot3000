@@ -69,6 +69,8 @@ class TS {
     this.guild_id = guildId;
     this.guildId = guildId;
 
+    this.firstLoad = true;
+
     this.devs = process.env.DEVS.split(',');
     this.page_url = process.env.PAGE_URL;
     this.getSettings = async (type, dontMap = false) => {
@@ -316,8 +318,10 @@ class TS {
 
       if (
         process.env.NODE_ENV !== 'testing' &&
-        process.env.NODE_ENV !== 'test'
+        process.env.NODE_ENV !== 'test' &&
+        this.firstLoad
       ) {
+        this.firstLoad = false;
         console.log(
           'Starting race cron schedule for ',
           this.teamVariables.TeamName,
