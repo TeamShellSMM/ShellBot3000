@@ -495,8 +495,6 @@ class TS {
               },
             );
 
-            console.log(raceEntrants);
-
             const mentionsArr = [];
             for (const raceEntrant of raceEntrants) {
               const member = await ts.db.Members.query()

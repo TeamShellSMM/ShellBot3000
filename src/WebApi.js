@@ -602,7 +602,8 @@ module.exports = async function (client) {
       finished: [],
     };
 
-    for (const race of raceData) {
+    Object.keys(raceData).forEach((id) => {
+      const race = raceData[id];
       if (
         race.level &&
         (!player.is_mod || race.status === 'upcoming')
@@ -611,9 +612,10 @@ module.exports = async function (client) {
       }
 
       const raceEntrants = [];
-      for (const raceEntrant of race.race_entrants) {
-        raceEntrant.push(raceEntrant);
-      }
+      Object.keys(race.race_entrants).forEach((reKey) => {
+        const raceEntrant = race.race_entrants[reKey];
+        raceEntrants.push(raceEntrant);
+      });
 
       raceEntrants.sort(function (a, b) {
         if (a && b) {
@@ -631,9 +633,7 @@ module.exports = async function (client) {
       race.race_entrants = raceEntrants;
 
       races[race.status].push(race);
-
-      console.log(race.status);
-    }
+    });
 
     races.active.sort(function (a, b) {
       return a.start_date.getTime() - b.start_date.getTime();
