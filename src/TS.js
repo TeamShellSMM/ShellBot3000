@@ -2497,13 +2497,12 @@ class TS {
       const race = {};
 
       if (startDate) {
-        race.start_date = moment(
-          startDate,
-          'YYYY-MM-DD HH:mm',
-        ).format('YYYY-MM-DD HH:mm:ss');
+        race.start_date = moment(startDate, 'x').format(
+          'YYYY-MM-DD HH:mm:ss',
+        );
       }
       if (endDate) {
-        race.end_date = moment(endDate, 'YYYY-MM-DD HH:mm').format(
+        race.end_date = moment(endDate, 'x').format(
           'YYYY-MM-DD HH:mm:ss',
         );
       }
@@ -2584,13 +2583,12 @@ class TS {
       const race = {};
 
       if (startDate) {
-        race.start_date = moment(
-          startDate,
-          'YYYY-MM-DD HH:mm',
-        ).format('YYYY-MM-DD HH:mm:ss');
+        race.start_date = moment(startDate, 'x').format(
+          'YYYY-MM-DD HH:mm:ss',
+        );
       }
       if (endDate) {
-        race.end_date = moment(endDate, 'YYYY-MM-DD HH:mm').format(
+        race.end_date = moment(endDate, 'x').format(
           'YYYY-MM-DD HH:mm:ss',
         );
       }
