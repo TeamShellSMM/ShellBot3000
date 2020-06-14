@@ -349,7 +349,7 @@ class TS {
                 })
                 .first();
 
-              memberIds.push(raceEntrant.id);
+              memberIds.push(member.id);
 
               mentionsArr.push(`<@${member.discord_id}>`);
             }
@@ -359,6 +359,8 @@ class TS {
             if (race.level_type === 'random') {
               const bindings = {
                 guild_id: ts.team.id,
+                diff_from: race.level_filter_diff_from,
+                diff_to: race.level_filter_diff_to,
               };
 
               let sql = `select
@@ -369,8 +371,9 @@ class TS {
                 where
                   levels.guild_id = :guild_id
                   and status = 1
-                  and difficulty >= 0.5
-                  and difficulty <= 8`;
+                  and difficulty >= :diff_from
+                  and difficulty <= :diff_to
+                  and levels.creator not in (:member_ids)`;
 
               if (
                 race.level_filter_submission_time_type === 'month'
@@ -410,6 +413,8 @@ class TS {
               const bindings = {
                 guild_id: ts.team.id,
                 member_ids: memberIds,
+                diff_from: race.level_filter_diff_from,
+                diff_to: race.level_filter_diff_to,
               };
 
               let sql = `select
@@ -420,8 +425,9 @@ class TS {
                 where
                   levels.guild_id = :guild_id
                   and status = 1
-                  and difficulty >= 0.5
-                  and difficulty <= 8`;
+                  and difficulty >= :diff_from
+                  and difficulty <= :diff_to
+                  and levels.creator not in (:member_ids)`;
 
               if (
                 race.level_filter_submission_time_type === 'month'
@@ -2744,6 +2750,18 @@ class TS {
           finished_date: moment().format('YYYY-MM-DD HH:mm:ss'),
           rank: maxRank + 1,
         });
+
+      if (race.level_id) {
+        const level = await ts.db.Levels.query()
+          .where({ id: race.level_id })
+          .first();
+
+        await ts.clear({
+          discord_id,
+          code: level.code,
+          completed: true,
+        });
+      }
 
       if (ts.channels.raceChannel) {
         await ts.discord.send(

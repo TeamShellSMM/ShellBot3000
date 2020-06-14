@@ -452,10 +452,8 @@ module.exports = async function (client) {
     };
   }
 
-  async function generateRacesJson(ts, data) {
+  async function generateRacesJson(ts, data, user) {
     const { currentTimeMillis, mode } = data;
-    const { discord_id } = data;
-    const player = await ts.getUser(discord_id);
 
     const serverTimeOffset = moment().valueOf() - currentTimeMillis;
 
@@ -606,7 +604,8 @@ module.exports = async function (client) {
       const race = raceData[id];
       if (
         race.level &&
-        (!player.is_mod || race.status === 'upcoming')
+        race.status === 'upcoming' &&
+        (!user || !user.is_mod)
       ) {
         delete race.level;
       }
@@ -1029,7 +1028,7 @@ module.exports = async function (client) {
   app.post(
     '/json/races',
     webTS(async (ts, req) => {
-      const json = await generateRacesJson(ts, req.body);
+      const json = await generateRacesJson(ts, req.body, req.user);
       return json;
     }),
   );
