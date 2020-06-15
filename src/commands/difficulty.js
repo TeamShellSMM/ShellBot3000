@@ -3,7 +3,7 @@ const TSCommand = require('../TSCommand.js');
 class tsdifficulty extends TSCommand {
   constructor() {
     super('tsdifficulty', {
-      aliases: ['tsdifficulty', 'difficulty'],
+      aliases: ['tsdifficulty', 'difficulty', 'rate'],
       args: [
         {
           id: 'code',
