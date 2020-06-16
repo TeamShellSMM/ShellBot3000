@@ -98,6 +98,14 @@ const defaultVariables = Object.freeze([
     description: 'Will be used by the bot in the reponses',
   },
   {
+    name: 'ManagerName',
+    caption: 'Team Manager Name',
+    default: 'Admin',
+    type: 'text',
+    description:
+      'The discord role that will let them to edit team settings and other commands',
+  },
+  {
     name: 'ModName',
     caption: 'Mod Name',
     default: 'Admin',

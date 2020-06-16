@@ -247,7 +247,6 @@ describe('misc-unit', function () {
     assert.notExists(level);
   });
 
-  /* 
   it('ts.modOnly devs', async () => {
     const oldDevs = TEST.ts.devs;
     TEST.ts.devs = ['123', '456'];
@@ -255,7 +254,7 @@ describe('misc-unit', function () {
     assert.isTrue(await TEST.ts.modOnly('456'));
     assert.isFalse(await TEST.ts.modOnly('unknown'));
     TEST.ts.devs = oldDevs;
-  }); */
+  });
 
   it('ts.getExistingLevel wrong code, with suggestion', async () => {
     const level = await TEST.ts.getExistingLevel().catch((e) => {

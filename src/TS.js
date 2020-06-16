@@ -620,15 +620,20 @@ class TS {
         (Array.isArray(this.devs) &&
           this.devs.includes(discord_id)) ||
         guild.owner.user.id === discord_id ||
-        (discordUser && discordUser.hasPermission('ADMINISTRATOR'))
+        (discordUser && discordUser.hasPermission('ADMINISTRATOR')) ||
+        (this.teamVariables.ManagerName &&
+          this.discord.hasRole(
+            discord_id,
+            this.teamVariables.ManagerName,
+          ))
       );
     };
 
     this.modOnly = async (discordId) => {
       if (!discordId) return false;
-      // if (this.devs && this.devs.indexOf(discordId) !== -1) {
-      //  return true;
-      // }
+      if (this.devs && this.devs.indexOf(discordId) !== -1) {
+        return true;
+      }
       const guild = await this.discord.guild();
       if (guild.owner.user.id === discordId) {
         // owner can do anything
