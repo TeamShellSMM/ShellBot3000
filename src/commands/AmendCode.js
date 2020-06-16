@@ -1,9 +1,9 @@
 const TSCommand = require('../TSCommand.js');
 
-class AmmendCode extends TSCommand {
+class AmendCode extends TSCommand {
   constructor() {
     super('ammendcode', {
-      aliases: ['ammendcode'],
+      aliases: ['ammendcode', 'amendcode'],
       args: [
         {
           id: 'oldCode',
@@ -75,4 +75,4 @@ class AmmendCode extends TSCommand {
   }
 }
 
-module.exports = AmmendCode;
+module.exports = AmendCode;
