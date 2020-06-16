@@ -3,7 +3,7 @@ const TSCommand = require('../TSCommand.js');
 class tsrandom extends TSCommand {
   constructor() {
     super('tsrandom', {
-      aliases: ['tsrandom', 'random', 'randomall'],
+      aliases: ['tsrandom', 'random', 'randomall', 'randompending'],
       args: [
         {
           id: 'minDifficulty',
@@ -24,6 +24,7 @@ class tsrandom extends TSCommand {
     const rand = await ts.randomLevel({
       ...args,
       randomAll: args.command.command === 'randomall',
+      randomPending: args.command.command === 'randompending',
       discord_id: ts.discord.getAuthor(message),
     });
     const randomEmbed = ts.levelEmbed(

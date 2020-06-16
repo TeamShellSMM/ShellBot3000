@@ -1292,7 +1292,13 @@ class TS {
      */
     this.randomLevel = async function (args) {
       debug(args);
-      const { discord_id, players, tag, randomAll } = args;
+      const {
+        discord_id,
+        players,
+        tag,
+        randomAll,
+        randomPending,
+      } = args;
       let { minDifficulty, maxDifficulty } = args;
       if (minDifficulty && !ts.valid_difficulty(minDifficulty)) {
         ts.userError(
@@ -1369,6 +1375,13 @@ class TS {
       const min = parseFloat(minDifficulty) || 0.5;
       const max = parseFloat(maxDifficulty) || min;
 
+      const levelStatusSql = randomPending
+        ? 'where status = 0'
+        : 'where status = 1';
+      const difficultySql = randomPending
+        ? ''
+        : 'and levels.difficulty between :min and :max';
+
       const playsSQL1 = playerIds
         ? `
     left join plays on levels.id=plays.code
@@ -1396,11 +1409,11 @@ class TS {
     left join level_tags on levels.id=level_tags.level_id
     left join tags on tags.id=level_tags.tag_id
     ${playsSQL1}
-    where status=1
+    ${levelStatusSql}
     ${playsSQL2}
     and levels.guild_id=:team_id
     and ( levels.not_default is null or levels.not_default!=1 )
-    and levels.difficulty between :min and :max
+    ${difficultySql}
     ${playsSQL3}
     ${tagSql}
     group by levels.id

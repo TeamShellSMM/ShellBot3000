@@ -1,4 +1,4 @@
-describe('cleardifficulty @curr', () => {
+describe('cleardifficulty', () => {
   beforeEach(async () => {
     await TEST.setupData({
       Members: [

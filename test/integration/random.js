@@ -118,6 +118,15 @@ describe('!random / !playersRandom', function () {
     );
   });
 
+  it('!randompending', async function () {
+    const result = await TEST.mockBotSend({
+      cmd: '!randompending',
+      channel: 'general',
+      discord_id: '128',
+    });
+    assert.deepInclude(result[1], { title: 'level2 (XXX-XXX-XX2)' });
+  });
+
   it('!randomtag nothing', async function () {
     const result = await TEST.mockBotSend({
       cmd: '!randomtag',
