@@ -186,7 +186,7 @@ class DiscordWrapper {
 
   hasRole(discordId, roleId) {
     const currMember = this.member(discordId);
-    if (!currMember) return false;
+    if (!currMember || !currMember.roles) return false;
     return currMember.roles.some(
       (r) =>
         r.id === roleId ||

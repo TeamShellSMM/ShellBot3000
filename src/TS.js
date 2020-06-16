@@ -1800,7 +1800,11 @@ class TS {
         rejectVotesCount = 0,
         isFix = false,
       } = args;
-      let { approvalVotesNeeded = 0, fixVotesNeeded = 0 } = args;
+      let {
+        approvalVotesNeeded = 0,
+        fixVotesNeeded = 0,
+        rejectVotesNeeded = 0,
+      } = args;
       const fixAndApproveVoteCount =
         fixVotesCount > 0 ? fixVotesCount + approvalVotesCount : 0;
       const VotesNeeded = parseInt(ts.teamVariables.VotesNeeded, 10);
@@ -1809,7 +1813,8 @@ class TS {
         parseInt(ts.teamVariables.ApprovalVotesNeeded, 10) ||
         VotesNeeded ||
         1;
-      const rejectVotesNeeded =
+      rejectVotesNeeded =
+        rejectVotesNeeded ||
         parseInt(ts.teamVariables.RejectVotesNeeded, 10) ||
         VotesNeeded ||
         1;
@@ -1913,7 +1918,12 @@ class TS {
       return max - min <= AgreeingMaxDifference;
     };
 
-    this.processStatusUpdate = async (level, fromFix, noAgree) => {
+    this.processStatusUpdate = async (
+      level,
+      fromFix,
+      noAgree,
+      forceJudge,
+    ) => {
       const approvalVotes = await ts
         .getPendingVotes()
         .where('levels.id', level.id)
@@ -1940,15 +1950,19 @@ class TS {
             fixVotes,
             rejectVotes,
           });
+
+      const approvalVotesNeeded = inAgreement
+        ? AgreeingVotesNeeded
+        : null;
+      const fixVotesNeeded = inAgreement ? AgreeingVotesNeeded : null;
       return {
         approvalVotes,
         fixVotes,
         rejectVotes,
         voteArgs: {
-          approvalVotesNeeded: inAgreement
-            ? AgreeingVotesNeeded
-            : null,
-          fixVotesNeeded: inAgreement ? AgreeingVotesNeeded : null,
+          approvalVotesNeeded: forceJudge ? 1 : approvalVotesNeeded,
+          fixVotesNeeded: forceJudge ? 1 : fixVotesNeeded,
+          rejectVotesNeeded: forceJudge ? 1 : 0,
           approvalVotesCount: approvalVotes.length,
           rejectVotesCount: rejectVotes.length,
           fixVotesCount: fixVotes.length,
@@ -1957,7 +1971,7 @@ class TS {
       };
     };
 
-    this.judge = async function (code, fromFix = false) {
+    this.judge = async function (code, fromFix = false, forceJudge) {
       const level = await ts.getExistingLevel(code, fromFix);
       const author = await ts.db.Members.query()
         .where({ name: level.creator })
@@ -1971,7 +1985,12 @@ class TS {
         fixVotes,
         rejectVotes,
         voteArgs,
-      } = await this.processStatusUpdate(level, fromFix);
+      } = await this.processStatusUpdate(
+        level,
+        fromFix,
+        false,
+        forceJudge,
+      );
       const statusUpdate = this.processVotes(voteArgs);
       let difficulty;
       if (statusUpdate === ts.LEVEL_STATUS.APPROVED) {

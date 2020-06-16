@@ -268,7 +268,7 @@ describe('!fixapprove', function () {
     );
   });
 
-  it('reject success @curr', async () => {
+  it('reject success', async () => {
     await TEST.createChannel({
       name: 'XXX-XXX-XX4',
       parent: TEST.ts.channels.pendingReuploadCategory,

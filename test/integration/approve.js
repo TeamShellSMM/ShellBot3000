@@ -117,6 +117,7 @@ describe('!approve', function () {
   });
 
   it('approve', async function () {
+    sinon.restore();
     const result = await TEST.mockBotSend({
       cmd: '!approve XXX-XXX-XXX 5 "is good level"',
       channel: TEST.ts.channels.modChannel,
