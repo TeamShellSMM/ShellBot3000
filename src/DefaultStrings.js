@@ -268,7 +268,7 @@ module.exports = {
   'pending.refuseDescription':
     'Refused by: Please check the fixvotes and decide if this is still acceptable to approve or not (use **!fixapprove** or **!fixreject** with a message).',
   'pending.fixReuploadDescription':
-    'Please check if the mandatory fixes where made and make your decision (use **!fixapprove** or **!fixreject** with a message).',
+    'Please check if the mandatory fixes were made and make your decision (use **!fixapprove** or **!fixreject** with a message).',
 
   'removeLevel.cant':
     'You can\'t remove "{{{level_name}}}" by {{{creator}}}',

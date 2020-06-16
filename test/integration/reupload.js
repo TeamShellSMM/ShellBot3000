@@ -469,7 +469,7 @@ describe('!reupload', function () {
     assert.deepInclude(reply[2], {
       title: 'pending level (XXX-XXX-XX1)',
       description:
-        'Please check if the mandatory fixes where made and make your decision (use **!fixapprove** or **!fixreject** with a message).',
+        'Please check if the mandatory fixes were made and make your decision (use **!fixapprove** or **!fixreject** with a message).',
       url: 'http://localhost:8080/makerteam/level/XXX-XXX-XX1',
       color: 31743,
       author: {
@@ -535,7 +535,7 @@ describe('!reupload', function () {
     assert.deepInclude(reply[2], {
       title: 'need fix level (XXX-XXX-YYY)',
       description:
-        'Please check if the mandatory fixes where made and make your decision (use **!fixapprove** or **!fixreject** with a message).',
+        'Please check if the mandatory fixes were made and make your decision (use **!fixapprove** or **!fixreject** with a message).',
       url: 'http://localhost:8080/makerteam/level/XXX-XXX-YYY',
       color: 31743,
       author: {
