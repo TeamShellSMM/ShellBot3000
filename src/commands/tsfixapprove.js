@@ -21,7 +21,7 @@ class TSFixApprove extends TSCommand {
     });
   }
 
-  async tsexec(ts, message, { reason }) {
+  async tsexec(ts, message) {
     /*
         Possible command syntax:
         !tsapprove code difficulty reason
@@ -31,24 +31,15 @@ class TSFixApprove extends TSCommand {
         !tsapprove difficulty reason
         !tsreject reason
       */
-    const command = ts.parseCommand(message);
-    let inReuploadChannel = false;
-    let code = '';
 
-    // Check if in level discussion channel
-    if (
-      ts.validCode(
-        ts.discord.messageGetChannelName(message).toUpperCase(),
-      )
-    ) {
-      inReuploadChannel = true;
-      code = ts.getUnlabledName(
-        ts.discord.messageGetChannelName(message),
-      );
-    } else {
-      // Check the code only if not in discussion channel
-    }
-    if (!inReuploadChannel) return false; // silently fail
+    const {
+      code,
+      command,
+      inCodeDiscussionChannel,
+    } = ts.getCodeArgument(message);
+    const reason = command.rest();
+
+    if (!inCodeDiscussionChannel) return false; // silently fail
 
     if (
       ts.discord.messageGetParent(message) !==

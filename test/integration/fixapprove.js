@@ -268,7 +268,7 @@ describe('!fixapprove', function () {
     );
   });
 
-  it('reject success', async () => {
+  it('reject success @curr', async () => {
     await TEST.createChannel({
       name: 'XXX-XXX-XX4',
       parent: TEST.ts.channels.pendingReuploadCategory,
@@ -283,6 +283,10 @@ describe('!fixapprove', function () {
     assert.equal(
       result[1].author.name,
       "We're really sorry, but this level was rejected after you refused to reupload.",
+    );
+    assert.equal(
+      result[1].fields[0].value,
+      '**Reason** :```"unfortunately no"```-<@128>',
     );
   });
 

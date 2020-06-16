@@ -3098,7 +3098,6 @@ class TS {
     return this.userError(
       `${this.message('tag.notFound', { tag })}\n${suggestion}`,
     );
-    // @curr
   }
 
   /**
