@@ -2677,14 +2677,16 @@ class TS {
           race.level_filter_tag_id = null;
         }
         race.level_filter_submission_time_type = submissionTimeType;
-        race.level_filter_diff_from = minDifficulty;
-        race.level_filter_diff_to = maxDifficulty;
         race.level_id = null;
         race.level_status_type = levelStatusType;
         if (race.level_status_type === 'approved') {
           race.weighting_type = weightingType;
+          race.level_filter_diff_from = minDifficulty;
+          race.level_filter_diff_to = maxDifficulty;
         } else {
           race.weighting_type = 'unweighted';
+          race.level_filter_diff_from = 0;
+          race.level_filter_diff_to = 100;
         }
       }
 
@@ -2798,8 +2800,12 @@ class TS {
         race.level_status_type = levelStatusType;
         if (race.level_status_type === 'approved') {
           race.weighting_type = weightingType;
+          race.level_filter_diff_from = minDifficulty;
+          race.level_filter_diff_to = maxDifficulty;
         } else {
           race.weighting_type = 'unweighted';
+          race.level_filter_diff_from = 0;
+          race.level_filter_diff_to = 100;
         }
       }
 
