@@ -458,10 +458,16 @@ module.exports = async function (client) {
     const serverTimeOffset = moment().valueOf() - currentTimeMillis;
 
     let stati = [];
+    let officialStates = [];
     if (mode === 'current') {
       stati = ['upcoming', 'active'];
+      officialStates = [0];
+    } else if (mode === 'unofficial') {
+      stati = ['upcoming', 'active'];
+      officialStates = [1];
     } else {
       stati = ['finished'];
+      officialStates = [1, 2];
     }
 
     const [json] = await knex.raw(
@@ -477,6 +483,14 @@ module.exports = async function (client) {
         races.level_filter_diff_to,
         races.level_filter_submission_time_type,
         races.level_filter_failed,
+        races.unofficial,
+        races.level_status_type,
+        races.weighting_type,
+        races.clear_score_from,
+        races.clear_score_to,
+        race_creators.id as race_creator_id,
+        race_creators.name as race_creator_name,
+        race_creators.discord_id as race_creator_discord_id,
         tags.id as tag_id,
         tags.name as tag_name,
         tags.type as tag_type,
@@ -494,6 +508,7 @@ module.exports = async function (client) {
         race_members.discord_id as race_member_discord_id
       from
         races
+        left join members race_creators on races.creator_id = race_creators.id
         left join tags on races.level_filter_tag_id = tags.id
         left join levels on races.level_id = levels.id
         left join members creators on levels.creator = creators.id
@@ -502,6 +517,7 @@ module.exports = async function (client) {
       where
         races.guild_id = :guild_id AND
         races.status in (:stati) AND
+        races.unofficial in (:unofficial_states) AND
         (tags.is_hidden = 0 or tags.is_hidden is null)
       order by races.start_date ${
         mode === 'current' ? 'asc' : 'desc'
@@ -509,6 +525,7 @@ module.exports = async function (client) {
       {
         guild_id: ts.team.id,
         stati: stati,
+        unofficial_states: officialStates,
       },
     );
 
@@ -529,8 +546,21 @@ module.exports = async function (client) {
           level_filter_submission_time_type:
             row.level_filter_submission_time_type,
           level_filter_failed: row.level_filter_failed,
+          unofficial: row.unofficial,
+          level_status_type: row.level_status_type,
+          weighting_type: row.weighting_type,
+          clear_score_from: row.clear_score_from,
+          clear_score_to: row.clear_score_to,
           race_entrants: {},
         };
+
+        if (row.race_creator_id) {
+          raceData[row.id].creator = {
+            id: row.race_creator_id,
+            name: row.race_creator_name,
+            discord_id: row.race_creator_discord_id,
+          };
+        }
 
         if (row.tag_id) {
           raceData[row.id].level_filter_tag = {
@@ -621,10 +651,10 @@ module.exports = async function (client) {
           return b.rank - a.rank;
         }
         if (!a) {
-          return -1;
+          return 1;
         }
         if (!b) {
-          return 1;
+          return -1;
         }
         return 0;
       });
@@ -702,6 +732,9 @@ module.exports = async function (client) {
             data.url_slug = ts.url_slug;
             if (ts.teamAdmin(req.body.discord_id)) {
               data.teamAdmin = true;
+            }
+            if (await ts.raceCreator(req.body.discord_id)) {
+              data.raceCreator = true;
             }
             data.teamSettings = await ts.getSettings('settings');
             res.send(JSON.stringify(data));

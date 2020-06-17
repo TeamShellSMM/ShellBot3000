@@ -467,4 +467,9 @@ module.exports = {
     '{{{mentions}}}: The race "{{{name}}}" could not be started, no level was found that fits all the criteria. The race has been postponed by 5 minutes, please change the criterias!',
   'race.raceEnded':
     '{{{mentions}}}: The race "{{{name}}}" has just finished, congratulations to the winners, you can check out the full ranking at <https://makerteams.net/{{{url_slug}}}/races/history>!',
+  'race.notRaceCreator': 'You are not allowed to edit this race!',
+  'race.needMorePoints':
+    'You need at least {{{minimumPoints}}} clear points to be able to create unofficial races!',
+  'race.tooManyPoints':
+    'You are not allowed to join this race, this race needs you to have a certain amount of points!',
 };
