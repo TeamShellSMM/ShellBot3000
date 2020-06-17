@@ -359,6 +359,7 @@ class TS {
             if (race.level_type === 'random') {
               const bindings = {
                 guild_id: ts.team.id,
+                member_ids: memberIds,
                 diff_from: race.level_filter_diff_from,
                 diff_to: race.level_filter_diff_to,
               };
@@ -2745,8 +2746,8 @@ class TS {
         ts.userError(ts.message('error.noAdmin'));
       }
 
-      if (race.creator_id !== player.id) {
-        ts.userError(ts.message('error.notRaceCreator'));
+      if (race.creator_id !== player.id && !player.is_mod) {
+        ts.userError(ts.message('race.notRaceCreator'));
       }
 
       if (startDate) {
@@ -2885,10 +2886,6 @@ class TS {
 
       if (!race) {
         ts.userError(ts.message('error.raceNotFound'));
-      }
-
-      if (race.status !== 'upcoming') {
-        ts.userError(ts.message('error.raceHasStarted'));
       }
 
       await ts.db.RaceEntrants.query()

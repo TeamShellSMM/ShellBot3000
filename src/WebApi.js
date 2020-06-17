@@ -648,13 +648,13 @@ module.exports = async function (client) {
 
       raceEntrants.sort(function (a, b) {
         if (a && b) {
-          return b.rank - a.rank;
+          return a.rank - b.rank;
         }
         if (!a) {
-          return 1;
+          return -1;
         }
         if (!b) {
-          return -1;
+          return 1;
         }
         return 0;
       });
