@@ -2617,11 +2617,11 @@ class TS {
       if (unofficial && !player.is_mod) {
         if (
           ts.teamVariables.MinimumPointsUnofficialRace &&
-          player.clear_score_sum >=
+          player.clear_score_sum <
             ts.teamVariables.MinimumPointsUnofficialRace
         ) {
           ts.userError(
-            ts.message('races.needMorePoints', {
+            ts.message('race.needMorePoints', {
               minimumPoints:
                 ts.teamVariables.MinimumPointsUnofficialRace,
             }),
