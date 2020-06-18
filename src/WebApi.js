@@ -412,14 +412,13 @@ module.exports = async function (client) {
       ,name
       ,creator_id
 	    ,code
-      ,levels_created
+      ,COUNT(*) as levels_created
       ,sum(clears) clears
       ,sum(likes) likes
       ,AVG(clear_like_ratio) as clear_like_ratio
       ,SUM(maker_points) as maker_points
     FROM (
            SELECT members.name
-          ,members.levels_created
           ,members.id creator_id
           ,levels.code
           ,levels.clears
