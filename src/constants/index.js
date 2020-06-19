@@ -246,6 +246,14 @@ const defaultVariables = Object.freeze([
     description: 'How many points needed to submit another level',
   },
   {
+    name: 'MinimumPointsUnofficialRace',
+    caption: 'Minimum Points Unofficial Race',
+    default: 0,
+    type: 'number',
+    description:
+      'Minimum no. of points needed to create unofficial races',
+  },
+  {
     name: 'memberRole',
     caption: 'Member Role',
     default: '',
