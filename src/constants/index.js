@@ -93,9 +93,25 @@ const defaultVariables = Object.freeze([
   {
     name: 'TeamName',
     caption: 'Team Name',
-    default: 'A Maker Team',
+    default: 'Maker Team',
     type: 'text',
     description: 'Will be used by the bot in the reponses',
+  },
+  {
+    name: 'FirstPart',
+    caption: 'First Part',
+    default: 'Maker',
+    type: 'text',
+    description:
+      'The first part of your team name. Used to make the colour style/work',
+  },
+  {
+    name: 'SecondPart',
+    caption: 'Second Part',
+    default: ' Team',
+    type: 'text',
+    description:
+      'The second part of your team name. Used to make the colour style/work',
   },
   {
     name: 'ManagerName',
