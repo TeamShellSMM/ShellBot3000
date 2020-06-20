@@ -372,7 +372,8 @@ module.exports = {
   'addVids.noRemoved':
     'No videos have been removed for "{{{level_name}}}" by "{{creator}}"\n',
 
-  'register.already': "You're already registered as **{{name}}**",
+  'register.already':
+    "You're already registered as **{{name}}**. If you want to change your name you can use `!nick new name`",
   'register.nameTaken':
     "'{{name}}' has already been registered by someone else. Please use another nickname",
   'register.success': `You are now registered as '{{name}}'.  {{{bam}}}
