@@ -230,10 +230,11 @@ module.exports = async function (client) {
         .where('levels.id', levels[0].id);
       if (
         user &&
-        user.is_mod &&
-        [ts.LEVEL_STATUS.PENDING, ts.LEVEL_STATUS.NEED_FIX].includes(
-          levels[0].status,
-        )
+        user.is_mod
+        // &&
+        // [ts.LEVEL_STATUS.PENDING, ts.LEVEL_STATUS.NEED_FIX].includes(
+        //  levels[0].status,
+        // )
       ) {
         json.pending_comments = await ts
           .getPendingVotes()
