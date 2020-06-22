@@ -1842,15 +1842,21 @@ class TS {
       const plusOneVotes = [
         {
           ...args,
-          approvalVotesCount: (args.approvalVotesCount || 0) + 1,
+          approvalVotesCount: args.approvalVotesCount
+            ? (args.approvalVotesCount || 0) + 1
+            : 0,
         },
         {
           ...args,
-          rejectVotesCount: (args.rejectVotesCount || 0) + 1,
+          rejectVotesCount: args.rejectVotesCount
+            ? (args.rejectVotesCount || 0) + 1
+            : 0,
         },
         {
           ...args,
-          fixVotesCount: (args.fixVotesCount || 0) + 1,
+          fixVotesCount: args.fixVotesCount
+            ? (args.fixVotesCount || 0) + 1
+            : 0,
         },
       ];
 
