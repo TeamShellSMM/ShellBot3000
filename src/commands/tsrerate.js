@@ -32,10 +32,12 @@ class TSRerate extends TSCommand {
     if (
       !(
         ts.discord.messageGetChannel(message) ===
-        ts.channels.modChannel
+          ts.channels.modChannel || // only in shellder-bot channel
+        ts.discord.messageGetChannel(message) ===
+          ts.channels.pendingShellbot
       )
     )
-      return false;
+      return false; // silently fail
 
     if (code) {
       code = code.toUpperCase();
