@@ -467,7 +467,7 @@ module.exports = {
   'race.raceStarted':
     '{{{mentions}}}: The race "{{{name}}}" has just started, you will be racing each other on the following level. Good luck and have fun!',
   'race.noParticipants':
-      'The race "{{{name}}}" did not have any participants and was removed!',
+    'The race "{{{name}}}" did not have any participants and was removed!',
   'race.raceFailed':
     '{{{mentions}}}: The race "{{{name}}}" could not be started, no level was found that fits all the criteria. The race has been postponed by 5 minutes, please change the criterias!',
   'race.raceEnded':
