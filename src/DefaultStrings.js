@@ -455,7 +455,9 @@ module.exports = {
     'You have cleared the difficulty votes for "{{{level_name}}}" by {{{creator}}}',
 
   'race.newRaceAdded':
-    'A new race has been added: "{{{name}}}", you can check it out at <https://makerteams.net/{{{url_slug}}}/races>.',
+    'A new {{#if unofficial}}unofficial{{else}}official{{/if}} race has been added:',
+  'race.raceEdited':
+    'The following race has been updated right now: ',
   'race.newRaceEntrant':
     '<@{{{discord_id}}}> has entered the race "{{{name}}}".',
   'race.entrantLeftRace':
@@ -463,11 +465,13 @@ module.exports = {
   'race.entrantFinishedRace':
     '<@{{{discord_id}}}> just finished the race "{{{name}}}" (Rank: #{{{rank}}}). Please post some verification of your clear.',
   'race.raceStarted':
-    '{{{mentions}}}: The race "{{{name}}}" has just started, good luck and have fun!',
+    '{{{mentions}}}: The race "{{{name}}}" has just started, you will be racing each other on the following level. Good luck and have fun!',
+  'race.noParticipants':
+      'The race "{{{name}}}" did not have any participants and was removed!',
   'race.raceFailed':
     '{{{mentions}}}: The race "{{{name}}}" could not be started, no level was found that fits all the criteria. The race has been postponed by 5 minutes, please change the criterias!',
   'race.raceEnded':
-    '{{{mentions}}}: The race "{{{name}}}" has just finished, congratulations to the winners, you can check out the full ranking at <https://makerteams.net/{{{url_slug}}}/races/history>!',
+    '{{{mentions}}}: The race "{{{name}}}" has just finished, congratulations to the winners:',
   'race.notRaceCreator': 'You are not allowed to edit this race!',
   'race.needMorePoints':
     'You need at least {{{minimumPoints}}} clear points to be able to create unofficial races!',

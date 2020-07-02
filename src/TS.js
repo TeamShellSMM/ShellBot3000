@@ -340,6 +340,23 @@ class TS {
               },
             );
 
+            if(raceEntrants.length == 0){
+              if(ts.channels.raceChannel){
+                await ts.discord.send(
+                  ts.channels.raceChannel,
+                  ts.message('race.noParticipants', {
+                    name: race.name
+                  }),
+                );
+              }
+
+              await ts.db.Races.query()
+                .where('id', race.id)
+                .del();
+
+              continue;
+            }
+
             const mentionsArr = [];
             const memberIds = [];
             for (const raceEntrant of raceEntrants) {
@@ -531,12 +548,20 @@ class TS {
               ts.channels.raceChannel &&
               !race.level_filter_failed
             ) {
+              const level = await ts.db.Levels.query()
+                .where({ id: race.level_id })
+                .first();
+
               await ts.discord.send(
                 ts.channels.raceChannel,
                 ts.message('race.raceStarted', {
                   name: race.name,
-                  mentions: mentionsArr.join(', '),
+                  mentions: mentionsArr.join(', ')
                 }),
+              );
+              await ts.discord.send(
+                ts.channels.raceChannel,
+                await ts.levelEmbed(level),
               );
             } else if (
               ts.channels.raceChannel &&
@@ -562,38 +587,7 @@ class TS {
             .where('status', '=', 'active');
 
           for (const race of activeRaces) {
-            const raceEntrants = await ts.db.RaceEntrants.query().where(
-              {
-                race_id: race.id,
-              },
-            );
-
-            const mentionsArr = [];
-            for (const raceEntrant of raceEntrants) {
-              const member = await ts.db.Members.query()
-                .where({
-                  id: raceEntrant.member_id,
-                })
-                .first();
-
-              mentionsArr.push(`<@${member.discord_id}>`);
-            }
-
-            if (ts.channels.raceChannel) {
-              await ts.discord.send(
-                ts.channels.raceChannel,
-                ts.message('race.raceEnded', {
-                  name: race.name,
-                  mentions: mentionsArr.join(', '),
-                  url_slug: this.url_slug,
-                }),
-              );
-            }
-
-            race.status = 'finished';
-            await ts.db.Races.query()
-              .where('id', race.id)
-              .update(race);
+            await ts.endRace(race);
           }
         });
       }
@@ -1592,7 +1586,7 @@ class TS {
         .getPendingVotes()
         .where('levels.id', level.id)
         .where({ type: 'reject' });
-      const voteEmbed = ts.levelEmbed(
+      const voteEmbed = await ts.levelEmbed(
         level,
         this.embedStyle.judgement,
       );
@@ -2100,7 +2094,7 @@ class TS {
       const mention = this.message('general.heyListen', {
         discord_id: author.discord_id,
       });
-      const judgeEmbed = this.levelEmbed(
+      const judgeEmbed = await this.levelEmbed(
         level,
         this.embedStyle[statusUpdate],
         { difficulty },
@@ -2279,7 +2273,7 @@ class TS {
         approve ? ts.LEVEL_STATUS.APPROVED : ts.LEVEL_STATUS.REJECTED
       ];
 
-      const finishFixRequestEmbed = this.levelEmbed(
+      const finishFixRequestEmbed = await this.levelEmbed(
         level,
         {
           ...embedStyle,
@@ -2331,10 +2325,15 @@ class TS {
       );
     };
 
-    this.levelEmbed = function (pLevel, args = {}, titleArgs) {
+    this.levelEmbed = async function (pLevel, args = {}, titleArgs) {
       const level = pLevel;
       const { color, title, noLink } = args;
       let { image } = args;
+
+      const creator = await ts.db.Members.query()
+      .where({ id: level.creator })
+      .first();
+
       let vidStr = [];
       level.videos.split(',').forEach((vid) => {
         if (vid) vidStr.push(`[ 🎬 ](${vid})`);
@@ -2358,8 +2357,8 @@ class TS {
         .setDescription(
           `made by ${
             noLink
-              ? level.creator
-              : `[${level.creator}](${ts.page_url}${
+              ? creator.name
+              : `[${creator.name}](${ts.page_url}${
                   ts.url_slug
                 }/maker/${encodeURIComponent(level.creator)})`
           }\n${
@@ -2387,6 +2386,150 @@ class TS {
       embed = embed.setTimestamp();
       return embed;
     };
+
+    this.raceEmbed = async function (pRace, args = {}, titleArgs) {
+      const race = pRace;
+      const { color, title, noLink } = args;
+      let { image } = args;
+
+      let startDateMoment = moment(race.start_date, 'YYYY-MM-DD HH:mm:ss');
+      let endDateMoment = moment(race.end_date, 'YYYY-MM-DD HH:mm:ss');
+
+      let duration = moment.duration(endDateMoment.diff(startDateMoment));
+      let lengthMinutes = duration.as('minutes');
+
+      const race_creator = await ts.db.Members.query()
+      .where({ id: race.creator_id })
+      .first();
+
+      let vars = [];
+
+      let levelType = "MISSING LEVEL TYPE";
+      if(race.level_type == "random-uncleared"){
+        levelType = "Random Uncleared";
+      } else if (race.level_type == "random") {
+        levelType = "Random Cleared & Uncleared";
+      } else if (race.level_type == "specific"){
+        levelType = "Specific Level";
+      }
+
+      vars.push(levelType);
+
+      if(race.level_type !== "specific"){
+        let levelStatusType = "MISSING LEVEL STATUS TYPE";
+        if(race.level_status_type == "approved"){
+          levelStatusType = "Approved";
+        } else if (race.level_status_type == "pending") {
+          levelStatusType = "Pending";
+        } else if(race.level_status_type == "all"){
+          levelStatusType = "Approved/Pending";
+        }
+
+        vars.push(levelStatusType);
+
+        if(race.level_status_type == 'approved'){
+          let weightingType = "MISSING WEIGHTING TYPE";
+          if(race.weighting_type == "unweighted"){
+            weightingType = "Unweighted";
+          } else if (race.weighting_type == "weighted_lcd") {
+            weightingType = "Weighted (LCD)";
+          }
+          vars.push(weightingType);
+
+          if(race.level_filter_diff_from){
+            let diffString = race.level_filter_diff_from.toFixed(1);
+            if(race.level_filter_diff_from < race.level_filter_diff_to){
+              diffString += " - " + race.level_filter_diff_to.toFixed(1)
+            }
+
+            vars.push("Diff: " + diffString);
+          }
+        }
+
+        let submissionFilter = "";
+        if (race.level_filter_submission_time_type == "month"){
+          submissionFilter = "submitted in the last 30 days";
+        } else if(race.level_filter_submission_time_type == "week") {
+          submissionFilter = "submitted in the last 7 days";
+        }
+
+        if(submissionFilter){
+          vars.push(submissionFilter);
+        }
+      }
+
+      if(race.level_filter_tag_id){
+        const race_tag = await ts.db.Tags.query()
+          .where({ id: race.level_filter_tag_id })
+          .first();
+
+        vars.push("Tags: " + race_tag.name)
+      }
+
+      let varString = vars.join(", ");
+
+      if(race.clear_score_from && race.clear_score_to){
+        varString += "\nNeeded Clear Score to enter: " + race.clear_score_from + " - " + race.clear_score_to + " points";
+      } else if (race.clear_score_from){
+        varString += "\nMinimum Clear Score needed to enter: " + race.clear_score_from + " points";
+      } else if (race.clear_score_to){
+        varString += "\nMaximum Clear Score allowed: " + race.clear_score_to + " points";
+      }
+
+      if(race.status != 'upcoming' && race.level_id){
+        const race_level = await ts.db.Levels.query()
+          .where({ id: race.level_id })
+          .first();
+
+        const race_level_creator = await ts.db.Members.query()
+          .where({ id: race_level.creator })
+          .first();
+
+        varString += `\nSelected Level: ${race_level.level_name} (${race_level.code}) by ${race_level_creator.name}`;
+      }
+
+      let embed = this.discord
+        .embed()
+        .setColor(color || '#cccc00')
+        .setTitle(`${race.name} by ${race_creator.name}\n${race.race_type} Race (${lengthMinutes} minutes)`)
+        .setDescription(varString);
+
+      const raceEntrants = await ts.db.RaceEntrants.query().where(
+        {
+          race_id: race.id,
+        },
+      ).orderBy("rank", "ASC");
+
+      for(let entrant of raceEntrants){
+        const entrant_member = await ts.db.Members.query()
+          .where({ id: entrant.member_id })
+          .first();
+
+        let finishDateMoment = moment(entrant.finished_date, 'YYYY-MM-DD HH:mm:ss');
+
+        let entrantDuration = moment.duration(finishDateMoment.diff(startDateMoment));
+        let entrantFinishedSeconds = Math.floor(entrantDuration.as('seconds') % 60);
+        let entrantFinishedMinutes = Math.floor(entrantDuration.as('seconds') / 60) - 1;
+
+        embed.addField(entrant.rank ? "#" + entrant.rank + ` (finished after ${entrantFinishedMinutes} minutes, ${entrantFinishedSeconds} seconds)` : "Unfinished", entrant_member.name);
+      }
+
+      if (title) {
+        embed.setAuthor(ts.message(title, titleArgs));
+      }
+      if (image) {
+        image = this.getEmoteUrl(image);
+        embed.setThumbnail(image);
+      }
+      if (!noLink) {
+        embed.setURL(
+          `${ts.page_url + ts.url_slug}/${race.unofficial ? 'races/unofficial' : 'race'}`,
+        );
+      }
+      embed = embed.setTimestamp(race.start_date);
+      return embed;
+    };
+
     this.reuploadLevel = async function (message) {
       const player = await ts.db.Members.query()
         .where({ discord_id: ts.discord.getAuthor(message) })
@@ -2636,7 +2779,7 @@ class TS {
         }
       }
 
-      const race = {};
+      let race = {};
 
       if (startDate) {
         race.start_date = moment(startDate, 'x').format(
@@ -2698,15 +2841,18 @@ class TS {
 
       race.status = 'upcoming';
 
-      await ts.db.Races.query().insert(race);
+      race = await ts.db.Races.query().insert(race);
 
       if (ts.channels.raceChannel) {
         await ts.discord.send(
           ts.channels.raceChannel,
           ts.message('race.newRaceAdded', {
-            name: race.name,
-            url_slug: this.url_slug,
+            unofficial: race.unofficial
           }),
+        );
+        await ts.discord.send(
+          ts.channels.raceChannel,
+          await ts.raceEmbed(race),
         );
       }
 
@@ -2817,6 +2963,18 @@ class TS {
 
       await ts.db.Races.query().patch(race).where('id', '=', id);
 
+      if (ts.channels.raceChannel) {
+        await ts.discord.send(
+          ts.channels.raceChannel,
+          ts.message('race.raceEdited', {
+          }),
+        );
+        await ts.discord.send(
+          ts.channels.raceChannel,
+          await ts.raceEmbed(race),
+        );
+      }
+
       return 'success';
     };
 
@@ -2917,11 +3075,71 @@ class TS {
         );
       }
 
+      const raceEntrants = await ts.db.RaceEntrants.query().where(
+        {
+          race_id: race.id,
+        },
+      );
+
+      if(raceEntrants.length == 0){
+        if(ts.channels.raceChannel){
+          await ts.discord.send(
+            ts.channels.raceChannel,
+            ts.message('race.noParticipants', {
+              name: race.name
+            }),
+          );
+        }
+
+        await ts.db.Races.query()
+          .where('id', race.id)
+          .del();
+      }
+
       return 'success';
     };
 
+    this.endRace = async (race) => {
+      const raceEntrants = await ts.db.RaceEntrants.query().where(
+        {
+          race_id: race.id,
+        },
+      );
+
+      const mentionsArr = [];
+      for (const raceEntrant of raceEntrants) {
+        const member = await ts.db.Members.query()
+          .where({
+            id: raceEntrant.member_id,
+          })
+          .first();
+
+        mentionsArr.push(`<@${member.discord_id}>`);
+      }
+
+      if (ts.channels.raceChannel) {
+        await ts.discord.send(
+          ts.channels.raceChannel,
+          ts.message('race.raceEnded', {
+            name: race.name,
+            mentions: mentionsArr.join(', '),
+            url_slug: this.url_slug
+          })
+        );
+        await ts.discord.send(
+          ts.channels.raceChannel,
+          await ts.raceEmbed(race),
+        );
+      }
+
+      race.status = 'finished';
+      await ts.db.Races.query()
+        .where('id', race.id)
+        .update(race);
+    }
+
     this.finishRace = async (args = {}) => {
-      const { raceId } = args;
+      const { raceId, like } = args;
       const { discord_id } = args;
 
       if (!discord_id) ts.userError(ts.message('error.noDiscordId'));
@@ -2962,11 +3180,14 @@ class TS {
           .where({ id: race.level_id })
           .first();
 
-        await ts.clear({
-          discord_id,
-          code: level.code,
-          completed: true,
-        });
+        if(player.id !== level.creator){
+          await ts.clear({
+            discord_id,
+            code: level.code,
+            completed: true,
+            liked: like
+          });
+        }
       }
 
       if (ts.channels.raceChannel) {
@@ -2978,6 +3199,17 @@ class TS {
             rank: maxRank + 1,
           }),
         );
+      }
+
+      const unfinishedRaceEntrants = await ts.db.RaceEntrants.query().where(
+        {
+          race_id: race.id,
+          finished_date: null
+        },
+      );
+
+      if(unfinishedRaceEntrants.length == 0){
+        await this.endRace(race);
       }
 
       return 'success';
