@@ -548,7 +548,8 @@ class TS {
                 ts.channels.raceChannel &&
                 !race.level_filter_failed
               ) {
-                const level = await ts.db.Levels.query()
+                const level = await ts
+                  .getLevels()
                   .where({ id: race.level_id })
                   .first();
 
@@ -561,7 +562,7 @@ class TS {
                 );
                 await ts.discord.send(
                   ts.channels.raceChannel,
-                  await ts.levelEmbed(level),
+                  ts.levelEmbed(level),
                 );
               } else if (
                 ts.channels.raceChannel &&
@@ -1587,7 +1588,7 @@ class TS {
         .getPendingVotes()
         .where('levels.id', level.id)
         .where({ type: 'reject' });
-      const voteEmbed = await ts.levelEmbed(
+      const voteEmbed = ts.levelEmbed(
         level,
         this.embedStyle.judgement,
       );
@@ -2095,7 +2096,7 @@ class TS {
       const mention = this.message('general.heyListen', {
         discord_id: author.discord_id,
       });
-      const judgeEmbed = await this.levelEmbed(
+      const judgeEmbed = this.levelEmbed(
         level,
         this.embedStyle[statusUpdate],
         { difficulty },
@@ -2274,7 +2275,7 @@ class TS {
         approve ? ts.LEVEL_STATUS.APPROVED : ts.LEVEL_STATUS.REJECTED
       ];
 
-      const finishFixRequestEmbed = await this.levelEmbed(
+      const finishFixRequestEmbed = this.levelEmbed(
         level,
         {
           ...embedStyle,
@@ -2326,14 +2327,10 @@ class TS {
       );
     };
 
-    this.levelEmbed = async function (pLevel, args = {}, titleArgs) {
+    this.levelEmbed = function (pLevel, args = {}, titleArgs) {
       const level = pLevel;
       const { color, title, noLink } = args;
       let { image } = args;
-
-      const creator = await ts.db.Members.query()
-        .where({ id: level.creator })
-        .first();
 
       let vidStr = [];
       level.videos.split(',').forEach((vid) => {
@@ -2358,8 +2355,8 @@ class TS {
         .setDescription(
           `made by ${
             noLink
-              ? creator.name
-              : `[${creator.name}](${ts.page_url}${
+              ? level.creator
+              : `[${level.creator}](${ts.page_url}${
                   ts.url_slug
                 }/maker/${encodeURIComponent(level.creator)})`
           }\n${
