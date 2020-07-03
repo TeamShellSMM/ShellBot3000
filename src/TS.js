@@ -3122,7 +3122,8 @@ class TS {
     };
 
     this.endRace = async (pRace) => {
-      const race = JSON.parse(JSON.stringify(pRace));
+      const race = {};
+      Object.assign(race, pRace);
       const raceEntrants = await ts.db.RaceEntrants.query().where({
         race_id: race.id,
       });
