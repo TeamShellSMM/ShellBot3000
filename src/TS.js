@@ -2528,8 +2528,9 @@ class TS {
         const entrantFinishedSeconds = Math.floor(
           entrantDuration.as('seconds') % 60,
         );
-        const entrantFinishedMinutes =
-          Math.floor(entrantDuration.as('seconds') / 60) - 1;
+        const entrantFinishedMinutes = Math.floor(
+          entrantDuration.as('seconds') / 60,
+        );
 
         embed.addField(
           entrant.rank
