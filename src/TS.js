@@ -2443,13 +2443,11 @@ class TS {
           vars.push(weightingType);
 
           if (race.level_filter_diff_from) {
-            let diffString = race.level_filter_diff_from.toFixed(1);
+            let diffString = race.level_filter_diff_from;
             if (
               race.level_filter_diff_from < race.level_filter_diff_to
             ) {
-              diffString += ` - ${race.level_filter_diff_to.toFixed(
-                1,
-              )}`;
+              diffString += ` - ${race.level_filter_diff_to}`;
             }
 
             vars.push(`Diff: ${diffString}`);
