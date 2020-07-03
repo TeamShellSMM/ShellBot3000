@@ -340,220 +340,247 @@ class TS {
               },
             );
 
-            const mentionsArr = [];
-            const memberIds = [];
-            for (const raceEntrant of raceEntrants) {
-              const member = await ts.db.Members.query()
-                .where({
-                  id: raceEntrant.member_id,
-                })
-                .first();
+            let raceDeleted = false;
+            if (raceEntrants.length === 0) {
+              if (ts.channels.raceChannel) {
+                await ts.discord.send(
+                  ts.channels.raceChannel,
+                  ts.message('race.noParticipants', {
+                    name: race.name,
+                  }),
+                );
+              }
 
-              memberIds.push(member.id);
+              await ts.db.Races.query().where('id', race.id).del();
 
-              mentionsArr.push(`<@${member.discord_id}>`);
+              raceDeleted = true;
             }
 
-            race.status = 'active';
-            // race.level = findlevel
-            if (race.level_type === 'random') {
-              const bindings = {
-                guild_id: ts.team.id,
-                member_ids: memberIds,
-                diff_from: race.level_filter_diff_from,
-                diff_to: race.level_filter_diff_to,
-              };
+            if (!raceDeleted) {
+              const mentionsArr = [];
+              const memberIds = [];
+              for (const raceEntrant of raceEntrants) {
+                const member = await ts.db.Members.query()
+                  .where({
+                    id: raceEntrant.member_id,
+                  })
+                  .first();
 
-              let sql = `select
-              distinct levels.id as level_id, maker_points as lcd_score
-                from
-                  levels
-                  left join level_tags on levels.id = level_tags.level_id
-                where
-                  levels.guild_id = :guild_id
-                  and difficulty >= :diff_from
-                  and difficulty <= :diff_to
-                  and levels.creator not in (:member_ids)`;
+                memberIds.push(member.id);
+
+                mentionsArr.push(`<@${member.discord_id}>`);
+              }
+
+              race.status = 'active';
+              // race.level = findlevel
+              if (race.level_type === 'random') {
+                const bindings = {
+                  guild_id: ts.team.id,
+                  member_ids: memberIds,
+                  diff_from: race.level_filter_diff_from,
+                  diff_to: race.level_filter_diff_to,
+                };
+
+                let sql = `select
+                distinct levels.id as level_id, maker_points as lcd_score
+                  from
+                    levels
+                    left join level_tags on levels.id = level_tags.level_id
+                  where
+                    levels.guild_id = :guild_id
+                    and difficulty >= :diff_from
+                    and difficulty <= :diff_to
+                    and levels.creator not in (:member_ids)`;
+
+                if (
+                  race.level_filter_submission_time_type === 'month'
+                ) {
+                  sql += ` and levels.created_at > DATE_SUB(NOW(), interval 30 day) `;
+                } else if (
+                  race.level_filter_submission_time_type === 'week'
+                ) {
+                  sql += ` and levels.created_at > DATE_SUB(NOW(), interval 7 day) `;
+                }
+
+                if (race.level_status_type === 'approved') {
+                  sql += ` and status = 1 `;
+                } else if (race.level_status_type === 'pending') {
+                  sql += ` and status in (0, 3, 4, 5, -10) `;
+                } else if (race.level_status_type === 'all') {
+                  sql += ` and status in (1, 0, 3, 4, 5, -10) `;
+                }
+
+                if (race.level_filter_tag_id) {
+                  sql += ` and level_tags.tag_id = :tag_id `;
+                  bindings.tag_id = race.level_filter_tag_id;
+                }
+
+                const [json] = await knex.raw(sql, bindings);
+
+                if (json.length > 0) {
+                  if (
+                    race.level_status_type === 'approved' &&
+                    race.weighting_type === 'weighted_lcd'
+                  ) {
+                    const weightedJson = [];
+                    for (const row of json) {
+                      let lcdScore = 5;
+                      if (row.lcd_score > 5) {
+                        lcdScore = row.lcd_score;
+                      }
+
+                      for (let i = 0; i < lcdScore; i += 1) {
+                        weightedJson.push(row.level_id);
+                      }
+                    }
+                    const rand = Math.floor(
+                      Math.random() * weightedJson.length,
+                    );
+                    race.level_id = weightedJson[rand];
+                    race.level_filter_failed = false;
+                  } else {
+                    const rand = Math.floor(
+                      Math.random() * json.length,
+                    );
+                    race.level_id = json[rand].level_id;
+                    race.level_filter_failed = false;
+                  }
+                } else {
+                  race.level_filter_failed = true;
+                  race.status = 'upcoming';
+                  race.start_date = new Date(
+                    race.start_date.getTime() + 5 * 60000,
+                  );
+                  race.end_date = new Date(
+                    race.end_date.getTime() + 5 * 60000,
+                  );
+                }
+              } else if (
+                race.level_type === 'random-uncleared' &&
+                memberIds.length > 0
+              ) {
+                const bindings = {
+                  guild_id: ts.team.id,
+                  member_ids: memberIds,
+                  diff_from: race.level_filter_diff_from,
+                  diff_to: race.level_filter_diff_to,
+                };
+
+                let sql = `select
+                distinct levels.id as level_id, maker_points as lcd_score
+                  from
+                    levels
+                    left join level_tags on levels.id = level_tags.level_id
+                  where
+                    levels.guild_id = :guild_id
+                    and difficulty >= :diff_from
+                    and difficulty <= :diff_to
+                    and levels.creator not in (:member_ids)`;
+
+                if (
+                  race.level_filter_submission_time_type === 'month'
+                ) {
+                  sql += ` and levels.created_at > DATE_SUB(NOW(), interval 30 day) `;
+                } else if (
+                  race.level_filter_submission_time_type === 'week'
+                ) {
+                  sql += ` and levels.created_at > DATE_SUB(NOW(), interval 7 day) `;
+                }
+
+                if (race.level_status_type === 'approved') {
+                  sql += ` and status = 1 `;
+                } else if (race.level_status_type === 'pending') {
+                  sql += ` and status in (0, 3, 4, 5, -10) `;
+                } else if (race.level_status_type === 'all') {
+                  sql += ` and status in (1, 0, 3, 4, 5, -10) `;
+                }
+
+                if (race.level_filter_tag_id) {
+                  sql += ` and level_tags.tag_id = :tag_id `;
+                  bindings.tag_id = race.level_filter_tag_id;
+                }
+
+                sql += ` and (SELECT COUNT(*) FROM plays where plays.code = levels.id and plays.completed = 1 and plays.player in (:member_ids)) = 0;`;
+
+                const [json] = await knex.raw(sql, bindings);
+
+                if (json.length > 0) {
+                  if (
+                    race.level_status_type === 'approved' &&
+                    race.weighting_type === 'weighted_lcd'
+                  ) {
+                    const weightedJson = [];
+                    for (const row of json) {
+                      let lcdScore = 5;
+                      if (row.lcd_score > 5) {
+                        lcdScore = row.lcd_score;
+                      }
+
+                      for (let i = 0; i < lcdScore; i += 1) {
+                        weightedJson.push(row.level_id);
+                      }
+                    }
+                    const rand = Math.floor(
+                      Math.random() * weightedJson.length,
+                    );
+                    race.level_id = weightedJson[rand];
+                    race.level_filter_failed = false;
+                  } else {
+                    const rand = Math.floor(
+                      Math.random() * json.length,
+                    );
+                    race.level_id = json[rand].level_id;
+                    race.level_filter_failed = false;
+                  }
+                } else {
+                  race.level_filter_failed = true;
+                  race.status = 'upcoming';
+                  race.start_date = new Date(
+                    race.start_date.getTime() + 5 * 60000,
+                  );
+                  race.end_date = new Date(
+                    race.end_date.getTime() + 5 * 60000,
+                  );
+                }
+              }
 
               if (
-                race.level_filter_submission_time_type === 'month'
+                ts.channels.raceChannel &&
+                !race.level_filter_failed
               ) {
-                sql += ` and levels.created_at > DATE_SUB(NOW(), interval 30 day) `;
+                const level = await ts
+                  .getLevels()
+                  .where({ id: race.level_id })
+                  .first();
+
+                await ts.discord.send(
+                  ts.channels.raceChannel,
+                  ts.message('race.raceStarted', {
+                    name: race.name,
+                    mentions: mentionsArr.join(', '),
+                  }),
+                );
+                await ts.discord.send(
+                  ts.channels.raceChannel,
+                  ts.levelEmbed(level),
+                );
               } else if (
-                race.level_filter_submission_time_type === 'week'
+                ts.channels.raceChannel &&
+                race.level_filter_failed
               ) {
-                sql += ` and levels.created_at > DATE_SUB(NOW(), interval 7 day) `;
-              }
-
-              if (race.level_status_type === 'approved') {
-                sql += ` and status = 1 `;
-              } else if (race.level_status_type === 'pending') {
-                sql += ` and status in (0, 3, 4, 5, -10) `;
-              } else if (race.level_status_type === 'all') {
-                sql += ` and status in (1, 0, 3, 4, 5, -10) `;
-              }
-
-              if (race.level_filter_tag_id) {
-                sql += ` and level_tags.tag_id = :tag_id `;
-                bindings.tag_id = race.level_filter_tag_id;
-              }
-
-              const [json] = await knex.raw(sql, bindings);
-
-              if (json.length > 0) {
-                if (
-                  race.level_status_type === 'approved' &&
-                  race.weighting_type === 'weighted_lcd'
-                ) {
-                  const weightedJson = [];
-                  for (const row of json) {
-                    let lcdScore = 5;
-                    if (row.lcd_score > 5) {
-                      lcdScore = row.lcd_score;
-                    }
-
-                    for (let i = 0; i < lcdScore; i += 1) {
-                      weightedJson.push(row.level_id);
-                    }
-                  }
-                  const rand = Math.floor(
-                    Math.random() * weightedJson.length,
-                  );
-                  race.level_id = weightedJson[rand];
-                  race.level_filter_failed = false;
-                } else {
-                  const rand = Math.floor(
-                    Math.random() * json.length,
-                  );
-                  race.level_id = json[rand].level_id;
-                  race.level_filter_failed = false;
-                }
-              } else {
-                race.level_filter_failed = true;
-                race.status = 'upcoming';
-                race.start_date = new Date(
-                  race.start_date.getTime() + 5 * 60000,
-                );
-                race.end_date = new Date(
-                  race.end_date.getTime() + 5 * 60000,
+                await ts.discord.send(
+                  ts.channels.raceChannel,
+                  ts.message('race.raceFailed', {
+                    name: race.name,
+                    mentions: mentionsArr.join(', '),
+                  }),
                 );
               }
-            } else if (
-              race.level_type === 'random-uncleared' &&
-              memberIds.length > 0
-            ) {
-              const bindings = {
-                guild_id: ts.team.id,
-                member_ids: memberIds,
-                diff_from: race.level_filter_diff_from,
-                diff_to: race.level_filter_diff_to,
-              };
 
-              let sql = `select
-              distinct levels.id as level_id, maker_points as lcd_score
-                from
-                  levels
-                  left join level_tags on levels.id = level_tags.level_id
-                where
-                  levels.guild_id = :guild_id
-                  and difficulty >= :diff_from
-                  and difficulty <= :diff_to
-                  and levels.creator not in (:member_ids)`;
-
-              if (
-                race.level_filter_submission_time_type === 'month'
-              ) {
-                sql += ` and levels.created_at > DATE_SUB(NOW(), interval 30 day) `;
-              } else if (
-                race.level_filter_submission_time_type === 'week'
-              ) {
-                sql += ` and levels.created_at > DATE_SUB(NOW(), interval 7 day) `;
-              }
-
-              if (race.level_status_type === 'approved') {
-                sql += ` and status = 1 `;
-              } else if (race.level_status_type === 'pending') {
-                sql += ` and status in (0, 3, 4, 5, -10) `;
-              } else if (race.level_status_type === 'all') {
-                sql += ` and status in (1, 0, 3, 4, 5, -10) `;
-              }
-
-              if (race.level_filter_tag_id) {
-                sql += ` and level_tags.tag_id = :tag_id `;
-                bindings.tag_id = race.level_filter_tag_id;
-              }
-
-              sql += ` and (SELECT COUNT(*) FROM plays where plays.code = levels.id and plays.completed = 1 and plays.player in (:member_ids)) = 0;`;
-
-              const [json] = await knex.raw(sql, bindings);
-
-              if (json.length > 0) {
-                if (
-                  race.level_status_type === 'approved' &&
-                  race.weighting_type === 'weighted_lcd'
-                ) {
-                  const weightedJson = [];
-                  for (const row of json) {
-                    let lcdScore = 5;
-                    if (row.lcd_score > 5) {
-                      lcdScore = row.lcd_score;
-                    }
-
-                    for (let i = 0; i < lcdScore; i += 1) {
-                      weightedJson.push(row.level_id);
-                    }
-                  }
-                  const rand = Math.floor(
-                    Math.random() * weightedJson.length,
-                  );
-                  race.level_id = weightedJson[rand];
-                  race.level_filter_failed = false;
-                } else {
-                  const rand = Math.floor(
-                    Math.random() * json.length,
-                  );
-                  race.level_id = json[rand].level_id;
-                  race.level_filter_failed = false;
-                }
-              } else {
-                race.level_filter_failed = true;
-                race.status = 'upcoming';
-                race.start_date = new Date(
-                  race.start_date.getTime() + 5 * 60000,
-                );
-                race.end_date = new Date(
-                  race.end_date.getTime() + 5 * 60000,
-                );
-              }
+              await ts.db.Races.query()
+                .where('id', race.id)
+                .update(race);
             }
-
-            if (
-              ts.channels.raceChannel &&
-              !race.level_filter_failed
-            ) {
-              await ts.discord.send(
-                ts.channels.raceChannel,
-                ts.message('race.raceStarted', {
-                  name: race.name,
-                  mentions: mentionsArr.join(', '),
-                }),
-              );
-            } else if (
-              ts.channels.raceChannel &&
-              race.level_filter_failed
-            ) {
-              await ts.discord.send(
-                ts.channels.raceChannel,
-                ts.message('race.raceFailed', {
-                  name: race.name,
-                  mentions: mentionsArr.join(', '),
-                }),
-              );
-            }
-
-            await ts.db.Races.query()
-              .where('id', race.id)
-              .update(race);
           }
 
           // Going through all active races
@@ -562,38 +589,7 @@ class TS {
             .where('status', '=', 'active');
 
           for (const race of activeRaces) {
-            const raceEntrants = await ts.db.RaceEntrants.query().where(
-              {
-                race_id: race.id,
-              },
-            );
-
-            const mentionsArr = [];
-            for (const raceEntrant of raceEntrants) {
-              const member = await ts.db.Members.query()
-                .where({
-                  id: raceEntrant.member_id,
-                })
-                .first();
-
-              mentionsArr.push(`<@${member.discord_id}>`);
-            }
-
-            if (ts.channels.raceChannel) {
-              await ts.discord.send(
-                ts.channels.raceChannel,
-                ts.message('race.raceEnded', {
-                  name: race.name,
-                  mentions: mentionsArr.join(', '),
-                  url_slug: this.url_slug,
-                }),
-              );
-            }
-
-            race.status = 'finished';
-            await ts.db.Races.query()
-              .where('id', race.id)
-              .update(race);
+            await ts.endRace(race);
           }
         });
       }
@@ -2335,6 +2331,7 @@ class TS {
       const level = pLevel;
       const { color, title, noLink } = args;
       let { image } = args;
+
       let vidStr = [];
       level.videos.split(',').forEach((vid) => {
         if (vid) vidStr.push(`[ 🎬 ](${vid})`);
@@ -2387,6 +2384,181 @@ class TS {
       embed = embed.setTimestamp();
       return embed;
     };
+
+    this.raceEmbed = async function (pRace, args = {}, titleArgs) {
+      const race = pRace;
+      const { color, title, noLink } = args;
+      let { image } = args;
+
+      const startDateMoment = moment(
+        race.start_date,
+        'YYYY-MM-DD HH:mm:ss',
+      );
+      const endDateMoment = moment(
+        race.end_date,
+        'YYYY-MM-DD HH:mm:ss',
+      );
+
+      const duration = moment.duration(
+        endDateMoment.diff(startDateMoment),
+      );
+      const lengthMinutes = duration.as('minutes');
+
+      const raceCreator = await ts.db.Members.query()
+        .where({ id: race.creator_id })
+        .first();
+
+      const vars = [];
+
+      let levelType = 'MISSING LEVEL TYPE';
+      if (race.level_type === 'random-uncleared') {
+        levelType = 'Random Uncleared';
+      } else if (race.level_type === 'random') {
+        levelType = 'Random Cleared & Uncleared';
+      } else if (race.level_type === 'specific') {
+        levelType = 'Specific Level';
+      }
+
+      vars.push(levelType);
+
+      if (race.level_type !== 'specific') {
+        let levelStatusType = 'MISSING LEVEL STATUS TYPE';
+        if (race.level_status_type === 'approved') {
+          levelStatusType = 'Approved';
+        } else if (race.level_status_type === 'pending') {
+          levelStatusType = 'Pending';
+        } else if (race.level_status_type === 'all') {
+          levelStatusType = 'Approved/Pending';
+        }
+
+        vars.push(levelStatusType);
+
+        if (race.level_status_type === 'approved') {
+          let weightingType = 'MISSING WEIGHTING TYPE';
+          if (race.weighting_type === 'unweighted') {
+            weightingType = 'Unweighted';
+          } else if (race.weighting_type === 'weighted_lcd') {
+            weightingType = 'Weighted (LCD)';
+          }
+          vars.push(weightingType);
+
+          if (race.level_filter_diff_from) {
+            let diffString = race.level_filter_diff_from.toFixed(1);
+            if (
+              race.level_filter_diff_from < race.level_filter_diff_to
+            ) {
+              diffString += ` - ${race.level_filter_diff_to.toFixed(
+                1,
+              )}`;
+            }
+
+            vars.push(`Diff: ${diffString}`);
+          }
+        }
+
+        let submissionFilter = '';
+        if (race.level_filter_submission_time_type === 'month') {
+          submissionFilter = 'submitted in the last 30 days';
+        } else if (
+          race.level_filter_submission_time_type === 'week'
+        ) {
+          submissionFilter = 'submitted in the last 7 days';
+        }
+
+        if (submissionFilter) {
+          vars.push(submissionFilter);
+        }
+      }
+
+      if (race.level_filter_tag_id) {
+        const raceTag = await ts.db.Tags.query()
+          .where({ id: race.level_filter_tag_id })
+          .first();
+
+        vars.push(`Tags: ${raceTag.name}`);
+      }
+
+      let varString = vars.join(', ');
+
+      if (race.clear_score_from && race.clear_score_to) {
+        varString += `\nNeeded Clear Score to enter: ${race.clear_score_from} - ${race.clear_score_to} points`;
+      } else if (race.clear_score_from) {
+        varString += `\nMinimum Clear Score needed to enter: ${race.clear_score_from} points`;
+      } else if (race.clear_score_to) {
+        varString += `\nMaximum Clear Score allowed: ${race.clear_score_to} points`;
+      }
+
+      if (race.status !== 'upcoming' && race.level_id) {
+        const raceLevel = await ts.db.Levels.query()
+          .where({ id: race.level_id })
+          .first();
+
+        const raceLevelCreator = await ts.db.Members.query()
+          .where({ id: raceLevel.creator })
+          .first();
+
+        varString += `\nSelected Level: ${raceLevel.level_name} (${raceLevel.code}) by ${raceLevelCreator.name}`;
+      }
+
+      let embed = this.discord
+        .embed()
+        .setColor(color || '#cccc00')
+        .setTitle(
+          `${race.name} by ${raceCreator.name}\n${race.race_type} Race (${lengthMinutes} minutes)`,
+        )
+        .setDescription(varString);
+
+      const raceEntrants = await ts.db.RaceEntrants.query()
+        .where({
+          race_id: race.id,
+        })
+        .orderBy('rank', 'ASC');
+
+      for (const entrant of raceEntrants) {
+        const entrantMember = await ts.db.Members.query()
+          .where({ id: entrant.member_id })
+          .first();
+
+        const finishDateMoment = moment(
+          entrant.finished_date,
+          'YYYY-MM-DD HH:mm:ss',
+        );
+
+        const entrantDuration = moment.duration(
+          finishDateMoment.diff(startDateMoment),
+        );
+        const entrantFinishedSeconds = Math.floor(
+          entrantDuration.as('seconds') % 60,
+        );
+        const entrantFinishedMinutes =
+          Math.floor(entrantDuration.as('seconds') / 60) - 1;
+
+        embed.addField(
+          entrant.rank
+            ? `#${entrant.rank} (finished after ${entrantFinishedMinutes} minutes, ${entrantFinishedSeconds} seconds)`
+            : 'Unfinished',
+          entrantMember.name,
+        );
+      }
+
+      if (title) {
+        embed.setAuthor(ts.message(title, titleArgs));
+      }
+      if (image) {
+        image = this.getEmoteUrl(image);
+        embed.setThumbnail(image);
+      }
+      if (!noLink) {
+        embed.setURL(
+          `${ts.page_url + ts.url_slug}/${
+            race.unofficial ? 'races/unofficial' : 'race'
+          }`,
+        );
+      }
+      embed = embed.setTimestamp(race.start_date);
+      return embed;
+    };
+
     this.reuploadLevel = async function (message) {
       const player = await ts.db.Members.query()
         .where({ discord_id: ts.discord.getAuthor(message) })
@@ -2636,7 +2808,7 @@ class TS {
         }
       }
 
-      const race = {};
+      let race = {};
 
       if (startDate) {
         race.start_date = moment(startDate, 'x').format(
@@ -2698,15 +2870,18 @@ class TS {
 
       race.status = 'upcoming';
 
-      await ts.db.Races.query().insert(race);
+      race = await ts.db.Races.query().insert(race);
 
       if (ts.channels.raceChannel) {
         await ts.discord.send(
           ts.channels.raceChannel,
           ts.message('race.newRaceAdded', {
-            name: race.name,
-            url_slug: this.url_slug,
+            unofficial: race.unofficial,
           }),
+        );
+        await ts.discord.send(
+          ts.channels.raceChannel,
+          await ts.raceEmbed(race),
         );
       }
 
@@ -2817,6 +2992,17 @@ class TS {
 
       await ts.db.Races.query().patch(race).where('id', '=', id);
 
+      if (ts.channels.raceChannel) {
+        await ts.discord.send(
+          ts.channels.raceChannel,
+          ts.message('race.raceEdited', {}),
+        );
+        await ts.discord.send(
+          ts.channels.raceChannel,
+          await ts.raceEmbed(race),
+        );
+      }
+
       return 'success';
     };
 
@@ -2917,11 +3103,64 @@ class TS {
         );
       }
 
+      const raceEntrants = await ts.db.RaceEntrants.query().where({
+        race_id: race.id,
+      });
+
+      if (raceEntrants.length === 0) {
+        if (ts.channels.raceChannel) {
+          await ts.discord.send(
+            ts.channels.raceChannel,
+            ts.message('race.noParticipants', {
+              name: race.name,
+            }),
+          );
+        }
+
+        await ts.db.Races.query().where('id', race.id).del();
+      }
+
       return 'success';
     };
 
+    this.endRace = async (pRace) => {
+      const race = JSON.parse(JSON.stringify(pRace));
+      const raceEntrants = await ts.db.RaceEntrants.query().where({
+        race_id: race.id,
+      });
+
+      const mentionsArr = [];
+      for (const raceEntrant of raceEntrants) {
+        const member = await ts.db.Members.query()
+          .where({
+            id: raceEntrant.member_id,
+          })
+          .first();
+
+        mentionsArr.push(`<@${member.discord_id}>`);
+      }
+
+      if (ts.channels.raceChannel) {
+        await ts.discord.send(
+          ts.channels.raceChannel,
+          ts.message('race.raceEnded', {
+            name: race.name,
+            mentions: mentionsArr.join(', '),
+            url_slug: this.url_slug,
+          }),
+        );
+        await ts.discord.send(
+          ts.channels.raceChannel,
+          await ts.raceEmbed(race),
+        );
+      }
+
+      race.status = 'finished';
+      await ts.db.Races.query().where('id', race.id).update(race);
+    };
+
     this.finishRace = async (args = {}) => {
-      const { raceId } = args;
+      const { raceId, like } = args;
       const { discord_id } = args;
 
       if (!discord_id) ts.userError(ts.message('error.noDiscordId'));
@@ -2962,11 +3201,14 @@ class TS {
           .where({ id: race.level_id })
           .first();
 
-        await ts.clear({
-          discord_id,
-          code: level.code,
-          completed: true,
-        });
+        if (player.id !== level.creator) {
+          await ts.clear({
+            discord_id,
+            code: level.code,
+            completed: true,
+            liked: like,
+          });
+        }
       }
 
       if (ts.channels.raceChannel) {
@@ -2978,6 +3220,17 @@ class TS {
             rank: maxRank + 1,
           }),
         );
+      }
+
+      const unfinishedRaceEntrants = await ts.db.RaceEntrants.query().where(
+        {
+          race_id: race.id,
+          finished_date: null,
+        },
+      );
+
+      if (unfinishedRaceEntrants.length === 0) {
+        await this.endRace(race);
       }
 
       return 'success';

@@ -26,8 +26,8 @@ exports.up = function (knex) {
       t.string('race_type').notNull().defaultTo('FC');
       t.string('level_type').notNull().defaultTo('random-uncleared');
 
-      t.decimal('level_filter_diff_from', 4, 1).notNull();
-      t.decimal('level_filter_diff_to', 4, 1).notNull();
+      t.decimal('level_filter_diff_from', 4, 1).nullable();
+      t.decimal('level_filter_diff_to', 4, 1).nullable();
 
       t.integer('level_filter_tag_id')
         .unsigned()
