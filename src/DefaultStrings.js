@@ -457,7 +457,7 @@ module.exports = {
   'race.newRaceAdded':
     'A new {{#if unofficial}}unofficial{{else}}official{{/if}} race has been added:',
   'race.raceEdited':
-    'The following race has been updated right now: ',
+    'The following race has been updated just now: ',
   'race.newRaceEntrant':
     '<@{{{discord_id}}}> has entered the race "{{{name}}}".',
   'race.entrantLeftRace':

@@ -550,7 +550,7 @@ class TS {
               ) {
                 const level = await ts
                   .getLevels()
-                  .where({ id: race.level_id })
+                  .where({ 'levels.id': race.level_id })
                   .first();
 
                 await ts.discord.send(
