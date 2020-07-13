@@ -365,6 +365,28 @@ const defaultVariables = Object.freeze([
       'Disallow members to submit their own levels, if this is set only mods can add levels for members.',
   },
   {
+    name: 'hideJoinTeamInstructions',
+    caption: 'Hide Join Team Instructions',
+    default: false,
+    type: 'boolean',
+    description:
+      'Check this to hide the "How to join the Team" section on your team homepage that shows up when you are not logged in.',
+  },
+  {
+    name: 'hideRacesTab',
+    caption: 'Hide Races Tab',
+    default: false,
+    type: 'boolean',
+    description: 'Check this to hide the races tab on your page.',
+  },
+  {
+    name: 'hideMembersTab',
+    caption: 'Hide Members tab',
+    default: false,
+    type: 'boolean',
+    description: 'Check this to hide the members tab on your page.',
+  },
+  {
     name: 'userErrorEmote',
     caption: 'User Error Emote',
     default: null,

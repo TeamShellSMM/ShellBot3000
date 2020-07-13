@@ -1816,12 +1816,14 @@ class TS {
             author.discord_id,
             ts.teamVariables.memberRoleId,
           );
-          await this.discord.send(
-            ts.channels.initiateChannel,
-            ts.message('initiation.message', {
-              discord_id: author.discord_id,
-            }),
-          );
+          if (ts.channels.initiateChannel) {
+            await this.discord.send(
+              ts.channels.initiateChannel,
+              ts.message('initiation.message', {
+                discord_id: author.discord_id,
+              }),
+            );
+          }
         } else {
           DiscordLog.error(
             ts.message('initiation.userNotInDiscord', {
