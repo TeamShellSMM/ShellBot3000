@@ -759,6 +759,7 @@ class TS {
       code,
       level_name: levelName,
       discord_id,
+      member,
     }) => {
       if (!code) ts.userError(ts.message('error.noCode'));
       if (!ts.validCode(code))
@@ -766,7 +767,7 @@ class TS {
       if (!levelName) ts.userError(ts.message('add.noName'));
       if (ts.isSpecialDiscordString(levelName))
         ts.userError(ts.message('error.specialDiscordString'));
-      const player = await ts.getUser(discord_id);
+      const player = member || (await ts.getUser(discord_id));
       const existingLevel = await ts
         .getLevels()
         .where({ code })
@@ -1007,9 +1008,10 @@ class TS {
      */
     this.clear = async (args = {}) => {
       let { code, completed, liked, difficulty } = args;
-      const { discord_id, strOnly, playerDontAtMe } = args;
+      const { discord_id, strOnly, playerDontAtMe, member } = args;
 
-      if (!discord_id) ts.userError(ts.message('error.noDiscordId'));
+      if (!discord_id && !member)
+        ts.userError(ts.message('error.noDiscordId'));
 
       if (typeof difficulty === 'string')
         difficulty = difficulty.toLowerCase();
@@ -1054,7 +1056,7 @@ class TS {
       ) {
         ts.userError(ts.message('clear.invalidDifficulty'));
       }
-      const player = await ts.getUser(discord_id);
+      const player = member || (await ts.getUser(discord_id));
       const level = await ts.getExistingLevel(code);
       if (level.creator_id === player.id)
         ts.userError(ts.message('clear.ownLevel'));
@@ -1176,14 +1178,19 @@ class TS {
         }
       }
       await ts.recalculateAfterUpdate({ name: player.name });
-      const updatedPlayer = await ts.getUser(discord_id);
-      const userReply = playerDontAtMe
-        ? updatedPlayer.userReply_dontatme
-        : updatedPlayer.userReply;
-      return (
-        (strOnly ? '' : userReply) +
-        ts.processClearMessage({ msg, creatorStr, level })
-      );
+      if (!member) {
+        const updatedPlayer = await ts.getUser(discord_id);
+        const userReply = playerDontAtMe
+          ? updatedPlayer.userReply_dontatme
+          : updatedPlayer.userReply;
+        return (
+          (strOnly ? '' : userReply) +
+          ts.processClearMessage({ msg, creatorStr, level })
+        );
+      }
+      return `Play updated for: ${
+        member.name
+      }${ts.processClearMessage({ msg, creatorStr, level })}`;
     };
     /**
      * Processes the array of messages made by clear and replace repeating items with pronouns
@@ -1533,11 +1540,24 @@ class TS {
       if (!discord_id) {
         this.userError('error.noDiscordId');
       }
-      const player = await this.db.Members.query()
+      let player = await this.db.Members.query()
         .where({ discord_id })
         .first();
       if (!player) this.userError('error.notRegistered');
       if (player.is_banned) this.userError('error.userBanned');
+
+      player = await this.decorateMember(player);
+
+      return player;
+    };
+
+    /**
+     * A function that will decorate a member object with rank and other properties
+     */
+    this.decorateMember = async function (pPlayer) {
+      const player = {};
+      Object.assign(player, pPlayer);
+
       player.created_at = player.created_at.toString();
       player.earned_points = await this.calculatePoints(player.name);
       player.rank = this.getRank(
@@ -1549,22 +1569,35 @@ class TS {
         discord_role: '',
       };
 
-      if (
-        player.rank.discord_role &&
-        !this.discord.hasRole(discord_id, player.rank.discord_role)
-      ) {
-        await ts.discord.removeRoles(discord_id, ts.rank_ids);
-        await ts.discord.addRole(
-          discord_id,
-          player.rank.discord_role,
-        );
+      if (player.discord_id) {
+        if (
+          player.rank.discord_role &&
+          !this.discord.hasRole(
+            player.discord_id,
+            player.rank.discord_role,
+          )
+        ) {
+          await ts.discord.removeRoles(
+            player.discord_id,
+            ts.rank_ids,
+          );
+          await ts.discord.addRole(
+            player.discord_id,
+            player.rank.discord_role,
+          );
+        }
       }
 
       player.rank.pips = player.rank.pips || '';
-      player.atme_str = player.atme
-        ? `<@${player.discord_id}>`
-        : player.name;
-      player.userReply = `<@${player.discord_id}>${player.rank.pips} `;
+      if (player.discord_id) {
+        player.atme_str = player.atme
+          ? `<@${player.discord_id}>`
+          : player.name;
+        player.userReply = `<@${player.discord_id}>${player.rank.pips} `;
+      } else {
+        player.atme_str = player.name;
+        player.userReply = `${player.name} ${player.rank.pips} `;
+      }
       player.userReply_dontatme = `${
         player.atme_str + player.rank.pips
       } `;

@@ -84,6 +84,16 @@ const defaultChannels = Object.freeze([
       deny: ['VIEW_CHANNEL', 'SEND_MESSAGES'],
     },
   },
+  {
+    name: 'raceChannel',
+    default: 'bot-race-channel',
+    description:
+      'The channel where race updates get posted and race discussion can happen.',
+    defaultPermission: {
+      allow: ['VIEW_CHANNEL', 'SEND_MESSAGES'],
+      deny: [],
+    },
+  },
 ]);
 
 /**

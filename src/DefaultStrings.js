@@ -476,4 +476,19 @@ module.exports = {
     'You need at least {{{minimumPoints}}} clear points to be able to create unofficial races!',
   'race.tooManyPoints':
     'You are not allowed to join this race, this race needs you to have a certain amount of points!',
+
+  'modaddmember.missingParam': 'You have to supply a member name!',
+  'modaddmember.success':
+    'The member "{{{name}}}" has been successfully added.',
+  'modaddlevel.memberNotFound':
+    'No member with the name "{{{name}}}" was found in the members list.',
+
+  'modsetdiscordid.missingName': 'You have to supply a member name!',
+  'modsetdiscordid.missingId': 'You have to supply a discord id',
+  'modsetdiscordid.memberNotFound':
+    'No member with the name "{{{name}}}" was found in the members list.',
+  'modsetdiscordid.duplicateId':
+    'This discord id is already in use by another member.',
+  'modsetdiscordid.success':
+    'The discord id was sucessfully set on the member with the name "{{{name}}}".',
 };
