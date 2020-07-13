@@ -341,6 +341,8 @@ module.exports = {
     "`{{level.code}}` has already been submitted as '{{{level.level_name}}}' by {{level.creator}}",
   'add.success':
     'The level {{{level_name}}} ({{code}}) has been added {{{love}}}',
+  'add.notAllowed':
+    "Members aren't allowed to submit their own levels on this server.",
 
   'tags.noTags': "You didn't give any tags",
   'tags.cantAdd': "You can't add the tag '{{tag}}'",

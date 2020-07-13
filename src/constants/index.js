@@ -356,7 +356,14 @@ const defaultVariables = Object.freeze([
     type: 'boolean',
     description: 'Allows anyone with admin role to mod for the team',
   },
-
+  {
+    name: 'disableMemberLevelSubmission',
+    caption: 'Disable Member Level Submission',
+    default: false,
+    type: 'boolean',
+    description:
+      'Disallow members to submit their own levels, if this is set only mods can add levels for members.',
+  },
   {
     name: 'userErrorEmote',
     caption: 'User Error Emote',

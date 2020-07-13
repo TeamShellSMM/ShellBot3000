@@ -9,6 +9,10 @@ class tsadd extends TSCommand {
   }
 
   async tsexec(ts, message) {
+    if (ts.teamVariables.disableMemberLevelSubmission === 'true') {
+      ts.userError(ts.message('add.notAllowed'));
+    }
+
     const command = ts.parseCommand(message);
     let code = command.arguments.shift();
     if (code) code = code.toUpperCase();
