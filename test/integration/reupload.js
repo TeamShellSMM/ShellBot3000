@@ -342,7 +342,7 @@ describe('!reupload', function () {
     assert.notExists(
       await TEST.findChannel({
         name: 'XXX-XXX-YYY',
-        parentID: TEST.ts.channels.pendingReuploadCategory,
+        parentID: TEST.ts.channels.levelAuditCategory,
       }),
       'channel not be created in the normal pending list',
     );
@@ -437,7 +437,7 @@ describe('!reupload', function () {
     assert.exists(
       await TEST.findChannel({
         name: 'XXX-XXX-YYY',
-        parentID: TEST.ts.channels.pendingReuploadCategory,
+        parentID: TEST.ts.channels.levelAuditCategory,
       }),
       'a channel created in the pending reupload list',
     );
@@ -501,7 +501,7 @@ describe('!reupload', function () {
     assert.exists(
       await TEST.findChannel({
         name: 'XXX-XXX-XX1',
-        parentID: TEST.ts.channels.pendingReuploadCategory,
+        parentID: TEST.ts.channels.levelAuditCategory,
       }),
       'a channel created in the pending reupload list',
     );
@@ -575,7 +575,7 @@ describe('!reupload', function () {
     assert.exists(
       await TEST.findChannel({
         name: 'XXX-XXX-YYY',
-        parentID: TEST.ts.channels.pendingReuploadCategory,
+        parentID: TEST.ts.channels.levelAuditCategory,
       }),
       'a channel created in the pending reupload list',
     );
@@ -647,7 +647,7 @@ describe('!reupload', function () {
     assert.notExists(
       await TEST.findChannel({
         name: 'XXX-XXX-YYY',
-        parentID: TEST.ts.channels.pendingReuploadCategory,
+        parentID: TEST.ts.channels.levelAuditCategory,
       }),
       "new channel shouldn't exist in pending reupload",
     );
@@ -683,7 +683,7 @@ describe('!reupload', function () {
     assert.exists(
       await TEST.findChannel({
         name: 'XXX-XXX-XX1',
-        parentID: TEST.ts.channels.pendingReuploadCategory,
+        parentID: TEST.ts.channels.levelAuditCategory,
       }),
       'next channel should exist',
     );

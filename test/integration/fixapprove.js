@@ -102,7 +102,7 @@ describe('!fixapprove', function () {
   it('fixapprove pending not reupload', async () => {
     await TEST.createChannel({
       name: 'XXX-XXX-XX6',
-      parent: TEST.ts.channels.pendingReuploadCategory,
+      parent: TEST.ts.channels.levelAuditCategory,
     });
 
     assert.equal(
@@ -119,7 +119,7 @@ describe('!fixapprove', function () {
   it('fixapprove pending approved reupload, but no old level', async () => {
     await TEST.createChannel({
       name: 'XXX-XXX-XX7',
-      parent: TEST.ts.channels.pendingReuploadCategory,
+      parent: TEST.ts.channels.levelAuditCategory,
     });
 
     assert.equal(
@@ -136,7 +136,7 @@ describe('!fixapprove', function () {
   it('fixapprove not pending', async () => {
     await TEST.createChannel({
       name: 'XXX-XXX-XX5',
-      parent: TEST.ts.channels.pendingReuploadCategory,
+      parent: TEST.ts.channels.levelAuditCategory,
     });
 
     assert.equal(
@@ -153,7 +153,7 @@ describe('!fixapprove', function () {
   it('fixapprove of pending fixed reupload level', async () => {
     await TEST.createChannel({
       name: 'XXX-XXX-XXX',
-      parent: TEST.ts.channels.pendingReuploadCategory,
+      parent: TEST.ts.channels.levelAuditCategory,
     });
     const result = await TEST.mockBotSend({
       cmd: '!fixapprove "that was a fix."',
@@ -175,7 +175,7 @@ describe('!fixapprove', function () {
   it('fixapprove of pending not fixed reupload level', async () => {
     await TEST.createChannel({
       name: 'XXX-XXX-XX4',
-      parent: TEST.ts.channels.pendingReuploadCategory,
+      parent: TEST.ts.channels.levelAuditCategory,
     });
     const result = await TEST.mockBotSend({
       cmd: '!fixapprove "It is acceptable as it is"',
@@ -197,7 +197,7 @@ describe('!fixapprove', function () {
   it('fixapprove of pending approved reupload', async () => {
     await TEST.createChannel({
       name: 'XXX-XXX-XX3',
-      parent: TEST.ts.channels.pendingReuploadCategory,
+      parent: TEST.ts.channels.levelAuditCategory,
     });
     const result = await TEST.mockBotSend({
       cmd: '!fixapprove "nice reupload!"',
@@ -215,7 +215,8 @@ describe('!fixapprove', function () {
     assert.equal(level.status, TEST.ts.LEVEL_STATUS.APPROVED);
   });
 
-  it('reject outside pendingReupload category', async () => {
+  // Command doesn't react anymore outside the category
+  /* it('reject outside pendingReupload category', async () => {
     await TEST.createChannel({
       name: 'XXX-XXX-XX4',
     });
@@ -228,12 +229,12 @@ describe('!fixapprove', function () {
       result,
       'This channel is not in the pending reupload category ',
     );
-  });
+  }); */
 
   it('reject already fixed', async () => {
     await TEST.createChannel({
       name: 'XXX-XXX-XXX',
-      parent: TEST.ts.channels.pendingReuploadCategory,
+      parent: TEST.ts.channels.levelAuditCategory,
     });
     const result = await TEST.mockBotSend({
       cmd: '!fixreject "unfortunately no"',
@@ -271,7 +272,7 @@ describe('!fixapprove', function () {
   it('reject success', async () => {
     await TEST.createChannel({
       name: 'XXX-XXX-XX4',
-      parent: TEST.ts.channels.pendingReuploadCategory,
+      parent: TEST.ts.channels.levelAuditCategory,
     });
     const result = await TEST.mockBotSend({
       cmd: '!fixreject "unfortunately no"',
@@ -293,7 +294,7 @@ describe('!fixapprove', function () {
   it('reject no reason', async () => {
     await TEST.createChannel({
       name: 'XXX-XXX-XX4',
-      parent: TEST.ts.channels.pendingReuploadCategory,
+      parent: TEST.ts.channels.levelAuditCategory,
     });
     assert.equal(
       await TEST.mockBotSend({
@@ -308,7 +309,7 @@ describe('!fixapprove', function () {
   it('reject level that is approved pending', async () => {
     await TEST.createChannel({
       name: 'XXX-XXX-XX3',
-      parent: TEST.ts.channels.pendingReuploadCategory,
+      parent: TEST.ts.channels.levelAuditCategory,
     });
     const result = await TEST.mockBotSend({
       cmd: '!fixreject "unfortunately no"',

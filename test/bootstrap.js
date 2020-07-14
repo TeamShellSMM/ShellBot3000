@@ -65,7 +65,7 @@ before(async () => {
 
   debugTests('clear database');
   await TEST.knex.raw(`
-    SET FOREIGN_KEY_CHECKS = 0; 
+    SET FOREIGN_KEY_CHECKS = 0;
     TRUNCATE table teams;
     TRUNCATE table points;
     TRUNCATE table ranks;
@@ -291,7 +291,7 @@ before(async () => {
     debugTests(`clear table ${table}`);
     return (trx || TEST.knex).raw(
       `
-      SET FOREIGN_KEY_CHECKS = 0; 
+      SET FOREIGN_KEY_CHECKS = 0;
       TRUNCATE table ??;
       SET FOREIGN_KEY_CHECKS = 1;
     `,
@@ -302,7 +302,7 @@ before(async () => {
   global.TEST.clearDb = async (trx) => {
     debugTests('clear DB');
     return (trx || TEST.knex).raw(`
-      SET FOREIGN_KEY_CHECKS = 0; 
+      SET FOREIGN_KEY_CHECKS = 0;
       TRUNCATE table plays;
       TRUNCATE table pending_votes;
       TRUNCATE table levels;
@@ -397,9 +397,9 @@ before(async () => {
         (global.TEST.ts.channels.levelDiscussionCategory &&
           channel.parentID ===
             global.TEST.ts.channels.levelDiscussionCategory) ||
-        (global.TEST.ts.channels.pendingReuploadCategory &&
+        (global.TEST.ts.channels.levelAuditCategory &&
           channel.parentID ===
-            global.TEST.ts.channels.pendingReuploadCategory)
+            global.TEST.ts.channels.levelAuditCategory)
       ) {
         await channel.delete('AUTOTEST');
       } else if (TEST.ts.validCode(channel.name)) {

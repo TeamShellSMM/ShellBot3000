@@ -18,7 +18,7 @@ class removevote extends TSCommand {
         ts.discord.messageGetParent(message) ===
           ts.channels.levelDiscussionCategory || // should also work in the discussion channel for that level
         ts.discord.messageGetParent(message) ===
-          ts.channels.pendingReuploadCategory
+          ts.channels.levelAuditCategory
       )
     )
       return false; // silently fail
@@ -27,8 +27,8 @@ class removevote extends TSCommand {
     const player = await ts.getUser(message);
     const level = await ts.getExistingLevel(code);
 
-    if (!ts.PENDING_LEVELS.includes(level.status)) {
-      ts.userError('approval.levelNotPending');
+    if (level.status !== ts.LEVEL_STATUS.PENDING) {
+      ts.userError(ts.message('approval.levelNotPending'));
     }
 
     const vote = await ts
@@ -42,12 +42,7 @@ class removevote extends TSCommand {
 
     await ts.knex('pending_votes').where({ id: vote.id }).del();
 
-    const { channel } = await ts.discussionChannel(
-      level.code,
-      level.status === ts.LEVEL_STATUS.PENDING
-        ? ts.channels.levelDiscussionCategory
-        : ts.channels.pendingReuploadCategory,
-    );
+    const { channel } = await ts.pendingDiscussionChannel(level.code);
     const voteEmbed = await ts.makeVoteEmbed(level);
     await ts.discord.updatePinned(channel, voteEmbed);
 

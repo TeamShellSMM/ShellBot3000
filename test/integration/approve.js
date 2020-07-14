@@ -55,7 +55,7 @@ describe('!approve', function () {
   it('judge not in pendingCategory', async () => {
     await TEST.createChannel({
       name: 'XXX-XXX-XXX',
-      parent: TEST.ts.channels.pendingReuploadCategory,
+      parent: TEST.ts.channels.levelAuditCategory,
     });
     const result = await TEST.mockBotSend({
       cmd: '!judge',

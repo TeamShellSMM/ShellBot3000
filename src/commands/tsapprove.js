@@ -83,7 +83,7 @@ class TSApprove extends TSCommand {
     const {
       code,
       command,
-      inCodeDiscussionChannel,
+      inPendingDiscussionChannel,
     } = ts.getCodeArgument(message);
     const args = { code };
 
@@ -94,7 +94,7 @@ class TSApprove extends TSCommand {
             ts.channels.modChannel || // only in shellder-bot channel
           ts.discord.messageGetChannel(message) ===
             ts.channels.pendingShellbot || // or in pending-shellbot channel
-          inCodeDiscussionChannel
+          inPendingDiscussionChannel
         ) // should also work in the discussion channel for that level
       )
     )

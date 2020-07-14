@@ -55,6 +55,28 @@ class DiscordWrapper {
     });
   }
 
+  channels(search, parentID, exact = false) {
+    debug(`finding ${search}`);
+    if (search == null) {
+      throw new Error(
+        `Empty channel name or id is passed to discordwrapper.channel`,
+      );
+    }
+
+    const searchl = search.toLowerCase();
+    const parent = parentID ? this.channel(parentID) : null;
+    return this.guild().channels.filter((c) => {
+      const untaggedName = c.name.toLowerCase().split(/[^0-9a-z-]/g);
+      return (
+        ((!exact &&
+          untaggedName[untaggedName.length - 1] === searchl) ||
+          c.name === searchl ||
+          c.id === searchl) &&
+        (!parent || (parent && parent.id === c.parentID))
+      );
+    });
+  }
+
   channelSize(search) {
     if (!search) {
       throw new Error(

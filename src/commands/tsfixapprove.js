@@ -35,15 +35,15 @@ class TSFixApprove extends TSCommand {
     const {
       code,
       command,
-      inCodeDiscussionChannel,
+      inAuditDiscussionChannel,
     } = ts.getCodeArgument(message);
     const reason = command.rest();
 
-    if (!inCodeDiscussionChannel) return false; // silently fail
+    if (!inAuditDiscussionChannel) return false; // silently fail
 
     if (
       ts.discord.messageGetParent(message) !==
-      ts.channels.pendingReuploadCategory
+      ts.channels.levelAuditCategory
     )
       ts.userError(ts.message('fixApprove.notInChannel', { code }));
 

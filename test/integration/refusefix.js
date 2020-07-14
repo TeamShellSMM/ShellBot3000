@@ -218,7 +218,7 @@ describe('!refusefix', function () {
     assert.exists(
       await TEST.findChannel({
         name: 'XXX-XXX-XX3',
-        parentID: TEST.ts.channels.pendingReuploadCategory,
+        parentID: TEST.ts.channels.levelAuditCategory,
       }),
       'should be here',
     );

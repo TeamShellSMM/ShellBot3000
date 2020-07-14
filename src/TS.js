@@ -28,6 +28,7 @@ const {
   PENDING_LEVELS,
   SHOWN_IN_LIST,
   REMOVED_LEVELS,
+  CHANNEL_LABELS,
 } = require('./constants');
 const CONSTANTS = require('./constants');
 
@@ -65,6 +66,7 @@ class TS {
     this.PENDING_LEVELS = PENDING_LEVELS;
     this.SHOWN_IN_LIST = SHOWN_IN_LIST;
     this.REMOVED_LEVELS = REMOVED_LEVELS;
+    this.CHANNEL_LABELS = CHANNEL_LABELS;
 
     this.guild_id = guildId;
     this.guildId = guildId;
@@ -1739,10 +1741,7 @@ class TS {
         });
       }
       const voteEmbed = await ts.makeVoteEmbed(level);
-      await ts.discussionChannel(
-        level.code,
-        ts.channels.levelDiscussionCategory,
-      );
+      await ts.pendingDiscussionChannel(level.code);
       await this.discord.updatePinned(level.code, voteEmbed);
       return ts.message(replyMsg, {
         channel_id: this.discord.channel(level.code).id,
@@ -1751,18 +1750,15 @@ class TS {
     /**
      * Helper function to create a discussion channel in the right parent. If there is already a channel, we will move the channel to the right one
      * @param {string} channelName channel name to find
-     * @param {Snowflake} parentID id of the parent category
      * @param {string} [oldChannelName] if given, the function will try to find the old name first and will be renamed to channel_name if found
      * @param {LevelRow} level
      * @return {Channel} returns a Discord Channel or either the created or found channel
      */
-    this.discussionChannel = async (
+    this.pendingDiscussionChannel = async (
       channelName,
-      parentID,
       oldChannelName,
     ) => {
       if (!channelName) throw new TypeError('undefined channel_name');
-      if (!parentID) throw new TypeError('undefined parentID');
       let created = false;
       let discussionChannel = ts.discord.channel(channelName);
       const level = await this.getLevels()
@@ -1773,7 +1769,7 @@ class TS {
         const oldChannel = ts.discord.channel(oldChannelName);
         if (oldChannel) {
           if (!discussionChannel) {
-            await this.labelLevel(level, oldChannelName);
+            await this.labelPendingLevel(level, oldChannelName);
             discussionChannel = oldChannel;
             labeled = true;
           } else {
@@ -1789,19 +1785,80 @@ class TS {
       }
       if (!discussionChannel) {
         await ts.discord.createChannel(
-          `${await this.makeLabel(level)}${channelName}`,
+          `${await this.makePendingLabel(level)}${channelName}`,
           {
-            parent: parentID,
+            parent: ts.channels.levelDiscussionCategory,
           },
         );
         created = true;
         labeled = true;
       }
 
-      if (!labeled) await this.labelLevel(level);
-      await ts.discord.setChannelParent(channelName, parentID);
+      if (!labeled) await this.labelPendingLevel(level);
+      await ts.discord.setChannelParent(
+        channelName,
+        ts.channels.levelDiscussionCategory,
+      );
       return { channel: channelName, created };
     };
+
+    /**
+     * Helper function to create a discussion channel in the right parent. If there is already a channel, we will move the channel to the right one
+     * @param {string} channelName channel name to find
+     * @param {string} [oldChannelName] if given, the function will try to find the old name first and will be renamed to channel_name if found
+     * @return {Channel} returns a Discord Channel or either the created or found channel
+     */
+    this.auditDiscussionChannel = async (
+      channelName,
+      oldChannelName,
+      label,
+    ) => {
+      if (!channelName) throw new TypeError('undefined channel_name');
+      let created = false;
+      let discussionChannel = ts.discord.channel(channelName);
+      const level = await this.getLevels()
+        .where({ code: channelName.toUpperCase() })
+        .first();
+      let labeled = false;
+      if (oldChannelName) {
+        const oldChannel = ts.discord.channel(oldChannelName);
+        if (oldChannel) {
+          if (!discussionChannel) {
+            await this.labelAuditChannel(
+              level,
+              oldChannelName,
+              label,
+            );
+            discussionChannel = oldChannel;
+            labeled = true;
+          } else {
+            await ts.discord.removeChannel(
+              oldChannelName,
+              'duplicate channel',
+            );
+            DiscordLog.error(
+              'Duplicate channel found for `old_channel_name` reupload to `channel_name`. deleting `old_channel_name`',
+            );
+          }
+        }
+      }
+
+      if (!discussionChannel) {
+        await ts.discord.createChannel(`${label}${channelName}`, {
+          parent: ts.channels.levelAuditCategory,
+        });
+        created = true;
+        labeled = true;
+      }
+
+      if (!labeled) await this.labelAuditChannel(level, null, label);
+      await ts.discord.setChannelParent(
+        channelName,
+        ts.channels.levelAuditCategory,
+      );
+      return { channel: channelName, created };
+    };
+
     /**
      * @description This function will initiate any passed discord member object. Will set is_member=1 in the database and assign the member role. An initiation message will also be sent to the initiation channel
      */
@@ -2049,9 +2106,9 @@ class TS {
         .where('type', 'reject');
 
       const AgreeingVotesNeeded =
-        ts.teamVariables.AgreeingVotesNeeded || 0;
+        parseInt(ts.teamVariables.AgreeingVotesNeeded, 10) || 0;
       const AgreeingMaxDifference =
-        ts.teamVariables.AgreeingMaxDifference || 0;
+        parseInt(ts.teamVariables.AgreeingMaxDifference, 10) || 0;
       const inAgreement = noAgree
         ? false
         : ts.checkForAgreement({
@@ -2160,14 +2217,15 @@ class TS {
       );
     };
 
-    this.makeLabel = async (level) => {
+    this.makePendingLabel = async (level) => {
       const labels = [];
       const creator = await this.db.Members.query()
         .where({
           id: level.creator_id,
         })
         .first();
-      if (creator && !creator.is_member) labels.push('🔰');
+      if (creator && !creator.is_member)
+        labels.push(this.CHANNEL_LABELS.PENDING_CREATOR_UNINITIATED);
       const { voteArgs } = await this.processStatusUpdate(
         level,
         false,
@@ -2175,21 +2233,32 @@ class TS {
       );
       const oneVote = this.oneVoteAway(voteArgs);
       const voteLabel = {
-        [LEVEL_STATUS.APPROVED]: '📗',
-        [LEVEL_STATUS.REJECTED]: '📕',
-        [LEVEL_STATUS.NEED_FIX]: '📙',
+        [LEVEL_STATUS.APPROVED]: this.CHANNEL_LABELS
+          .PENDING_ALMOST_APPROVE,
+        [LEVEL_STATUS.REJECTED]: this.CHANNEL_LABELS
+          .PENDING_ALMOST_REJECT,
+        [LEVEL_STATUS.NEED_FIX]: this.CHANNEL_LABELS
+          .PENDING_ALMOST_FIX,
         none: '',
       };
       labels.push(voteLabel[oneVote]);
       return labels.join('');
     };
 
-    this.labelLevel = async (level, renameFrom) => {
+    this.labelPendingLevel = async (level, renameFrom) => {
       if (!level) return false;
-      const labels = await this.makeLabel(level);
+      const labels = await this.makePendingLabel(level);
       return this.discord.renameChannel(
         renameFrom || level.code,
         `${labels}${level.code}`,
+      );
+    };
+
+    this.labelAuditChannel = async (level, renameFrom, label) => {
+      if (!level) return false;
+      return this.discord.renameChannel(
+        renameFrom || level.code,
+        `${label}${level.code}`,
       );
     };
 
@@ -2752,34 +2821,66 @@ class TS {
       ) {
         // TODO:FIX HERE
         //
-        const { channel } = await ts.discussionChannel(
-          newCode,
-          newStatus === ts.LEVEL_STATUS.PENDING
-            ? ts.channels.levelDiscussionCategory
-            : ts.channels.pendingReuploadCategory,
-          level.code,
-        );
-        const voteEmbed = await ts.makeVoteEmbed(
-          newLevel,
-          reason || '',
-        );
-
-        await ts.discord.send(
-          newCode,
-          ts.message('reupload.reuploadNotify', {
-            oldCode,
+        if (newStatus === ts.LEVEL_STATUS.PENDING) {
+          const { channel } = await ts.pendingDiscussionChannel(
             newCode,
-          }),
-        );
+            level.code,
+          );
+          const voteEmbed = await ts.makeVoteEmbed(
+            newLevel,
+            reason || '',
+          );
 
-        await ts.discord.send(
-          newCode,
-          `Reupload Request for <@${author.discord_id}>'s level with message: ${reason}`,
-        );
+          await ts.discord.send(
+            newCode,
+            ts.message('reupload.reuploadNotify', {
+              oldCode,
+              newCode,
+            }),
+          );
 
-        await this.fixModPing(newCode);
+          await ts.discord.send(
+            newCode,
+            `Reupload Request for <@${author.discord_id}>'s level with message: ${reason}`,
+          );
 
-        await ts.discord.updatePinned(channel, voteEmbed);
+          await this.fixModPing(newCode);
+
+          await ts.discord.updatePinned(channel, voteEmbed);
+        } else {
+
+
+          const { channel } = await ts.auditDiscussionChannel(
+            newCode,
+            level.code,
+            newStatus === ts.LEVEL_STATUS.PENDING_APPROVED_REUPLOAD ?
+            this.CHANNEL_LABELS.AUDIT_APPROVED_REUPLOAD :
+            this.CHANNEL_LABELS.AUDIT_FIX_REQUEST,
+          );
+
+          // DO new embed instead
+          const voteEmbed = await ts.makeVoteEmbed(
+            newLevel,
+            reason || '',
+          );
+
+          await ts.discord.send(
+            newCode,
+            ts.message('reupload.reuploadNotify', {
+              oldCode,
+              newCode,
+            }),
+          );
+
+          await ts.discord.send(
+            newCode,
+            `Reupload Request for <@${author.discord_id}>'s level with message: ${reason}`,
+          );
+
+          await this.fixModPing(newCode);
+
+          await ts.discord.updatePinned(channel, voteEmbed);
+        }
       }
       let reply = ts.message('reupload.success', { level, newCode });
       if (!newLevelExist) {
@@ -3503,7 +3604,10 @@ class TS {
     const ret = this.ranks.find(
       (r) => parseFloat(points) >= parseFloat(r.min_points),
     );
-    return ret;
+    if (ret) {
+      return ret;
+    }
+    return {};
   }
 
   /**
@@ -3676,13 +3780,27 @@ class TS {
    * @param {Message} message A message object
    */
   getCodeArgument(message) {
-    let inCodeDiscussionChannel = false;
+    let inPendingDiscussionChannel = false;
+    let inAuditDiscussionChannel = false;
     const command = this.parseCommand(message);
     // Check if in level discussion channel
 
     let code;
-    if (this.validCode(this.discord.messageGetChannelName(message))) {
-      inCodeDiscussionChannel = true;
+    if (
+      this.validCode(this.discord.messageGetChannelName(message)) &&
+      this.discord.messageGetParent(message) ===
+        this.channels.levelDiscussionCategory
+    ) {
+      inPendingDiscussionChannel = true;
+      code = this.getUnlabledName(
+        this.discord.messageGetChannelName(message),
+      );
+    } else if (
+      this.validCode(this.discord.messageGetChannelName(message)) &&
+      this.discord.messageGetParent(message) ===
+        this.channels.levelAuditCategory
+    ) {
+      inAuditDiscussionChannel = true;
       code = this.getUnlabledName(
         this.discord.messageGetChannelName(message),
       );
@@ -3699,7 +3817,8 @@ class TS {
     return {
       code,
       command,
-      inCodeDiscussionChannel,
+      inPendingDiscussionChannel,
+      inAuditDiscussionChannel,
     };
   }
 

@@ -48,10 +48,12 @@ class TSRefuseFix extends TSCommand {
       .patch({ status: ts.LEVEL_STATUS.PENDING_NOT_FIXED_REUPLOAD });
     level.status = ts.LEVEL_STATUS.PENDING_NOT_FIXED_REUPLOAD;
 
-    await ts.discord.createChannel(code, {
-      type: 'text',
-      parent: ts.channels.pendingReuploadCategory,
-    });
+
+    await ts.auditDiscussionChannel(
+      code,
+      null,
+      ts.CHANNEL_LABELS.AUDIT_FIX_REQUEST,
+    );
 
     await ts.discord.send(
       code,

@@ -137,18 +137,19 @@ describe('misc-unit', function () {
   });
 
   it('ts.discussionChannel no channel name', async () => {
-    await TEST.ts.discussionChannel().catch((e) => {
+    await TEST.ts.pendingDiscussionChannel().catch((e) => {
       assert(e instanceof TypeError);
       assert.equal(e.message, 'undefined channel_name');
     });
   });
 
-  it('ts.discussionChannel no parent category', async () => {
-    await TEST.ts.discussionChannel('chanel-name').catch((e) => {
+  // Not needed anymore hopefully
+  /* it('ts.discussionChannel no parent category', async () => {
+    await TEST.ts.pendingDiscussionChannel('chanel-name').catch((e) => {
       assert.instanceOf(e, TypeError);
       assert.equal(e.message, 'undefined parentID');
     });
-  });
+  }); */
 
   it('ts.get_USER no discord_id ', async () => {
     const user = await TEST.ts.getUser().catch((e) => {
@@ -295,9 +296,8 @@ describe('misc-unit', function () {
       'setChannelParent',
     );
     channel.returns('true');
-    await TEST.ts.discussionChannel(
+    await TEST.ts.pendingDiscussionChannel(
       'newChannel',
-      'parent',
       'oldChannel',
     );
 

@@ -145,7 +145,9 @@ describe('!addtags,!removetags', () => {
       TEST.ts.discord,
       'messageGetChannelName',
     );
-    getChannel.returns('xxx-xxx-xxx');
+    getChannel.returns('XXX-XXX-XXX');
+    const getParent = sinon.stub(TEST.ts.discord, 'messageGetParent');
+    getParent.returns(TEST.ts.channels.levelDiscussionCategory);
     assert.equal(
       await TEST.mockBotSend({
         cmd: '!addtags tag1,tag2,tag3',

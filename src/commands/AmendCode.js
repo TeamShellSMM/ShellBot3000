@@ -52,12 +52,37 @@ class AmendCode extends TSCommand {
       .patch({ code: newCode })
       .where({ code: oldCode });
 
-    const existingChannel = ts.discord.channel(oldCode);
-    if (existingChannel) {
-      await ts.labelLevel(
+    let notify = false;
+    const existingPendingChannel = ts.discord.channel(
+      oldCode,
+      ts.channels.levelDiscussionCategory,
+    );
+    if (existingPendingChannel) {
+      await ts.labelPendingLevel(
         { ...existingLevel, code: newCode },
         oldCode,
       );
+      notify = true;
+    }
+
+    const existingAuditChannels = ts.discord.channels(
+      oldCode,
+      ts.channels.levelAuditCategory,
+    );
+    for (const existingAuditChannel of existingAuditChannels) {
+      const label = existingAuditChannel.name
+        .toLowerCase()
+        .replace(oldCode.toLowerCase(), '');
+
+      await ts.labelAuditChannel(
+        { ...existingLevel, code: newCode },
+        oldCode,
+        label,
+      );
+      notify = true;
+    }
+
+    if (notify) {
       await ts.discord.send(
         newCode,
         ts.message('ammendcode.notify', { oldCode, newCode }),
