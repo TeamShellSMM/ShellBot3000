@@ -66,12 +66,14 @@ describe('!removelevel', function () {
 
   it('Not mod or creator', async function () {
     assert.equal(
-      await TEST.mockBotSend({
-        cmd: '!removelevel xxx-xxx-xxx long reason',
-        channel: 'general',
-        discord_id: '512',
-      }),
-      'You can\'t remove "approved level" by Creator ',
+      (
+        await TEST.mockBotSend({
+          cmd: '!removelevel xxx-xxx-xxx long reason',
+          channel: 'general',
+          discord_id: '512',
+        })
+      )[2],
+      "Your deletion request was received, we'll get back to you in a bit!",
     );
   });
 
@@ -83,14 +85,9 @@ describe('!removelevel', function () {
       discord_id: '256',
     });
     assert.equal(
-      result[1],
-      '<@256> You have removed "approved level" by Creator ',
+      result[2],
+      "Your deletion request was received, we'll get back to you in a bit!",
     );
-    const level = await TEST.ts.db.Levels.query()
-      .where({ code: 'XXX-XXX-XXX' })
-      .first();
-    assert.exists(level);
-    assert.equal(level.status, TEST.ts.LEVEL_STATUS.USER_REMOVED);
   });
 
   it('Already removed', async function () {
@@ -114,12 +111,7 @@ describe('!removelevel', function () {
     });
     assert.equal(
       result[2],
-      '<@128> You have removed "approved level" by Creator ',
+      "Your deletion request was received, we'll get back to you in a bit!",
     );
-    const level = await TEST.ts.db.Levels.query()
-      .where({ code: 'XXX-XXX-XXX' })
-      .first();
-    assert.exists(level);
-    assert.equal(level.status, TEST.ts.LEVEL_STATUS.REMOVED);
   });
 });

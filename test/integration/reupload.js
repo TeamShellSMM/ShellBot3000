@@ -460,7 +460,7 @@ describe('!reupload', function () {
     );
     assert.equal(
       reply[1],
-      "Reupload Request for <@64>'s level with message: long reason",
+      "Reupload Request for <@64>'s level with message: ```long reason```",
     );
     assert.equal(
       reply[0],
@@ -525,7 +525,7 @@ describe('!reupload', function () {
     );
     assert.equal(
       reply[1],
-      "Reupload Request for <@64>'s level with message: long reason",
+      "Reupload Request for <@64>'s level with message: ```long reason```",
     );
     assert.equal(
       reply[3],
@@ -621,7 +621,7 @@ describe('!reupload', function () {
     ); // check can upload a new level with current points
     assert.equal(
       result[1],
-      "Reupload Request for <@64>'s level with message: long reason",
+      "Reupload Request for <@64>'s level with message: ```long reason```",
     ); // check can upload a new level with current points
     assert.equal(
       result[2].author.name,
@@ -668,7 +668,7 @@ describe('!reupload', function () {
     ); // check can upload a new level with current points
     assert.equal(
       result[1],
-      "Reupload Request for <@64>'s level with message: long reason",
+      "Reupload Request for <@64>'s level with message: ```long reason```",
     ); // check can upload a new level with current points
     assert.equal(
       result[2].author.name,

@@ -250,7 +250,7 @@ describe('!refusefix', function () {
     });
     assert.equal(
       result[0],
-      "Reupload Request for <@64>'s level with message: long reason",
+      "Reupload Request for <@64>'s level got refused with message: ```long reason```",
     );
   });
 });

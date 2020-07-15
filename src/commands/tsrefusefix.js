@@ -48,7 +48,6 @@ class TSRefuseFix extends TSCommand {
       .patch({ status: ts.LEVEL_STATUS.PENDING_NOT_FIXED_REUPLOAD });
     level.status = ts.LEVEL_STATUS.PENDING_NOT_FIXED_REUPLOAD;
 
-
     await ts.auditDiscussionChannel(
       code,
       null,
@@ -56,8 +55,8 @@ class TSRefuseFix extends TSCommand {
     );
 
     await ts.discord.send(
-      code,
-      `Reupload Request for <@${author.discord_id}>'s level with message: ${reason}`,
+      `${ts.CHANNEL_LABELS.AUDIT_FIX_REQUEST}${code}`,
+      `Reupload Request for <@${author.discord_id}>'s level got refused with message: \`\`\`${reason}\`\`\``,
     );
 
     await ts.fixModPing(code);
