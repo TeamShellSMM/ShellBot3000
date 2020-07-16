@@ -506,5 +506,7 @@ module.exports = {
     'The discord id was sucessfully set on the member with the name "{{{name}}}".',
 
   'requestRerate.noReason':
-    'You did not provide a reason to rerate this level, please include the difficulty you think this should be as well if you can.',
+    'You did not provide a reason to rerate this level, please provide a reason and the difficulty you think would be correct for this level.',
+  'requestRerate.notApproved':
+    'The level you entered is not approved, difficulty can only be changed for approved levels.',
 };

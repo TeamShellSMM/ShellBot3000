@@ -1827,18 +1827,16 @@ class TS {
       const level = await this.getLevels()
         .where({ code: channelName.toUpperCase() })
         .first();
-      let labeled = false;
       if (oldChannelName) {
-        const oldChannel = ts.discord.channel(oldChannelName);
+        const oldChannel = ts.discord.channel(`${label}${oldChannelName}`);
         if (oldChannel) {
           if (!discussionChannel) {
-            await this.labelAuditChannel(
-              level,
+            await this.renameAuditChannel(
               oldChannelName,
+              level.code,
               label,
             );
             discussionChannel = oldChannel;
-            labeled = true;
           } else {
             await ts.discord.removeChannel(
               oldChannelName,
@@ -1851,19 +1849,20 @@ class TS {
         }
       }
 
+
       if (!discussionChannel) {
         await ts.discord.createChannel(`${label}${channelName}`, {
           parent: ts.channels.levelAuditCategory,
         });
         created = true;
-        labeled = true;
       }
 
-      if (!labeled) await this.labelAuditChannel(level, null, label);
-      await ts.discord.setChannelParent(
-        channelName,
+      //Not needed
+      /*await ts.discord.setChannelParent(
+        `${label}${channelName}`,
         ts.channels.levelAuditCategory,
-      );
+      );*/
+
       return { channel: channelName, created };
     };
 
@@ -2262,13 +2261,10 @@ class TS {
       );
     };
 
-    this.labelAuditChannel = async (level, renameFrom, label) => {
-      if (!level) return false;
+    this.renameAuditChannel = async (oldCode, newCode, label) => {
       return this.discord.renameChannel(
-        renameFrom
-          ? `${label}${renameFrom}`
-          : `${label}${level.code}`,
-        `${label}${level.code}`,
+        `${label}${oldCode}`,
+        `${label}${newCode}`,
       );
     };
 
@@ -3002,6 +2998,9 @@ class TS {
           await ts.discord.updatePinned(channel, voteEmbed);
         }
       }
+
+      await ts.renameAuditChannels(oldCode, newCode);
+
       let reply = ts.message('reupload.success', { level, newCode });
       if (!newLevelExist) {
         reply += ts.message('reupload.renamingInstructions');
@@ -3011,6 +3010,28 @@ class TS {
       await ts.recalculateAfterUpdate();
       return userReply + reply;
     };
+
+    this.renameAuditChannels = async function(oldCode, newCode){
+      const existingAuditChannels = ts.discord.channels(
+        oldCode,
+        ts.channels.levelAuditCategory,
+      );
+      let notify = false;
+      for (const existingAuditChannelArr of existingAuditChannels) {
+        const existingAuditChannel = existingAuditChannelArr[1];
+        const label = existingAuditChannel.name
+          .toLowerCase()
+          .replace(oldCode.toLowerCase(), '');
+
+        await ts.renameAuditChannel(
+          oldCode,
+          newCode,
+          label,
+        );
+        notify = true;
+      }
+      return notify;
+    }
 
     /**
      * @typedef {Object.<Object>} TsAddRaceParam

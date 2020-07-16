@@ -1,4 +1,5 @@
 const TSCommand = require('../TSCommand.js');
+const DiscordLog = require('../DiscordLog');
 
 class RequestRerate extends TSCommand {
   constructor() {
@@ -19,14 +20,16 @@ class RequestRerate extends TSCommand {
     const reason = command.arguments.join(' ');
 
     if (!reason) {
-      ts.userError(
-        ts.userError(ts.message('requestRerate.noReason')),
-      );
+      ts.userError(ts.message('requestRerate.noReason'));
     }
     ts.reasonLengthCheck(reason, 800);
 
     const player = await ts.getUser(message);
     const level = await ts.getExistingLevel(code, true);
+
+    if(level.status !== ts.LEVEL_STATUS.APPROVED) {
+      ts.userError(ts.message('requestRerate.notApproved'));
+    }
 
     await ts.auditDiscussionChannel(
       code,
@@ -39,6 +42,7 @@ class RequestRerate extends TSCommand {
       `${ts.CHANNEL_LABELS.AUDIT_RERATE_REQUEST}${code}`,
       voteEmbed,
     );
+
 
     await ts.discord.send(
       `${ts.CHANNEL_LABELS.AUDIT_RERATE_REQUEST}${code}`,

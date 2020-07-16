@@ -65,22 +65,7 @@ class AmendCode extends TSCommand {
       notify = true;
     }
 
-    const existingAuditChannels = ts.discord.channels(
-      oldCode,
-      ts.channels.levelAuditCategory,
-    );
-    for (const existingAuditChannel of existingAuditChannels) {
-      const label = existingAuditChannel.name
-        .toLowerCase()
-        .replace(oldCode.toLowerCase(), '');
-
-      await ts.labelAuditChannel(
-        { ...existingLevel, code: newCode },
-        oldCode,
-        label,
-      );
-      notify = true;
-    }
+    notify = notify || await ts.renameAuditChannels(oldCode, newCode);
 
     if (notify) {
       await ts.discord.send(
