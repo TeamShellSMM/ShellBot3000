@@ -1828,7 +1828,9 @@ class TS {
         .where({ code: channelName.toUpperCase() })
         .first();
       if (oldChannelName) {
-        const oldChannel = ts.discord.channel(`${label}${oldChannelName}`);
+        const oldChannel = ts.discord.channel(
+          `${label}${oldChannelName}`,
+        );
         if (oldChannel) {
           if (!discussionChannel) {
             await this.renameAuditChannel(
@@ -1849,7 +1851,6 @@ class TS {
         }
       }
 
-
       if (!discussionChannel) {
         await ts.discord.createChannel(`${label}${channelName}`, {
           parent: ts.channels.levelAuditCategory,
@@ -1857,11 +1858,11 @@ class TS {
         created = true;
       }
 
-      //Not needed
-      /*await ts.discord.setChannelParent(
+      // Not needed
+      /* await ts.discord.setChannelParent(
         `${label}${channelName}`,
         ts.channels.levelAuditCategory,
-      );*/
+      ); */
 
       return { channel: channelName, created };
     };
@@ -3011,7 +3012,7 @@ class TS {
       return userReply + reply;
     };
 
-    this.renameAuditChannels = async function(oldCode, newCode){
+    this.renameAuditChannels = async function (oldCode, newCode) {
       const existingAuditChannels = ts.discord.channels(
         oldCode,
         ts.channels.levelAuditCategory,
@@ -3023,15 +3024,11 @@ class TS {
           .toLowerCase()
           .replace(oldCode.toLowerCase(), '');
 
-        await ts.renameAuditChannel(
-          oldCode,
-          newCode,
-          label,
-        );
+        await ts.renameAuditChannel(oldCode, newCode, label);
         notify = true;
       }
       return notify;
-    }
+    };
 
     /**
      * @typedef {Object.<Object>} TsAddRaceParam

@@ -29,14 +29,13 @@ describe('!requestrerate', function () {
           difficulty: 0,
         },
       ],
-      PendingVotes: [
-      ],
+      PendingVotes: [],
     });
     await TEST.ts.load();
   });
 
   it('request rerate approved level', async () => {
-    let result = await TEST.mockBotSend({
+    const result = await TEST.mockBotSend({
       cmd: '!requestrerate XXX-XXX-XX5 needs to be 1.5',
       channel: 'general',
       discord_id: '64',
@@ -44,7 +43,7 @@ describe('!requestrerate', function () {
 
     assert.equal(
       result[2],
-      'Your rerate request was received, we\'ll get back to you in a bit!',
+      "Your rerate request was received, we'll get back to you in a bit!",
     );
   });
 

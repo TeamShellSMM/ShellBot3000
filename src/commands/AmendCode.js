@@ -65,7 +65,8 @@ class AmendCode extends TSCommand {
       notify = true;
     }
 
-    notify = notify || await ts.renameAuditChannels(oldCode, newCode);
+    notify =
+      notify || (await ts.renameAuditChannels(oldCode, newCode));
 
     if (notify) {
       await ts.discord.send(

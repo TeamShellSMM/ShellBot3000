@@ -1,4 +1,4 @@
-const DiscordLog = require('../../src/DiscordLog');
+// const DiscordLog = require('../../src/DiscordLog');
 
 describe('!fixapprove', function () {
   beforeEach(async () => {
@@ -341,11 +341,11 @@ describe('!fixapprove', function () {
 
     assert.equal(
       result[1].author.name,
-      "This level has been removed by Mod1",
+      'This level has been removed by Mod1',
     );
     assert.equal(
       result[3].author.name,
-      "Your deletion request was approved and the level was removed from the list.",
+      'Your deletion request was approved and the level was removed from the list.',
     );
     assert.notExists(TEST.findChannel({ name: '💀XXX-XXX-XX5' }));
     assert.notExists(TEST.findChannel({ name: '🔢XXX-XXX-XX5' }));
@@ -368,7 +368,10 @@ describe('!fixapprove', function () {
       discord_id: '128',
     });
 
-    assert.equal(result, 'Please provide a short message to the creator explaining your decision! ');
+    assert.equal(
+      result,
+      'Please provide a short message to the creator explaining your decision! ',
+    );
 
     assert.exists(TEST.findChannel({ name: '💀XXX-XXX-XX5' }));
   });
@@ -408,7 +411,10 @@ describe('!fixapprove', function () {
       discord_id: '128',
     });
 
-    assert.equal(result, 'Please provide a short message to the creator explaining your decision! ');
+    assert.equal(
+      result,
+      'Please provide a short message to the creator explaining your decision! ',
+    );
   });
 
   it('approve rerate request', async () => {
@@ -424,7 +430,7 @@ describe('!fixapprove', function () {
 
     assert.equal(
       result[1].author.name,
-      "Your rerate request was approved and the difficulty of the level got updated. Thanks for the report.",
+      'Your rerate request was approved and the difficulty of the level got updated. Thanks for the report.',
     );
     assert.notExists(TEST.findChannel({ name: '🔢XXX-XXX-XX5' }));
 
@@ -460,7 +466,10 @@ describe('!fixapprove', function () {
       discord_id: '128',
     });
 
-    assert.equal(result, 'Please provide a short message to the creator explaining your decision! ');
+    assert.equal(
+      result,
+      'Please provide a short message to the creator explaining your decision! ',
+    );
   });
 
   it('reject rerate request', async () => {
@@ -476,7 +485,7 @@ describe('!fixapprove', function () {
 
     assert.equal(
       result[1].author.name,
-      "Your rerate request was rejected, the difficulty of the level was NOT updated.",
+      'Your rerate request was rejected, the difficulty of the level was NOT updated.',
     );
     assert.notExists(TEST.findChannel({ name: '🔢XXX-XXX-XX5' }));
 
@@ -498,7 +507,10 @@ describe('!fixapprove', function () {
       discord_id: '128',
     });
 
-    assert.equal(result, 'Please provide a short message to the creator explaining your decision! ');
+    assert.equal(
+      result,
+      'Please provide a short message to the creator explaining your decision! ',
+    );
   });
 
   it('amend level with open audit request', async () => {
@@ -513,7 +525,10 @@ describe('!fixapprove', function () {
       discord_id: ownerId,
     });
 
-    assert.equal(result[0], 'The level code has been ammended from `XXX-XXX-XX5` to `XXX-XXX-XXA`.');
+    assert.equal(
+      result[0],
+      'The level code has been ammended from `XXX-XXX-XX5` to `XXX-XXX-XXA`.',
+    );
 
     assert.notExists(TEST.findChannel({ name: '🔢XXX-XXX-XX5' }));
     assert.exists(TEST.findChannel({ name: '🔢XXX-XXX-XXA' }));
@@ -543,7 +558,10 @@ describe('!fixapprove', function () {
       discord_id: '64',
     });
 
-    assert.equal(result[3], '<@64> You have reuploaded \'approved\' by Creator with code `XXX-XXX-XXA`.  If you want to rename the new level, you can use !rename new-code level name. Your level has also been put in the reupload queue, we\'ll get back to you shortly.');
+    assert.equal(
+      result[3],
+      "<@64> You have reuploaded 'approved' by Creator with code `XXX-XXX-XXA`.  If you want to rename the new level, you can use !rename new-code level name. Your level has also been put in the reupload queue, we'll get back to you shortly.",
+    );
 
     assert.exists(TEST.findChannel({ name: '🔢XXX-XXX-XXA' }));
     assert.exists(TEST.findChannel({ name: '🔨XXX-XXX-XXA' }));
