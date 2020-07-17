@@ -2945,6 +2945,7 @@ class TS {
             newCode,
             level.code,
           );
+
           const voteEmbed = await ts.makeVoteEmbed(
             newLevel,
             reason || '',
@@ -2958,12 +2959,7 @@ class TS {
             }),
           );
 
-          await ts.discord.send(
-            `${ts.CHANNEL_LABELS.AUDIT_FIX_REQUEST}${newCode}`,
-            `Reupload Request for <@${author.discord_id}>'s level with message: \`\`\`${reason}\`\`\``,
-          );
-
-          await this.fixModPing(newCode);
+          // await this.fixModPing(newCode);
 
           await ts.discord.updatePinned(channel, voteEmbed);
         } else {
@@ -3005,6 +3001,8 @@ class TS {
       }
 
       await ts.renameAuditChannels(oldCode, newCode);
+
+      // TODO: maybe post reupload message in all audit channels?
 
       let reply = ts.message('reupload.success', { level, newCode });
       if (!newLevelExist) {
