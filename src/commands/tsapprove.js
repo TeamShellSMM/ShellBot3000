@@ -83,7 +83,6 @@ class TSApprove extends TSCommand {
     const {
       code,
       command,
-      inCodeDiscussionChannel,
     } = ts.getCodeArgument(message);
     const args = { code };
 
