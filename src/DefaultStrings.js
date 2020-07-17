@@ -177,6 +177,15 @@ module.exports = {
   'approval.approveAfterReupload':
     'This level was already approved before, and now your reupload is as well.',
 
+  'approval.approveDeletion':
+    'Your deletion request was approved and the level was removed from the list.',
+  'approval.approveRerate':
+    'Your rerate request was approved and the difficulty of the level got updated. Thanks for the report.',
+  'approval.rejectDeletion':
+    "We're sorry, but your deletion request was rejected, we don't wanna take people's points away, so we'd like this one to stay in the list.",
+  'approval.rejectRerate':
+    'Your rerate request was rejected, the difficulty of the level was NOT updated.',
+
   'judge.levelRejected':
     "Sorry, this level didn't quite make the cut for {{TeamName}}, but feel free to use the advice below to improve your level and resubmit it to us at later time",
   'judge.levelRemoved': 'Level was removed!',
@@ -193,6 +202,8 @@ module.exports = {
     'Please provide a short message to the creator explaining your decision!',
   'fixApprove.rejectNotNeedFix':
     'This level is not in the "Need Fix" status',
+  'fixApprove.noLabel':
+    'There is no valid label to identify this audit request. This should not happen!',
 
   'remove.removedBy': 'This level has been removed by {{name}}',
   'reupload.noOldCode':
@@ -493,4 +504,9 @@ module.exports = {
     'This discord id is already in use by another member.',
   'modsetdiscordid.success':
     'The discord id was sucessfully set on the member with the name "{{{name}}}".',
+
+  'requestRerate.noReason':
+    'You did not provide a reason to rerate this level, please provide a reason and the difficulty you think would be correct for this level.',
+  'requestRerate.notApproved':
+    'The level you entered is not approved, difficulty can only be changed for approved levels.',
 };

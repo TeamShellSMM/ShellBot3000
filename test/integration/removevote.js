@@ -133,7 +133,7 @@ describe('!removevote', function () {
     // Error: Request to use token, but token was unavailable to the client.
     const discussionChannel = sinon.stub(
       TEST.ts,
-      'discussionChannel',
+      'pendingDiscussionChannel',
     );
     discussionChannel.returns({
       channel: 'stub',

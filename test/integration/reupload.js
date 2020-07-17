@@ -342,7 +342,7 @@ describe('!reupload', function () {
     assert.notExists(
       await TEST.findChannel({
         name: 'XXX-XXX-YYY',
-        parentID: TEST.ts.channels.pendingReuploadCategory,
+        parentID: TEST.ts.channels.levelAuditCategory,
       }),
       'channel not be created in the normal pending list',
     );
@@ -437,7 +437,7 @@ describe('!reupload', function () {
     assert.exists(
       await TEST.findChannel({
         name: 'XXX-XXX-YYY',
-        parentID: TEST.ts.channels.pendingReuploadCategory,
+        parentID: TEST.ts.channels.levelAuditCategory,
       }),
       'a channel created in the pending reupload list',
     );
@@ -460,7 +460,7 @@ describe('!reupload', function () {
     );
     assert.equal(
       reply[1],
-      "Reupload Request for <@64>'s level with message: long reason",
+      "Reupload Request for <@64>'s level with message: ```long reason```",
     );
     assert.equal(
       reply[0],
@@ -501,7 +501,7 @@ describe('!reupload', function () {
     assert.exists(
       await TEST.findChannel({
         name: 'XXX-XXX-XX1',
-        parentID: TEST.ts.channels.pendingReuploadCategory,
+        parentID: TEST.ts.channels.levelAuditCategory,
       }),
       'a channel created in the pending reupload list',
     );
@@ -525,7 +525,7 @@ describe('!reupload', function () {
     );
     assert.equal(
       reply[1],
-      "Reupload Request for <@64>'s level with message: long reason",
+      "Reupload Request for <@64>'s level with message: ```long reason```",
     );
     assert.equal(
       reply[3],
@@ -575,7 +575,7 @@ describe('!reupload', function () {
     assert.exists(
       await TEST.findChannel({
         name: 'XXX-XXX-YYY',
-        parentID: TEST.ts.channels.pendingReuploadCategory,
+        parentID: TEST.ts.channels.levelAuditCategory,
       }),
       'a channel created in the pending reupload list',
     );
@@ -621,7 +621,7 @@ describe('!reupload', function () {
     ); // check can upload a new level with current points
     assert.equal(
       result[1],
-      "Reupload Request for <@64>'s level with message: long reason",
+      "Reupload Request for <@64>'s level with message: ```long reason```",
     ); // check can upload a new level with current points
     assert.equal(
       result[2].author.name,
@@ -647,7 +647,7 @@ describe('!reupload', function () {
     assert.notExists(
       await TEST.findChannel({
         name: 'XXX-XXX-YYY',
-        parentID: TEST.ts.channels.pendingReuploadCategory,
+        parentID: TEST.ts.channels.levelAuditCategory,
       }),
       "new channel shouldn't exist in pending reupload",
     );
@@ -668,7 +668,7 @@ describe('!reupload', function () {
     ); // check can upload a new level with current points
     assert.equal(
       result[1],
-      "Reupload Request for <@64>'s level with message: long reason",
+      "Reupload Request for <@64>'s level with message: ```long reason```",
     ); // check can upload a new level with current points
     assert.equal(
       result[2].author.name,
@@ -683,7 +683,7 @@ describe('!reupload', function () {
     assert.exists(
       await TEST.findChannel({
         name: 'XXX-XXX-XX1',
-        parentID: TEST.ts.channels.pendingReuploadCategory,
+        parentID: TEST.ts.channels.levelAuditCategory,
       }),
       'next channel should exist',
     );

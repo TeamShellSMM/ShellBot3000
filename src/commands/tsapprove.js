@@ -80,7 +80,11 @@ class TSApprove extends TSCommand {
       'fix+lc',
     ];
 
-    const { code, command } = ts.getCodeArgument(message);
+    const {
+      code,
+      command,
+      inPendingDiscussionChannel,
+    } = ts.getCodeArgument(message);
     const args = { code };
 
     if (
@@ -90,9 +94,8 @@ class TSApprove extends TSCommand {
             ts.channels.modChannel || // only in shellder-bot channel
           ts.discord.messageGetChannel(message) ===
             ts.channels.pendingShellbot || // or in pending-shellbot channel
-          ts.discord.messageGetParent(message) ===
-            ts.channels.levelDiscussionCategory
-        ) // only allow this command in the level discussion category, NOT pending re-uploads
+          inPendingDiscussionChannel
+        ) // should also work in the discussion channel for that level
       )
     )
       return false; // silently fail

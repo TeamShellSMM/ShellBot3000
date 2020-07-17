@@ -57,7 +57,7 @@ describe('!undoremove', function () {
   it('no level code', async function () {
     const result = await TEST.mockBotSend({
       cmd: '!undoremovelevel',
-      channel: 'general',
+      channel: TEST.ts.channels.modChannel,
       discord_id: '128',
     });
     assert.equal(
@@ -71,67 +71,34 @@ describe('!undoremove', function () {
   });
 
   it('not mod or creator', async function () {
-    assert.equal(
-      await TEST.mockBotSend({
-        cmd: '!undoremovelevel XXX-XXX-XX3 this is reason',
-        channel: 'general',
-        discord_id: '512',
-      }),
-      'You can\'t undo the removal of "user removed level" by Creator ',
-    );
+    const result = await TEST.mockBotSend({
+      cmd: '!undoremovelevel XXX-XXX-XX3 this is reason',
+      channel: TEST.ts.channels.modChannel,
+      discord_id: '512',
+    });
+    assert.lengthOf(result, 0, 'no result');
   });
 
-  it('creator but no reason', async function () {
+  it('mod but no reason', async function () {
     assert.equal(
       await TEST.mockBotSend({
         cmd: '!undoremovelevel XXX-XXX-XX3',
-        channel: 'general',
-        discord_id: '256',
+        channel: TEST.ts.channels.modChannel,
+        discord_id: '128',
       }),
       "Just leave a note why you're undoing the level remove ",
     );
   });
 
-  it('creator but already approved', async function () {
+  it('mod but already approved', async function () {
     assert.equal(
       await TEST.mockBotSend({
         cmd: '!undoremovelevel XXX-XXX-XXX this is reason',
-        channel: 'general',
-        discord_id: '256',
+        channel: TEST.ts.channels.modChannel,
+        discord_id: '128',
       }),
       '"approved level" by Creator is not removed ',
     );
-  });
-
-  it('creator but not user removed', async function () {
-    assert.equal(
-      await TEST.mockBotSend({
-        cmd: '!undoremovelevel XXX-XXX-XX2 this is reason',
-        channel: 'general',
-        discord_id: '256',
-      }),
-      'You can\'t undo the removal of "removed level" by Creator ',
-    );
-  });
-
-  it('creator user removed', async function () {
-    await TEST.ts.db.Members.query()
-      .patch({ is_mod: 1 })
-      .where({ discord_id: '128' });
-    const result = await TEST.mockBotSend({
-      cmd: '!undoremovelevel XXX-XXX-XX3 this is reason',
-      channel: 'general',
-      discord_id: '256',
-    });
-    assert.equal(
-      result[1],
-      '<@256> You have undid the status change of "user removed level" by Creator ',
-    );
-    const level = await TEST.ts.db.Levels.query()
-      .where({ code: 'XXX-XXX-XX3' })
-      .first();
-    assert.equal(level.old_status, TEST.ts.LEVEL_STATUS.USER_REMOVED);
-    assert.equal(level.status, TEST.ts.LEVEL_STATUS.APPROVED);
   });
 
   it('mod user removed', async function () {
@@ -140,7 +107,7 @@ describe('!undoremove', function () {
       .where({ discord_id: '128' });
     const result = await TEST.mockBotSend({
       cmd: '!undoremovelevel XXX-XXX-XX3 this is reason',
-      channel: 'general',
+      channel: TEST.ts.channels.modChannel,
       discord_id: '128',
     });
     assert.equal(
@@ -160,7 +127,7 @@ describe('!undoremove', function () {
       .where({ discord_id: '128' });
     const result = await TEST.mockBotSend({
       cmd: '!undoremovelevel XXX-XXX-XX2 this is reason',
-      channel: 'general',
+      channel: TEST.ts.channels.modChannel,
       discord_id: '128',
     });
     assert.equal(

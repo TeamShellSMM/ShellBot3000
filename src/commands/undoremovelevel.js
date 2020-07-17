@@ -8,6 +8,10 @@ class undoremovelevel extends TSCommand {
     });
   }
 
+  async canRun(ts, message) {
+    return ts.modOnly(ts.discord.getAuthor(message));
+  }
+
   async tsexec(ts, message, { command }) {
     let code = command.arguments.shift();
     if (!code) ts.userError(ts.message('error.noCode'));

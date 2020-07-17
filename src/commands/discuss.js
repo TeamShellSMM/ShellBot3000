@@ -22,12 +22,11 @@ class TSDiscussChannel extends TSCommand {
       ts.userError(ts.message('error.levelNotFound', { code }));
     }
 
-    const { channel } = await ts.discussionChannel(
-      level.code,
-      level.status === ts.LEVEL_STATUS.PENDING
-        ? ts.channels.levelDiscussionCategory
-        : ts.channels.pendingReuploadCategory,
-    );
+    if (level.status !== ts.LEVEL_STATUS.PENDING) {
+      ts.userError(ts.message('approval.levelNotPending'));
+    }
+
+    const { channel } = await ts.pendingDiscussionChannel(level.code);
     const voteEmbed = await ts.makeVoteEmbed(level);
     await ts.discord.updatePinned(channel, voteEmbed);
   }

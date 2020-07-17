@@ -91,6 +91,12 @@ class TSRerate extends TSCommand {
       ts.channels.levelChangeNotification,
       rerateEmbed,
     );
+
+    await ts.deleteAuditChannels(
+      `${ts.CHANNEL_LABELS.AUDIT_RERATE_REQUEST}${level.code}`,
+      ts.message('approval.channelDeleted'),
+    );
+
     return ts.discord.reply(
       message,
       ts.message('difficulty.success'),

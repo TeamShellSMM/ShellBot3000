@@ -8,6 +8,10 @@ class TSFixApprove extends TSCommand {
         'tsfixreject',
         'fixapprove',
         'fixreject',
+        'tsauditapprove',
+        'tsauditreject',
+        'auditapprove',
+        'auditreject',
       ],
       split: 'quoted',
       args: [
@@ -35,35 +39,64 @@ class TSFixApprove extends TSCommand {
     const {
       code,
       command,
-      inCodeDiscussionChannel,
+      inAuditDiscussionChannel,
     } = ts.getCodeArgument(message);
-    const reason = command.rest();
-
-    if (!inCodeDiscussionChannel) return false; // silently fail
-
-    if (
-      ts.discord.messageGetParent(message) !==
-      ts.channels.pendingReuploadCategory
-    )
-      ts.userError(ts.message('fixApprove.notInChannel', { code }));
-
-    if (!reason) ts.userError('fixApprove.noReason');
-    ts.reasonLengthCheck(reason, 800);
 
     let approving = false;
 
     if (
       command.command === 'tsfixapprove' ||
-      command.command === 'fixapprove'
+      command.command === 'fixapprove' ||
+      command.command === 'tsauditapprove' ||
+      command.command === 'auditapprove'
     ) {
       approving = true;
     }
 
-    return ts.finishFixRequest(
+    const label = message.channel.name
+      .toLowerCase()
+      .replace(code.toLowerCase(), '');
+
+    if (!inAuditDiscussionChannel) return false; // silently fail
+
+    if (
+      ts.discord.messageGetParent(message) !==
+      ts.channels.levelAuditCategory
+    )
+      ts.userError(ts.message('fixApprove.notInChannel', { code }));
+
+    let difficulty = null;
+    if (
+      label === ts.CHANNEL_LABELS.AUDIT_RERATE_REQUEST &&
+      approving
+    ) {
+      difficulty = command.next();
+      // We only check difficulty in tsapprove mode
+      if (!difficulty || !ts.valid_difficulty(difficulty)) {
+        ts.userError('approval.invalidDifficulty');
+      }
+    }
+
+    const reason = command.rest();
+
+    if (!reason) ts.userError(ts.message('fixApprove.noReason'));
+    ts.reasonLengthCheck(reason, 800);
+
+    if (
+      label !== ts.CHANNEL_LABELS.AUDIT_FIX_REQUEST &&
+      label !== ts.CHANNEL_LABELS.AUDIT_APPROVED_REUPLOAD &&
+      label !== ts.CHANNEL_LABELS.AUDIT_DELETION_REQUEST &&
+      label !== ts.CHANNEL_LABELS.AUDIT_RERATE_REQUEST
+    ) {
+      ts.userError(ts.message('fixApprove.noLabel'));
+    }
+    return ts.finishAuditRequest(
       code,
       ts.discord.getAuthor(message),
       reason,
       approving,
+      label,
+      difficulty,
     );
   }
 }

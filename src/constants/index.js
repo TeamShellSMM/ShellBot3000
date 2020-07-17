@@ -53,10 +53,10 @@ const defaultChannels = Object.freeze([
     },
   },
   {
-    name: 'pendingReuploadCategory',
-    default: 'bot-pending-reupload',
+    name: 'levelAuditCategory',
+    default: 'bot-level-audit',
     description:
-      'The channel where level reuploads are discussed. Only mods should be able to send/read this category',
+      'The channel category where level reuploads, deletion and rerate requests are put in and where you can discuss about them. Only mods should be able to send/read this category',
     type: 'category',
     defaultPermission: {
       allow: [],
@@ -551,6 +551,21 @@ const REMOVED_LEVELS = Object.freeze([
   LEVEL_STATUS.USER_REMOVED,
 ]);
 
+/**
+ * Level status that doesn't appear in the list
+ * @type {ChannelLabel[]}
+ */
+const CHANNEL_LABELS = Object.freeze({
+  PENDING_ALMOST_APPROVE: '📗',
+  PENDING_ALMOST_FIX: '📙',
+  PENDING_ALMOST_REJECT: '📕',
+  PENDING_CREATOR_UNINITIATED: '🔰',
+  AUDIT_FIX_REQUEST: '🔨',
+  AUDIT_APPROVED_REUPLOAD: '🔁',
+  AUDIT_DELETION_REQUEST: '💀',
+  AUDIT_RERATE_REQUEST: '🔢',
+});
+
 module.exports = {
   botPermissions,
   defaultChannels,
@@ -559,4 +574,5 @@ module.exports = {
   PENDING_LEVELS,
   SHOWN_IN_LIST,
   REMOVED_LEVELS,
+  CHANNEL_LABELS,
 };
