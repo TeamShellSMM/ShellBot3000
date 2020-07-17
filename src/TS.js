@@ -2990,7 +2990,11 @@ class TS {
           );
 
           await ts.discord.send(
-            `${ts.CHANNEL_LABELS.AUDIT_APPROVED_REUPLOAD}${newCode}`,
+            `${
+              newStatus === ts.LEVEL_STATUS.PENDING_APPROVED_REUPLOAD
+                ? this.CHANNEL_LABELS.AUDIT_APPROVED_REUPLOAD
+                : this.CHANNEL_LABELS.AUDIT_FIX_REQUEST
+            }${newCode}`,
             `Reupload Request for <@${author.discord_id}>'s level with message: \`\`\`${reason}\`\`\``,
           );
 
