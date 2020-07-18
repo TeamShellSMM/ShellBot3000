@@ -178,9 +178,9 @@ module.exports = {
     'This level was already approved before, and now your reupload is as well.',
 
   'approval.approveDeletion':
-    'Your deletion request was approved and the level was removed from the list.',
+    'A deletion request was approved and one of your levels was removed from the list.',
   'approval.approveRerate':
-    'Your rerate request was approved and the difficulty of the level got updated. Thanks for the report.',
+    'A rerate request was approved for one of your levels and the difficulty got updated from {{oldDifficulty}} to {{difficulty}}. Thanks for the report.',
   'approval.rejectDeletion':
     "We're sorry, but your deletion request was rejected, we don't wanna take people's points away, so we'd like this one to stay in the list.",
   'approval.rejectRerate':

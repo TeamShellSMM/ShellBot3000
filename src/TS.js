@@ -2294,6 +2294,7 @@ class TS {
       }
 
       let difficulty = null;
+      const oldDifficulty = level.difficulty;
       let newStatus = null;
       if (approve) {
         if (label === ts.CHANNEL_LABELS.AUDIT_FIX_REQUEST) {
@@ -2453,7 +2454,7 @@ class TS {
           ...embedStyle,
           title: embedTitle,
         },
-        { difficulty },
+        { difficulty, oldDifficulty },
       );
       finishAuditRequestEmbed.addField(
         '\u200b',
