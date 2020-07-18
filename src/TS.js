@@ -2294,6 +2294,7 @@ class TS {
       }
 
       let difficulty = null;
+      let oldDifficulty = null;
       let newStatus = null;
       if (approve) {
         if (label === ts.CHANNEL_LABELS.AUDIT_FIX_REQUEST) {
@@ -2344,7 +2345,7 @@ class TS {
           newStatus = ts.LEVEL_STATUS.USER_REMOVED;
         } else if (label === ts.CHANNEL_LABELS.AUDIT_RERATE_REQUEST) {
           // Save oldDifficulty to show in title message
-          var oldDifficulty = difficulty;
+          oldDifficulty = difficulty;
           // If we're in a rerate request we'll rerate the difficulty of the level with the param
           difficulty = pDifficulty;
         } else {
@@ -2449,19 +2450,13 @@ class TS {
         approve ? ts.LEVEL_STATUS.APPROVED : ts.LEVEL_STATUS.REJECTED
       ];
 
-      if (typeof(oldDifficulty) !== 'undefined') {
-        var titleArgs = { difficulty, oldDifficulty };
-      } else {
-        var titleArgs = { difficulty };
-      }
-
       const finishAuditRequestEmbed = this.levelEmbed(
         level,
         {
           ...embedStyle,
           title: embedTitle,
         },
-        titleArgs,
+        { difficulty, oldDifficulty },
       );
       finishAuditRequestEmbed.addField(
         '\u200b',
