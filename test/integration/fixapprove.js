@@ -345,7 +345,7 @@ describe('!fixapprove', function () {
     );
     assert.equal(
       result[3].author.name,
-      'Your deletion request was approved and the level was removed from the list.',
+      'A deletion request was approved and one of your levels was removed from the list.',
     );
     assert.notExists(TEST.findChannel({ name: '💀XXX-XXX-XX5' }));
     assert.notExists(TEST.findChannel({ name: '🔢XXX-XXX-XX5' }));
@@ -430,7 +430,7 @@ describe('!fixapprove', function () {
 
     assert.equal(
       result[1].author.name,
-      'Your rerate request was approved and the difficulty of the level got updated from 1 to 1.5. Thanks for the report.',
+      'A rerate request was approved for one of your levels and the difficulty got updated from 1 to 1.5. Thanks for the report.',
     );
     assert.notExists(TEST.findChannel({ name: '🔢XXX-XXX-XX5' }));
 
