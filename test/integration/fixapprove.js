@@ -430,7 +430,7 @@ describe('!fixapprove', function () {
 
     assert.equal(
       result[1].author.name,
-      'Your rerate request was approved and the difficulty of the level got updated. Thanks for the report.',
+      'Your rerate request was approved and the difficulty of the level got updated from 1.0 to 1.5. Thanks for the report.',
     );
     assert.notExists(TEST.findChannel({ name: '🔢XXX-XXX-XX5' }));
 
