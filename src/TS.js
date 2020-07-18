@@ -2345,7 +2345,6 @@ class TS {
           newStatus = ts.LEVEL_STATUS.USER_REMOVED;
         } else if (label === ts.CHANNEL_LABELS.AUDIT_RERATE_REQUEST) {
           // If we're in a rerate request we'll rerate the difficulty of the level with the param
-          oldDifficulty = difficulty;
           difficulty = pDifficulty;
         } else {
           ts.userError(ts.message('approval.noLabel'));
@@ -2361,8 +2360,7 @@ class TS {
       } else if (label === ts.CHANNEL_LABELS.AUDIT_DELETION_REQUEST) {
         // If we're in a deletion request we do nothing
       } else if (label === ts.CHANNEL_LABELS.AUDIT_RERATE_REQUEST) {
-        // Save old difficulty for the title
-        oldDifficulty = difficulty;
+        // If we're in a rerate request we do nothing
       } else {
         ts.userError(ts.message('approval.noLabel'));
       }
@@ -2425,6 +2423,7 @@ class TS {
         level.status = newStatus;
       }
       if (difficulty) {
+        oldDifficulty = difficulty;
         levelUpdate.difficulty = difficulty;
         level.difficulty = difficulty;
       }
