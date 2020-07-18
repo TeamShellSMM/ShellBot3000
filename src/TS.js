@@ -2294,7 +2294,7 @@ class TS {
       }
 
       let difficulty = null;
-      let oldDifficulty = pDifficulty;
+      const oldDifficulty = level.difficulty;
       let newStatus = null;
       if (approve) {
         if (label === ts.CHANNEL_LABELS.AUDIT_FIX_REQUEST) {
