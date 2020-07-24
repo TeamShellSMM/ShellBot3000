@@ -85,6 +85,7 @@ module.exports = async function (client) {
         ,levels.status
         ,levels.difficulty
         ,COALESCE(group_concat(distinct tags.name order by tags.id),'') tags
+        ,BIT_OR(tags.verify_clears) as needs_clear_verification
         ,levels.videos
         ,levels.created_at
         ,levels.clears
