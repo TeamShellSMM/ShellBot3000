@@ -564,6 +564,7 @@ const CHANNEL_LABELS = Object.freeze({
   AUDIT_APPROVED_REUPLOAD: '🔁',
   AUDIT_DELETION_REQUEST: '💀',
   AUDIT_RERATE_REQUEST: '🔢',
+  AUDIT_VERIFY_CLEARS: '✅',
 });
 
 module.exports = {

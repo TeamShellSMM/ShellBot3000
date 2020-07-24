@@ -178,13 +178,17 @@ module.exports = {
     'This level was already approved before, and now your reupload is as well.',
 
   'approval.approveDeletion':
-    'A deletion request was approved and one of your levels was removed from the list.',
+    'A deletion request was approved and this level was removed from the list.',
   'approval.approveRerate':
-    'A rerate request was approved for one of your levels and the difficulty got updated from {{oldDifficulty}} to {{difficulty}}. Thanks for the report.',
+    'A rerate request was approved for this level and the difficulty got updated from {{oldDifficulty}} to {{difficulty}}. Thanks for the report.',
+  'approval.approveVerifyClear':
+    'Your clear for this level was approved.',
   'approval.rejectDeletion':
     "We're sorry, but your deletion request was rejected, we don't wanna take people's points away, so we'd like this one to stay in the list.",
   'approval.rejectRerate':
     'Your rerate request was rejected, the difficulty of the level was NOT updated.',
+  'approval.rejectVerifyClear':
+    'Your clear for this level was rejected, you need to provide valid proof that you actually completed this level.',
 
   'judge.levelRejected':
     "Sorry, this level didn't quite make the cut for {{TeamName}}, but feel free to use the advice below to improve your level and resubmit it to us at later time",

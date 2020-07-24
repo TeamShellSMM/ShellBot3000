@@ -892,6 +892,7 @@ module.exports = async function (client) {
           'tags.add_lock',
           'tags.remove_lock',
           'tags.is_hidden',
+          'tags.verify_clears',
         )
         .where({ guild_id: ts.team.id });
       return { data: ts.secureData(data) };
@@ -917,6 +918,7 @@ module.exports = async function (client) {
             'add_lock',
             'remove_lock',
             'is_hidden',
+            'verify_clears',
           )
           .where({ guild_id: ts.team.id });
 
@@ -958,6 +960,11 @@ module.exports = async function (client) {
               : 0,
             is_hidden: ['true', '1', 1, true].includes(
               data[i].is_hidden,
+            )
+              ? 1
+              : 0,
+            verify_clears: ['true', '1', 1, true].includes(
+              data[i].verify_clears,
             )
               ? 1
               : 0,

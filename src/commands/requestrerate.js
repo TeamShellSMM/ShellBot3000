@@ -35,6 +35,9 @@ class RequestRerate extends TSCommand {
       code,
       null,
       ts.CHANNEL_LABELS.AUDIT_RERATE_REQUEST,
+      {
+        requester: ts.discord.getAuthor(message),
+      },
     );
 
     const voteEmbed = await ts.makeVoteEmbed(level);

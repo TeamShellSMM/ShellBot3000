@@ -1120,6 +1120,7 @@ class TS {
           is_shellder: player.is_mod || 0,
           difficulty_vote: difficulty === 0 ? null : difficulty,
         });
+
         if (completed != null) updated.completed = true;
         if (liked != null) updated.liked = true;
         if (difficulty != null) updated.difficulty = true;
@@ -1127,6 +1128,32 @@ class TS {
       if ([0, 1].includes(completed)) {
         if (updated.completed) {
           if (completed) {
+            // If the level requires verified clears we create an audit channel
+            const requiresVerifiedClears = await ts.levelRequiresVerifiedClears(
+              level,
+            );
+            if (requiresVerifiedClears) {
+              await ts.auditDiscussionChannel(
+                level.code,
+                null,
+                ts.CHANNEL_LABELS.AUDIT_VERIFY_CLEARS,
+                {
+                  requester: player.discord_id,
+                },
+              );
+
+              const voteEmbed = await ts.makeVoteEmbed(level);
+              await ts.discord.updatePinned(
+                `${ts.CHANNEL_LABELS.AUDIT_VERIFY_CLEARS}${code}`,
+                voteEmbed,
+              );
+
+              await ts.discord.send(
+                `${ts.CHANNEL_LABELS.AUDIT_VERIFY_CLEARS}${code}`,
+                `Clear by <@${player.discord_id}> requires verification, please check if their clear is valid.`,
+              );
+            }
+
             msg.push(ts.message('clear.addClear', { level }));
             if (level.status === ts.LEVEL_STATUS.APPROVED) {
               msg.push(
@@ -1818,6 +1845,7 @@ class TS {
       channelName,
       oldChannelName,
       label,
+      auditMetadata,
     ) => {
       if (!channelName) throw new TypeError('undefined channel_name');
       let created = false;
@@ -1855,6 +1883,12 @@ class TS {
         await ts.discord.createChannel(`${label}${channelName}`, {
           parent: ts.channels.levelAuditCategory,
         });
+
+        await ts.discord.setTopic(
+          `${label}${channelName}`,
+          JSON.stringify(auditMetadata),
+        );
+
         created = true;
       }
 
@@ -2285,6 +2319,14 @@ class TS {
         .where({ discord_id: discordId })
         .first();
 
+      const topic = await ts.discord.getTopic(
+        `${label}${level.code}`,
+      );
+      let requester_discord_id = author.discord_id;
+      if (topic) {
+        requester_discord_id = JSON.parse(topic).requester;
+      }
+
       // Check level status and stuff for each audit type
       if (
         !PENDING_LEVELS.includes(level.status) &&
@@ -2346,6 +2388,8 @@ class TS {
         } else if (label === ts.CHANNEL_LABELS.AUDIT_RERATE_REQUEST) {
           // If we're in a rerate request we'll rerate the difficulty of the level with the param
           difficulty = pDifficulty;
+        } else if (label === ts.CHANNEL_LABELS.AUDIT_VERIFY_CLEARS) {
+          // If we're in a clear verification request we'll do nothing here, just the channel gets deleted
         } else {
           ts.userError(ts.message('approval.noLabel'));
         }
@@ -2361,6 +2405,14 @@ class TS {
         // If we're in a deletion request we do nothing
       } else if (label === ts.CHANNEL_LABELS.AUDIT_RERATE_REQUEST) {
         // If we're in a rerate request we do nothing
+      } else if (label === ts.CHANNEL_LABELS.AUDIT_VERIFY_CLEARS) {
+        // If we're in a clear verification request we'll undo the clear
+        await ts.clear({
+          code: level.code,
+          completed: 0,
+          liked: 0,
+          discord_id: requester_discord_id,
+        });
       } else {
         ts.userError(ts.message('approval.noLabel'));
       }
@@ -2390,6 +2442,8 @@ class TS {
           embedTitle = 'approval.approveDeletion';
         } else if (label === ts.CHANNEL_LABELS.AUDIT_RERATE_REQUEST) {
           embedTitle = 'approval.approveRerate';
+        } else if (label === ts.CHANNEL_LABELS.AUDIT_VERIFY_CLEARS) {
+          embedTitle = 'approval.approveVerifyClear';
         } else {
           ts.userError(ts.message('approval.noLabel'));
         }
@@ -2411,6 +2465,8 @@ class TS {
         embedTitle = 'approval.rejectDeletion';
       } else if (label === ts.CHANNEL_LABELS.AUDIT_RERATE_REQUEST) {
         embedTitle = 'approval.rejectRerate';
+      } else if (label === ts.CHANNEL_LABELS.AUDIT_VERIFY_CLEARS) {
+        embedTitle = 'approval.rejectVerifyClear';
       } else {
         ts.userError(ts.message('approval.noLabel'));
       }
@@ -2440,6 +2496,10 @@ class TS {
       }
 
       const mention = this.message('general.heyListen', {
+        discord_id: requester_discord_id,
+      });
+
+      const authorMention = this.message('general.heyListen', {
         discord_id: author.discord_id,
       });
 
@@ -2465,6 +2525,16 @@ class TS {
         ts.channels.levelChangeNotification,
         mention,
       );
+      if (
+        author.discord_id !== requester_discord_id &&
+        approve &&
+        label !== ts.CHANNEL_LABELS.AUDIT_VERIFY_CLEARS
+      ) {
+        await this.discord.send(
+          ts.channels.levelChangeNotification,
+          authorMention,
+        );
+      }
       await this.discord.send(
         ts.channels.levelChangeNotification,
         finishAuditRequestEmbed,
@@ -2970,6 +3040,9 @@ class TS {
             newStatus === ts.LEVEL_STATUS.PENDING_APPROVED_REUPLOAD
               ? this.CHANNEL_LABELS.AUDIT_APPROVED_REUPLOAD
               : this.CHANNEL_LABELS.AUDIT_FIX_REQUEST,
+            {
+              requester: ts.discord.getAuthor(message),
+            },
           );
 
           // DO new embed instead
@@ -3896,6 +3969,32 @@ class TS {
       having count(level_id)=0);`,
       { guild_id: this.team.id },
     );
+  }
+
+  /**
+   * checks and removes tags that are not being used, is not set by an admin, or has no type
+   */
+  async levelRequiresVerifiedClears(level) {
+    const rows = await this.knex.raw(
+      `select COUNT(*) as count
+      from level_tags lt
+      left join tags t
+      on lt.tag_id = t.id
+      where lt.level_id = :level_id
+      and lt.guild_id = :guild_id
+      and t.verify_clears = 1;`,
+      {
+        level_id: level.id,
+        guild_id: this.team.id,
+      },
+    );
+    for (const row of rows) {
+      if (row[0].count > 0) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   /**

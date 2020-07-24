@@ -86,7 +86,8 @@ class TSFixApprove extends TSCommand {
       label !== ts.CHANNEL_LABELS.AUDIT_FIX_REQUEST &&
       label !== ts.CHANNEL_LABELS.AUDIT_APPROVED_REUPLOAD &&
       label !== ts.CHANNEL_LABELS.AUDIT_DELETION_REQUEST &&
-      label !== ts.CHANNEL_LABELS.AUDIT_RERATE_REQUEST
+      label !== ts.CHANNEL_LABELS.AUDIT_RERATE_REQUEST &&
+      label !== ts.CHANNEL_LABELS.AUDIT_VERIFY_CLEARS
     ) {
       ts.userError(ts.message('fixApprove.noLabel'));
     }
