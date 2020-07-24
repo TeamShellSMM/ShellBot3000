@@ -91,6 +91,24 @@ class DiscordWrapper {
     return channel.children.size;
   }
 
+  async setTopic(channelName, topic) {
+    debug(`setting topic of ${channelName} to ${topic}`);
+    const channel = this.channel(channelName);
+
+    if (!channel) return false;
+    await channel.setTopic(topic);
+
+    return true;
+  }
+
+  async getTopic(channelName) {
+    debug(`getting topic of ${channelName}`);
+    const channel = this.channel(channelName);
+
+    if (!channel) return false;
+    return channel.topic;
+  }
+
   async renameChannel(oldName, newName) {
     debug(`renaming ${oldName} to ${newName}`);
     const oldChannel = this.channel(oldName);

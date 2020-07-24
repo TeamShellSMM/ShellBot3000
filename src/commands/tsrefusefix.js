@@ -52,6 +52,9 @@ class TSRefuseFix extends TSCommand {
       code,
       null,
       ts.CHANNEL_LABELS.AUDIT_FIX_REQUEST,
+      {
+        requester: ts.discord.getAuthor(message),
+      },
     );
 
     await ts.discord.send(

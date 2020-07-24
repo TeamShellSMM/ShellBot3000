@@ -41,6 +41,9 @@ class tsremove extends TSCommand {
       code,
       null,
       ts.CHANNEL_LABELS.AUDIT_DELETION_REQUEST,
+      {
+        requester: ts.discord.getAuthor(message),
+      },
     );
 
     const voteEmbed = await ts.makeVoteEmbed(level);
