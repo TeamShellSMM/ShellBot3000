@@ -58,9 +58,9 @@ module.exports = {
   'es.help': `
 • Para comenzar, primero tienes que registrar usando !register en {{{RegistrationChannel}}}.
 • Para agarrar una lista de niveles visita {{TeamURI}}/levels.
-• Puedas enviar los terminados de niveles usando !clear LEV-ELC-ODE en {{{LevelClearChannel}}}.
-• También puedas usar !login y enviar los terminados de los niveles en el sitio web.
-• Puedas enviar un sumisión de un nivel nuevo usando !add LEV-ELC-ODE en {{{LevelSubmissionChannel}}}.`,
+• Puedes enviar los niveles completados usando !clear LEV-ELC-ODE en {{{LevelClearChannel}}}.
+• También puedes usar !login y enviar los niveles completados del sitio web.
+• Puedes enviar un nuevo nivel usando !add LEV-ELC-ODE en {{{LevelSubmissionChannel}}}.`,
 
   'website.loggedin': 'Your account was logged in on the website.',
   'website.tokenError': 'Token expired. Need to relogin',
