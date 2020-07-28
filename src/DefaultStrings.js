@@ -56,7 +56,7 @@ module.exports = {
 • Вы можете отправить уровень, используя \`!add LEV-ELC-ODE название уровня\` в {{{LevelSubmissionChannel}}}.`,
 
   'es.help': `
-• Para comenzar, primero tienes que registrar usando !register en {{{RegistrationChannel}}}.
+• Para comenzar, primero tienes que registrarte usando !register en {{{RegistrationChannel}}}.
 • Para agarrar una lista de niveles visita {{TeamURI}}/levels.
 • Puedes enviar los niveles completados usando !clear LEV-ELC-ODE en {{{LevelClearChannel}}}.
 • También puedes usar !login y enviar los niveles completados del sitio web.
