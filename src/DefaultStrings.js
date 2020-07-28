@@ -8,6 +8,7 @@ module.exports = {
 🇩🇪 \`!help de\`
 🇫🇷 \`!help fr\`
 🇳🇴 \`!help no\`
+🇪🇸 \`!help es\`
 `,
   help: `
 • To do anything, you will have to register first by using \`!register\` in {{{RegistrationChannel}}}.
@@ -53,6 +54,13 @@ module.exports = {
 • Затем вы можете отправить свои пройденные уровни, используя \`!clear LEV-ELC-ODE\` в {{{LevelClearChannel}}}.
 • Вы также можете \`!login\` и отправить свои завершения на сайте.
 • Вы можете отправить уровень, используя \`!add LEV-ELC-ODE название уровня\` в {{{LevelSubmissionChannel}}}.`,
+
+  'es.help': `
+• Para comenzar, primero tienes que registrar usando !register en {{{RegistrationChannel}}}.
+• Para agarrar una lista de niveles visita {{TeamURI}}/levels.
+• Puedas enviar los terminados de niveles usando !clear LEV-ELC-ODE en {{{LevelClearChannel}}}.
+• También puedas usar !login y enviar los terminados de los niveles en el sitio web.
+• Puedas enviar un sumisión de un nivel nuevo usando !add LEV-ELC-ODE en {{{LevelSubmissionChannel}}}.`,
 
   'website.loggedin': 'Your account was logged in on the website.',
   'website.tokenError': 'Token expired. Need to relogin',
