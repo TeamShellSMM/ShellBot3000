@@ -81,6 +81,7 @@ module.exports = async function (client) {
         ,levels.code
         ,members.name creator
         ,members.id creator_id
+        ,members.is_member creator_is_member
         ,levels.level_name
         ,levels.status
         ,levels.difficulty
