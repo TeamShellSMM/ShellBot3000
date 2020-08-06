@@ -24,6 +24,15 @@ class TSCommand extends Command {
     let ts;
     try {
       ts = TS.teams(TS.DiscordWrapper.messageGetGuild(message));
+
+      //Language stuff
+      //If we find a colon in the command we remove the language part from the message content entire and set the ts language to that
+      let {cmd} = ts.parseCommand(message);
+      if(cmd.indexOf(":") !== -1){
+        ts.commandLanguage = cmd.substring(cmd.indexOf(":") + 1, cmd.length);
+        message.content = message.content.replace(cmd, cmd.substring(0, cmd.indexOf(":")));
+      }
+
       if (
         ts.teamVariables.ChannelsShellbotAllowed &&
         this.category.id !== 'help'

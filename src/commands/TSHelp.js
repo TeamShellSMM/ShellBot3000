@@ -3,7 +3,7 @@ const TSCommand = require('../TSCommand.js');
 class TSHelp extends TSCommand {
   constructor() {
     super('help', {
-      aliases: ['help', '?'],
+      aliases: ['help', 'help.*', '?'],
       args: [
         {
           id: 'language',

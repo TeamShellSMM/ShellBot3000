@@ -9,7 +9,6 @@ const Handlebars = require('handlebars');
 const debug = require('debug')('shellbot3000:ts');
 const cron = require('node-cron');
 const knex = require('./db/knex');
-const DEFAULTMESSAGES = require('./DefaultStrings.js');
 const DiscordLog = require('./DiscordLog');
 const UserError = require('./UserError');
 const Teams = require('./models/Teams.js');
@@ -61,6 +60,7 @@ class TS {
     this.DiscordWrapper = DiscordWrapper;
     TS.DiscordWrapper = DiscordWrapper;
     this.discord = new DiscordWrapper(guildId);
+    this.cloudTranslationService = new Translate({projectId: 673279391932, keyFilename: '/home/liaf/makerteams-keyfile.json'});
     this.CONSTANTS = CONSTANTS;
     this.defaultVariables = defaultVariables;
     this.LEVEL_STATUS = LEVEL_STATUS;
@@ -68,6 +68,8 @@ class TS {
     this.SHOWN_IN_LIST = SHOWN_IN_LIST;
     this.REMOVED_LEVELS = REMOVED_LEVELS;
     this.CHANNEL_LABELS = CHANNEL_LABELS;
+
+    this.commandLanguage = "en";
 
     this.guild_id = guildId;
     this.guildId = guildId;
@@ -95,18 +97,6 @@ class TS {
     const ts = this;
     this.load = async function () {
       debug(`ts.load started for ${this.guild_id}`);
-      const tsc = new Translate({projectId: 673279391932, keyFilename: '/home/liaf/makerteams-keyfile.json'});
-
-      const [translation] = await tsc.translate("[Translated by Google Translate]\n• To do anything, you will have to register first by using {{{registerCommand}}} in {{{RegistrationChannel}}}.\n" +
-      "• To get a list of {{{levelMultiple}}} go to {{{levelLink}}}.\n" +
-      "• Then you can now submit your {{{clearMultiple}}} by using {{{clearCommand}}} in {{{LevelClearChannel}}}\n" +
-      "• You can also use {{{loginCommand}}} and submit your {{{clearMultiple}}} on the site\n" +
-      "• You can submit a {{{levelSingular}}} by using {{{addCommand}}} in {{{LevelSubmissionChannel}}}\n" +
-      "{{{helpCommandKR}}}\n" +
-      "{{{helpCommandRU}}}\n" +
-      "{{{helpCommandLang}}}", "de");
-
-      console.log(translation);
 
       const guild = ts.getGuild(this.guild_id);
       await guild.fetchMembers(); // just load up all members
@@ -250,9 +240,14 @@ class TS {
       await this.checkTagsForRemoval();
       this.messages = {};
       TS.defaultMessages = {};
-      Object.entries(DEFAULTMESSAGES).forEach((v) => {
-        TS.defaultMessages[v[0]] = this.makeTemplate(v[1]);
-        this.messages[v[0]] = this.makeTemplate(v[1]);
+
+      const defaultStrings = await this.knex('default_strings')
+        .select();
+
+      Object.entries(defaultStrings).forEach((v) => {
+        let defaultString = v[1];
+        TS.defaultMessages[defaultString.name] = this.makeTemplate(defaultString.message);
+        this.messages[defaultString.name] = this.makeTemplate(defaultString.message);
       });
 
       (await this.getSettings('messages', true)).forEach((v) => {
@@ -832,13 +827,25 @@ class TS {
      * @param {object} args the values to be passed to Handlebar. overrides any default values
      * @returns {string} final message string
      */
-    this.message = function (type, args) {
-      if (this.messages[type]) {
-        return this.messages[type](args);
+    this.message = async function (type, args) {
+      if(this.commandLanguage === "en"){
+        if (this.messages[type]) {
+          return this.messages[type](args);
+        }
+        throw new Error(
+          `"${type}" message string was not found in ts.message`,
+        );
+      } else {
+        //Check if message for that language exists
+        if (this.messages[this.commandLanguage + "." + type]) {
+          return this.messages[this.commandLanguage + "." + type](args);
+        } else {
+          //Try translating it and adding it to the messages
+          const [translation] = await this.cloudTranslationService.translate();
+          console.log(translation);
+          return "asdf";
+        }
       }
-      throw new Error(
-        `"${type}" message string was not found in ts.message`,
-      );
     };
     /**
      * Generates a login link to be DM-ed to the user to login to the website
