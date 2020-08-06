@@ -27,7 +27,7 @@ class tsrandom extends TSCommand {
       randomPending: args.command.command === 'randompending',
       discord_id: ts.discord.getAuthor(message),
     });
-    const randomEmbed = ts.levelEmbed(
+    const randomEmbed = await ts.levelEmbed(
       rand.level,
       ts.embedStyle.random,
     );

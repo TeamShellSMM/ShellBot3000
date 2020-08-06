@@ -12,7 +12,7 @@ class RequestRerate extends TSCommand {
   async tsexec(ts, message, { command }) {
     let code = command.arguments.shift();
     if (!code) {
-      ts.userError(ts.message('error.noCode'));
+      ts.userError(await ts.message('error.noCode'));
     } else {
       code = code.toUpperCase();
     }
@@ -20,7 +20,7 @@ class RequestRerate extends TSCommand {
     const reason = command.arguments.join(' ');
 
     if (!reason) {
-      ts.userError(ts.message('requestRerate.noReason'));
+      ts.userError(await ts.message('requestRerate.noReason'));
     }
     ts.reasonLengthCheck(reason, 800);
 
@@ -28,7 +28,7 @@ class RequestRerate extends TSCommand {
     const level = await ts.getExistingLevel(code, true);
 
     if (level.status !== ts.LEVEL_STATUS.APPROVED) {
-      ts.userError(ts.message('requestRerate.notApproved'));
+      ts.userError(await ts.message('requestRerate.notApproved'));
     }
 
     await ts.auditDiscussionChannel(

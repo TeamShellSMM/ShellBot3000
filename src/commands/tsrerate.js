@@ -42,7 +42,7 @@ class TSRerate extends TSCommand {
     if (code) {
       code = code.toUpperCase();
     } else {
-      ts.userError(ts.message('error.noCode'));
+      ts.userError(await ts.message('error.noCode'));
     }
 
     // Check all the args first
@@ -70,17 +70,17 @@ class TSRerate extends TSCommand {
 
     await ts.recalculateAfterUpdate({ code });
 
-    const rerateEmbed = ts
-      .levelEmbed(level, ts.embedStyle.rerate, {
+    const rerateEmbed = (
+      await ts.levelEmbed(level, ts.embedStyle.rerate, {
         old_difficulty: level.difficulty,
         new_difficulty: difficulty,
       })
-      .addField(
-        '\u200b',
-        `**Reason** :\n\`\`\`${reason}\`\`\`Rerated by <@${ts.discord.getAuthor(
-          message,
-        )}>`,
-      );
+    ).addField(
+      '\u200b',
+      `**Reason** :\n\`\`\`${reason}\`\`\`Rerated by <@${ts.discord.getAuthor(
+        message,
+      )}>`,
+    );
 
     const mention = `**<@${author.discord_id}>, we got some news for you: **`;
     await ts.discord.send(
@@ -94,12 +94,12 @@ class TSRerate extends TSCommand {
 
     await ts.deleteAuditChannels(
       `${ts.CHANNEL_LABELS.AUDIT_RERATE_REQUEST}${level.code}`,
-      ts.message('approval.channelDeleted'),
+      await ts.message('approval.channelDeleted'),
     );
 
     return ts.discord.reply(
       message,
-      ts.message('difficulty.success'),
+      await ts.message('difficulty.success'),
     );
   }
 }

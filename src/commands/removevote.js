@@ -28,7 +28,7 @@ class removevote extends TSCommand {
     const level = await ts.getExistingLevel(code);
 
     if (level.status !== ts.LEVEL_STATUS.PENDING) {
-      ts.userError(ts.message('approval.levelNotPending'));
+      ts.userError(await ts.message('approval.levelNotPending'));
     }
 
     const vote = await ts
@@ -48,7 +48,7 @@ class removevote extends TSCommand {
 
     return ts.discord.messageSend(
       message,
-      ts.message('vote.voteRemoved', level),
+      await ts.message('vote.voteRemoved', level),
     );
   }
 }

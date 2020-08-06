@@ -19,11 +19,11 @@ class TSDiscussChannel extends TSCommand {
 
     if (!level) {
       ts.discord.removeChannel(code);
-      ts.userError(ts.message('error.levelNotFound', { code }));
+      ts.userError(await ts.message('error.levelNotFound', { code }));
     }
 
     if (level.status !== ts.LEVEL_STATUS.PENDING) {
-      ts.userError(ts.message('approval.levelNotPending'));
+      ts.userError(await ts.message('approval.levelNotPending'));
     }
 
     const { channel } = await ts.pendingDiscussionChannel(level.code);

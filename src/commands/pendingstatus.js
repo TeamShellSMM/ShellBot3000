@@ -25,24 +25,32 @@ class PendingStatus extends TSCommand {
       ts.userError('pendingStatus.none');
     }
 
-    const levelStr = levels.map((level) => {
-      let statusStr = [];
-      if (level.approves) {
-        statusStr.push(ts.message('pendingStatus.approves', level));
-      }
-      if (level.rejects) {
-        statusStr.push(ts.message('pendingStatus.rejects', level));
-      }
-      if (level.want_fixes) {
-        statusStr.push(ts.message('pendingStatus.wantFixes', level));
-      }
-      statusStr =
-        statusStr.length > 0
-          ? statusStr.join(',')
-          : ts.message('pendingStatus.noVotes');
+    const levelStr = await Promise.all(
+      levels.map(async (level) => {
+        let statusStr = [];
+        if (level.approves) {
+          statusStr.push(
+            await ts.message('pendingStatus.approves', level),
+          );
+        }
+        if (level.rejects) {
+          statusStr.push(
+            await ts.message('pendingStatus.rejects', level),
+          );
+        }
+        if (level.want_fixes) {
+          statusStr.push(
+            await ts.message('pendingStatus.wantFixes', level),
+          );
+        }
+        statusStr =
+          statusStr.length > 0
+            ? statusStr.join(',')
+            : await ts.message('pendingStatus.noVotes');
 
-      return `${level.code} - "${level.level_name}":\n •${statusStr}\n`;
-    });
+        return `${level.code} - "${level.level_name}":\n •${statusStr}\n`;
+      }),
+    );
     await ts.discord.messageSend(
       message,
       `${player.userReply}\nYour Pending Levels:\`\`\`${levelStr.join(

@@ -43,7 +43,7 @@ class mockUser extends TSCommand {
     const p = await ts.getUser(message);
     await ts.discord.messageSend(
       message,
-      ts.message('mock.userSuccess', { name: p.name }),
+      await ts.message('mock.userSuccess', { name: p.name }),
     );
   }
 }

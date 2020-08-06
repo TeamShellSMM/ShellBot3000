@@ -18,7 +18,7 @@ class tsremove extends TSCommand {
   async tsexec(ts, message, { command }) {
     let code = command.arguments.shift();
     if (!code) {
-      ts.userError(ts.message('error.noCode'));
+      ts.userError(await ts.message('error.noCode'));
     } else {
       code = code.toUpperCase();
     }
@@ -26,7 +26,7 @@ class tsremove extends TSCommand {
     const reason = command.arguments.join(' ');
 
     if (!reason) {
-      ts.userError(ts.userError(ts.message('removeLevel.noReason')));
+      ts.userError(await ts.message('removeLevel.noReason'));
     }
     ts.reasonLengthCheck(reason, 800);
 
@@ -34,7 +34,9 @@ class tsremove extends TSCommand {
     const level = await ts.getExistingLevel(code, true);
 
     if (ts.REMOVED_LEVELS.includes(level.status)) {
-      ts.userError(ts.message('removeLevel.alreadyRemoved', level));
+      ts.userError(
+        await ts.message('removeLevel.alreadyRemoved', level),
+      );
     }
 
     await ts.auditDiscussionChannel(

@@ -32,7 +32,7 @@ class randomtag extends TSCommand {
       ...args,
       discord_id: ts.discord.getAuthor(message),
     });
-    const randomEmbed = ts.levelEmbed(
+    const randomEmbed = await ts.levelEmbed(
       rand.level,
       ts.embedStyle.random,
     );

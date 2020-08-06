@@ -19,11 +19,11 @@ class ResetLevelStatus extends TSCommand {
   }
 
   async tsexec(ts, message, { code }) {
-    if (!code) ts.userError(ts.message('error.noCode'));
+    if (!code) ts.userError(await ts.message('error.noCode'));
 
     const level = await ts.getExistingLevel(code, true);
     if (level.status === ts.LEVEL_STATUS.PENDING)
-      ts.userError(ts.message('resetStatus.alreadyPending'));
+      ts.userError(await ts.message('resetStatus.alreadyPending'));
 
     await ts.db.Levels.query()
       .patch({
@@ -34,7 +34,7 @@ class ResetLevelStatus extends TSCommand {
       .where({ code });
     await ts.discord.reply(
       message,
-      ts.message('resetStatus.successful', level),
+      await ts.message('resetStatus.successful', level),
     );
   }
 }

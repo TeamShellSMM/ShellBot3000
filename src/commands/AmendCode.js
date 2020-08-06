@@ -24,17 +24,19 @@ class AmendCode extends TSCommand {
   }
 
   async tsexec(ts, message, { oldCode, newCode }) {
-    if (!oldCode) ts.userError(ts.message('reupload.noOldCode'));
-    if (!newCode) ts.userError(ts.message('reupload.noNewCode'));
+    if (!oldCode)
+      ts.userError(await ts.message('reupload.noOldCode'));
+    if (!newCode)
+      ts.userError(await ts.message('reupload.noNewCode'));
 
     if (!ts.validCode(oldCode)) {
-      ts.userError(ts.message('reupload.invalidOldCode'));
+      ts.userError(await ts.message('reupload.invalidOldCode'));
     }
     if (!ts.validCode(newCode)) {
-      ts.userError(ts.message('reupload.invalidNewCode'));
+      ts.userError(await ts.message('reupload.invalidNewCode'));
     }
     if (oldCode === newCode) {
-      ts.userError(ts.message('reupload.sameCode'));
+      ts.userError(await ts.message('reupload.sameCode'));
     }
 
     const existingLevel = await ts.getExistingLevel(oldCode, true);
@@ -44,7 +46,9 @@ class AmendCode extends TSCommand {
       .first();
     if (newCodeCheck) {
       ts.userError(
-        ts.message('add.levelExisting', { level: newCodeCheck }),
+        await ts.message('add.levelExisting', {
+          level: newCodeCheck,
+        }),
       );
     }
 
@@ -71,13 +75,13 @@ class AmendCode extends TSCommand {
     if (notify) {
       await ts.discord.send(
         newCode,
-        ts.message('ammendcode.notify', { oldCode, newCode }),
+        await ts.message('ammendcode.notify', { oldCode, newCode }),
       );
     }
 
     await ts.discord.reply(
       message,
-      ts.message('ammendCode.success', {
+      await ts.message('ammendCode.success', {
         level: existingLevel,
         oldCode,
         newCode,

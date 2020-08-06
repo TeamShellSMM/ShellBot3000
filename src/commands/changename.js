@@ -42,7 +42,7 @@ class ChangeName extends TSCommand {
 
     await ts.discord.reply(
       message,
-      ts.message('nickname.success', {
+      await ts.message('nickname.success', {
         oldName: player.name,
         newName,
       }),

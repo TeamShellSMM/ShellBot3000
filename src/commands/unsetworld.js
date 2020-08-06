@@ -22,7 +22,7 @@ class UnsetWorld extends TSCommand {
 
     ts.discord.messageSend(
       message,
-      player.userReply + ts.message('unsetworld.success'),
+      player.userReply + (await ts.message('unsetworld.success')),
     );
   }
 }

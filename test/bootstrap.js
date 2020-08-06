@@ -246,9 +246,9 @@ before(async () => {
     { type, discord_id },
     args,
   ) => {
-    const msg = TEST.ts.message(template, args);
+    const msg = await TEST.ts.message(template, args);
     if (type === 'userError')
-      return msg + TEST.ts.message('error.afterUserDiscord');
+      return msg + (await TEST.ts.message('error.afterUserDiscord'));
     if (type === 'registeredSuccess') {
       const user = await TEST.ts.getUser(discord_id);
       return user.userReply + msg;

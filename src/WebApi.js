@@ -743,7 +743,7 @@ module.exports = async function (client) {
           }
         } catch (error) {
           if (ts) {
-            res.send(ts.getWebUserErrorMsg(error));
+            res.send(await ts.getWebUserErrorMsg(error));
             debugError(error);
           } else {
             DiscordLog.error(error);
@@ -761,7 +761,7 @@ module.exports = async function (client) {
         res.send(
           JSON.stringify({
             status: 'error',
-            message: TS.message('api.noslug'),
+            message: await TS.message('api.noslug'),
           }),
         );
       }
@@ -905,7 +905,7 @@ module.exports = async function (client) {
     '/teams/tags',
     webTS(async (ts, req) => {
       if (!req.body.data) ts.userError('website.noDataSent');
-      const data = ts.verifyData(req.body.data);
+      const data = await ts.verifyData(req.body.data);
 
       let updated = false;
       await ts.knex.transaction(async (trx) => {
@@ -1175,9 +1175,9 @@ module.exports = async function (client) {
     '/feedback',
     webTS(async (ts, req) => {
       if (req.body.message == null)
-        ts.userError(ts.message('feedback.noMessage'));
+        ts.userError(await ts.message('feedback.noMessage'));
       if (req.body.message.length > 1000)
-        ts.userError(ts.message('feedback.tooLong'));
+        ts.userError(await ts.message('feedback.tooLong'));
 
       const ip =
         req.headers['x-forwarded-for'] ||

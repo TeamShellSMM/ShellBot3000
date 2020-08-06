@@ -135,7 +135,7 @@ describe('misc-integration', () => {
       channel: 'general',
       discord_id: '256',
     });
-    assert.equal(result, TEST.ts.message(`help`));
+    assert.equal(result, await TEST.ts.message(`help`));
   });
 
   it('!help', async () => {
@@ -144,7 +144,7 @@ describe('misc-integration', () => {
       channel: 'general',
       discord_id: '256',
     });
-    assert.equal(result, TEST.ts.message(`help`));
+    assert.equal(result, await TEST.ts.message(`help`));
   });
 
   it('!help ko', async () => {
@@ -153,7 +153,7 @@ describe('misc-integration', () => {
       channel: 'general',
       discord_id: '256',
     });
-    assert.equal(result, TEST.ts.message(`ko.help`));
+    assert.equal(result, await TEST.ts.message(`ko.help`));
   });
 
   it('!help korean', async () => {
@@ -162,7 +162,7 @@ describe('misc-integration', () => {
       channel: 'general',
       discord_id: '256',
     });
-    assert.equal(result, TEST.ts.message(`ko.help`));
+    assert.equal(result, await TEST.ts.message(`ko.help`));
   });
 
   it('!points shellbot not allowed=fail', async () => {
@@ -184,7 +184,7 @@ describe('misc-integration', () => {
       channel: 'general',
       discord_id: '256',
     });
-    assert.equal(result, TEST.ts.message(`help`));
+    assert.equal(result, await TEST.ts.message(`help`));
   });
 
   it('!points shellbot in allowed', async () => {
@@ -209,6 +209,6 @@ describe('misc-integration', () => {
       channel: 'general',
       discord_id: '256',
     });
-    assert.equal(result, TEST.ts.message(`help`));
+    assert.equal(result, await TEST.ts.message(`help`));
   });
 });

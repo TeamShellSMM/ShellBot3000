@@ -31,14 +31,14 @@ class TSModSetDiscordId extends TSCommand {
     if (command.arguments.length >= 1) {
       name = command.arguments.shift();
     } else {
-      ts.userError(ts.message('modsetdiscordid.missingName'));
+      ts.userError(await ts.message('modsetdiscordid.missingName'));
     }
 
     let discordId;
     if (command.arguments.length >= 1) {
       discordId = command.arguments.shift();
     } else {
-      ts.userError(ts.message('modsetdiscordid.missingId'));
+      ts.userError(await ts.message('modsetdiscordid.missingId'));
     }
 
     const player = await ts.db.Members.query()
@@ -47,7 +47,9 @@ class TSModSetDiscordId extends TSCommand {
 
     if (!player) {
       ts.userError(
-        ts.message('modsetdiscordid.memberNotFound', { name: name }),
+        await ts.message('modsetdiscordid.memberNotFound', {
+          name: name,
+        }),
       );
     }
 
@@ -58,7 +60,7 @@ class TSModSetDiscordId extends TSCommand {
       .first();
 
     if (discordIdMember) {
-      ts.userError(ts.message('modsetdiscordid.duplicateId'));
+      ts.userError(await ts.message('modsetdiscordid.duplicateId'));
     }
 
     await ts.db.Members.query().where('id', player.id).update({
@@ -67,7 +69,7 @@ class TSModSetDiscordId extends TSCommand {
 
     await ts.discord.reply(
       message,
-      ts.message('modsetdiscordid.success', { name: name }),
+      await ts.message('modsetdiscordid.success', { name: name }),
     );
   }
 }

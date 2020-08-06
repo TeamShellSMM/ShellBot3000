@@ -1,3 +1,4 @@
+const assert10 = require('assert');
 const DiscordWrapper = require('../../src/DiscordWrapper');
 
 describe('misc-unit', function () {
@@ -125,11 +126,11 @@ describe('misc-unit', function () {
   });
 
   it('ts.message unfound string', async function () {
-    assert.throws(
-      () => TEST.ts.message('unknown_string'),
-      Error,
-      '"unknown_string" message string was not found in ts.message',
-    );
+    await assert10.rejects(TEST.ts.message('unknown_string'), {
+      name: 'Error',
+      message:
+        '"unknown_string" message string was not found in ts.message',
+    });
   });
 
   it('TS.teamFromUrl unfound slug', async function () {
@@ -478,10 +479,10 @@ describe('misc-unit', function () {
       { id: 3, value: 1 },
       { value: 4 },
     ]);
-    const verifiedData = TEST.ts.verifyData(secureData);
+    const verifiedData = await TEST.ts.verifyData(secureData);
     assert.lengthOf(verifiedData, 4);
     try {
-      TEST.ts.verifyData([
+      await TEST.ts.verifyData([
         { id: 1, value: 1 },
         { id: 2, value: 1 },
         { id: 3, value: 1 },
@@ -496,7 +497,7 @@ describe('misc-unit', function () {
     }
     try {
       secureData[0].id = 4;
-      TEST.ts.verifyData(secureData);
+      await TEST.ts.verifyData(secureData);
     } catch (error) {
       assert.instanceOf(error, TEST.ts.UserError);
       assert.equal(
@@ -506,7 +507,7 @@ describe('misc-unit', function () {
     }
     try {
       secureData[0].SECURE_TOKEN = 'wrong token';
-      TEST.ts.verifyData(secureData);
+      await TEST.ts.verifyData(secureData);
     } catch (error) {
       assert.instanceOf(error, TEST.ts.UserError);
       assert.equal(
@@ -552,48 +553,56 @@ describe('misc-unit', function () {
 
   it('ts.message plural', async () => {
     assert.equal(
-      TEST.ts.message('clear.earnedPoints', { earned_points: 0 }),
+      await TEST.ts.message('clear.earnedPoints', {
+        earned_points: 0,
+      }),
       ' ‣You have earned 0.0 points',
     );
 
     assert.equal(
-      TEST.ts.message('clear.earnedPoints', { earned_points: 0.5 }),
+      await TEST.ts.message('clear.earnedPoints', {
+        earned_points: 0.5,
+      }),
       ' ‣You have earned 0.5 points',
     );
 
     assert.equal(
-      TEST.ts.message('clear.earnedPoints', { earned_points: 1 }),
+      await TEST.ts.message('clear.earnedPoints', {
+        earned_points: 1,
+      }),
       ' ‣You have earned 1.0 point',
     );
 
     assert.equal(
-      TEST.ts.message('clear.earnedPoints', { earned_points: 2 }),
+      await TEST.ts.message('clear.earnedPoints', {
+        earned_points: 2,
+      }),
       ' ‣You have earned 2.0 points',
     );
   });
 
   it('ts.message 1dp', async () => {
     assert.equal(
-      TEST.ts.message('judge.approved', { difficulty: 1 }),
+      await TEST.ts.message('judge.approved', { difficulty: 1 }),
       'This level was approved for difficulty: 1.0!',
     );
 
     assert.equal(
-      TEST.ts.message('judge.approved', { difficulty: 1.25 }),
+      await TEST.ts.message('judge.approved', { difficulty: 1.25 }),
       'This level was approved for difficulty: 1.3!',
     );
 
     assert.equal(
-      TEST.ts.message('judge.approved', { difficulty: 1.5 }),
+      await TEST.ts.message('judge.approved', { difficulty: 1.5 }),
       'This level was approved for difficulty: 1.5!',
     );
 
     assert.equal(
-      TEST.ts.message('judge.approved', { difficulty: '1' }),
+      await TEST.ts.message('judge.approved', { difficulty: '1' }),
       'This level was approved for difficulty: 1.0!',
     );
     assert.equal(
-      TEST.ts.message('judge.approved', { difficulty: 'lol' }),
+      await TEST.ts.message('judge.approved', { difficulty: 'lol' }),
       'This level was approved for difficulty: lol!',
     );
   });

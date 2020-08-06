@@ -34,7 +34,7 @@ class playersRandom extends TSCommand {
       discord_id: ts.discord.getAuthor(message),
     });
 
-    const randomEmbed = ts.levelEmbed(
+    const randomEmbed = await ts.levelEmbed(
       rand.level,
       ts.embedStyle.randoms,
       { players: args.players },

@@ -18,16 +18,16 @@ class points extends TSCommand {
   async tsexec(ts, message) {
     const player = await ts.getUser(message);
 
-    let msg = ts.message('points.points', { player });
+    let msg = await ts.message('points.points', { player });
 
     if (player.earned_points.canUpload) {
-      msg += ts.message('points.canUpload');
+      msg += await ts.message('points.canUpload');
     } else {
-      msg += ts.message('points.cantUpload', {
+      msg += await ts.message('points.cantUpload', {
         points_needed: player.earned_points.pointsNeeded,
       });
     }
-    msg += ts.message('points.rank', { player });
+    msg += await ts.message('points.rank', { player });
     await ts.discord.messageSend(message, player.userReply + msg);
   }
 }

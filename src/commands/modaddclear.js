@@ -37,7 +37,7 @@ class TSModAddClear extends TSCommand {
 
     if (!member) {
       ts.userError(
-        ts.message('modaddlevel.memberNotFound', {
+        await ts.message('modaddlevel.memberNotFound', {
           name: args.memberName,
         }),
       );

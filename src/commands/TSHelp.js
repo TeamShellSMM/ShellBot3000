@@ -5,11 +5,6 @@ class TSHelp extends TSCommand {
     super('help', {
       aliases: ['help', 'help.*', '?'],
       args: [
-        {
-          id: 'language',
-          type: 'string',
-          default: '',
-        },
       ],
       category: 'help',
       channelRestriction: 'guild',
@@ -19,7 +14,7 @@ class TSHelp extends TSCommand {
   async tsexec(ts, message, { language }) {
     await ts.discord.messageSend(
       message,
-      ts.message(`${ts.languageCode(language)}help`),
+      await ts.message(`help`),
     );
   }
 }

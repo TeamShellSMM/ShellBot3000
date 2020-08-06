@@ -40,7 +40,7 @@ class InitMembers extends TSCommand {
 
     await ts.discord.reply(
       message,
-      ts.message('initmembers.success', {
+      await ts.message('initmembers.success', {
         registeredCount: registeredCount,
         alreadyRegisteredCount: alreadyRegisteredCount,
       }),

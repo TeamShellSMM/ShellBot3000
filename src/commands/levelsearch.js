@@ -46,9 +46,9 @@ class levelsearch extends TSCommand {
     await ts.discord.messageSend(
       message,
       player.userReply +
-        ts.message('search.foundNum', { levelsFound }) +
+        (await ts.message('search.foundNum', { levelsFound })) +
         (levelsFound > 5
-          ? ts.message('search.showingOnly', { num_shown: 5 })
+          ? await ts.message('search.showingOnly', { num_shown: 5 })
           : '') +
         (levelsStr ? `\n${levelsStr}` : ''),
     );
