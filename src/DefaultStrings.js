@@ -8,6 +8,8 @@ module.exports = {
 🇩🇪 \`!help de\`
 🇫🇷 \`!help fr\`
 🇳🇴 \`!help no\`
+🇪🇸 \`!help es\`
+🇸🇪 \`!help se\`
 `,
   help: `
 • To do anything, you will have to register first by using \`!register\` in {{{RegistrationChannel}}}.
@@ -53,6 +55,20 @@ module.exports = {
 • Затем вы можете отправить свои пройденные уровни, используя \`!clear LEV-ELC-ODE\` в {{{LevelClearChannel}}}.
 • Вы также можете \`!login\` и отправить свои завершения на сайте.
 • Вы можете отправить уровень, используя \`!add LEV-ELC-ODE название уровня\` в {{{LevelSubmissionChannel}}}.`,
+
+  'es.help': `
+• Para comenzar, primero tienes que registrarte usando !register en {{{RegistrationChannel}}}.
+• Para agarrar una lista de niveles visita {{TeamURI}}/levels.
+• Puedes enviar los niveles completados usando !clear LEV-ELC-ODE en {{{LevelClearChannel}}}.
+• También puedes usar !login y enviar los niveles completados del sitio web.
+• Puedes enviar un nuevo nivel usando !add LEV-ELC-ODE en {{{LevelSubmissionChannel}}}.`,
+
+  'se.help': `
+• För att göra någonting, måste du registrera dig först genom att använda !register i {{{RegistrationChannel}}}.
+• För att få en lista av banor gå till {{TeamURI}}/levels.
+• Sedan kan du nu skicka in dina clears av banor genom att använda !clear LEV-ELC-ODE i {{{LevelClearChannel}}}.
+• Du kan också använda !login och skicka in dina clears på hemsidan.
+• Du kan skicka in en bana genom att använda !add LEV-ELC-ODE och namnet på banan i {{{LevelSubmissionChannel}}}.`,
 
   'website.loggedin': 'Your account was logged in on the website.',
   'website.tokenError': 'Token expired. Need to relogin',
