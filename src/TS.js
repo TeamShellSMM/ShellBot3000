@@ -1,5 +1,6 @@
 'use strict';
 
+const {Translate} = require('@google-cloud/translate').v2;
 const crypto = require('crypto');
 const moment = require('moment');
 const jwt = require('jsonwebtoken');
@@ -94,6 +95,19 @@ class TS {
     const ts = this;
     this.load = async function () {
       debug(`ts.load started for ${this.guild_id}`);
+      const tsc = new Translate({projectId: 673279391932, keyFilename: '/home/liaf/makerteams-keyfile.json'});
+
+      const [translation] = await tsc.translate("[Translated by Google Translate]\n• To do anything, you will have to register first by using {{{registerCommand}}} in {{{RegistrationChannel}}}.\n" +
+      "• To get a list of {{{levelMultiple}}} go to {{{levelLink}}}.\n" +
+      "• Then you can now submit your {{{clearMultiple}}} by using {{{clearCommand}}} in {{{LevelClearChannel}}}\n" +
+      "• You can also use {{{loginCommand}}} and submit your {{{clearMultiple}}} on the site\n" +
+      "• You can submit a {{{levelSingular}}} by using {{{addCommand}}} in {{{LevelSubmissionChannel}}}\n" +
+      "{{{helpCommandKR}}}\n" +
+      "{{{helpCommandRU}}}\n" +
+      "{{{helpCommandLang}}}", "de");
+
+      console.log(translation);
+
       const guild = ts.getGuild(this.guild_id);
       await guild.fetchMembers(); // just load up all members
       const Team = Teams(this.guild_id);

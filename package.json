@@ -10,6 +10,7 @@
   "issues": "https://github.com/TeamShellSMM/ShellBot3000/issues",
   "main": "src/app.js",
   "dependencies": {
+    "@google-cloud/translate": "6.0.2",
     "body-parser": "^1.19.0",
     "compression": "^1.7.4",
     "debug": "4.1.1",
