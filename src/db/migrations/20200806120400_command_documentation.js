@@ -8,7 +8,7 @@ exports.up = function (knex) {
     {
       name: 'help.commands',
       message:
-        '\n Here\'s a list of all of your available commands (the most important ones are underlined). To get a detailed explanation for a certain command use `!help <commandname>`.',
+        "\n Here's a list of all of your available commands (the most important ones are underlined). To get a detailed explanation for a certain command use `!help <commandname>`.",
     },
     {
       name: 'ko.help',
@@ -1177,502 +1177,556 @@ exports.up = function (knex) {
     {
       name: 'help.unknownCommand',
       message:
-        'The entered command does not exist, did you maybe misspell it? You can use `!help commands` to get a list of all available commands.'
-    }
+        'The entered command does not exist, did you maybe misspell it? You can use `!help commands` to get a list of all available commands.',
+    },
   ];
 
   const insertCommandStrings = [
-      {
-          "name": "help.add",
-          "message": "As soon as you have the required clearpoints (it depends on your team how much that is) you can submit a level to the moderators with this. You'll get a notification if it's approved, still needs some fixes or if it doesn't fit the team."
-      },
-      {
-          "name": "help.addtags",
-          "message": "Use this to add missing tags to a level (like SMB1, SMW, etc...)"
-      },
-      {
-          "name": "help.removetags",
-          "message": "You can use this to remove a tag from one of your own levels (or from all levels if you're a mod)"
-      },
-      {
-          "name": "help.addvids",
-          "message": "Use this to add a clearvid to a level (it's gonna get shown on the page or with !info)"
-      },
-      {
-          "name": "help.removevids",
-          "message": "With this you can remove clearvids from your own levels (or from all levels if you're a mod)"
-      },
-      {
-          "name": "help.amendcode",
-          "message": "With this you can amend a level code after someone made mistake entering the code on submission"
-      },
-      {
-          "name": "help.atme",
-          "message": "Use this command if you want the bot to ping you if anyone clears one of your levels"
-      },
-      {
-          "name": "help.dontatme",
-          "message": "Use this command to stop the bot from pinging you if anyone clears one of your levels"
-      },
-      {
-          "name": "help.nickname",
-          "message": "With this command you can change by what name the bot and the site calls you"
-      },
-      {
-          "name": "help.clear",
-          "message": "With this command you can flag any level as cleared by you. You'll get clearpoints depending on how difficult the level was (get enough to earn higher ranks). You can also leave away the \"like\" part at the end of the command if you don't want to like the level you cleared. Don't forget: Likes give the maker of the level more maker points than just clears, so if you did enjoy a level, don't forget to leave a like!"
-      },
-      {
-          "name": "help.cleardifficulty",
-          "message": "Use this command to reset the public difficulty vote on a certain level."
-      },
-      {
-          "name": "help.difficulty",
-          "message": "Use this command to cast a public difficulty vote on a level."
-      },
-      {
-          "name": "help.fixdiscuss",
-          "message": "[Deprecated] This was used to reload and fix a discussion channel, before audit channels were a thing. Hopefully not used anymore."
-      },
-      {
-          "name": "help.search",
-          "message": "This lets you search a level by name or creator."
-      },
-      {
-          "name": "help.like",
-          "message": "With this you can submit just a like on a level you've cleared (in case you forgot to add it with the clear or if you changed your mind)"
-      },
-      {
-          "name": "help.unlike",
-          "message": "Use this to remove your like if you did it by accident."
-      },
-      {
-          "name": "help.login",
-          "message": "After you use this command the bot will dm you a link you can use to login on the website (to submit your clears and likes there). IMPORTANT: If you're on mobile please copy the link and add it manually to your browser to keep the login. If you just click it, discord might open a temporary browser window for you where you can't log in permanently."
-      },
-      {
-          "name": "help.makerid",
-          "message": "This saves your maker id and maker name so we can show it on your page in the future (and in the world page)"
-      },
-      {
-          "name": "help.modaddclear",
-          "message": "Use this to add/update a play/like for a certain member and level. The parameters are the same as for the normal clear command (after the member name), so check out !clear if you wanna know more."
-      },
-      {
-          "name": "help.modaddlevel",
-          "message": "Use this to add a level for a member."
-      },
-      {
-          "name": "help.modaddmember",
-          "message": "Use this to create a member so you can add levels/clears for them."
-      },
-      {
-          "name": "help.modsetdiscordid",
-          "message": "Use this to link a temporary member you added with an actual user by putting in their discord id. (You can get that by activating developer mode in your discord settings and right clicking their user)"
-      },
-      {
-          "name": "help.pendingstatus",
-          "message": "This command will show you one (or all if you leave the code away) of your pending levels and how many votes there are right now."
-      },
-      {
-          "name": "help.playersrandom",
-          "message": "With this command you can put in multiple players to find a level you all haven't cleared yet (in case you want to race each other or play together)"
-      },
-      {
-          "name": "help.points",
-          "message": "This shows you how many clearpoints you have currently accumulated (if a level's difficulty changes your points will be automatically updated). It also shows you if you got enough points to upload a level and which rank you have currently reached."
-      },
-      {
-          "name": "help.random",
-          "message": "Randomly chooses an approved level you haven't cleared yet for you to play. It tries to find stuff in your difficulty range and uses the maximum difficulty you ever cleared as the limit. You can either leave the maxDifficulty or both the max- and min-difficulty away if you want."
-      },
-      {
-          "name": "help.randomall",
-          "message": "Randomly chooses a level you haven't cleared yet for you to play from all levels (including pending). It tries to find stuff in your difficulty range and uses the maximum difficulty you ever cleared as the limit. You can either leave the maxDifficulty or both the max- and min-difficulty away if you want."
-      },
-      {
-          "name": "help.randompending",
-          "message": "Randomly chooses a pending level you haven't cleared yet for you to play. It tries to find stuff in your difficulty range and uses the maximum difficulty you ever cleared as the limit. You can either leave the maxDifficulty or both the max- and min-difficulty away if you want."
-      },
-      {
-          "name": "help.randomtag",
-          "message": "Randomly chooses a level with a certain tag you haven't cleared yet for you to play. It tries to find stuff in your difficulty range and uses the maximum difficulty you ever cleared as the limit. You can either leave the maxDifficulty or both the max- and min-difficulty away if you want."
-      },
-      {
-          "name": "help.register",
-          "message": "You'll have to do this in the beginning to register with your preferred name (it's gonna show up on the site and everywhere)"
-      },
-      {
-          "name": "help.refresh",
-          "message": "You can use this to reload the bot settings (after you made a change to the team settings)"
-      },
-      {
-          "name": "help.requestremoval",
-          "message": "With this you can create a new deletion request for any level (including your own of course). A mod will take a look at it and you will be pinged when a decision has been reached. Use this only if you want to permanently delete a level, not for reuploads."
-      },
-      {
-          "name": "help.removevote",
-          "message": "Use this command to remove your pending vote from a level. (In case it's not valid anymore or you accidentally added it)"
-      },
-      {
-          "name": "help.rename",
-          "message": "With this you can rename one of your submitted levels."
-      },
-      {
-          "name": "help.requestrerate",
-          "message": "With this you can create a new difficulty rerate request for any level (including your own of course). A mod will take a look at it and you will be pinged when a decision has been reached."
-      },
-      {
-          "name": "help.resetstatus",
-          "message": "Use this to push a certain level back to pending status (in case an accident happened or a level needs to get another look from the mods)"
-      },
-      {
-          "name": "help.reupload",
-          "message": "Use this after you reuploaded a level (first the old code, then the new code and then a little text for the mods and everybody, so they know why you reuploaded) to make some fixes, if the level was already approved or if you got a fix request for it, the level doesn't have to be reapproved and goes straight into it's own little queue for the mods to look at it."
-      },
-      {
-          "name": "help.setworld",
-          "message": "This sets your currently active worldname and sets how many worlds and levels are inside it. After setting it it will show up in the worlds page."
-      },
-      {
-          "name": "help.approve",
-          "message": "This submits an approval vote from you for this level with the specified difficulty. If this is the first moderator vote (of any kind) for this level, the judgement process gets started and a text-channel will be created for this level in the pending level-discussion category."
-      },
-      {
-          "name": "help.fix",
-          "message": "This counts as an approval vote for most purposes, but if the level gets approved and there's at least one Fixvote on it the creator will get a fix request and he can decide if he wants to reupload the level or not. Either way it will go into it's separate queue (in the category channel \"pending-reuploads\" where the mods can decide if it's still alright to approve or not. Try to put into your \"reason\" which of the fixes are mandatory and which are optional for you."
-      },
-      {
-          "name": "help.reject",
-          "message": "This submits a reject vote for this level. This should only be used if the level does not fit the team, if it's completely unfixable or if you can't assign a difficulty for some reason (too frustrating to complete, etc...)."
-      },
-      {
-          "name": "help.auditapprove",
-          "message": "You can use this inside an audit request channel (reuploads, fixes, deletions, rerates, etc...), to instantly approve the request. The creator of the request will be pinged with your message and depending on the request type the level status or other things get updated."
-      },
-      {
-          "name": "help.auditreject",
-          "message": "You can use this inside an audit request channel (reuploads, fixes, deletions, rerates, etc...), to instantly reject the request. The creator of the request will be pinged with your message and depending on the request type the level status or other things get updated."
-      },
-      {
-          "name": "help.help",
-          "message": "The all-powerful help command, as you probably already know, with this you can get general help, the command list and detailed help for each command."
-      },
-      {
-          "name": "help.info",
-          "message": "This shows you all the relevant information for a certain level (Name, Tags, Clearvids, etc..)"
-      },
-      {
-          "name": "help.judge",
-          "message": "Use this in a judgement channel for a level that has reached the needed amount of mod votes to finalize the judgement process. The level creator gets a notification (with all the votes and reasons) in the level update text-channel and the level gets immediately approved, rejected or goes into a fix request (if it's approved and there's at least one fix vote)"
-      },
-      {
-          "name": "help.refusefix",
-          "message": "After you get a fixrequest for one of your levels you can use this command to tell the mods that you don't want to reupload to make the desired fixes. This doesn't automatically mean that your level is gonna be rejected, you will be pinged when a decision is made."
-      },
-      {
-          "name": "help.removeclear",
-          "message": "With this you can remove your clear if you accidentally put in the wrong code."
-      },
-      {
-          "name": "help.rerate",
-          "message": "Use this to rerate the difficulty of a level (in case it's outdated or has been wrongly approved with a too high or or too low difficulty). The Creator of the level will get a notification with your reason."
-      },
-      {
-          "name": "help.unsetworld",
-          "message": "This removes your currently active world from the worlds page (in case you want to remove it for now)."
-      }
+    {
+      name: 'help.add',
+      message:
+        "As soon as you have the required clearpoints (it depends on your team how much that is) you can submit a level to the moderators with this. You'll get a notification if it's approved, still needs some fixes or if it doesn't fit the team.",
+    },
+    {
+      name: 'help.addtags',
+      message:
+        'Use this to add missing tags to a level (like SMB1, SMW, etc...)',
+    },
+    {
+      name: 'help.removetags',
+      message:
+        "You can use this to remove a tag from one of your own levels (or from all levels if you're a mod)",
+    },
+    {
+      name: 'help.addvids',
+      message:
+        "Use this to add a clearvid to a level (it's gonna get shown on the page or with !info)",
+    },
+    {
+      name: 'help.removevids',
+      message:
+        "With this you can remove clearvids from your own levels (or from all levels if you're a mod)",
+    },
+    {
+      name: 'help.amendcode',
+      message:
+        'With this you can amend a level code after someone made mistake entering the code on submission',
+    },
+    {
+      name: 'help.atme',
+      message:
+        'Use this command if you want the bot to ping you if anyone clears one of your levels',
+    },
+    {
+      name: 'help.dontatme',
+      message:
+        'Use this command to stop the bot from pinging you if anyone clears one of your levels',
+    },
+    {
+      name: 'help.nickname',
+      message:
+        'With this command you can change by what name the bot and the site calls you',
+    },
+    {
+      name: 'help.clear',
+      message:
+        "With this command you can flag any level as cleared by you. You'll get clearpoints depending on how difficult the level was (get enough to earn higher ranks). You can also leave away the \"like\" part at the end of the command if you don't want to like the level you cleared. Don't forget: Likes give the maker of the level more maker points than just clears, so if you did enjoy a level, don't forget to leave a like!",
+    },
+    {
+      name: 'help.cleardifficulty',
+      message:
+        'Use this command to reset the public difficulty vote on a certain level.',
+    },
+    {
+      name: 'help.difficulty',
+      message:
+        'Use this command to cast a public difficulty vote on a level.',
+    },
+    {
+      name: 'help.fixdiscuss',
+      message:
+        '[Deprecated] This was used to reload and fix a discussion channel, before audit channels were a thing. Hopefully not used anymore.',
+    },
+    {
+      name: 'help.search',
+      message: 'This lets you search a level by name or creator.',
+    },
+    {
+      name: 'help.like',
+      message:
+        "With this you can submit just a like on a level you've cleared (in case you forgot to add it with the clear or if you changed your mind)",
+    },
+    {
+      name: 'help.unlike',
+      message:
+        'Use this to remove your like if you did it by accident.',
+    },
+    {
+      name: 'help.login',
+      message:
+        "After you use this command the bot will dm you a link you can use to login on the website (to submit your clears and likes there). IMPORTANT: If you're on mobile please copy the link and add it manually to your browser to keep the login. If you just click it, discord might open a temporary browser window for you where you can't log in permanently.",
+    },
+    {
+      name: 'help.makerid',
+      message:
+        'This saves your maker id and maker name so we can show it on your page in the future (and in the world page)',
+    },
+    {
+      name: 'help.modaddclear',
+      message:
+        'Use this to add/update a play/like for a certain member and level. The parameters are the same as for the normal clear command (after the member name), so check out !clear if you wanna know more.',
+    },
+    {
+      name: 'help.modaddlevel',
+      message: 'Use this to add a level for a member.',
+    },
+    {
+      name: 'help.modaddmember',
+      message:
+        'Use this to create a member so you can add levels/clears for them.',
+    },
+    {
+      name: 'help.modsetdiscordid',
+      message:
+        'Use this to link a temporary member you added with an actual user by putting in their discord id. (You can get that by activating developer mode in your discord settings and right clicking their user)',
+    },
+    {
+      name: 'help.pendingstatus',
+      message:
+        'This command will show you one (or all if you leave the code away) of your pending levels and how many votes there are right now.',
+    },
+    {
+      name: 'help.playersrandom',
+      message:
+        "With this command you can put in multiple players to find a level you all haven't cleared yet (in case you want to race each other or play together)",
+    },
+    {
+      name: 'help.points',
+      message:
+        "This shows you how many clearpoints you have currently accumulated (if a level's difficulty changes your points will be automatically updated). It also shows you if you got enough points to upload a level and which rank you have currently reached.",
+    },
+    {
+      name: 'help.random',
+      message:
+        "Randomly chooses an approved level you haven't cleared yet for you to play. It tries to find stuff in your difficulty range and uses the maximum difficulty you ever cleared as the limit. You can either leave the maxDifficulty or both the max- and min-difficulty away if you want.",
+    },
+    {
+      name: 'help.randomall',
+      message:
+        "Randomly chooses a level you haven't cleared yet for you to play from all levels (including pending). It tries to find stuff in your difficulty range and uses the maximum difficulty you ever cleared as the limit. You can either leave the maxDifficulty or both the max- and min-difficulty away if you want.",
+    },
+    {
+      name: 'help.randompending',
+      message:
+        "Randomly chooses a pending level you haven't cleared yet for you to play. It tries to find stuff in your difficulty range and uses the maximum difficulty you ever cleared as the limit. You can either leave the maxDifficulty or both the max- and min-difficulty away if you want.",
+    },
+    {
+      name: 'help.randomtag',
+      message:
+        "Randomly chooses a level with a certain tag you haven't cleared yet for you to play. It tries to find stuff in your difficulty range and uses the maximum difficulty you ever cleared as the limit. You can either leave the maxDifficulty or both the max- and min-difficulty away if you want.",
+    },
+    {
+      name: 'help.register',
+      message:
+        "You'll have to do this in the beginning to register with your preferred name (it's gonna show up on the site and everywhere)",
+    },
+    {
+      name: 'help.refresh',
+      message:
+        'You can use this to reload the bot settings (after you made a change to the team settings)',
+    },
+    {
+      name: 'help.requestremoval',
+      message:
+        'With this you can create a new deletion request for any level (including your own of course). A mod will take a look at it and you will be pinged when a decision has been reached. Use this only if you want to permanently delete a level, not for reuploads.',
+    },
+    {
+      name: 'help.removevote',
+      message:
+        "Use this command to remove your pending vote from a level. (In case it's not valid anymore or you accidentally added it)",
+    },
+    {
+      name: 'help.rename',
+      message:
+        'With this you can rename one of your submitted levels.',
+    },
+    {
+      name: 'help.requestrerate',
+      message:
+        'With this you can create a new difficulty rerate request for any level (including your own of course). A mod will take a look at it and you will be pinged when a decision has been reached.',
+    },
+    {
+      name: 'help.resetstatus',
+      message:
+        'Use this to push a certain level back to pending status (in case an accident happened or a level needs to get another look from the mods)',
+    },
+    {
+      name: 'help.reupload',
+      message:
+        "Use this after you reuploaded a level (first the old code, then the new code and then a little text for the mods and everybody, so they know why you reuploaded) to make some fixes, if the level was already approved or if you got a fix request for it, the level doesn't have to be reapproved and goes straight into it's own little queue for the mods to look at it.",
+    },
+    {
+      name: 'help.setworld',
+      message:
+        'This sets your currently active worldname and sets how many worlds and levels are inside it. After setting it it will show up in the worlds page.',
+    },
+    {
+      name: 'help.approve',
+      message:
+        'This submits an approval vote from you for this level with the specified difficulty. If this is the first moderator vote (of any kind) for this level, the judgement process gets started and a text-channel will be created for this level in the pending level-discussion category.',
+    },
+    {
+      name: 'help.fix',
+      message:
+        'This counts as an approval vote for most purposes, but if the level gets approved and there\'s at least one Fixvote on it the creator will get a fix request and he can decide if he wants to reupload the level or not. Either way it will go into it\'s separate queue (in the category channel "pending-reuploads" where the mods can decide if it\'s still alright to approve or not. Try to put into your "reason" which of the fixes are mandatory and which are optional for you.',
+    },
+    {
+      name: 'help.reject',
+      message:
+        "This submits a reject vote for this level. This should only be used if the level does not fit the team, if it's completely unfixable or if you can't assign a difficulty for some reason (too frustrating to complete, etc...).",
+    },
+    {
+      name: 'help.auditapprove',
+      message:
+        'You can use this inside an audit request channel (reuploads, fixes, deletions, rerates, etc...), to instantly approve the request. The creator of the request will be pinged with your message and depending on the request type the level status or other things get updated.',
+    },
+    {
+      name: 'help.auditreject',
+      message:
+        'You can use this inside an audit request channel (reuploads, fixes, deletions, rerates, etc...), to instantly reject the request. The creator of the request will be pinged with your message and depending on the request type the level status or other things get updated.',
+    },
+    {
+      name: 'help.help',
+      message:
+        'The all-powerful help command, as you probably already know, with this you can get general help, the command list and detailed help for each command.',
+    },
+    {
+      name: 'help.info',
+      message:
+        'This shows you all the relevant information for a certain level (Name, Tags, Clearvids, etc..)',
+    },
+    {
+      name: 'help.judge',
+      message:
+        "Use this in a judgement channel for a level that has reached the needed amount of mod votes to finalize the judgement process. The level creator gets a notification (with all the votes and reasons) in the level update text-channel and the level gets immediately approved, rejected or goes into a fix request (if it's approved and there's at least one fix vote)",
+    },
+    {
+      name: 'help.refusefix',
+      message:
+        "After you get a fixrequest for one of your levels you can use this command to tell the mods that you don't want to reupload to make the desired fixes. This doesn't automatically mean that your level is gonna be rejected, you will be pinged when a decision is made.",
+    },
+    {
+      name: 'help.removeclear',
+      message:
+        'With this you can remove your clear if you accidentally put in the wrong code.',
+    },
+    {
+      name: 'help.rerate',
+      message:
+        "Use this to rerate the difficulty of a level (in case it's outdated or has been wrongly approved with a too high or or too low difficulty). The Creator of the level will get a notification with your reason.",
+    },
+    {
+      name: 'help.unsetworld',
+      message:
+        'This removes your currently active world from the worlds page (in case you want to remove it for now).',
+    },
   ];
 
   const insertCommands = [
-      {
-          "name": "add",
-          "format": "!add <LevelCode> <Level Name>",
-          "aliases": "tsadd",
-          "category": "important"
-      },
-      {
-          "name": "addtags",
-          "format": "!addtags <LevelCode> <Tag1,Tag2,Tag3,...>",
-          "aliases": "tsaddtags,addtag,tsaddtag",
-          "category": "default"
-      },
-      {
-          "name": "removetags",
-          "format": "!removetags <LevelCode> <Tag1,Tag2,Tag3,...>",
-          "aliases": "tsremovetags,removetag,tsremovetag",
-          "category": "default"
-      },
-      {
-          "name": "addvids",
-          "format": "!addvids <LevelCode> <Link1,Link2,Link3,...>",
-          "aliases": "tsaddvids,addvid,tsaddvid",
-          "category": "default"
-      },
-      {
-          "name": "removevids",
-          "format": "!removevids <LevelCode> <Link1,Link2,Link3,...>",
-          "aliases": "tsremovevids,removevid,tsremovevid",
-          "category": "default"
-      },
-      {
-          "name": "amendcode",
-          "format": "!amendcode <OldLevelCode> <NewLevelCode>",
-          "aliases": "ammendcode",
-          "category": "mods"
-      },
-      {
-          "name": "atme",
-          "format": "!atme",
-          "aliases": "atmebot",
-          "category": "default"
-      },
-      {
-          "name": "dontatme",
-          "format": "!dontatme",
-          "aliases": "dontatmebot",
-          "category": "default"
-      },
-      {
-          "name": "nickname",
-          "format": "!nickname <NewName>",
-          "aliases": "nick,changename",
-          "category": "default"
-      },
-      {
-          "name": "clear",
-          "format": "!clear <LevelCode> like",
-          "aliases": "tsclear",
-          "category": "important"
-      },
-      {
-          "name": "cleardifficulty",
-          "format": "!cleardifficulty <LevelCode>",
-          "aliases": "cleardifficultyvote",
-          "category": "mods"
-      },
-      {
-          "name": "difficulty",
-          "format": "!difficulty <LevelCode> <Difficulty>",
-          "aliases": "tsdifficulty,rate",
-          "category": "default"
-      },
-      {
-          "name": "fixdiscuss",
-          "format": "!fixdiscuss",
-          "aliases": "discusschannel,discuss",
-          "category": "mods"
-      },
-      {
-          "name": "search",
-          "format": "!search <SearchTerm>",
-          "aliases": "levelsearch",
-          "category": "default"
-      },
-      {
-          "name": "like",
-          "format": "!like <LevelCode>",
-          "aliases": "tslike",
-          "category": "default"
-      },
-      {
-          "name": "unlike",
-          "format": "!unlike <LevelCode>",
-          "aliases": "tsunlike",
-          "category": "default"
-      },
-      {
-          "name": "login",
-          "format": "!login",
-          "aliases": "tslogin",
-          "category": "important"
-      },
-      {
-          "name": "makerid",
-          "format": "!makerid <MakerID> <MakerName>",
-          "category": "default"
-      },
-      {
-          "name": "modaddclear",
-          "format": "!modaddclear <MemberName> <LevelCode> ...",
-          "category": "mods"
-      },
-      {
-          "name": "modaddlevel",
-          "format": "!modaddlevel <MemberName> <LevelCode> <LevelName>",
-          "category": "mods"
-      },
-      {
-          "name": "modaddmember",
-          "format": "!modaddmember <MemberName>",
-          "category": "mods"
-      },
-      {
-          "name": "modsetdiscordid",
-          "format": "!modsetdiscordid <MemberName> <DiscordID>",
-          "category": "mods"
-      },
-      {
-          "name": "pendingstatus",
-          "format": "!pendingstatus <LevelCode>",
-          "aliases": "pending,tslevelstatus,levelstatus",
-          "category": "default"
-      },
-      {
-          "name": "playersrandom",
-          "format": "!playersrandom <Name1,Name2,Name3> <MinDifficulty> <MaxDifficulty>",
-          "category": "default"
-      },
-      {
-          "name": "points",
-          "format": "!points",
-          "aliases": "point,rank",
-          "category": "important"
-      },
-      {
-          "name": "random",
-          "format": "!random <MinDifficulty> <MaxDifficulty>",
-          "aliases": "tsrandom",
-          "category": "default"
-      },
-      {
-          "name": "randomall",
-          "format": "!randomall <MinDifficulty> <MaxDifficulty>",
-          "category": "default"
-      },
-      {
-          "name": "randompending",
-          "format": "!randompending <MinDifficulty> <MaxDifficulty>",
-          "category": "default"
-      },
-      {
-          "name": "randomtag",
-          "format": "!randomtag <TagName> <MinDifficulty> <MaxDifficulty>",
-          "category": "default"
-      },
-      {
-          "name": "register",
-          "format": "!register <Name>",
-          "aliases": "tsregister",
-          "category": "important"
-      },
-      {
-          "name": "refresh",
-          "format": "!refresh",
-          "category": "mods"
-      },
-      {
-          "name": "requestremoval",
-          "format": "!requestremoval <LevelCode> <Reason>",
-          "aliases": "tsremove,remove,tsremovelevel,removelevel,tsrequestremoval",
-          "category": "default"
-      },
-      {
-          "name": "removevote",
-          "format": "!removevote <LevelCode>",
-          "aliases": "tsremovevote",
-          "category": "mods"
-      },
-      {
-          "name": "rename",
-          "format": "!rename <LevelCode> <NewLevelName>",
-          "aliases": "tsrename",
-          "category": "default"
-      },
-      {
-          "name": "requestrerate",
-          "format": "!requestrerate <LevelCode> <Reason>",
-          "aliases": "tsrequestrerate",
-          "category": "default"
-      },
-      {
-          "name": "resetstatus",
-          "format": "!resetstatus <LevelCode>",
-          "category": "mods"
-      },
-      {
-          "name": "reupload",
-          "format": "!reupload <OldLevelCode> <NewLevelCode> <Reason>",
-          "aliases": "tsreupload",
-          "category": "important"
-      },
-      {
-          "name": "setworld",
-          "format": "!setworld <WorldCount> <LevelCount> <WorldName>",
-          "category": "default"
-      },
-      {
-          "name": "approve",
-          "format": "!approve <LevelCode> <Difficulty> <Reason and other comments>",
-          "aliases": "approve+c,approve+cl,approve+lc,tsapprove,tsapprove+c,tsapprove+cl,tsapprove+lc",
-          "category": "mods"
-      },
-      {
-          "name": "fix",
-          "format": "!fix <LevelCode> <Difficulty> <Reason and other comments>",
-          "aliases": "fix+c,fix+cl,fix+lc,tsfix,tsfix+c,tsfix+cl,tsfix+lc",
-          "category": "mods"
-      },
-      {
-          "name": "reject",
-          "format": "!reject <LevelCode> <Reason and other comments>",
-          "aliases": "reject+c,reject+cl,reject+lc,tsreject,tsreject+c,tsreject+cl,tsreject+lc",
-          "category": "mods"
-      },
-      {
-          "name": "auditapprove",
-          "format": "!auditapprove <Message>",
-          "aliases": "tsauditapprove,fixapprove,tsfixapprove",
-          "category": "mods"
-      },
-      {
-          "name": "auditreject",
-          "format": "!auditreject <Message>",
-          "aliases": "tsauditreject,fixreject,tsfixreject",
-          "category": "mods"
-      },
-      {
-          "name": "help",
-          "format": "!help",
-          "aliases": "?",
-          "category": "default"
-      },
-      {
-          "name": "info",
-          "format": "!info <LevelCode>",
-          "aliases": "tsinfo,level",
-          "category": "default"
-      },
-      {
-          "name": "judge",
-          "format": "!judge",
-          "aliases": "tsjudge,forcejudge",
-          "category": "mods"
-      },
-      {
-          "name": "refusefix",
-          "format": "!refusefix <LevelCode> <Reason>",
-          "aliases": "tsrefusefix",
-          "category": "default"
-      },
-      {
-          "name": "removeclear",
-          "format": "!removeclear",
-          "aliases": "tsremoveclear",
-          "category": "default"
-      },
-      {
-          "name": "rerate",
-          "format": "!rerate <LevelCode> <NewDifficulty> <Reason>",
-          "aliases": "tsrerate",
-          "category": "mods"
-      },
-      {
-          "name": "unsetworld",
-          "format": "!unsetworld",
-          "aliases": "tsunsetworld",
-          "category": "default"
-      }
+    {
+      name: 'add',
+      format: '!add <LevelCode> <Level Name>',
+      aliases: 'tsadd',
+      category: 'important',
+    },
+    {
+      name: 'addtags',
+      format: '!addtags <LevelCode> <Tag1,Tag2,Tag3,...>',
+      aliases: 'tsaddtags,addtag,tsaddtag',
+      category: 'default',
+    },
+    {
+      name: 'removetags',
+      format: '!removetags <LevelCode> <Tag1,Tag2,Tag3,...>',
+      aliases: 'tsremovetags,removetag,tsremovetag',
+      category: 'default',
+    },
+    {
+      name: 'addvids',
+      format: '!addvids <LevelCode> <Link1,Link2,Link3,...>',
+      aliases: 'tsaddvids,addvid,tsaddvid',
+      category: 'default',
+    },
+    {
+      name: 'removevids',
+      format: '!removevids <LevelCode> <Link1,Link2,Link3,...>',
+      aliases: 'tsremovevids,removevid,tsremovevid',
+      category: 'default',
+    },
+    {
+      name: 'amendcode',
+      format: '!amendcode <OldLevelCode> <NewLevelCode>',
+      aliases: 'ammendcode',
+      category: 'mods',
+    },
+    {
+      name: 'atme',
+      format: '!atme',
+      aliases: 'atmebot',
+      category: 'default',
+    },
+    {
+      name: 'dontatme',
+      format: '!dontatme',
+      aliases: 'dontatmebot',
+      category: 'default',
+    },
+    {
+      name: 'nickname',
+      format: '!nickname <NewName>',
+      aliases: 'nick,changename',
+      category: 'default',
+    },
+    {
+      name: 'clear',
+      format: '!clear <LevelCode> like',
+      aliases: 'tsclear',
+      category: 'important',
+    },
+    {
+      name: 'cleardifficulty',
+      format: '!cleardifficulty <LevelCode>',
+      aliases: 'cleardifficultyvote',
+      category: 'mods',
+    },
+    {
+      name: 'difficulty',
+      format: '!difficulty <LevelCode> <Difficulty>',
+      aliases: 'tsdifficulty,rate',
+      category: 'default',
+    },
+    {
+      name: 'fixdiscuss',
+      format: '!fixdiscuss',
+      aliases: 'discusschannel,discuss',
+      category: 'mods',
+    },
+    {
+      name: 'search',
+      format: '!search <SearchTerm>',
+      aliases: 'levelsearch',
+      category: 'default',
+    },
+    {
+      name: 'like',
+      format: '!like <LevelCode>',
+      aliases: 'tslike',
+      category: 'default',
+    },
+    {
+      name: 'unlike',
+      format: '!unlike <LevelCode>',
+      aliases: 'tsunlike',
+      category: 'default',
+    },
+    {
+      name: 'login',
+      format: '!login',
+      aliases: 'tslogin',
+      category: 'important',
+    },
+    {
+      name: 'makerid',
+      format: '!makerid <MakerID> <MakerName>',
+      category: 'default',
+    },
+    {
+      name: 'modaddclear',
+      format: '!modaddclear <MemberName> <LevelCode> ...',
+      category: 'mods',
+    },
+    {
+      name: 'modaddlevel',
+      format: '!modaddlevel <MemberName> <LevelCode> <LevelName>',
+      category: 'mods',
+    },
+    {
+      name: 'modaddmember',
+      format: '!modaddmember <MemberName>',
+      category: 'mods',
+    },
+    {
+      name: 'modsetdiscordid',
+      format: '!modsetdiscordid <MemberName> <DiscordID>',
+      category: 'mods',
+    },
+    {
+      name: 'pendingstatus',
+      format: '!pendingstatus <LevelCode>',
+      aliases: 'pending,tslevelstatus,levelstatus',
+      category: 'default',
+    },
+    {
+      name: 'playersrandom',
+      format:
+        '!playersrandom <Name1,Name2,Name3> <MinDifficulty> <MaxDifficulty>',
+      category: 'default',
+    },
+    {
+      name: 'points',
+      format: '!points',
+      aliases: 'point,rank',
+      category: 'important',
+    },
+    {
+      name: 'random',
+      format: '!random <MinDifficulty> <MaxDifficulty>',
+      aliases: 'tsrandom',
+      category: 'default',
+    },
+    {
+      name: 'randomall',
+      format: '!randomall <MinDifficulty> <MaxDifficulty>',
+      category: 'default',
+    },
+    {
+      name: 'randompending',
+      format: '!randompending <MinDifficulty> <MaxDifficulty>',
+      category: 'default',
+    },
+    {
+      name: 'randomtag',
+      format: '!randomtag <TagName> <MinDifficulty> <MaxDifficulty>',
+      category: 'default',
+    },
+    {
+      name: 'register',
+      format: '!register <Name>',
+      aliases: 'tsregister',
+      category: 'important',
+    },
+    {
+      name: 'refresh',
+      format: '!refresh',
+      category: 'mods',
+    },
+    {
+      name: 'requestremoval',
+      format: '!requestremoval <LevelCode> <Reason>',
+      aliases:
+        'tsremove,remove,tsremovelevel,removelevel,tsrequestremoval',
+      category: 'default',
+    },
+    {
+      name: 'removevote',
+      format: '!removevote <LevelCode>',
+      aliases: 'tsremovevote',
+      category: 'mods',
+    },
+    {
+      name: 'rename',
+      format: '!rename <LevelCode> <NewLevelName>',
+      aliases: 'tsrename',
+      category: 'default',
+    },
+    {
+      name: 'requestrerate',
+      format: '!requestrerate <LevelCode> <Reason>',
+      aliases: 'tsrequestrerate',
+      category: 'default',
+    },
+    {
+      name: 'resetstatus',
+      format: '!resetstatus <LevelCode>',
+      category: 'mods',
+    },
+    {
+      name: 'reupload',
+      format: '!reupload <OldLevelCode> <NewLevelCode> <Reason>',
+      aliases: 'tsreupload',
+      category: 'important',
+    },
+    {
+      name: 'setworld',
+      format: '!setworld <WorldCount> <LevelCount> <WorldName>',
+      category: 'default',
+    },
+    {
+      name: 'approve',
+      format:
+        '!approve <LevelCode> <Difficulty> <Reason and other comments>',
+      aliases:
+        'approve+c,approve+cl,approve+lc,tsapprove,tsapprove+c,tsapprove+cl,tsapprove+lc',
+      category: 'mods',
+    },
+    {
+      name: 'fix',
+      format:
+        '!fix <LevelCode> <Difficulty> <Reason and other comments>',
+      aliases: 'fix+c,fix+cl,fix+lc,tsfix,tsfix+c,tsfix+cl,tsfix+lc',
+      category: 'mods',
+    },
+    {
+      name: 'reject',
+      format: '!reject <LevelCode> <Reason and other comments>',
+      aliases:
+        'reject+c,reject+cl,reject+lc,tsreject,tsreject+c,tsreject+cl,tsreject+lc',
+      category: 'mods',
+    },
+    {
+      name: 'auditapprove',
+      format: '!auditapprove <Message>',
+      aliases: 'tsauditapprove,fixapprove,tsfixapprove',
+      category: 'mods',
+    },
+    {
+      name: 'auditreject',
+      format: '!auditreject <Message>',
+      aliases: 'tsauditreject,fixreject,tsfixreject',
+      category: 'mods',
+    },
+    {
+      name: 'help',
+      format: '!help',
+      aliases: '?',
+      category: 'default',
+    },
+    {
+      name: 'info',
+      format: '!info <LevelCode>',
+      aliases: 'tsinfo,level',
+      category: 'default',
+    },
+    {
+      name: 'judge',
+      format: '!judge',
+      aliases: 'tsjudge,forcejudge',
+      category: 'mods',
+    },
+    {
+      name: 'refusefix',
+      format: '!refusefix <LevelCode> <Reason>',
+      aliases: 'tsrefusefix',
+      category: 'default',
+    },
+    {
+      name: 'removeclear',
+      format: '!removeclear',
+      aliases: 'tsremoveclear',
+      category: 'default',
+    },
+    {
+      name: 'rerate',
+      format: '!rerate <LevelCode> <NewDifficulty> <Reason>',
+      aliases: 'tsrerate',
+      category: 'mods',
+    },
+    {
+      name: 'unsetworld',
+      format: '!unsetworld',
+      aliases: 'tsunsetworld',
+      category: 'default',
+    },
   ];
 
   return knex.schema
@@ -1702,18 +1756,15 @@ exports.up = function (knex) {
     })
     .then(function () {
       // Inserts seed entries
-      return knex('commands')
-        .insert(insertCommands);
+      return knex('commands').insert(insertCommands);
     })
     .then(function () {
       // Inserts seed entries
-      return knex('default_strings')
-        .insert(insertJson);
+      return knex('default_strings').insert(insertJson);
     })
     .then(function () {
       // Inserts seed entries
-      return knex('default_strings')
-        .insert(insertCommandStrings);
+      return knex('default_strings').insert(insertCommandStrings);
     });
 };
 

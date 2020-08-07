@@ -33,12 +33,13 @@ class TSCommand extends Command {
           cmd.indexOf(':') + 1,
           cmd.length,
         );
+        // eslint-disable-next-line no-param-reassign
         message.content = message.content.replace(
           cmd,
           cmd.substring(0, cmd.indexOf(':')),
         );
       } else {
-        ts.commandLanguage = "en";
+        ts.commandLanguage = 'en';
       }
 
       if (

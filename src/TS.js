@@ -849,31 +849,37 @@ class TS {
           );
         }
         // Try translating it and adding it to the messages
-        try{
+        try {
           const [
             translation,
           ] = await this.cloudTranslationService.translate(
-            "[Translated by Google Translate]" + this.messages[type](args),
+            `[Translated by Google Translate]${this.messages[type](
+              args,
+            )}`,
             this.commandLanguage,
           );
 
-          await this.knex(
-            'default_strings',
-          ).insert({
-            "name": `${this.commandLanguage}.${type}`,
-            "message": translation
+          await this.knex('default_strings').insert({
+            name: `${this.commandLanguage}.${type}`,
+            message: translation,
           });
 
-          TS.addMessage(`${this.commandLanguage}.${type}`, translation);
+          TS.addMessage(
+            `${this.commandLanguage}.${type}`,
+            translation,
+          );
 
           return translation;
         } catch (ex) {
-          if(ex.errors && ex.errors.length > 0 && ex.errors[0].message === "Invalid Value"){
-            return "Invalid Language";
-          } else {
-            console.log(ex);
-            return 'something went wrong buzzyS';
+          if (
+            ex.errors &&
+            ex.errors.length > 0 &&
+            ex.errors[0].message === 'Invalid Value'
+          ) {
+            return 'Invalid Language';
           }
+          console.log(ex);
+          return 'something went wrong buzzyS';
         }
       }
       throw new Error(
@@ -4296,8 +4302,8 @@ class TS {
    * @param {Snowflake} guildId
    */
   static addMessage(name, message) {
-    for(let key in TS.TS_LIST){
-      let ts = TS.TS_LIST[key];
+    for (const key of Object.keys(TS.TS_LIST)) {
+      const ts = TS.TS_LIST[key];
       ts.messages[name] = message;
     }
   }
