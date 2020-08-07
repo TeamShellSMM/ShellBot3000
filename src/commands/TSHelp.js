@@ -11,11 +11,59 @@ class TSHelp extends TSCommand {
     });
   }
 
-  async tsexec(ts, message, { language }) {
-    await ts.discord.messageSend(
-      message,
-      await ts.message(`help`),
-    );
+  async tsexec(ts, message) {
+    const command = ts.parseCommand(message);
+    let commandName = command.next();
+
+    if(commandName){
+      if(commandName === "commands"){
+        let replyMessage = await ts.message(`help.commands`);
+
+        let commandsDB = await ts.knex('commands')
+        .where('category', '<>', 'mods');
+
+        for(let commandDB of commandsDB){
+          if(commandDB.category === 'important'){
+            replyMessage += `\n> **__${commandDB.name}__**`;
+          } else {
+            replyMessage += `\n> ${commandDB.name}`;
+          }
+        }
+
+        await ts.discord.messageSend(
+          message,
+          replyMessage,
+        );
+      } else {
+        commandName = commandName.replace("!", "");
+
+        let commandDB = await ts.knex('commands')
+        .where({
+          name: commandName,
+        })
+        .orWhere('aliases', 'like', commandName + '%')
+        .orWhere('aliases', 'like', '%' + commandName)
+        .orWhere('aliases', 'like', '%' + commandName + '%');
+
+        if(commandDB && commandDB.length > 0){
+          await ts.discord.messageSend(
+            message,
+            `**${commandDB[0].format}**\n> ` + await ts.message(`help.${commandDB[0].name}`),
+          );
+        } else {
+          await ts.discord.messageSend(
+            message,
+            await ts.message(`help.unknownCommand`),
+          );
+        }
+      }
+
+    } else {
+      await ts.discord.messageSend(
+        message,
+        await ts.message(`help`),
+      );
+    }
   }
 }
 module.exports = TSHelp;
