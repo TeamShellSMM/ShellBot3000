@@ -4304,7 +4304,7 @@ class TS {
   static addMessage(name, message) {
     for (const key of Object.keys(TS.TS_LIST)) {
       const ts = TS.TS_LIST[key];
-      ts.messages[name] = message;
+      ts.messages[name] = this.makeTemplate(message || '');
     }
   }
 }
