@@ -876,7 +876,7 @@ class TS {
             ex.errors.length > 0 &&
             ex.errors[0].message === 'Invalid Value'
           ) {
-            return 'Invalid Language';
+            return 'Invalid Language, try using the short language code for your desired language (en, de, fr, ko, ja, ...).';
           }
           console.log(ex);
           return 'something went wrong buzzyS';
