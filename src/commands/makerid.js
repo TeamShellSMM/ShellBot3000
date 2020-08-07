@@ -21,13 +21,15 @@ class MakerId extends TSCommand {
   }
 
   async tsexec(ts, message, { code, name }) {
-    if (!code) ts.userError(ts.message('makerid.noCode'));
-    if (!name) ts.userError(ts.message('makerid.noName'));
+    if (!code) ts.userError(await ts.message('makerid.noCode'));
+    if (!name) ts.userError(await ts.message('makerid.noName'));
 
     const player = await ts.getUser(message);
 
     if (!ts.validCode(code)) {
-      ts.userError(ts.message('error.invalidMakerCode', { code }));
+      ts.userError(
+        await ts.message('error.invalidMakerCode', { code }),
+      );
     }
 
     const existingMember = await ts.db.Members.query()
@@ -38,7 +40,7 @@ class MakerId extends TSCommand {
       existingMember.discord_id !== player.discord_id
     ) {
       ts.userError(
-        ts.message('makerid.existing', {
+        await ts.message('makerid.existing', {
           code,
           name: existingMember.name,
         }),
@@ -52,7 +54,7 @@ class MakerId extends TSCommand {
     await ts.discord.messageSend(
       message,
       player.userReply +
-        ts.message('makerid.success', { code, name }),
+        (await ts.message('makerid.success', { code, name })),
     );
   }
 }

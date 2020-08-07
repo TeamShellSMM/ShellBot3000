@@ -24,7 +24,7 @@ class TSClearDifficulty extends TSCommand {
 
     await ts.discord.messageSend(
       message,
-      ts.message('clearDifficulty.success', level),
+      await ts.message('clearDifficulty.success', level),
     );
   }
 }

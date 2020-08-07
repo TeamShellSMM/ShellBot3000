@@ -24,6 +24,24 @@ class TSCommand extends Command {
     let ts;
     try {
       ts = TS.teams(TS.DiscordWrapper.messageGetGuild(message));
+
+      // Language stuff
+      // If we find a colon in the command we remove the language part from the message content entire and set the ts language to that
+      const { cmd } = ts.parseCommand(message);
+      if (cmd.indexOf(':') !== -1) {
+        ts.commandLanguage = cmd.substring(
+          cmd.indexOf(':') + 1,
+          cmd.length,
+        );
+        // eslint-disable-next-line no-param-reassign
+        message.content = message.content.replace(
+          cmd,
+          cmd.substring(0, cmd.indexOf(':')),
+        );
+      } else {
+        ts.commandLanguage = 'en';
+      }
+
       if (
         ts.teamVariables.ChannelsShellbotAllowed &&
         this.category.id !== 'help'
@@ -60,7 +78,7 @@ class TSCommand extends Command {
       if (ts) {
         await TS.DiscordWrapper.reply(
           message,
-          ts.getUserErrorMsg(error, message),
+          await ts.getUserErrorMsg(error, message),
         );
       } else {
         await TS.DiscordWrapper.reply(message, error.toString());

@@ -14,7 +14,7 @@ class undoremovelevel extends TSCommand {
 
   async tsexec(ts, message, { command }) {
     let code = command.arguments.shift();
-    if (!code) ts.userError(ts.message('error.noCode'));
+    if (!code) ts.userError(await ts.message('error.noCode'));
     code = code.toUpperCase();
     const reason = command.arguments.join(' ');
 
@@ -28,7 +28,7 @@ class undoremovelevel extends TSCommand {
 
     if (!ts.REMOVED_LEVELS.includes(level.status))
       ts.userError(
-        ts.message('undoRemoveLevel.alreadyNotRemoved', level),
+        await ts.message('undoRemoveLevel.alreadyNotRemoved', level),
       );
 
     if (
@@ -38,7 +38,7 @@ class undoremovelevel extends TSCommand {
         player.is_mod
       )
     )
-      ts.userError(ts.message('undoRemoveLevel.cant', level));
+      ts.userError(await ts.message('undoRemoveLevel.cant', level));
 
     await ts.db.Levels.query()
       .patch({
@@ -50,7 +50,7 @@ class undoremovelevel extends TSCommand {
     await ts.recalculateAfterUpdate({ code });
 
     // Send updates to to #shellbot-level-update
-    const undoEmbed = ts.levelEmbed(level, ts.embedStyle.undo);
+    const undoEmbed = await ts.levelEmbed(level, ts.embedStyle.undo);
     undoEmbed.addField(
       '\u200b',
       `**Notes on level status undo** :\`\`\`${reason}\`\`\`-<@${player.discord_id}>`,
@@ -72,7 +72,7 @@ class undoremovelevel extends TSCommand {
       undoEmbed,
     );
 
-    const reply = ts.message('undoRemoveLevel.success', level);
+    const reply = await ts.message('undoRemoveLevel.success', level);
     await ts.discord.messageSend(message, player.userReply + reply);
   }
 }

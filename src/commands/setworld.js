@@ -33,15 +33,16 @@ class SetWorld extends TSCommand {
     const worldName = command.arguments.join(' ');
 
     if (!worldCount)
-      ts.userError(ts.message('setworld.invalidWorldCount'));
+      ts.userError(await ts.message('setworld.invalidWorldCount'));
     if (!levelCount)
-      ts.userError(ts.message('setworld.invalidLevelCount'));
-    if (!worldName) ts.userError(ts.message('setworld.noWorldName'));
+      ts.userError(await ts.message('setworld.invalidLevelCount'));
+    if (!worldName)
+      ts.userError(await ts.message('setworld.noWorldName'));
 
     const player = await ts.getUser(message);
 
     if (!player.maker_id || !player.maker_name) {
-      ts.userError(ts.message('setworld.noMakerId'));
+      ts.userError(await ts.message('setworld.noMakerId'));
     }
 
     await ts.db.Members.query()
@@ -54,7 +55,7 @@ class SetWorld extends TSCommand {
 
     ts.discord.messageSend(
       message,
-      player.userReply + ts.message('setworld.success'),
+      player.userReply + (await ts.message('setworld.success')),
     );
   }
 }

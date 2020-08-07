@@ -1,3 +1,5 @@
+const assert10 = require('assert');
+
 describe('judge:processVotes', function () {
   describe('processVotes 1 votes needed', function () {
     before(() => {
@@ -9,7 +11,7 @@ describe('judge:processVotes', function () {
 
     it('1 approve = approved', async () => {
       assert.equal(
-        TEST.ts.processVotes({
+        await TEST.ts.processVotes({
           approvalVotesCount: 1,
         }),
         TEST.ts.LEVEL_STATUS.APPROVED,
@@ -17,7 +19,7 @@ describe('judge:processVotes', function () {
     });
     it('1 reject = rejected', async () => {
       assert.equal(
-        TEST.ts.processVotes({
+        await TEST.ts.processVotes({
           rejectVotesCount: 1,
         }),
         TEST.ts.LEVEL_STATUS.REJECTED,
@@ -25,7 +27,7 @@ describe('judge:processVotes', function () {
     });
     it('1 fix = need fix', async () => {
       assert.equal(
-        TEST.ts.processVotes({
+        await TEST.ts.processVotes({
           fixVotesCount: 1,
         }),
         TEST.ts.LEVEL_STATUS.NEED_FIX,
@@ -34,7 +36,7 @@ describe('judge:processVotes', function () {
 
     it('1 approved,1 fix = approved', async () => {
       assert.equal(
-        TEST.ts.processVotes({
+        await TEST.ts.processVotes({
           fixVotesCount: 1,
           approvalVotesCount: 1,
         }),
@@ -42,31 +44,33 @@ describe('judge:processVotes', function () {
       );
     });
     it('1 reject,1 approval = tie', async () => {
-      assert.throws(
-        () =>
-          TEST.ts.processVotes({
-            approvalVotesCount: 1,
-            rejectVotesCount: 1,
-          }),
-        TEST.ts.UserError,
-        TEST.ts.message('approval.comboBreaker'),
+      await assert10.rejects(
+        TEST.ts.processVotes({
+          approvalVotesCount: 1,
+          rejectVotesCount: 1,
+        }),
+        {
+          name: 'UserError',
+          message: await TEST.ts.message('approval.comboBreaker'),
+        },
       );
     });
     it('1 reject,1 tie = tie', async () => {
-      assert.throws(
-        () =>
-          TEST.ts.processVotes({
-            fixVotesCount: 1,
-            rejectVotesCount: 1,
-          }),
-        TEST.ts.UserError,
-        TEST.ts.message('approval.comboBreaker'),
+      await assert10.rejects(
+        TEST.ts.processVotes({
+          fixVotesCount: 1,
+          rejectVotesCount: 1,
+        }),
+        {
+          name: 'UserError',
+          message: await TEST.ts.message('approval.comboBreaker'),
+        },
       );
     });
 
     it('1 approved,2 fix = fixed', async () => {
       assert.equal(
-        TEST.ts.processVotes({
+        await TEST.ts.processVotes({
           fixVotesCount: 2,
           approvalVotesCount: 1,
         }),
@@ -84,38 +88,41 @@ describe('judge:processVotes', function () {
     });
 
     it('1 approve vote = not enough', async () => {
-      assert.throws(
-        () =>
-          TEST.ts.processVotes({
-            approvalVotesCount: 1,
-          }),
-        TEST.ts.UserError,
-        TEST.ts.message('approval.numVotesNeeded'),
+      await assert10.rejects(
+        TEST.ts.processVotes({
+          approvalVotesCount: 1,
+        }),
+        {
+          name: 'UserError',
+          message: await TEST.ts.message('approval.numVotesNeeded'),
+        },
       );
     });
     it('1 reject vote = not enough', async () => {
-      assert.throws(
-        () =>
-          TEST.ts.processVotes({
-            rejectVotesCount: 1,
-          }),
-        TEST.ts.UserError,
-        TEST.ts.message('approval.numVotesNeeded'),
+      await assert10.rejects(
+        TEST.ts.processVotes({
+          rejectVotesCount: 1,
+        }),
+        {
+          name: 'UserError',
+          message: await TEST.ts.message('approval.numVotesNeeded'),
+        },
       );
     });
     it('1 fix vote = not enough', async () => {
-      assert.throws(
-        () =>
-          TEST.ts.processVotes({
-            fixVotesCount: 1,
-          }),
-        TEST.ts.UserError,
-        TEST.ts.message('approval.numVotesNeeded'),
+      await assert10.rejects(
+        TEST.ts.processVotes({
+          fixVotesCount: 1,
+        }),
+        {
+          name: 'UserError',
+          message: await TEST.ts.message('approval.numVotesNeeded'),
+        },
       );
     });
     it('2 approve vote = approved', async () => {
       assert.equal(
-        TEST.ts.processVotes({
+        await TEST.ts.processVotes({
           approvalVotesCount: 2,
         }),
         TEST.ts.LEVEL_STATUS.APPROVED,
@@ -123,7 +130,7 @@ describe('judge:processVotes', function () {
     });
     it('2 reject vote = rejected', async () => {
       assert.equal(
-        TEST.ts.processVotes({
+        await TEST.ts.processVotes({
           rejectVotesCount: 2,
         }),
         TEST.ts.LEVEL_STATUS.REJECTED,
@@ -131,7 +138,7 @@ describe('judge:processVotes', function () {
     });
     it('2 fix vote = need fix', async () => {
       assert.equal(
-        TEST.ts.processVotes({
+        await TEST.ts.processVotes({
           fixVotesCount: 2,
         }),
         TEST.ts.LEVEL_STATUS.NEED_FIX,
@@ -140,7 +147,7 @@ describe('judge:processVotes', function () {
 
     it('1 fix,1 approve = need fix', async () => {
       assert.equal(
-        TEST.ts.processVotes({
+        await TEST.ts.processVotes({
           fixVotesCount: 1,
           approvalVotesCount: 1,
         }),
@@ -149,19 +156,21 @@ describe('judge:processVotes', function () {
     });
 
     it('2 rejects,2 approve = tie', async () => {
-      assert.throws(
-        () =>
-          TEST.ts.processVotes({
-            rejectVotesCount: 2,
-            approvalVotesCount: 2,
-          }),
-        TEST.ts.message('approval.comboBreaker'),
+      await assert10.rejects(
+        TEST.ts.processVotes({
+          rejectVotesCount: 2,
+          approvalVotesCount: 2,
+        }),
+        {
+          name: 'UserError',
+          message: await TEST.ts.message('approval.comboBreaker'),
+        },
       );
     });
 
     it('3 rejects,2 approve = reject', async () => {
       assert.equal(
-        TEST.ts.processVotes({
+        await TEST.ts.processVotes({
           rejectVotesCount: 3,
           approvalVotesCount: 2,
         }),
@@ -171,7 +180,7 @@ describe('judge:processVotes', function () {
 
     it('2 approve,2 fix = approved', async () => {
       assert.equal(
-        TEST.ts.processVotes({
+        await TEST.ts.processVotes({
           fixVotesCount: 2,
           approvalVotesCount: 2,
         }),
@@ -180,21 +189,22 @@ describe('judge:processVotes', function () {
     });
 
     it('2 rejects,1 fix vote,1 approve = tie', async () => {
-      assert.throws(
-        () =>
-          TEST.ts.processVotes({
-            rejectVotesCount: 2,
-            fixVotesCount: 1,
-            approvalVotesCount: 1,
-          }),
-        TEST.ts.UserError,
-        TEST.ts.message('approval.comboBreaker'),
+      await assert10.rejects(
+        TEST.ts.processVotes({
+          rejectVotesCount: 2,
+          fixVotesCount: 1,
+          approvalVotesCount: 1,
+        }),
+        {
+          name: 'UserError',
+          message: await TEST.ts.message('approval.comboBreaker'),
+        },
       );
     });
 
     it('2 rejects,2 approve,1 fix vote=need fix', async () => {
       assert.equal(
-        TEST.ts.processVotes({
+        await TEST.ts.processVotes({
           rejectVotesCount: 2,
           approvalVotesCount: 2,
           fixVotesCount: 1,
@@ -213,7 +223,7 @@ describe('judge:processVotes', function () {
 
     it('2 rejects = reject', async () => {
       assert.equal(
-        TEST.ts.processVotes({
+        await TEST.ts.processVotes({
           rejectVotesCount: 2,
         }),
         TEST.ts.LEVEL_STATUS.REJECTED,
@@ -222,7 +232,7 @@ describe('judge:processVotes', function () {
 
     it('2 rejects,2 approve = reject', async () => {
       assert.equal(
-        TEST.ts.processVotes({
+        await TEST.ts.processVotes({
           rejectVotesCount: 2,
           approvalVotesCount: 2,
         }),
@@ -231,20 +241,21 @@ describe('judge:processVotes', function () {
     });
 
     it('2 rejects,3 approve = tie', async () => {
-      assert.throws(
-        () =>
-          TEST.ts.processVotes({
-            rejectVotesCount: 2,
-            approvalVotesCount: 3,
-          }),
-        TEST.ts.UserError,
-        TEST.ts.message('approval.comboBreaker'),
+      await assert10.rejects(
+        TEST.ts.processVotes({
+          rejectVotesCount: 2,
+          approvalVotesCount: 3,
+        }),
+        {
+          name: 'UserError',
+          message: await TEST.ts.message('approval.comboBreaker'),
+        },
       );
     });
 
     it('3 rejects,3 approve = reject', async () => {
       assert.equal(
-        TEST.ts.processVotes({
+        await TEST.ts.processVotes({
           rejectVotesCount: 2,
           approvalVotesCount: 2,
         }),
@@ -254,7 +265,7 @@ describe('judge:processVotes', function () {
 
     it('3 rejects,4 approve = reject', async () => {
       assert.equal(
-        TEST.ts.processVotes({
+        await TEST.ts.processVotes({
           rejectVotesCount: 2,
           approvalVotesCount: 2,
         }),
@@ -273,7 +284,7 @@ describe('judge:processVotes', function () {
 
     it('1 approve, 2 fix = fixed', async () => {
       assert.equal(
-        TEST.ts.processVotes({
+        await TEST.ts.processVotes({
           approvalVotesCount: 1,
           fixVotesCount: 2,
         }),
@@ -292,7 +303,7 @@ describe('judge:processVotes', function () {
 
     it('2 approve, 2 ApproveVotesNeeded', async () => {
       assert.equal(
-        TEST.ts.processVotes({
+        await TEST.ts.processVotes({
           approvalVotesNeeded: 2,
           approvalVotesCount: 2,
         }),
@@ -301,20 +312,21 @@ describe('judge:processVotes', function () {
     });
 
     it('1 approve, 2 approveVotesNeeded ', async () => {
-      assert.throws(
-        () =>
-          TEST.ts.processVotes({
-            approvalVotesNeeded: 2,
-            approvalVotesCount: 1,
-          }),
-        TEST.ts.UserError,
-        TEST.ts.message('approval.numVotesNeeded'),
+      await assert10.rejects(
+        TEST.ts.processVotes({
+          approvalVotesNeeded: 2,
+          approvalVotesCount: 1,
+        }),
+        {
+          name: 'UserError',
+          message: await TEST.ts.message('approval.numVotesNeeded'),
+        },
       );
     });
 
     it('3 rejects,4 approve = reject', async () => {
       assert.equal(
-        TEST.ts.processVotes({
+        await TEST.ts.processVotes({
           fixVotesNeeded: 2,
           fixVotesCount: 1,
           approvalVotesCount: 1,
@@ -324,15 +336,16 @@ describe('judge:processVotes', function () {
     });
 
     it('3 approve needed, 2 fix needed, 2 approves=not enough votes', async () => {
-      assert.throws(
-        () =>
-          TEST.ts.processVotes({
-            approvalVotesNeeded: 3,
-            fixVotesNeeded: 2,
-            approvalVotesCount: 2,
-          }),
-        TEST.ts.UserError,
-        TEST.ts.message('approval.numVotesNeeded'),
+      await assert10.rejects(
+        TEST.ts.processVotes({
+          approvalVotesNeeded: 3,
+          fixVotesNeeded: 2,
+          approvalVotesCount: 2,
+        }),
+        {
+          name: 'UserError',
+          message: await TEST.ts.message('approval.numVotesNeeded'),
+        },
       );
     });
   });
@@ -464,12 +477,12 @@ describe('oneVoteAway', function () {
   });
 
   it('no votes', async () => {
-    assert.isFalse(TEST.ts.oneVoteAway());
+    assert.isFalse(await TEST.ts.oneVoteAway());
   });
 
   it('1 votes', async () => {
     assert.equal(
-      TEST.ts.oneVoteAway({
+      await TEST.ts.oneVoteAway({
         rejectVotesCount: 1,
         fixVotesCount: 1,
       }),
@@ -479,7 +492,7 @@ describe('oneVoteAway', function () {
 
   it('1 votes away approve', async () => {
     assert.equal(
-      TEST.ts.oneVoteAway({
+      await TEST.ts.oneVoteAway({
         rejectVotesCount: 1,
         approvalVotesCount: 2,
         fixVotesCount: 1,
@@ -490,7 +503,7 @@ describe('oneVoteAway', function () {
 
   it('1 votes away reject', async () => {
     assert.equal(
-      TEST.ts.oneVoteAway({
+      await TEST.ts.oneVoteAway({
         rejectVotesCount: 2,
         fixVotesCount: 1,
       }),
@@ -500,7 +513,7 @@ describe('oneVoteAway', function () {
 
   it('1 votes away fix', async () => {
     assert.equal(
-      TEST.ts.oneVoteAway({
+      await TEST.ts.oneVoteAway({
         fixVotesCount: 2,
       }),
       TEST.ts.LEVEL_STATUS.NEED_FIX,
@@ -509,7 +522,7 @@ describe('oneVoteAway', function () {
 
   it('1 votes away fix (w approve)', async () => {
     assert.equal(
-      TEST.ts.oneVoteAway({
+      await TEST.ts.oneVoteAway({
         fixVotesCount: 1,
         approvalVotesCount: 1,
       }),
@@ -520,14 +533,15 @@ describe('oneVoteAway', function () {
   it('unknown error', async () => {
     const processVotes = sinon.stub(TEST.ts, 'processVotes');
     processVotes.throws(new Error('unknown'));
-    assert.throws(
-      () =>
-        TEST.ts.oneVoteAway({
-          fixVotesCount: 1,
-          approvalVotesCount: 1,
-        }),
-      Error,
-      'unknown',
+    await assert10.rejects(
+      TEST.ts.oneVoteAway({
+        fixVotesCount: 1,
+        approvalVotesCount: 1,
+      }),
+      {
+        name: 'Error',
+        message: 'unknown',
+      },
     );
     processVotes.restore();
   });

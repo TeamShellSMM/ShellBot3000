@@ -74,17 +74,17 @@ class TSAddvids extends TSCommand {
         ts.userError(
           `No new clear video added for "${level.level_name}" by ${
             level.creator
-          }${ts.message('addVids.currentVideos', {
+          }${await ts.message('addVids.currentVideos', {
             videos_str: oldVids.join('\n'),
           })}`,
         );
       }
       oldVids = oldVids.concat(newVids);
       reply =
-        ts.message('addVids.haveNew', level) +
-        ts.message('addVids.currentVideos', {
+        (await ts.message('addVids.haveNew', level)) +
+        (await ts.message('addVids.currentVideos', {
           videos_str: oldVids.join('\n'),
-        });
+        }));
     } else {
       // removing
       if (!(level.creator === player.name || player.is_mod === 1)) {
@@ -99,18 +99,18 @@ class TSAddvids extends TSCommand {
       });
       if (oldVids.length === newVids.length) {
         ts.userError(
-          ts.message('addVids.noRemoved', level) +
-            ts.message('addVids.currentVideos', {
+          (await ts.message('addVids.noRemoved', level)) +
+            (await ts.message('addVids.currentVideos', {
               videos_str: oldVids.join('\n'),
-            }),
+            })),
         );
       }
       oldVids = newVids;
       reply =
-        ts.message('addVids.haveRemoved', level) +
-        ts.message('addVids.currentVideos', {
+        (await ts.message('addVids.haveRemoved', level)) +
+        (await ts.message('addVids.currentVideos', {
           videos_str: oldVids.join('\n'),
-        });
+        }));
     }
 
     await ts.db.Levels.query()

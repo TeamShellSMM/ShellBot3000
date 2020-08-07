@@ -1,5 +1,6 @@
 'use strict';
 
+const { Translate } = require('@google-cloud/translate').v2;
 const crypto = require('crypto');
 const moment = require('moment');
 const jwt = require('jsonwebtoken');
@@ -8,7 +9,6 @@ const Handlebars = require('handlebars');
 const debug = require('debug')('shellbot3000:ts');
 const cron = require('node-cron');
 const knex = require('./db/knex');
-const DEFAULTMESSAGES = require('./DefaultStrings.js');
 const DiscordLog = require('./DiscordLog');
 const UserError = require('./UserError');
 const Teams = require('./models/Teams.js');
@@ -60,6 +60,10 @@ class TS {
     this.DiscordWrapper = DiscordWrapper;
     TS.DiscordWrapper = DiscordWrapper;
     this.discord = new DiscordWrapper(guildId);
+    this.cloudTranslationService = new Translate({
+      projectId: 673279391932,
+      keyFilename: '/home/liaf/makerteams-keyfile.json',
+    });
     this.CONSTANTS = CONSTANTS;
     this.defaultVariables = defaultVariables;
     this.LEVEL_STATUS = LEVEL_STATUS;
@@ -67,6 +71,8 @@ class TS {
     this.SHOWN_IN_LIST = SHOWN_IN_LIST;
     this.REMOVED_LEVELS = REMOVED_LEVELS;
     this.CHANNEL_LABELS = CHANNEL_LABELS;
+
+    this.commandLanguage = 'en';
 
     this.guild_id = guildId;
     this.guildId = guildId;
@@ -94,6 +100,7 @@ class TS {
     const ts = this;
     this.load = async function () {
       debug(`ts.load started for ${this.guild_id}`);
+
       const guild = ts.getGuild(this.guild_id);
       await guild.fetchMembers(); // just load up all members
       const Team = Teams(this.guild_id);
@@ -236,9 +243,19 @@ class TS {
       await this.checkTagsForRemoval();
       this.messages = {};
       TS.defaultMessages = {};
-      Object.entries(DEFAULTMESSAGES).forEach((v) => {
-        TS.defaultMessages[v[0]] = this.makeTemplate(v[1]);
-        this.messages[v[0]] = this.makeTemplate(v[1]);
+
+      const defaultStrings = await this.knex(
+        'default_strings',
+      ).select();
+
+      Object.entries(defaultStrings).forEach((v) => {
+        const defaultString = v[1];
+        TS.defaultMessages[defaultString.name] = this.makeTemplate(
+          defaultString.message,
+        );
+        this.messages[defaultString.name] = this.makeTemplate(
+          defaultString.message,
+        );
       });
 
       (await this.getSettings('messages', true)).forEach((v) => {
@@ -353,7 +370,7 @@ class TS {
               if (ts.channels.raceChannel) {
                 await ts.discord.send(
                   ts.channels.raceChannel,
-                  ts.message('race.noParticipants', {
+                  await ts.message('race.noParticipants', {
                     name: race.name,
                   }),
                 );
@@ -563,14 +580,14 @@ class TS {
 
                 await ts.discord.send(
                   ts.channels.raceChannel,
-                  ts.message('race.raceStarted', {
+                  await ts.message('race.raceStarted', {
                     name: race.name,
                     mentions: mentionsArr.join(', '),
                   }),
                 );
                 await ts.discord.send(
                   ts.channels.raceChannel,
-                  ts.levelEmbed(level),
+                  await ts.levelEmbed(level),
                 );
               } else if (
                 ts.channels.raceChannel &&
@@ -578,7 +595,7 @@ class TS {
               ) {
                 await ts.discord.send(
                   ts.channels.raceChannel,
-                  ts.message('race.raceFailed', {
+                  await ts.message('race.raceFailed', {
                     name: race.name,
                     mentions: mentionsArr.join(', '),
                   }),
@@ -769,12 +786,12 @@ class TS {
       discord_id,
       member,
     }) => {
-      if (!code) ts.userError(ts.message('error.noCode'));
+      if (!code) ts.userError(await ts.message('error.noCode'));
       if (!ts.validCode(code))
-        ts.userError(ts.message('error.invalidCode'));
-      if (!levelName) ts.userError(ts.message('add.noName'));
+        ts.userError(await ts.message('error.invalidCode'));
+      if (!levelName) ts.userError(await ts.message('add.noName'));
       if (ts.isSpecialDiscordString(levelName))
-        ts.userError(ts.message('error.specialDiscordString'));
+        ts.userError(await ts.message('error.specialDiscordString'));
       const player = member || (await ts.getUser(discord_id));
       const existingLevel = await ts
         .getLevels()
@@ -782,11 +799,13 @@ class TS {
         .first();
       if (existingLevel)
         ts.userError(
-          ts.message('add.levelExisting', { level: existingLevel }),
+          await ts.message('add.levelExisting', {
+            level: existingLevel,
+          }),
         );
       if (!player.earned_points.canUpload) {
         ts.userError(
-          ts.message('points.cantUpload', {
+          await ts.message('points.cantUpload', {
             points_needed: player.earned_points.pointsNeeded,
           }),
         );
@@ -804,7 +823,7 @@ class TS {
       });
       await ts.recalculateAfterUpdate({ name: player.name });
       return {
-        reply: ts.message('add.success', {
+        reply: await ts.message('add.success', {
           level_name: levelName,
           code,
         }),
@@ -818,9 +837,50 @@ class TS {
      * @param {object} args the values to be passed to Handlebar. overrides any default values
      * @returns {string} final message string
      */
-    this.message = function (type, args) {
+    this.message = async function (type, args) {
       if (this.messages[type]) {
-        return this.messages[type](args);
+        if (this.commandLanguage === 'en') {
+          return this.messages[type](args);
+        }
+        // Check if message for that language exists
+        if (this.messages[`${this.commandLanguage}.${type}`]) {
+          return this.messages[`${this.commandLanguage}.${type}`](
+            args,
+          );
+        }
+        // Try translating it and adding it to the messages
+        try {
+          const [
+            translation,
+          ] = await this.cloudTranslationService.translate(
+            `[Translated by Google Translate]${this.messages[type](
+              args,
+            )}`,
+            this.commandLanguage,
+          );
+
+          await this.knex('default_strings').insert({
+            name: `${this.commandLanguage}.${type}`,
+            message: translation,
+          });
+
+          TS.addMessage(
+            `${this.commandLanguage}.${type}`,
+            translation,
+          );
+
+          return translation;
+        } catch (ex) {
+          if (
+            ex.errors &&
+            ex.errors.length > 0 &&
+            ex.errors[0].message === 'Invalid Value'
+          ) {
+            return 'Invalid Language';
+          }
+          console.log(ex);
+          return 'something went wrong buzzyS';
+        }
       }
       throw new Error(
         `"${type}" message string was not found in ts.message`,
@@ -878,7 +938,10 @@ class TS {
         token: bearer,
         authenticated: 1,
       });
-      this.discord.dm(discord_id, ts.message('website.loggedin'));
+      this.discord.dm(
+        discord_id,
+        await ts.message('website.loggedin'),
+      );
       return bearer;
     };
     /**
@@ -1019,7 +1082,7 @@ class TS {
       const { discord_id, strOnly, playerDontAtMe, member } = args;
 
       if (!discord_id && !member)
-        ts.userError(ts.message('error.noDiscordId'));
+        ts.userError(await ts.message('error.noDiscordId'));
 
       if (typeof difficulty === 'string')
         difficulty = difficulty.toLowerCase();
@@ -1045,14 +1108,14 @@ class TS {
       if (difficulty === '') difficulty = null;
       if (difficulty == null) difficulty = null;
       if (completed == null && liked == null && difficulty == null) {
-        ts.userError(ts.message('clear.noArgs'));
+        ts.userError(await ts.message('clear.noArgs'));
       }
       if (code == null) {
-        ts.userError(ts.message('error.noCode'));
+        ts.userError(await ts.message('error.noCode'));
       }
       code = code.toUpperCase();
       if (difficulty && Number.isNaN(Number(difficulty))) {
-        ts.userError(ts.message('clear.invalidDifficulty'));
+        ts.userError(await ts.message('clear.invalidDifficulty'));
       }
       if (difficulty) {
         difficulty = parseFloat(difficulty);
@@ -1062,12 +1125,12 @@ class TS {
         difficulty &&
         !ts.valid_difficulty(difficulty)
       ) {
-        ts.userError(ts.message('clear.invalidDifficulty'));
+        ts.userError(await ts.message('clear.invalidDifficulty'));
       }
       const player = member || (await ts.getUser(discord_id));
       const level = await ts.getExistingLevel(code);
       if (level.creator_id === player.id)
-        ts.userError(ts.message('clear.ownLevel'));
+        ts.userError(await ts.message('clear.ownLevel'));
       const existingPlay = await ts.db.Plays.query()
         .where('code', '=', level.id)
         .where('player', '=', player.id)
@@ -1154,22 +1217,24 @@ class TS {
               );
             }
 
-            msg.push(ts.message('clear.addClear', { level }));
+            msg.push(await ts.message('clear.addClear', { level }));
             if (level.status === ts.LEVEL_STATUS.APPROVED) {
               msg.push(
-                ts.message('clear.earnedPoints', {
+                await ts.message('clear.earnedPoints', {
                   earned_points: ts.getPoints(level.difficulty),
                 }),
               );
             } else {
-              msg.push(ts.message('clear.pendingLevel'));
+              msg.push(await ts.message('clear.pendingLevel'));
             }
           } else {
-            msg.push(ts.message('clear.removedClear', { level }));
+            msg.push(
+              await ts.message('clear.removedClear', { level }),
+            );
           }
         } else {
           msg.push(
-            ts.message(
+            await ts.message(
               completed
                 ? 'clear.alreadyCleared'
                 : 'clear.alreadyUncleared',
@@ -1180,8 +1245,8 @@ class TS {
       if (updated.difficulty) {
         msg.push(
           difficulty === 0
-            ? ts.message('clear.removeDifficulty', { level })
-            : ts.message('clear.addDifficulty', {
+            ? await ts.message('clear.removeDifficulty', { level })
+            : await ts.message('clear.addDifficulty', {
                 level: level,
                 difficulty_vote: difficulty,
               }),
@@ -1189,8 +1254,8 @@ class TS {
       } else if (difficulty || difficulty === 0) {
         msg.push(
           difficulty === 0
-            ? ts.message('clear.alreadyDifficulty', { level })
-            : ts.message('clear.alreadyNoDifficulty', {
+            ? await ts.message('clear.alreadyDifficulty', { level })
+            : await ts.message('clear.alreadyNoDifficulty', {
                 level: level,
                 difficulty_vote: difficulty,
               }),
@@ -1199,13 +1264,16 @@ class TS {
       if ([0, 1].includes(liked)) {
         if (updated.liked) {
           msg.push(
-            ts.message(liked ? 'clear.addLike' : 'clear.removeLike', {
-              level,
-            }),
+            await ts.message(
+              liked ? 'clear.addLike' : 'clear.removeLike',
+              {
+                level,
+              },
+            ),
           );
         } else {
           msg.push(
-            ts.message(
+            await ts.message(
               liked ? 'clear.alreadyLiked' : 'clear.alreadyUnliked',
               { level },
             ),
@@ -1220,12 +1288,12 @@ class TS {
           : updatedPlayer.userReply;
         return (
           (strOnly ? '' : userReply) +
-          ts.processClearMessage({ msg, creatorStr, level })
+          (await ts.processClearMessage({ msg, creatorStr, level }))
         );
       }
       return `Play updated for: ${
         member.name
-      }${ts.processClearMessage({ msg, creatorStr, level })}`;
+      }${await ts.processClearMessage({ msg, creatorStr, level })}`;
     };
     /**
      * Processes the array of messages made by clear and replace repeating items with pronouns
@@ -1236,16 +1304,16 @@ class TS {
      * @param {Object} args.level - A level object, with creator being a name instead of id
      * @return {string} Returns the formatted string
      */
-    this.processClearMessage = function (args) {
+    this.processClearMessage = async function (args) {
       const { msg, creatorStr, level } = args;
       const levelPlaceholder = this.customStrings.levelInfo;
-      let levelStr = ts.message('clear.levelInfo', {
+      let levelStr = await ts.message('clear.levelInfo', {
         level,
         creator: creatorStr,
       });
-      const singleHave = ts.message('clear.singleHave');
-      const manyHave = ts.message('clear.manyHave');
-      const levelPronoun = ts.message('clear.levelPronoun');
+      const singleHave = await ts.message('clear.singleHave');
+      const manyHave = await ts.message('clear.manyHave');
+      const levelPronoun = await ts.message('clear.levelPronoun');
       for (let i = 0; i < msg.length; i += 1) {
         msg[i] = msg[i].replace(levelPlaceholder, levelStr);
         if (i > 1) msg[i] = msg[i].replace(singleHave, manyHave);
@@ -1265,7 +1333,7 @@ class TS {
       includeRemoved = false,
     ) {
       if (!code) {
-        ts.userError(ts.message('error.noCode'));
+        ts.userError(await ts.message('error.noCode'));
       }
       const level = await ts.getLevels().where({ code }).first();
       if (!level) {
@@ -1296,13 +1364,14 @@ class TS {
             listUsed,
           );
           if (match.bestMatch && match.bestMatch.rating >= 0.6) {
-            matchStr = ts.message('general.didYouMean', {
+            matchStr = await ts.message('general.didYouMean', {
               info: allLevels[match.bestMatch.target],
             });
           }
         }
         ts.userError(
-          ts.message('error.levelNotFound', { code }) + matchStr,
+          (await ts.message('error.levelNotFound', { code })) +
+            matchStr,
         );
       }
       if (
@@ -1310,7 +1379,9 @@ class TS {
         ts.REMOVED_LEVELS.includes(level.status)
       ) {
         // level is removed. not pending/accepted
-        ts.userError(ts.message('error.levelIsRemoved', { level }));
+        ts.userError(
+          await ts.message('error.levelIsRemoved', { level }),
+        );
       }
       return level;
     };
@@ -1369,9 +1440,9 @@ class TS {
     /**
      * To be used to parse a thrown exception and check if it's a user error in discord. User error can be passed to the user. any other error, we will throw a non descript error message to the user and log the actual error
      */
-    this.getUserErrorMsg = function (obj, message) {
+    this.getUserErrorMsg = async function (obj, message) {
       if (obj instanceof UserError) {
-        return obj.msg + ts.message('error.afterUserDiscord');
+        return obj.msg + (await ts.message('error.afterUserDiscord'));
       }
       DiscordLog.error(ts.makeErrorObj(obj, message));
       return ts.message('error.unknownError');
@@ -1379,11 +1450,11 @@ class TS {
     /**
      * To be used to parse a thrown exception and check if it's a user error in the JSON endpoint. User error can be passed to the user. any other error, we will throw a non descript error message to the user and log the actual error
      */
-    this.getWebUserErrorMsg = function (obj) {
+    this.getWebUserErrorMsg = async function (obj) {
       if (obj instanceof UserError) {
         return {
           status: 'error',
-          message: obj.msg + ts.message('error.afterUserWeb'),
+          message: obj.msg + (await ts.message('error.afterUserWeb')),
         };
       }
       DiscordLog.error({
@@ -1392,7 +1463,7 @@ class TS {
       });
       return {
         status: 'error',
-        message: ts.message('error.unknownError'),
+        message: await ts.message('error.unknownError'),
       };
     };
     /**
@@ -1420,13 +1491,13 @@ class TS {
       if (minDifficulty && !ts.valid_difficulty(minDifficulty)) {
         ts.userError(
           maxDifficulty
-            ? ts.message('random.noMinDifficulty')
-            : ts.message('random.noDifficulty'),
+            ? await ts.message('random.noMinDifficulty')
+            : await ts.message('random.noDifficulty'),
         );
       }
       if (maxDifficulty) {
         if (!ts.valid_difficulty(maxDifficulty))
-          ts.userError(ts.message('random.noMaxDifficulty'));
+          ts.userError(await ts.message('random.noMaxDifficulty'));
       } else if (minDifficulty) {
         maxDifficulty = minDifficulty;
       }
@@ -1454,7 +1525,7 @@ class TS {
           playerNames,
         );
         if (rawPlayers.length === 0)
-          ts.userError(ts.message('random.noPlayersGiven'));
+          ts.userError(await ts.message('random.noPlayersGiven'));
         playerIds = [];
         const dbPlayerNames = rawPlayers.map((n) => n.name);
         if (rawPlayers.length !== playerNames.length) {
@@ -1539,10 +1610,12 @@ class TS {
       );
       if (filteredLevels.length === 0) {
         ts.userError(
-          ts.message('random.outOfLevels', {
+          (await ts.message('random.outOfLevels', {
             range: min === max ? min : `${min}-${max}`,
-          }) +
-            (tag ? ts.message('random.outOfLevelsTag', { tag }) : ''),
+          })) +
+            (tag
+              ? await ts.message('random.outOfLevelsTag', { tag })
+              : ''),
         );
       }
       let randNum;
@@ -1656,7 +1729,7 @@ class TS {
         .getPendingVotes()
         .where('levels.id', level.id)
         .where({ type: 'reject' });
-      const voteEmbed = ts.levelEmbed(
+      const voteEmbed = await ts.levelEmbed(
         level,
         this.embedStyle.judgement,
       );
@@ -1664,23 +1737,25 @@ class TS {
         level.status === ts.LEVEL_STATUS.PENDING_APPROVED_REUPLOAD
       ) {
         voteEmbed
-          .setAuthor(ts.message('pending.pendingTitle'))
+          .setAuthor(await ts.message('pending.pendingTitle'))
           .setDescription(
-            ts.message('pending.alreadyApprovedBefore'),
+            await ts.message('pending.alreadyApprovedBefore'),
           );
       } else if (
         level.status === ts.LEVEL_STATUS.PENDING_NOT_FIXED_REUPLOAD
       ) {
         voteEmbed
-          .setAuthor(ts.message('pending.refuseTitle'))
-          .setDescription(ts.message('pending.refuseDescription'));
+          .setAuthor(await ts.message('pending.refuseTitle'))
+          .setDescription(
+            await ts.message('pending.refuseDescription'),
+          );
       } else if (
         level.status === ts.LEVEL_STATUS.PENDING_FIXED_REUPLOAD
       ) {
         voteEmbed
-          .setAuthor(ts.message('pending.reuploadedTitle'))
+          .setAuthor(await ts.message('pending.reuploadedTitle'))
           .setDescription(
-            ts.message('pending.fixReuploadDescription'),
+            await ts.message('pending.fixReuploadDescription'),
           );
       }
       if (reuploadComment) {
@@ -1689,9 +1764,9 @@ class TS {
           `\`\`\`\n${reuploadComment}\n\`\`\``,
         );
       }
-      let postString = ts.message('approval.approvalVotes');
+      let postString = await ts.message('approval.approvalVotes');
       if (approveVotes === undefined || approveVotes.length === 0) {
-        postString += ts.message('approval.noVotes');
+        postString += await ts.message('approval.noVotes');
       } else {
         for (let i = 0; i < approveVotes.length; i += 1) {
           const curShellder = await ts.db.Members.query()
@@ -1700,7 +1775,7 @@ class TS {
           postString += `<@${curShellder.discord_id}> - Difficulty: ${approveVotes[i].difficulty_vote}, Reason: ${approveVotes[i].reason}\n`;
         }
       }
-      postString += ts.message('approval.fixVotes');
+      postString += await ts.message('approval.fixVotes');
       if (fixVotes === undefined || fixVotes.length === 0) {
         postString += '> None\n';
       } else {
@@ -1711,7 +1786,7 @@ class TS {
           postString += `<@${curShellder.discord_id}> - Difficulty: ${fixVotes[i].difficulty_vote}, Requested fixes: ${fixVotes[i].reason}\n`;
         }
       }
-      postString += ts.message('approval.rejectVotes');
+      postString += await ts.message('approval.rejectVotes');
       if (rejectVotes === undefined || rejectVotes.length === 0) {
         postString += 'None\n';
       } else {
@@ -1741,7 +1816,7 @@ class TS {
       if (!vote) {
         // We only check reason if we have no vote yet
         if (!reason) {
-          ts.userError(ts.message('approval.changeReason'));
+          ts.userError(await ts.message('approval.changeReason'));
         } else {
           ts.reasonLengthCheck(reason);
         }
@@ -1751,9 +1826,11 @@ class TS {
         level.status === ts.LEVEL_STATUS.APPROVED &&
         type === 'approve'
       ) {
-        ts.userError(ts.message('approval.levelAlreadyApproved'));
+        ts.userError(
+          await ts.message('approval.levelAlreadyApproved'),
+        );
       } else if (!PENDING_LEVELS.includes(level.status)) {
-        ts.userError(ts.message('approval.levelNotPending'));
+        ts.userError(await ts.message('approval.levelNotPending'));
       }
       let replyMsg = 'approval.voteAdded';
       if (!vote) {
@@ -1918,14 +1995,14 @@ class TS {
           if (ts.channels.initiateChannel) {
             await this.discord.send(
               ts.channels.initiateChannel,
-              ts.message('initiation.message', {
+              await ts.message('initiation.message', {
                 discord_id: author.discord_id,
               }),
             );
           }
         } else {
           DiscordLog.error(
-            ts.message('initiation.userNotInDiscord', {
+            await ts.message('initiation.userNotInDiscord', {
               name: author.name,
             }),
           ); // not a breaking error.
@@ -1936,7 +2013,7 @@ class TS {
     /**
      * Helper function to embed comments to a level embed
      */
-    this.embedComments = (embed, comments) => {
+    this.embedComments = async (embed, comments) => {
       for (let i = 0; i < comments.length; i += 1) {
         let msgString = '';
         if (comments[i].type === 'fix') {
@@ -1946,14 +2023,16 @@ class TS {
         } else {
           msgString = 'judge.votedReject';
         }
-        const embedHeader = ts.message(msgString, { ...comments[i] });
+        const embedHeader = await ts.message(msgString, {
+          ...comments[i],
+        });
         ts.embedAddLongField(embed, comments[i].reason, embedHeader);
       }
     };
 
-    this.checkUserError = (callback) => {
+    this.checkUserError = async (callback) => {
       try {
-        callback();
+        await callback();
       } catch (error) {
         if (error instanceof UserError) {
           return error.message;
@@ -1966,7 +2045,7 @@ class TS {
     /**
      * Checks if a level is a vote away to being judgegable.
      */
-    this.oneVoteAway = (args) => {
+    this.oneVoteAway = async (args) => {
       if (!args) return false;
 
       const plusOneVotes = [
@@ -1991,7 +2070,11 @@ class TS {
       ];
 
       for (const o of plusOneVotes) {
-        if (!this.checkUserError(() => this.processVotes(o)))
+        if (
+          !(await this.checkUserError(async () =>
+            this.processVotes(o),
+          ))
+        )
           return this.processVotes(o);
       }
 
@@ -2003,7 +2086,7 @@ class TS {
      * @throws {UserError} if there is a tie
      * @throws {UserError} if there is not enough votes
      */
-    this.processVotes = (args) => {
+    this.processVotes = async (args) => {
       const {
         approvalVotesCount = 0,
         fixVotesCount = 0,
@@ -2087,9 +2170,9 @@ class TS {
         (fixApproveRatio === rejectionRatio ||
           approvalRatio === rejectionRatio)
       ) {
-        ts.userError(ts.message('approval.comboBreaker'));
+        ts.userError(await ts.message('approval.comboBreaker'));
       } else {
-        ts.userError(ts.message('approval.numVotesNeeded'));
+        ts.userError(await ts.message('approval.numVotesNeeded'));
       }
       return statusUpdate;
     };
@@ -2187,7 +2270,7 @@ class TS {
         .where({ name: level.creator })
         .first();
       if (!PENDING_LEVELS.includes(level.status)) {
-        ts.userError(ts.message('approval.levelNotPending'));
+        ts.userError(await ts.message('approval.levelNotPending'));
       }
 
       const {
@@ -2201,7 +2284,7 @@ class TS {
         false,
         forceJudge,
       );
-      const statusUpdate = this.processVotes(voteArgs);
+      const statusUpdate = await this.processVotes(voteArgs);
       let difficulty;
       if (statusUpdate === ts.LEVEL_STATUS.APPROVED) {
         ts.initiate(author);
@@ -2227,19 +2310,19 @@ class TS {
         await ts.checkTagsForRemoval();
       }
 
-      const mention = this.message('general.heyListen', {
+      const mention = await this.message('general.heyListen', {
         discord_id: author.discord_id,
       });
-      const judgeEmbed = this.levelEmbed(
+      const judgeEmbed = await this.levelEmbed(
         level,
         this.embedStyle[statusUpdate],
         { difficulty },
       );
       if (statusUpdate === this.LEVEL_STATUS.NEED_FIX)
         judgeEmbed.setDescription(
-          ts.message('approval.fixInstructionsCreator'),
+          await ts.message('approval.fixInstructionsCreator'),
         );
-      this.embedComments(judgeEmbed, [
+      await this.embedComments(judgeEmbed, [
         ...approvalVotes,
         ...fixVotes,
         ...rejectVotes,
@@ -2255,7 +2338,7 @@ class TS {
 
       await ts.deleteDiscussionChannel(
         level.code,
-        ts.message('approval.channelDeleted'),
+        await ts.message('approval.channelDeleted'),
       );
     };
 
@@ -2273,7 +2356,7 @@ class TS {
         false,
         true,
       );
-      const oneVote = this.oneVoteAway(voteArgs);
+      const oneVote = await this.oneVoteAway(voteArgs);
       const voteLabel = {
         [LEVEL_STATUS.APPROVED]: this.CHANNEL_LABELS
           .PENDING_ALMOST_APPROVE,
@@ -2332,7 +2415,7 @@ class TS {
         !PENDING_LEVELS.includes(level.status) &&
         label === ts.CHANNEL_LABELS.AUDIT_FIX_REQUEST
       ) {
-        ts.userError(ts.message('approval.levelNotPending'));
+        ts.userError(await ts.message('approval.levelNotPending'));
       }
 
       let difficulty = null;
@@ -2375,7 +2458,9 @@ class TS {
           if (oldLevel) {
             difficulty = oldLevel.difficulty;
           } else {
-            ts.userError(ts.message('approval.oldLevelNotFound'));
+            ts.userError(
+              await ts.message('approval.oldLevelNotFound'),
+            );
           }
 
           newStatus = ts.LEVEL_STATUS.APPROVED;
@@ -2391,7 +2476,7 @@ class TS {
         } else if (label === ts.CHANNEL_LABELS.AUDIT_VERIFY_CLEARS) {
           // If we're in a clear verification request we'll do nothing here, just the channel gets deleted
         } else {
-          ts.userError(ts.message('approval.noLabel'));
+          ts.userError(await ts.message('approval.noLabel'));
         }
       } else if (label === ts.CHANNEL_LABELS.AUDIT_FIX_REQUEST) {
         // If it was in a fix request before we flat out reject it
@@ -2414,7 +2499,7 @@ class TS {
           discord_id: requester_discord_id,
         });
       } else {
-        ts.userError(ts.message('approval.noLabel'));
+        ts.userError(await ts.message('approval.noLabel'));
       }
 
       let embedTitle;
@@ -2430,7 +2515,9 @@ class TS {
           ) {
             embedTitle = 'approval.approveAfterRefuse';
           } else {
-            ts.userError(ts.message('approval.inWrongFixStatus'));
+            ts.userError(
+              await ts.message('approval.inWrongFixStatus'),
+            );
           }
         } else if (
           label === ts.CHANNEL_LABELS.AUDIT_APPROVED_REUPLOAD
@@ -2445,7 +2532,7 @@ class TS {
         } else if (label === ts.CHANNEL_LABELS.AUDIT_VERIFY_CLEARS) {
           embedTitle = 'approval.approveVerifyClear';
         } else {
-          ts.userError(ts.message('approval.noLabel'));
+          ts.userError(await ts.message('approval.noLabel'));
         }
       } else if (label === ts.CHANNEL_LABELS.AUDIT_FIX_REQUEST) {
         if (level.status === ts.LEVEL_STATUS.PENDING_FIXED_REUPLOAD) {
@@ -2455,7 +2542,7 @@ class TS {
         ) {
           embedTitle = 'approval.rejectAfterRefuse';
         } else {
-          ts.userError(ts.message('approval.inWrongFixStatus'));
+          ts.userError(await ts.message('approval.inWrongFixStatus'));
         }
       } else if (
         label === ts.CHANNEL_LABELS.AUDIT_APPROVED_REUPLOAD
@@ -2468,7 +2555,7 @@ class TS {
       } else if (label === ts.CHANNEL_LABELS.AUDIT_VERIFY_CLEARS) {
         embedTitle = 'approval.rejectVerifyClear';
       } else {
-        ts.userError(ts.message('approval.noLabel'));
+        ts.userError(await ts.message('approval.noLabel'));
       }
 
       // Status update and difficulty gets set
@@ -2495,11 +2582,11 @@ class TS {
         ts.initiate(author);
       }
 
-      const mention = this.message('general.heyListen', {
+      const mention = await this.message('general.heyListen', {
         discord_id: requester_discord_id,
       });
 
-      const authorMention = this.message('general.heyListen', {
+      const authorMention = await this.message('general.heyListen', {
         discord_id: author.discord_id,
       });
 
@@ -2508,7 +2595,7 @@ class TS {
         approve ? ts.LEVEL_STATUS.APPROVED : ts.LEVEL_STATUS.REJECTED
       ];
 
-      const finishAuditRequestEmbed = this.levelEmbed(
+      const finishAuditRequestEmbed = await this.levelEmbed(
         level,
         {
           ...embedStyle,
@@ -2542,7 +2629,7 @@ class TS {
       // Remove Discussion Channel
       await ts.deleteAuditChannels(
         `${label}${level.code}`,
-        ts.message('approval.channelDeleted'),
+        await ts.message('approval.channelDeleted'),
       );
     };
     this.deleteDiscussionChannel = async function (code, reason) {
@@ -2584,7 +2671,7 @@ class TS {
       );
     };
 
-    this.levelEmbed = function (pLevel, args = {}, titleArgs) {
+    this.levelEmbed = async function (pLevel, args = {}, titleArgs) {
       const level = pLevel;
       const { color, title, noLink } = args;
       let { image } = args;
@@ -2627,7 +2714,7 @@ class TS {
           }${vidStr ? `Clear Video: ${vidStr}` : ''}`,
         );
       if (title) {
-        embed.setAuthor(ts.message(title, titleArgs));
+        embed.setAuthor(await ts.message(title, titleArgs));
       }
       if (image) {
         image = this.getEmoteUrl(image);
@@ -2798,7 +2885,7 @@ class TS {
       }
 
       if (title) {
-        embed.setAuthor(ts.message(title, titleArgs));
+        embed.setAuthor(await ts.message(title, titleArgs));
       }
       if (image) {
         image = this.getEmoteUrl(image);
@@ -2830,9 +2917,13 @@ class TS {
       await ts.deleteAuditChannels(level.code, '!remove'); // Delete all open audit requests on deletion
 
       // Send updates to to #shellbot-level-update
-      const removeEmbed = ts.levelEmbed(level, ts.embedStyle.remove, {
-        name: player.name,
-      });
+      const removeEmbed = await ts.levelEmbed(
+        level,
+        ts.embedStyle.remove,
+        {
+          name: player.name,
+        },
+      );
       removeEmbed.addField(
         '\u200b',
         `**Reason for removal** :\`\`\`${reason}\`\`\`-<@${player.discord_id}>`,
@@ -2856,29 +2947,31 @@ class TS {
       const player = await ts.db.Members.query()
         .where({ discord_id: ts.discord.getAuthor(message) })
         .first();
-      if (!player) ts.userError(ts.message('error.notRegistered'));
+      if (!player)
+        ts.userError(await ts.message('error.notRegistered'));
       const command = ts.parseCommand(message);
       let oldCode = command.arguments.shift();
       if (oldCode) {
         oldCode = oldCode.toUpperCase();
       } else {
-        ts.userError(ts.message('reupload.noOldCode'));
+        ts.userError(await ts.message('reupload.noOldCode'));
       }
       if (!ts.validCode(oldCode)) {
-        ts.userError(ts.message('reupload.invalidOldCode'));
+        ts.userError(await ts.message('reupload.invalidOldCode'));
       }
       let newCode = command.arguments.shift();
       if (newCode) {
         newCode = newCode.toUpperCase();
       } else {
-        ts.userError(ts.message('reupload.noNewCode'));
+        ts.userError(await ts.message('reupload.noNewCode'));
       }
       if (!ts.validCode(newCode))
-        ts.userError(ts.message('reupload.invalidNewCode'));
+        ts.userError(await ts.message('reupload.invalidNewCode'));
       const reason = command.arguments.join(' ');
       if (oldCode === newCode)
-        ts.userError(ts.message('reupload.sameCode'));
-      if (!reason) ts.userError(ts.message('reupload.giveReason'));
+        ts.userError(await ts.message('reupload.sameCode'));
+      if (!reason)
+        ts.userError(await ts.message('reupload.giveReason'));
       this.reasonLengthCheck(reason, 800);
       const earnedPoints = await ts.calculatePoints(player.name);
       const rank = ts.getRank(earnedPoints.clearPoints);
@@ -2891,7 +2984,7 @@ class TS {
         .first();
       if (!level)
         ts.userError(
-          ts.message('error.levelNotFound', { code: oldCode }),
+          await ts.message('error.levelNotFound', { code: oldCode }),
         );
       let newLevel = await ts
         .getLevels()
@@ -2904,14 +2997,16 @@ class TS {
           : level.status;
 
       if (newLevel && level.creator !== newLevel.creator)
-        ts.userError(ts.message('reupload.differentCreator'));
+        ts.userError(await ts.message('reupload.differentCreator'));
       if (
         newLevel &&
         newLevel.status !== ts.LEVEL_STATUS.PENDING &&
         newLevel.status !== ts.LEVEL_STATUS.APPROVED &&
         newLevel.status !== ts.LEVEL_STATUS.NEED_FIX
       )
-        ts.userError(ts.message('reupload.wrongApprovedStatus'));
+        ts.userError(
+          await ts.message('reupload.wrongApprovedStatus'),
+        );
       // Reupload means you're going to replace the old one so need to do that for upload check
       const creatorPoints = await ts.calculatePoints(
         level.creator,
@@ -2919,7 +3014,7 @@ class TS {
       );
       if (level.new_code)
         ts.userError(
-          ts.message('reupload.haveReuploaded', {
+          await ts.message('reupload.haveReuploaded', {
             code: level.new_code,
           }),
         );
@@ -2931,10 +3026,12 @@ class TS {
             creatorPoints.canUpload)
         )
       ) {
-        ts.userError(ts.message('reupload.notEnoughPoints'));
+        ts.userError(await ts.message('reupload.notEnoughPoints'));
       }
       if (!(level.creator_id === player.id || player.is_mod)) {
-        ts.userError(ts.message('reupload.noPermission', level));
+        ts.userError(
+          await ts.message('reupload.noPermission', level),
+        );
       }
       await ts.db.Levels.query()
         .patch({
@@ -3024,7 +3121,7 @@ class TS {
 
           await ts.discord.send(
             newCode,
-            ts.message('reupload.reuploadNotify', {
+            await ts.message('reupload.reuploadNotify', {
               oldCode,
               newCode,
             }),
@@ -3053,7 +3150,7 @@ class TS {
 
           await ts.discord.send(
             newCode,
-            ts.message('reupload.reuploadNotify', {
+            await ts.message('reupload.reuploadNotify', {
               oldCode,
               newCode,
             }),
@@ -3078,12 +3175,15 @@ class TS {
 
       // TODO: maybe post reupload message in all audit channels?
 
-      let reply = ts.message('reupload.success', { level, newCode });
+      let reply = await ts.message('reupload.success', {
+        level,
+        newCode,
+      });
       if (!newLevelExist) {
-        reply += ts.message('reupload.renamingInstructions');
+        reply += await ts.message('reupload.renamingInstructions');
       }
       if (newStatus !== ts.LEVEL_STATUS.PENDING)
-        reply += ts.message('reupload.inReuploadQueue');
+        reply += await ts.message('reupload.inReuploadQueue');
       await ts.recalculateAfterUpdate();
       return userReply + reply;
     };
@@ -3135,12 +3235,13 @@ class TS {
       } = args;
       const { discord_id } = args;
 
-      if (!discord_id) ts.userError(ts.message('error.noDiscordId'));
+      if (!discord_id)
+        ts.userError(await ts.message('error.noDiscordId'));
 
       const player = await ts.getUser(discord_id);
 
       if (!unofficial && !player.is_mod) {
-        ts.userError(ts.message('error.noAdmin'));
+        ts.userError(await ts.message('error.noAdmin'));
       }
       if (unofficial && !player.is_mod) {
         if (
@@ -3149,7 +3250,7 @@ class TS {
             ts.teamVariables.MinimumPointsUnofficialRace
         ) {
           ts.userError(
-            ts.message('race.needMorePoints', {
+            await ts.message('race.needMorePoints', {
               minimumPoints:
                 ts.teamVariables.MinimumPointsUnofficialRace,
             }),
@@ -3224,7 +3325,7 @@ class TS {
       if (ts.channels.raceChannel) {
         await ts.discord.send(
           ts.channels.raceChannel,
-          ts.message('race.newRaceAdded', {
+          await ts.message('race.newRaceAdded', {
             unofficial: race.unofficial,
           }),
         );
@@ -3344,7 +3445,7 @@ class TS {
       if (ts.channels.raceChannel) {
         await ts.discord.send(
           ts.channels.raceChannel,
-          ts.message('race.raceEdited', {}),
+          await ts.message('race.raceEdited', {}),
         );
         await ts.discord.send(
           ts.channels.raceChannel,
@@ -3359,7 +3460,8 @@ class TS {
       const { raceId } = args;
       const { discord_id } = args;
 
-      if (!discord_id) ts.userError(ts.message('error.noDiscordId'));
+      if (!discord_id)
+        ts.userError(await ts.message('error.noDiscordId'));
 
       const player = await ts.getUser(discord_id);
 
@@ -3368,11 +3470,11 @@ class TS {
         .first();
 
       if (!race) {
-        ts.userError(ts.message('error.raceNotFound'));
+        ts.userError(await ts.message('error.raceNotFound'));
       }
 
       if (race.status !== 'upcoming') {
-        ts.userError(ts.message('error.raceHasStarted'));
+        ts.userError(await ts.message('error.raceHasStarted'));
       }
 
       let min = 0;
@@ -3389,7 +3491,7 @@ class TS {
         player.clear_score_sum < min ||
         player.clear_score_sum > max
       ) {
-        ts.userError(ts.message('race.tooManyPoints'));
+        ts.userError(await ts.message('race.tooManyPoints'));
       }
 
       const entrant = await ts.db.RaceEntrants.query()
@@ -3409,7 +3511,7 @@ class TS {
       if (ts.channels.raceChannel) {
         await ts.discord.send(
           ts.channels.raceChannel,
-          ts.message('race.newRaceEntrant', {
+          await ts.message('race.newRaceEntrant', {
             name: race.name,
             discord_id: discord_id,
           }),
@@ -3423,7 +3525,8 @@ class TS {
       const { raceId } = args;
       const { discord_id } = args;
 
-      if (!discord_id) ts.userError(ts.message('error.noDiscordId'));
+      if (!discord_id)
+        ts.userError(await ts.message('error.noDiscordId'));
 
       const player = await ts.getUser(discord_id);
 
@@ -3432,7 +3535,7 @@ class TS {
         .first();
 
       if (!race) {
-        ts.userError(ts.message('error.raceNotFound'));
+        ts.userError(await ts.message('error.raceNotFound'));
       }
 
       await ts.db.RaceEntrants.query()
@@ -3445,7 +3548,7 @@ class TS {
       if (ts.channels.raceChannel) {
         await ts.discord.send(
           ts.channels.raceChannel,
-          ts.message('race.entrantLeftRace', {
+          await ts.message('race.entrantLeftRace', {
             name: race.name,
             discord_id: discord_id,
           }),
@@ -3460,7 +3563,7 @@ class TS {
         if (ts.channels.raceChannel) {
           await ts.discord.send(
             ts.channels.raceChannel,
-            ts.message('race.noParticipants', {
+            await ts.message('race.noParticipants', {
               name: race.name,
             }),
           );
@@ -3493,7 +3596,7 @@ class TS {
       if (ts.channels.raceChannel) {
         await ts.discord.send(
           ts.channels.raceChannel,
-          ts.message('race.raceEnded', {
+          await ts.message('race.raceEnded', {
             name: race.name,
             mentions: mentionsArr.join(', '),
             url_slug: this.url_slug,
@@ -3513,7 +3616,8 @@ class TS {
       const { raceId, like } = args;
       const { discord_id } = args;
 
-      if (!discord_id) ts.userError(ts.message('error.noDiscordId'));
+      if (!discord_id)
+        ts.userError(await ts.message('error.noDiscordId'));
 
       const player = await ts.getUser(discord_id);
 
@@ -3522,7 +3626,7 @@ class TS {
         .first();
 
       if (!race) {
-        ts.userError(ts.message('error.raceNotFound'));
+        ts.userError(await ts.message('error.raceNotFound'));
       }
 
       const raceEntrants = await ts.db.RaceEntrants.query().where({
@@ -3564,7 +3668,7 @@ class TS {
       if (ts.channels.raceChannel) {
         await ts.discord.send(
           ts.channels.raceChannel,
-          ts.message('race.entrantFinishedRace', {
+          await ts.message('race.entrantFinishedRace', {
             name: race.name,
             discord_id: discord_id,
             rank: maxRank + 1,
@@ -3893,7 +3997,7 @@ class TS {
     );
     let suggestion = '';
     if (match.bestMatch && match.bestMatch.rating >= 0.6) {
-      suggestion = this.message('general.didYouMean', {
+      suggestion = await this.message('general.didYouMean', {
         info: existingTags.find(
           (t) => t.tagComp === match.bestMatch.target,
         ).name,
@@ -3901,7 +4005,7 @@ class TS {
     }
 
     return this.userError(
-      `${this.message('tag.notFound', { tag })}\n${suggestion}`,
+      `${await this.message('tag.notFound', { tag })}\n${suggestion}`,
     );
   }
 
@@ -4075,28 +4179,33 @@ class TS {
    * @throws {UserError} returns an error if the id in the row does not match the one in SECURE_TOKEN
    */
   verifyData(data) {
-    return data.map((pD) => {
-      const d = { ...pD };
-      if (d.id) {
-        if (!d.SECURE_TOKEN) {
-          this.userError('error.wrongTokens');
-        }
-        try {
-          const decoded = jwt.verify(d.SECURE_TOKEN, this.config.key);
-          if (Number(decoded.id) !== Number(d.id)) {
-            this.userError(this.message('error.wrongTokens'));
+    return Promise.all(
+      data.map(async (pD) => {
+        const d = { ...pD };
+        if (d.id) {
+          if (!d.SECURE_TOKEN) {
+            this.userError('error.wrongTokens');
           }
-        } catch (error) {
-          debug(error);
-          this.userError(this.message('error.wrongTokens'));
+          try {
+            const decoded = jwt.verify(
+              d.SECURE_TOKEN,
+              this.config.key,
+            );
+            if (Number(decoded.id) !== Number(d.id)) {
+              this.userError(await this.message('error.wrongTokens'));
+            }
+          } catch (error) {
+            debug(error);
+            this.userError(await this.message('error.wrongTokens'));
+          }
+        } else {
+          delete d.id;
+          delete d.guild_id;
         }
-      } else {
-        delete d.id;
-        delete d.guild_id;
-      }
-      delete d.SECURE_TOKEN;
-      return d;
-    });
+        delete d.SECURE_TOKEN;
+        return d;
+      }),
+    );
   }
 
   /**
@@ -4186,6 +4295,17 @@ class TS {
     throw new Error(
       `This team, with guild id ${guildId} has not yet setup it's config, buzzyS`,
     );
+  }
+
+  /**
+   * Get a team
+   * @param {Snowflake} guildId
+   */
+  static addMessage(name, message) {
+    for (const key of Object.keys(TS.TS_LIST)) {
+      const ts = TS.TS_LIST[key];
+      ts.messages[name] = message;
+    }
   }
 }
 TS.defaultChannels = defaultChannels;

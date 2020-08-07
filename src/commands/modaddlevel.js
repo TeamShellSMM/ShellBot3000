@@ -24,7 +24,7 @@ class TSModAddLevel extends TSCommand {
 
     if (!member) {
       ts.userError(
-        ts.message('modaddlevel.memberNotFound', {
+        await ts.message('modaddlevel.memberNotFound', {
           name: memberName,
         }),
       );

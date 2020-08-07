@@ -29,7 +29,7 @@ class TSAddtags extends TSCommand {
 
     let newTags = command.rest();
     if (!newTags) {
-      ts.userError(ts.message('tags.noTags'));
+      ts.userError(await ts.message('tags.noTags'));
     }
     newTags = newTags.split(/[,\n]/);
 
@@ -71,10 +71,10 @@ class TSAddtags extends TSCommand {
 
       if (tagsToBeAdded.length === 0)
         ts.userError(
-          ts.message('tags.noNew', level) +
-            ts.message('tags.currentTags', {
+          (await ts.message('tags.noNew', level)) +
+            (await ts.message('tags.currentTags', {
               tags_str: level.tags.split(',').join('\n'),
-            }),
+            })),
         );
 
       const rows = tagsToBeAdded.map((x) => {
@@ -90,7 +90,7 @@ class TSAddtags extends TSCommand {
         return trx('level_tags').insert(rows);
       });
 
-      reply = ts.message('tags.haveNew', level);
+      reply = await ts.message('tags.haveNew', level);
     } else {
       // removing
       if (
@@ -99,7 +99,7 @@ class TSAddtags extends TSCommand {
           (await ts.modOnly(player.discord_id))
         )
       )
-        ts.userError(ts.message('tags.noPermission', level));
+        ts.userError(await ts.message('tags.noPermission', level));
 
       const tagsToBeRemoved = await ts
         .knex('tags')
@@ -122,10 +122,10 @@ class TSAddtags extends TSCommand {
 
       if (tagsToBeRemoved.length === 0)
         ts.userError(
-          ts.message('tags.noRemoved', level) +
-            ts.message('tags.currentTags', {
+          (await ts.message('tags.noRemoved', level)) +
+            (await ts.message('tags.currentTags', {
               tags_str: level.tags.split(',').join('\n'),
-            }),
+            })),
         );
 
       await ts
@@ -138,7 +138,7 @@ class TSAddtags extends TSCommand {
         )
         .del();
 
-      reply = ts.message('tags.haveRemoved', level);
+      reply = await ts.message('tags.haveRemoved', level);
     }
 
     const updatedTags = await ts.getLevelTags(level.id);
@@ -151,9 +151,9 @@ class TSAddtags extends TSCommand {
       message,
       player.userReply +
         reply +
-        ts.message('tags.currentTags', {
+        (await ts.message('tags.currentTags', {
           tags_str: updatedTags.map((t) => t.name).join('\n'),
-        }),
+        })),
     );
   }
 }

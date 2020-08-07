@@ -20,10 +20,12 @@ class TSRegister extends TSCommand {
       .where({ discord_id: ts.discord.getAuthor(message) })
       .first();
     if (player && player.is_banned) {
-      ts.userError(ts.message('error.userBanned'));
+      ts.userError(await ts.message('error.userBanned'));
     }
     if (player) {
-      ts.userError(ts.message('register.already', { ...player }));
+      ts.userError(
+        await ts.message('register.already', { ...player }),
+      );
     }
 
     const command = ts.parseCommand(message);
@@ -34,7 +36,7 @@ class TSRegister extends TSCommand {
     }
 
     if (ts.isSpecialDiscordString(nickname))
-      ts.userError(ts.message('error.specialDiscordString'));
+      ts.userError(await ts.message('error.specialDiscordString'));
 
     nickname = nickname.replace(/\\/g, '');
     if (
@@ -43,7 +45,7 @@ class TSRegister extends TSCommand {
         .first()
     ) {
       ts.userError(
-        ts.message('register.nameTaken', { name: nickname }),
+        await ts.message('register.nameTaken', { name: nickname }),
       );
     }
 
@@ -57,10 +59,10 @@ class TSRegister extends TSCommand {
 
     await ts.discord.reply(
       message,
-      ts.message('register.success', { name: nickname }) +
+      (await ts.message('register.success', { name: nickname })) +
         (minPoints > 0
-          ? ts.message('register.pointsNeeded', { minPoints })
-          : ts.message('register.noPointsNeeded')),
+          ? await ts.message('register.pointsNeeded', { minPoints })
+          : await ts.message('register.noPointsNeeded')),
     );
   }
 }

@@ -63,7 +63,9 @@ class TSFixApprove extends TSCommand {
       ts.discord.messageGetParent(message) !==
       ts.channels.levelAuditCategory
     )
-      ts.userError(ts.message('fixApprove.notInChannel', { code }));
+      ts.userError(
+        await ts.message('fixApprove.notInChannel', { code }),
+      );
 
     let difficulty = null;
     if (
@@ -79,7 +81,8 @@ class TSFixApprove extends TSCommand {
 
     const reason = command.rest();
 
-    if (!reason) ts.userError(ts.message('fixApprove.noReason'));
+    if (!reason)
+      ts.userError(await ts.message('fixApprove.noReason'));
     ts.reasonLengthCheck(reason, 800);
 
     if (
@@ -89,7 +92,7 @@ class TSFixApprove extends TSCommand {
       label !== ts.CHANNEL_LABELS.AUDIT_RERATE_REQUEST &&
       label !== ts.CHANNEL_LABELS.AUDIT_VERIFY_CLEARS
     ) {
-      ts.userError(ts.message('fixApprove.noLabel'));
+      ts.userError(await ts.message('fixApprove.noLabel'));
     }
     return ts.finishAuditRequest(
       code,

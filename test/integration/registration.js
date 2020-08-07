@@ -239,7 +239,10 @@ describe('registration', function () {
     otp = dbResult[0].token;
     assert.deepEqual(
       body,
-      { status: 'error', message: TEST.TS.message('api.noslug') },
+      {
+        status: 'error',
+        message: await TEST.TS.message('api.noslug'),
+      },
       'Error with no slug',
     );
   });

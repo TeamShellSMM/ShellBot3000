@@ -20,7 +20,7 @@ class tsinfo extends TSCommand {
     const player = await ts.getUser(message);
     const level = await ts.getExistingLevel(code);
 
-    const randomEmbed = ts.levelEmbed(level);
+    const randomEmbed = await ts.levelEmbed(level);
 
     await ts.discord.messageSend(message, player.userReply);
     await ts.discord.messageSend(message, randomEmbed);

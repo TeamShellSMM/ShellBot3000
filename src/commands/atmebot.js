@@ -18,12 +18,12 @@ class atmebot extends TSCommand {
 
     if (atmeCommands.indexOf(command.command) !== -1) {
       atmeVal = 1;
-      alreadyError = ts.message('atme.already');
-      msg = ts.message('atme.willBe');
+      alreadyError = await ts.message('atme.already');
+      msg = await ts.message('atme.willBe');
     } else {
       atmeVal = null;
-      alreadyError = ts.message('atme.alreadyNot');
-      msg = ts.message('atme.willBeNot');
+      alreadyError = await ts.message('atme.alreadyNot');
+      msg = await ts.message('atme.willBeNot');
     }
 
     if (player.atme === atmeVal) ts.userError(alreadyError);

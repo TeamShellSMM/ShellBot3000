@@ -16,7 +16,7 @@ class login extends TSCommand {
       await ts.discord.dm(
         ts.discord.getAuthor(message),
         player.userReply +
-          ts.message('login.reply', { loginLink: loginLink }),
+          (await ts.message('login.reply', { loginLink: loginLink })),
       );
     } catch (error) {
       // Only log the error if it is not an Unknown Message error
