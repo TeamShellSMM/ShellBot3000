@@ -26,9 +26,7 @@ class TSRerate extends TSCommand {
     });
   }
 
-  async tsexec(ts, message, args) {
-    let { code } = args;
-    const { difficulty, reason } = args;
+  async tsexec(ts, message) {
     if (
       !(
         ts.discord.messageGetChannel(message) ===
@@ -39,11 +37,9 @@ class TSRerate extends TSCommand {
     )
       return false; // silently fail
 
-    if (code) {
-      code = code.toUpperCase();
-    } else {
-      ts.userError(await ts.message('error.noCode'));
-    }
+    const { code, command } = ts.getCodeArgument(message);
+    const difficulty = Number(command.next());
+    const reason = command.rest();
 
     // Check all the args first
     if (!difficulty) ts.userError('difficulty.noDifficulty');

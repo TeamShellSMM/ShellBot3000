@@ -126,7 +126,7 @@ describe('!rerate', function () {
   it('reason length=800', async function () {
     const result = await TEST.mockBotSend({
       cmd:
-        '!rerate XXX-XXX-XXX 2 "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In ut enim rhoncus, aliquet sem sed, maximus quam. Ut sed enim consectetur erat posuere semper. Maecenas a augue a massa iaculis lacinia sit amet eget turpis. Ut hendrerit ullamcorper lacus, eget vulputate eros porttitor non. Pellentesque maximus laoreet diam, sit amet porta nisi. Proin sed dignissim ligula, vitae lacinia quam. Quisque ac augue ut risus lacinia ultrices. Cras vel luctus nisl, vel mattis sapien. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras odio dui, faucibus a nibh vel, porttitor dignissim leo. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Curabitur ac congue elit, quis pulvinar turpis. Nunc feugiat elit nec eros lobortis, in aliquam nibh sollicitudin blandit."',
+        '!rerate XXX-XXX-XXX 2 Lorem ipsum dolor sit amet, consectetur adipiscing elit. In ut enim rhoncus, aliquet sem sed, maximus quam. Ut sed enim consectetur erat posuere semper. Maecenas a augue a massa iaculis lacinia sit amet eget turpis. Ut hendrerit ullamcorper lacus, eget vulputate eros porttitor non. Pellentesque maximus laoreet diam, sit amet porta nisi. Proin sed dignissim ligula, vitae lacinia quam. Quisque ac augue ut risus lacinia ultrices. Cras vel luctus nisl, vel mattis sapien. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras odio dui, faucibus a nibh vel, porttitor dignissim leo. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Curabitur ac congue elit, quis pulvinar turpis. Nunc feugiat elit nec eros lobortis, in aliquam nibh sollicitudin blandit.',
       channel: TEST.ts.channels.modChannel,
       discord_id: '128',
     });
@@ -151,7 +151,7 @@ describe('!rerate', function () {
     );
   });
 
-  it('already that difficulty', async function () {
+  it('already that difficulty @curr', async function () {
     assert.equal(
       await TEST.mockBotSend({
         cmd: '!rerate XXX-XXX-XXX 1 long reason',
