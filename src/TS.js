@@ -727,11 +727,13 @@ class TS {
     this.modOnly = async (discordId) => {
       if (!discordId) return false;
       if (this.devs && this.devs.indexOf(discordId) !== -1) {
+        DiscordLog.log("1");
         return true;
       }
       const guild = await this.discord.guild();
       if (guild.owner.user.id === discordId) {
         // owner can do anything
+        DiscordLog.log("21");
         return true;
       }
       if (ts.teamVariables.discordAdminCanMod === 'true') {
@@ -741,6 +743,7 @@ class TS {
           discordUser &&
           discordUser.hasPermission('ADMINISTRATOR')
         ) {
+          DiscordLog.log("3");
           return true;
         }
       }
@@ -749,8 +752,10 @@ class TS {
         .where({ discord_id: discordId })
         .first();
       if (member && member.is_mod) {
+        DiscordLog.log("4");
         return true;
       }
+      DiscordLog.log("5");
       return false;
     };
 

@@ -20,10 +20,6 @@ class RenameMember extends TSCommand {
     });
   }
 
-  async canRun(ts, message) {
-    return ts.modOnly(ts.discord.getAuthor(message));
-  }
-
   async tsexec(ts, message, { discordId, _newName }) {
     if (!discordId) ts.userError('renameMember.noDiscordId');
     if (!_newName) ts.userError('renameMember.noNewName');

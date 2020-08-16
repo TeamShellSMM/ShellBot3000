@@ -39,9 +39,10 @@ class TSHelp extends TSCommand {
           .where({
             name: commandName,
           })
-          .orWhere('aliases', 'like', `${commandName}%`)
-          .orWhere('aliases', 'like', `%${commandName}`)
-          .orWhere('aliases', 'like', `%${commandName}%`);
+          .orWhere('aliases', '=', `${commandName}`)
+          .orWhere('aliases', 'like', `${commandName},%`)
+          .orWhere('aliases', 'like', `%,${commandName}`)
+          .orWhere('aliases', 'like', `%,${commandName},%`);
 
         if (commandDB && commandDB.length > 0) {
           await ts.discord.messageSend(

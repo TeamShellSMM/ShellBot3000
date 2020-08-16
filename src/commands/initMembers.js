@@ -7,10 +7,6 @@ class InitMembers extends TSCommand {
     });
   }
 
-  async canRun(ts, message) {
-    return ts.teamAdmin(message.author.id);
-  }
-
   async tsexec(ts, message) {
     let registeredCount = 0;
     let alreadyRegisteredCount = 0;

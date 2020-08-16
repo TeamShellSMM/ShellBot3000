@@ -10,13 +10,41 @@ class TSCommand extends Command {
   }
 
   /**
-   * Overide this to do checks if a command runs or not
+   * Checks permissions
    * @param {TS} ts
    * @param {object} message
    * @returns {boolean}
    */
-  async canRun() {
-    return true;
+  async canRun(ts, message) {
+    const commandName = ts.parseCommand(message).cmd;
+
+    const commandDB = await ts
+      .knex('commands')
+      .where({
+        name: commandName,
+      })
+      .orWhere('aliases', '=', `${commandName}`)
+      .orWhere('aliases', 'like', `${commandName},%`)
+      .orWhere('aliases', 'like', `%,${commandName}`)
+      .orWhere('aliases', 'like', `%,${commandName},%`)
+      .first();
+
+    if (commandDB) {
+      // Default behavior if no command permission is set
+      if (commandDB.category === 'mods') {
+        if (await ts.modOnly(message.author.id)) {
+          return true;
+        }
+        return false;
+      }
+      return true;
+    } else {
+      if (ts.teamAdmin(message.author.id)) {
+        return true;
+      } else {
+        return false;
+      }
+    }
   }
 
   async exec(message, args) {

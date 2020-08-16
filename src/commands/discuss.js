@@ -8,10 +8,6 @@ class TSDiscussChannel extends TSCommand {
     });
   }
 
-  async canRun(ts, message) {
-    return ts.modOnly(ts.discord.getAuthor(message));
-  }
-
   async tsexec(ts, message) {
     const { code } = ts.getCodeArgument(message);
 

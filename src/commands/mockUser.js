@@ -15,10 +15,6 @@ class mockUser extends TSCommand {
     });
   }
 
-  async canRun() {
-    return process.env.NODE_ENV !== 'production';
-  }
-
   async tsexec(ts, message, args) {
     if (!args.user) ts.userError('mock.noTargetGiven');
     const player = await ts.getUser(message);

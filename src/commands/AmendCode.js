@@ -19,10 +19,6 @@ class AmendCode extends TSCommand {
     });
   }
 
-  async canRun(ts, message) {
-    return ts.modOnly(ts.discord.getAuthor(message));
-  }
-
   async tsexec(ts, message, { oldCode, newCode }) {
     if (!oldCode)
       ts.userError(await ts.message('reupload.noOldCode'));

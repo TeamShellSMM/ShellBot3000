@@ -20,10 +20,6 @@ class TSModSetDiscordId extends TSCommand {
     });
   }
 
-  async canRun(ts, message) {
-    return ts.modOnly(ts.discord.getAuthor(message));
-  }
-
   async tsexec(ts, message) {
     const command = ts.parseCommand(message);
 

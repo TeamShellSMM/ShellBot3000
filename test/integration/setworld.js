@@ -104,7 +104,7 @@ describe('setworld', () => {
   it('!unsetworld', async () => {
     assert.equal(
       await TEST.mockBotSend({
-        cmd: '!unset',
+        cmd: '!unsetworld',
         channel: 'general',
         discord_id: '256',
       }),
