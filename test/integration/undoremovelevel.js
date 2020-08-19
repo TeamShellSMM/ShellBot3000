@@ -60,14 +60,7 @@ describe('!undoremove', function () {
       channel: TEST.ts.channels.modChannel,
       discord_id: '128',
     });
-    assert.equal(
-      result,
-      await TEST.mockMessage(
-        'error.noCode',
-        { type: 'userError' },
-        { name: 'Creator' },
-      ),
-    );
+    assert.lengthOf(result, 0, 'no result');
   });
 
   it('not mod or creator', async function () {
@@ -80,24 +73,26 @@ describe('!undoremove', function () {
   });
 
   it('mod but no reason', async function () {
-    assert.equal(
+    assert.lengthOf(
       await TEST.mockBotSend({
         cmd: '!undoremovelevel XXX-XXX-XX3',
         channel: TEST.ts.channels.modChannel,
         discord_id: '128',
       }),
-      "Just leave a note why you're undoing the level remove ",
+      0,
+      'no result',
     );
   });
 
   it('mod but already approved', async function () {
-    assert.equal(
+    assert.lengthOf(
       await TEST.mockBotSend({
         cmd: '!undoremovelevel XXX-XXX-XXX this is reason',
         channel: TEST.ts.channels.modChannel,
         discord_id: '128',
       }),
-      '"approved level" by Creator is not removed ',
+      0,
+      'no result',
     );
   });
 
@@ -110,15 +105,7 @@ describe('!undoremove', function () {
       channel: TEST.ts.channels.modChannel,
       discord_id: '128',
     });
-    assert.equal(
-      result[2],
-      '<@128> You have undid the status change of "user removed level" by Creator ',
-    );
-    const level = await TEST.ts.db.Levels.query()
-      .where({ code: 'XXX-XXX-XX3' })
-      .first();
-    assert.equal(level.old_status, TEST.ts.LEVEL_STATUS.USER_REMOVED);
-    assert.equal(level.status, TEST.ts.LEVEL_STATUS.APPROVED);
+    assert.lengthOf(result, 0, 'no result');
   });
 
   it('mod removed', async function () {
@@ -130,14 +117,6 @@ describe('!undoremove', function () {
       channel: TEST.ts.channels.modChannel,
       discord_id: '128',
     });
-    assert.equal(
-      result[2],
-      '<@128> You have undid the status change of "removed level" by Creator ',
-    );
-    const level = await TEST.ts.db.Levels.query()
-      .where({ code: 'XXX-XXX-XX2' })
-      .first();
-    assert.equal(level.old_status, TEST.ts.LEVEL_STATUS.REMOVED);
-    assert.equal(level.status, TEST.ts.LEVEL_STATUS.APPROVED);
+    assert.lengthOf(result, 0, 'no result');
   });
 });

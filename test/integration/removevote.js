@@ -8,14 +8,17 @@ describe('!removevote', function () {
       {
         name: 'Mod1',
         discord_id: '128',
+        is_mod: 1,
       },
       {
         name: 'Mod2',
         discord_id: '256',
+        is_mod: 1,
       },
       {
         name: 'Mod3',
         discord_id: '512',
+        is_mod: 1,
       },
     ],
     Levels: [
@@ -71,8 +74,8 @@ describe('!removevote', function () {
   };
   beforeEach(async () => {
     await TEST.clearChannels();
-    await TEST.setupData(initData);
     await TEST.ts.load();
+    await TEST.setupData(initData);
   });
 
   it('not in pendingCategory', async () => {

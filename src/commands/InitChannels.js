@@ -10,10 +10,6 @@ class InitChannels extends TSCommand {
     });
   }
 
-  async canRun(ts, message) {
-    return ts.teamAdmin(message.author.id);
-  }
-
   async tsexec(ts, message) {
     let change = false;
     const channels = await ts.getSettings('channels');

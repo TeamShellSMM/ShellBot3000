@@ -14,10 +14,6 @@ class ResetLevelStatus extends TSCommand {
     });
   }
 
-  async canRun(ts, message) {
-    return ts.modOnly(ts.discord.getAuthor(message));
-  }
-
   async tsexec(ts, message, { code }) {
     if (!code) ts.userError(await ts.message('error.noCode'));
 

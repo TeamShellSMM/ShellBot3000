@@ -65,7 +65,7 @@ describe('!renamemember', () => {
     assert.equal(
       await TEST.mockBotSend({
         cmd: '!renamemember',
-        channel: 'general',
+        channel: TEST.ts.channels.modChannel,
         waitFor: 100,
         discord_id: '128',
       }),
@@ -80,7 +80,7 @@ describe('!renamemember', () => {
     assert.equal(
       await TEST.mockBotSend({
         cmd: '!renamemember 256',
-        channel: 'general',
+        channel: TEST.ts.channels.modChannel,
         waitFor: 100,
         discord_id: '128',
       }),
@@ -95,7 +95,7 @@ describe('!renamemember', () => {
     assert.equal(
       await TEST.mockBotSend({
         cmd: '!renamemember random_number new name',
-        channel: 'general',
+        channel: TEST.ts.channels.modChannel,
         waitFor: 100,
         discord_id: '128',
       }),
@@ -110,7 +110,7 @@ describe('!renamemember', () => {
     assert.equal(
       await TEST.mockBotSend({
         cmd: '!renamemember 256 Creator',
-        channel: 'general',
+        channel: TEST.ts.channels.modChannel,
         waitFor: 100,
         discord_id: '128',
       }),
@@ -125,7 +125,7 @@ describe('!renamemember', () => {
     assert.equal(
       await TEST.mockBotSend({
         cmd: '!renamemember 256 <@456681756700000000>',
-        channel: 'general',
+        channel: TEST.ts.channels.modChannel,
         waitFor: 100,
         discord_id: '128',
       }),
@@ -140,7 +140,7 @@ describe('!renamemember', () => {
     assert.equal(
       await TEST.mockBotSend({
         cmd: '!renamemember 256 Other',
-        channel: 'general',
+        channel: TEST.ts.channels.modChannel,
         waitFor: 100,
         discord_id: '128',
       }),
@@ -155,7 +155,7 @@ describe('!renamemember', () => {
     assert.equal(
       await TEST.mockBotSend({
         cmd: '!renamemember 256 a_new_name',
-        channel: 'general',
+        channel: TEST.ts.channels.modChannel,
         waitFor: 100,
         discord_id: '128',
       }),

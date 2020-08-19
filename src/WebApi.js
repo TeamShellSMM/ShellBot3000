@@ -901,6 +901,35 @@ module.exports = async function (client) {
     }, 'admin'),
   );
 
+  app.post(
+    '/teams/commandpermissions',
+    webTS(async (ts) => {
+      const commandPermissions = await ts
+        .knex('command_permissions')
+        .select(
+          'command_permissions.id',
+          'command_permissions.command_id',
+          'command_permissions.disabled',
+          'command_permissions.roles',
+          'command_permissions.text_channels',
+          'command_permissions.channel_categories',
+        )
+        .where({ guild_id: ts.team.id });
+
+      const commands = await ts
+        .knex('commands')
+        .select('commands.id', 'commands.name')
+        .orderBy('name', 'asc');
+
+      return {
+        data: {
+          commandPermissions: ts.secureData(commandPermissions),
+          commands: ts.secureData(commands),
+        },
+      };
+    }, 'admin'),
+  );
+
   app.put(
     '/teams/tags',
     webTS(async (ts, req) => {
@@ -997,6 +1026,75 @@ module.exports = async function (client) {
         return trx;
       });
       return { data: updated ? 'tags updated' : 'No tags updated' };
+    }, 'admin'),
+  );
+
+  app.put(
+    '/teams/commandpermissions',
+    webTS(async (ts, req) => {
+      if (!req.body.data) ts.userError('website.noDataSent');
+      const data = await ts.verifyData(req.body.data);
+
+      let updated = false;
+      await ts.knex.transaction(async (trx) => {
+        const existingPermissions = await trx('command_permissions')
+          .select(
+            'id',
+            'command_id',
+            'disabled',
+            'roles',
+            'text_channels',
+            'channel_categories',
+          )
+          .where({ guild_id: ts.team.id });
+
+        // TODO:test this
+        // TODO:tags transformation
+
+        for (let i = 0; i < data.length; i += 1) {
+          const currentID = data[i].id;
+          const newData = {
+            id: data[i].id ? Number(data[i].id) : null,
+            command_id: data[i].command_id
+              ? Number(data[i].command_id)
+              : null,
+            disabled: ['true', '1', 1, true].includes(
+              data[i].disabled,
+            )
+              ? 1
+              : 0,
+            roles: data[i].roles,
+            text_channels: data[i].text_channels,
+            channel_categories: data[i].channel_categories,
+          };
+          if (currentID) {
+            const existing = existingPermissions.find(
+              (t) => Number(t.id) === Number(currentID),
+            );
+            if (!existing) ts.userError('error.hadIdButNotInDb');
+            if (!deepEqual(newData, existing)) {
+              newData.updated_at = moment().format(
+                'YYYY-MM-DD HH:mm:ss',
+              );
+              await trx('command_permissions')
+                .update(newData)
+                .where({ id: newData.id });
+              updated = true;
+            }
+          } else {
+            delete data[i].id;
+            newData.guild_id = ts.team.id;
+            await trx('command_permissions').insert(newData);
+            updated = true;
+          }
+        }
+        return trx;
+      });
+      return {
+        data: updated
+          ? 'command permissions updated'
+          : 'No command permissions updated',
+      };
     }, 'admin'),
   );
 

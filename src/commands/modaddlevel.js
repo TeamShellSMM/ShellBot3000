@@ -8,15 +8,15 @@ class TSModAddLevel extends TSCommand {
     });
   }
 
-  async canRun(ts, message) {
-    return ts.modOnly(ts.discord.getAuthor(message));
-  }
-
   async tsexec(ts, message) {
     const command = ts.parseCommand(message);
     const memberName = command.arguments.shift();
     let code = command.arguments.shift();
     if (code) code = code.toUpperCase();
+
+    if (!memberName) {
+      ts.userError(await ts.message('modaddlevel.missingMemberName'));
+    }
 
     let member = await ts.db.Members.query()
       .whereRaw('lower(name) = ?', [memberName.toLowerCase()])

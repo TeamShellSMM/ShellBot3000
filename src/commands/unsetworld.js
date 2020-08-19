@@ -2,8 +2,8 @@ const TSCommand = require('../TSCommand.js');
 
 class UnsetWorld extends TSCommand {
   constructor() {
-    super('unset', {
-      aliases: ['unset', 'unsetworld'],
+    super('unsetworld', {
+      aliases: ['unsetworld', 'tsunsetworld'],
       args: [],
       channelRestriction: 'guild',
     });

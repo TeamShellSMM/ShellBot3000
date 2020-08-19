@@ -713,6 +713,30 @@ class TS {
       );
     };
 
+    this.inAllowedChannel = (message, defaultPermission) => {
+      if (defaultPermission.allowedChannels.length === 0) {
+        return true;
+      }
+
+      let allowed = false;
+      for (const channelPermission of defaultPermission.allowedChannels) {
+        if (
+          channelPermission.type === 'text' &&
+          message.channel.id ===
+            this.channels[channelPermission.settingChannelName]
+        ) {
+          allowed = true;
+        } else if (
+          channelPermission.type === 'category' &&
+          this.discord.messageGetParent(message) ===
+            ts.channels[channelPermission.settingChannelName]
+        ) {
+          allowed = true;
+        }
+      }
+      return allowed;
+    };
+
     this.raceCreator = async (discord_id) => {
       if (!discord_id) return false;
       const player = await ts.getUser(discord_id);
