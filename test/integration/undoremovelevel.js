@@ -79,7 +79,8 @@ describe('!undoremove', function () {
         channel: TEST.ts.channels.modChannel,
         discord_id: '128',
       }),
-      0, 'no result'
+      0,
+      'no result',
     );
   });
 
@@ -90,7 +91,8 @@ describe('!undoremove', function () {
         channel: TEST.ts.channels.modChannel,
         discord_id: '128',
       }),
-      0, 'no result'
+      0,
+      'no result',
     );
   });
 

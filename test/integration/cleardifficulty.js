@@ -80,7 +80,7 @@ describe('cleardifficulty', () => {
     assert.equal(
       await TEST.mockBotSend({
         cmd: '!cleardifficulty xxx-xxx-xxx',
-        channel: 'general',
+        channel: TEST.ts.channels.modChannel,
         discord_id: '128',
       }),
       'You have cleared the difficulty votes for "approved level" by Creator',

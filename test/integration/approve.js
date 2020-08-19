@@ -8,14 +8,17 @@ describe('!approve', function () {
       {
         name: 'Mod1',
         discord_id: '128',
+        is_mod: 1,
       },
       {
         name: 'Mod2',
         discord_id: '256',
+        is_mod: 1,
       },
       {
         name: 'Mod3',
         discord_id: '512',
+        is_mod: 1,
       },
     ],
     Levels: [
@@ -50,6 +53,16 @@ describe('!approve', function () {
     await TEST.clearChannels();
     await TEST.setupData(initData);
     await TEST.ts.load();
+
+    await TEST.knex('members')
+      .update({ is_mod: 1 })
+      .where({ discord_id: '128' });
+    await TEST.knex('members')
+      .update({ is_mod: 1 })
+      .where({ discord_id: '256' });
+    await TEST.knex('members')
+      .update({ is_mod: 1 })
+      .where({ discord_id: '512' });
   });
 
   it('judge not in pendingCategory', async () => {
@@ -76,7 +89,7 @@ describe('!approve', function () {
     assert.lengthOf(result, 0, 'no result');
   });
 
-  it('judge not pending', async () => {
+  it('approve judge not pending', async () => {
     await TEST.createChannel({
       name: 'XXX-XXX-XX2',
       parent: TEST.ts.channels.levelDiscussionCategory,
@@ -332,7 +345,7 @@ describe('!approve', function () {
     assert.equal(level.difficulty, 0);
   });
 
-  it('fix', async function () {
+  it('apr.fix', async function () {
     const result = await TEST.mockBotSend({
       cmd: '!fix XXX-XXX-XXX 4 Fix your jank',
       channel: TEST.ts.channels.modChannel,

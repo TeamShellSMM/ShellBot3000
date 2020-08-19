@@ -713,6 +713,30 @@ class TS {
       );
     };
 
+    this.inAllowedChannel = (message, defaultPermission) => {
+      if (defaultPermission.allowedChannels.length === 0) {
+        return true;
+      }
+
+      let allowed = false;
+      for (const channelPermission of defaultPermission.allowedChannels) {
+        if (
+          channelPermission.type === 'text' &&
+          message.channel.id ===
+            this.channels[channelPermission.settingChannelName]
+        ) {
+          allowed = true;
+        } else if (
+          channelPermission.type === 'category' &&
+          this.discord.messageGetParent(message) ===
+            ts.channels[channelPermission.settingChannelName]
+        ) {
+          allowed = true;
+        }
+      }
+      return allowed;
+    };
+
     this.raceCreator = async (discord_id) => {
       if (!discord_id) return false;
       const player = await ts.getUser(discord_id);
@@ -727,13 +751,11 @@ class TS {
     this.modOnly = async (discordId) => {
       if (!discordId) return false;
       if (this.devs && this.devs.indexOf(discordId) !== -1) {
-        DiscordLog.log("1");
         return true;
       }
       const guild = await this.discord.guild();
       if (guild.owner.user.id === discordId) {
         // owner can do anything
-        DiscordLog.log("21");
         return true;
       }
       if (ts.teamVariables.discordAdminCanMod === 'true') {
@@ -743,7 +765,6 @@ class TS {
           discordUser &&
           discordUser.hasPermission('ADMINISTRATOR')
         ) {
-          DiscordLog.log("3");
           return true;
         }
       }
@@ -752,10 +773,8 @@ class TS {
         .where({ discord_id: discordId })
         .first();
       if (member && member.is_mod) {
-        DiscordLog.log("4");
         return true;
       }
-      DiscordLog.log("5");
       return false;
     };
 

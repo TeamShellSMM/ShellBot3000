@@ -90,7 +90,7 @@ describe('!fixdiscuss', function () {
     assert.equal(
       await TEST.mockBotSend({
         cmd: '!fixdiscuss',
-        channel: 'general',
+        channel: TEST.ts.channels.modChannel,
         discord_id: '128',
       }),
       await TEST.mockMessage('error.noCode', { type: 'userError' }),
@@ -104,7 +104,7 @@ describe('!fixdiscuss', function () {
     assert.equal(
       await TEST.mockBotSend({
         cmd: '!fixdiscuss yyy-yyy-yyy',
-        channel: 'general',
+        channel: TEST.ts.channels.modChannel,
         discord_id: '128',
       }),
       "The code `YYY-YYY-YYY` was not found in AutoTest's list. ",

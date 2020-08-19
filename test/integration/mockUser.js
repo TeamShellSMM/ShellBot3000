@@ -11,6 +11,11 @@ describe('!mockUser', function () {
           discord_id: '128',
           is_mod: 1,
         },
+        {
+          name: 'Bot',
+          discord_id: TEST.bot_id,
+          is_mod: 1,
+        },
       ],
     });
     await TEST.clearChannels();
@@ -24,7 +29,7 @@ describe('!mockUser', function () {
       await TEST.mockBotSend({
         cmd: '!mockUser',
         channel: 'general',
-        discord_id: '128',
+        discord_id: TEST.bot_id,
       }),
       "You didn't give any names ",
     );
@@ -38,35 +43,29 @@ describe('!mockUser', function () {
       await TEST.mockBotSend({
         cmd: '!mockUser unknown',
         channel: 'general',
-        discord_id: '128',
+        discord_id: TEST.bot_id,
       }),
       'No user found ',
     );
   });
 
   it('Already target', async () => {
-    await TEST.ts.db.Members.query()
-      .where({ discord_id: '128' })
-      .patch({ is_mod: 1 });
     assert.equal(
       await TEST.mockBotSend({
-        cmd: '!mockUser Mod1',
+        cmd: '!mockUser Bot',
         channel: 'general',
-        discord_id: '128',
+        discord_id: TEST.bot_id,
       }),
       "You're already them ",
     );
   });
 
   it('Mock successful', async () => {
-    await TEST.ts.db.Members.query()
-      .where({ discord_id: '128' })
-      .patch({ is_mod: 1 });
     assert.equal(
       await TEST.mockBotSend({
         cmd: '!mockUser Creator',
         channel: 'general',
-        discord_id: '128',
+        discord_id: TEST.bot_id,
       }),
       "You're now Creator. Identity theft is not a joke, Jim!",
     );

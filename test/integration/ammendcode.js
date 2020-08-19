@@ -39,7 +39,7 @@ describe('!ammendcode', function () {
   it('no arguments', async function () {
     const result = await TEST.mockBotSend({
       cmd: '!ammendcode',
-      channel: 'general',
+      channel: TEST.ts.channels.modChannel,
       discord_id: '128',
     });
     assert.equal(
@@ -55,7 +55,7 @@ describe('!ammendcode', function () {
   it('no new level code', async function () {
     const result = await TEST.mockBotSend({
       cmd: '!ammendcode xxx-xxx-xxx',
-      channel: 'general',
+      channel: TEST.ts.channels.modChannel,
       discord_id: '128',
     });
     assert.equal(
@@ -71,7 +71,7 @@ describe('!ammendcode', function () {
   it('invalid old code', async function () {
     const result = await TEST.mockBotSend({
       cmd: '!ammendcode xxx-xx-xxx XXX-XXX-XXX',
-      channel: 'general',
+      channel: TEST.ts.channels.modChannel,
       discord_id: '128',
     });
     assert.equal(
@@ -87,7 +87,7 @@ describe('!ammendcode', function () {
   it('invalid new code', async function () {
     const result = await TEST.mockBotSend({
       cmd: '!ammendcode xxx-xxx-xxx XXX-XX-XXX',
-      channel: 'general',
+      channel: TEST.ts.channels.modChannel,
       discord_id: '128',
     });
     assert.equal(
@@ -103,7 +103,7 @@ describe('!ammendcode', function () {
   it('same code', async function () {
     const result = await TEST.mockBotSend({
       cmd: '!ammendcode xxx-xxx-xxx XXX-XXX-XXX',
-      channel: 'general',
+      channel: TEST.ts.channels.modChannel,
       discord_id: '128',
     });
     assert.equal(
@@ -119,7 +119,7 @@ describe('!ammendcode', function () {
   it('new code is existing level', async function () {
     const result = await TEST.mockBotSend({
       cmd: '!ammendcode xxx-xxx-xxx XXX-XXx-XX2',
-      channel: 'general',
+      channel: TEST.ts.channels.modChannel,
       discord_id: '128',
     });
     assert.equal(
@@ -159,7 +159,7 @@ describe('!ammendcode', function () {
     });
     const result = await TEST.mockBotSend({
       cmd: '!ammendcode xxx-xxx-xxx xxx-xxx-xx3',
-      channel: 'general',
+      channel: TEST.ts.channels.modChannel,
       discord_id: ownerId,
     });
     assert.equal(
@@ -209,7 +209,7 @@ describe('!ammendcode', function () {
     delete TEST.ts.teamVariables.discordAdminCanMod;
     const result = await TEST.mockBotSend({
       cmd: '!ammendcode xxx-xxx-xxx xxx-xxx-xx3',
-      channel: 'general',
+      channel: TEST.ts.channels.modChannel,
       waitFor: 100,
       discord_id: TEST.bot_id, // we use bot for now as bot was set to have admin rights in test server
       // TODO: make admin test users
@@ -221,7 +221,7 @@ describe('!ammendcode', function () {
     TEST.ts.teamVariables.discordAdminCanMod = 'true';
     const result = await TEST.mockBotSend({
       cmd: '!ammendcode xxx-xxx-xxx xxx-xxx-xx3',
-      channel: 'general',
+      channel: TEST.ts.channels.modChannel,
       discord_id: TEST.bot_id, // we use bot for now as bot was set to have admin rights in test server
       // TODO: make admin test users
     });

@@ -567,10 +567,335 @@ const CHANNEL_LABELS = Object.freeze({
   AUDIT_VERIFY_CLEARS: '✅',
 });
 
+/**
+ * Default permissions for all commands
+ * allowedRoles are all, mods or admins
+ * allowedChannels - if this is empty, all are allowed
+ * allowedChannels types are text or category
+ * allowedChannels settingChannelName is only used for category or text and is the team setting var name
+ */
+const defaultCommandPermissions = Object.freeze({
+  add: {
+    allowedRoles: 'all',
+    allowedChannels: [],
+  },
+  addtags: {
+    allowedRoles: 'all',
+    allowedChannels: [],
+  },
+  removetags: {
+    allowedRoles: 'all',
+    allowedChannels: [],
+  },
+  addvids: {
+    allowedRoles: 'all',
+    allowedChannels: [],
+  },
+  removevids: {
+    allowedRoles: 'all',
+    allowedChannels: [],
+  },
+  amendcode: {
+    allowedRoles: 'mods',
+    allowedChannels: [
+      {
+        type: 'text',
+        settingChannelName: 'modChannel',
+      },
+    ],
+  },
+  atme: {
+    allowedRoles: 'all',
+    allowedChannels: [],
+  },
+  dontatme: {
+    allowedRoles: 'all',
+    allowedChannels: [],
+  },
+  nickname: {
+    allowedRoles: 'all',
+    allowedChannels: [],
+  },
+  clear: {
+    allowedRoles: 'all',
+    allowedChannels: [],
+  },
+  cleardifficulty: {
+    allowedRoles: 'mods',
+    allowedChannels: [
+      {
+        type: 'text',
+        settingChannelName: 'modChannel',
+      },
+    ],
+  },
+  difficulty: {
+    allowedRoles: 'all',
+    allowedChannels: [],
+  },
+  fixdiscuss: {
+    allowedRoles: 'mods',
+    allowedChannels: [
+      {
+        type: 'text',
+        settingChannelName: 'modChannel',
+      },
+      {
+        type: 'category',
+        settingChannelName: 'levelDiscussionCategory',
+      },
+    ],
+  },
+  search: {
+    allowedRoles: 'all',
+    allowedChannels: [],
+  },
+  like: {
+    allowedRoles: 'all',
+    allowedChannels: [],
+  },
+  unlike: {
+    allowedRoles: 'all',
+    allowedChannels: [],
+  },
+  login: {
+    allowedRoles: 'all',
+    allowedChannels: [],
+  },
+  makerid: {
+    allowedRoles: 'all',
+    allowedChannels: [],
+  },
+  modaddclear: {
+    allowedRoles: 'mods',
+    allowedChannels: [
+      {
+        type: 'text',
+        settingChannelName: 'modChannel',
+      },
+    ],
+  },
+  modaddlevel: {
+    allowedRoles: 'mods',
+    allowedChannels: [
+      {
+        type: 'text',
+        settingChannelName: 'modChannel',
+      },
+    ],
+  },
+  modaddmember: {
+    allowedRoles: 'mods',
+    allowedChannels: [
+      {
+        type: 'text',
+        settingChannelName: 'modChannel',
+      },
+    ],
+  },
+  modsetdiscordid: {
+    allowedRoles: 'mods',
+    allowedChannels: [
+      {
+        type: 'text',
+        settingChannelName: 'modChannel',
+      },
+    ],
+  },
+  pendingstatus: {
+    allowedRoles: 'all',
+    allowedChannels: [],
+  },
+  playersrandom: {
+    allowedRoles: 'all',
+    allowedChannels: [],
+  },
+  points: {
+    allowedRoles: 'all',
+    allowedChannels: [],
+  },
+  random: {
+    allowedRoles: 'all',
+    allowedChannels: [],
+  },
+  randomall: {
+    allowedRoles: 'all',
+    allowedChannels: [],
+  },
+  randompending: {
+    allowedRoles: 'all',
+    allowedChannels: [],
+  },
+  randomtag: {
+    allowedRoles: 'all',
+    allowedChannels: [],
+  },
+  register: {
+    allowedRoles: 'all',
+    allowedChannels: [],
+  },
+  refresh: {
+    allowedRoles: 'mods',
+    allowedChannels: [
+      {
+        type: 'text',
+        settingChannelName: 'modChannel',
+      },
+    ],
+  },
+  requestremoval: {
+    allowedRoles: 'all',
+    allowedChannels: [],
+  },
+  removevote: {
+    allowedRoles: 'mods',
+    allowedChannels: [
+      {
+        type: 'category',
+        settingChannelName: 'levelDiscussionCategory',
+      },
+      {
+        type: 'text',
+        settingChannelName: 'modChannel',
+      },
+    ],
+  },
+  rename: {
+    allowedRoles: 'all',
+    allowedChannels: [],
+  },
+  renamemember: {
+    allowedRoles: 'mods',
+    allowedChannels: [
+      {
+        type: 'text',
+        settingChannelName: 'modChannel',
+      },
+    ],
+  },
+  requestrerate: {
+    allowedRoles: 'all',
+    allowedChannels: [],
+  },
+  resetstatus: {
+    allowedRoles: 'mods',
+    allowedChannels: [
+      {
+        type: 'text',
+        settingChannelName: 'modChannel',
+      },
+    ],
+  },
+  reupload: {
+    allowedRoles: 'all',
+    allowedChannels: [],
+  },
+  setworld: {
+    allowedRoles: 'all',
+    allowedChannels: [],
+  },
+  approve: {
+    allowedRoles: 'mods',
+    allowedChannels: [
+      {
+        type: 'category',
+        settingChannelName: 'levelDiscussionCategory',
+      },
+      {
+        type: 'text',
+        settingChannelName: 'modChannel',
+      },
+    ],
+  },
+  fix: {
+    allowedRoles: 'mods',
+    allowedChannels: [
+      {
+        type: 'category',
+        settingChannelName: 'levelDiscussionCategory',
+      },
+      {
+        type: 'text',
+        settingChannelName: 'modChannel',
+      },
+    ],
+  },
+  reject: {
+    allowedRoles: 'mods',
+    allowedChannels: [
+      {
+        type: 'category',
+        settingChannelName: 'levelDiscussionCategory',
+      },
+      {
+        type: 'text',
+        settingChannelName: 'modChannel',
+      },
+    ],
+  },
+  auditapprove: {
+    allowedRoles: 'mods',
+    allowedChannels: [
+      {
+        type: 'category',
+        settingChannelName: 'levelAuditCategory',
+      },
+    ],
+  },
+  auditreject: {
+    allowedRoles: 'mods',
+    allowedChannels: [
+      {
+        type: 'category',
+        settingChannelName: 'levelAuditCategory',
+      },
+    ],
+  },
+  help: {
+    allowedRoles: 'all',
+    allowedChannels: [],
+  },
+  info: {
+    allowedRoles: 'all',
+    allowedChannels: [],
+  },
+  judge: {
+    allowedRoles: 'mods',
+    allowedChannels: [
+      {
+        type: 'category',
+        settingChannelName: 'levelDiscussionCategory',
+      },
+    ],
+  },
+  refusefix: {
+    allowedRoles: 'all',
+    allowedChannels: [],
+  },
+  removeclear: {
+    allowedRoles: 'all',
+    allowedChannels: [],
+  },
+  rerate: {
+    allowedRoles: 'mods',
+    allowedChannels: [
+      {
+        type: 'text',
+        settingChannelName: 'modChannel',
+      },
+    ],
+  },
+  unsetworld: {
+    allowedRoles: 'all',
+    allowedChannels: [],
+  },
+});
+
 module.exports = {
   botPermissions,
   defaultChannels,
   defaultVariables,
+  defaultCommandPermissions,
   LEVEL_STATUS,
   PENDING_LEVELS,
   SHOWN_IN_LIST,

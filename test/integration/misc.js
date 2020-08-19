@@ -63,7 +63,7 @@ describe('misc-integration', () => {
     assert.equal(
       await TEST.mockBotSend({
         cmd: '!refresh',
-        channel: 'general',
+        channel: TEST.ts.channels.modChannel,
         discord_id: '128',
       }),
       'Reloaded data!',

@@ -39,7 +39,7 @@ describe('!resetstatus', function () {
   it('no level code', async function () {
     const result = await TEST.mockBotSend({
       cmd: '!resetstatus',
-      channel: 'general',
+      channel: TEST.ts.channels.modChannel,
       discord_id: '128',
     });
     assert.equal(
@@ -79,7 +79,7 @@ describe('!resetstatus', function () {
   it('mod successful', async function () {
     const result = await TEST.mockBotSend({
       cmd: '!resetstatus xxx-xxx-xxx',
-      channel: 'general',
+      channel: TEST.ts.channels.modChannel,
       discord_id: '128',
     });
     assert.equal(
@@ -105,7 +105,7 @@ describe('!resetstatus', function () {
   it('mod, but reset pending', async function () {
     const result = await TEST.mockBotSend({
       cmd: '!resetstatus xxx-xxx-xx2',
-      channel: 'general',
+      channel: TEST.ts.channels.modChannel,
       discord_id: '128',
     });
     assert.equal(
@@ -132,7 +132,7 @@ describe('!resetstatus', function () {
     const ownerId = TEST.ts.discord.guild().owner.user.id;
     const result = await TEST.mockBotSend({
       cmd: '!resetstatus xxx-xxx-xxx',
-      channel: 'general',
+      channel: TEST.ts.channels.modChannel,
       discord_id: ownerId,
     });
     assert.equal(
@@ -159,7 +159,7 @@ describe('!resetstatus', function () {
     const ownerId = TEST.ts.discord.guild().owner.user.id;
     const result = await TEST.mockBotSend({
       cmd: '!resetstatus xxx-xxx-xxx',
-      channel: 'general',
+      channel: TEST.ts.channels.modChannel,
       discord_id: ownerId,
     });
     assert.equal(
@@ -185,7 +185,7 @@ describe('!resetstatus', function () {
     delete TEST.ts.teamVariables.discordAdminCanMod;
     const result = await TEST.mockBotSend({
       cmd: '!resetstatus xxx-xxx-xxx',
-      channel: 'general',
+      channel: TEST.ts.channels.modChannel,
       waitFor: 100,
       discord_id: TEST.bot_id, // we use bot for now as bot was set to have admin rights in test server
       // TODO: make admin test users
@@ -211,7 +211,7 @@ describe('!resetstatus', function () {
     TEST.ts.teamVariables.discordAdminCanMod = 'true';
     const result = await TEST.mockBotSend({
       cmd: '!resetstatus xxx-xxx-xxx',
-      channel: 'general',
+      channel: TEST.ts.channels.modChannel,
       discord_id: TEST.bot_id, // we use bot for now as bot was set to have admin rights in test server
       // TODO: make admin test users
     });

@@ -3,6 +3,7 @@ const debugError = require('debug')('shellbot3000:error');
 const debug = require('debug')('shellbot3000:TSCommand');
 const TS = require('./TS.js');
 const DiscordLog = require('./DiscordLog');
+const { defaultCommandPermissions } = require('./constants');
 
 class TSCommand extends Command {
   async tsexec() {
@@ -31,20 +32,30 @@ class TSCommand extends Command {
 
     if (commandDB) {
       // Default behavior if no command permission is set
-      if (commandDB.category === 'mods') {
-        if (await ts.modOnly(message.author.id)) {
-          return true;
-        }
+      const defaultPermission =
+        defaultCommandPermissions[commandDB.name];
+
+      if (
+        !(
+          defaultPermission.allowedRoles === 'all' ||
+          (defaultPermission.allowedRoles === 'mods' &&
+            (await ts.modOnly(message.author.id))) ||
+          (defaultPermission.allowedRoles === 'admins' &&
+            (await ts.teamAdmin(message.author.id)))
+        )
+      ) {
+        return false;
+      }
+
+      if (!ts.inAllowedChannel(message, defaultPermission)) {
         return false;
       }
       return true;
-    } else {
-      if (ts.teamAdmin(message.author.id)) {
-        return true;
-      } else {
-        return false;
-      }
     }
+    if (ts.teamAdmin(message.author.id)) {
+      return true;
+    }
+    return false;
   }
 
   async exec(message, args) {
@@ -92,9 +103,9 @@ class TSCommand extends Command {
       }
 
       if (!(await this.canRun(ts, message))) {
-        DiscordLog.log(
+        /* DiscordLog.info(
           ts.makeErrorObj(`can't run: ${message.content}`, message),
-        );
+        ); */
         return false;
       }
       await this.tsexec(ts, message, {

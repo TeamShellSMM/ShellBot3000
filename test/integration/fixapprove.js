@@ -3,6 +3,7 @@
 describe('!fixapprove', function () {
   beforeEach(async () => {
     await TEST.clearChannels();
+    await TEST.ts.load();
     await TEST.setupData({
       Members: [
         {
@@ -98,7 +99,6 @@ describe('!fixapprove', function () {
         },
       ],
     });
-    await TEST.ts.load();
   });
 
   it('fixapprove pending not reupload', async () => {
@@ -112,7 +112,7 @@ describe('!fixapprove', function () {
         cmd: '!fixapprove "great fix"',
         channel: '🔨XXX-XXX-XX6',
         waitFor: 100,
-        discord_id: '256',
+        discord_id: '128',
       }),
       'Level is not in a valid fix status (this should not happen)! ',
     );
@@ -129,7 +129,7 @@ describe('!fixapprove', function () {
         cmd: '!fixapprove "great fix"',
         channel: '🔁XXX-XXX-XX7',
         waitFor: 100,
-        discord_id: '256',
+        discord_id: '128',
       }),
       'Old level could not be found after reupload (this should not happen)! ',
     );
@@ -146,7 +146,7 @@ describe('!fixapprove', function () {
         cmd: '!fixapprove "great fix"',
         channel: '🔨XXX-XXX-XX5',
         waitFor: 100,
-        discord_id: '256',
+        discord_id: '128',
       }),
       'Level is not pending! ',
     );
@@ -521,7 +521,7 @@ describe('!fixapprove', function () {
     });
     const result = await TEST.mockBotSend({
       cmd: '!amendcode XXX-XXX-XX5 XXX-XXX-XXA',
-      channel: 'general',
+      channel: TEST.ts.channels.modChannel,
       discord_id: ownerId,
     });
 
