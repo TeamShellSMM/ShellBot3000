@@ -31,11 +31,81 @@ class TSCommand extends Command {
       .first();
 
     if (commandDB) {
+      const commandPermission = await ts
+        .knex('command_permissions')
+        .where({
+          guild_id: ts.team.id,
+          command_id: commandDB.id,
+        })
+        .first();
+
+      let hasRolePermissions = false;
+      let hasChannelPermissions = false;
+
+      if (commandPermission) {
+        if (commandPermission.disabled) {
+          return false;
+        }
+
+        if (commandPermission.roles) {
+          hasRolePermissions = true;
+          if (
+            !ts.discord.hasRoleList(
+              message.author.id,
+              commandPermission.roles.split(','),
+            )
+          ) {
+            return false;
+          }
+        }
+
+        if (
+          commandPermission.text_channels ||
+          commandPermission.channel_categories
+        ) {
+          hasChannelPermissions = true;
+
+          let inAllowedChannel = false;
+          if (commandPermission.text_channels) {
+            const channelNames = commandPermission.text_channels.split(
+              ',',
+            );
+            for (const channelName of channelNames) {
+              if (
+                message.channel.name.toLowerCase() ===
+                channelName.toLowerCase()
+              ) {
+                inAllowedChannel = true;
+              }
+            }
+          }
+          if (commandPermission.channel_categories) {
+            const categoryNames = commandPermission.channel_categories.split(
+              ',',
+            );
+            for (const categoryName of categoryNames) {
+              if (
+                message.channel.parent &&
+                message.channel.parent.name.toLowerCase() ===
+                  categoryName.toLowerCase()
+              ) {
+                inAllowedChannel = true;
+              }
+            }
+          }
+
+          if (!inAllowedChannel) {
+            return false;
+          }
+        }
+      }
+
       // Default behavior if no command permission is set
       const defaultPermission =
         defaultCommandPermissions[commandDB.name];
 
       if (
+        !hasRolePermissions &&
         !(
           defaultPermission.allowedRoles === 'all' ||
           (defaultPermission.allowedRoles === 'mods' &&
@@ -47,7 +117,10 @@ class TSCommand extends Command {
         return false;
       }
 
-      if (!ts.inAllowedChannel(message, defaultPermission)) {
+      if (
+        !hasChannelPermissions &&
+        !ts.inAllowedChannel(message, defaultPermission)
+      ) {
         return false;
       }
       return true;

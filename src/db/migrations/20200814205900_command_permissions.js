@@ -39,8 +39,10 @@ exports.up = function (knex) {
         .references('commands.id')
         .notNull();
 
+      t.boolean('disabled').notNull().defaultTo(0);
       t.string('roles').nullable();
-      t.string('channels').nullable();
+      t.string('text_channels').nullable();
+      t.string('channel_categories').nullable();
 
       t.unique(['guild_id', 'command_id']);
       t.index(['guild_id', 'command_id']);

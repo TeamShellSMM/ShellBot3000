@@ -234,6 +234,21 @@ class DiscordWrapper {
     );
   }
 
+  hasRoleList(discordId, roleIds) {
+    for (let roleId of roleIds) {
+      if (typeof roleId === 'string') {
+        roleId = roleId.toLowerCase();
+      }
+    }
+    const currMember = this.member(discordId);
+    if (!currMember || !currMember.roles) return false;
+    return currMember.roles.some(
+      (r) =>
+        roleIds.indexOf(r.id) !== -1 ||
+        roleIds.indexOf(r.name.toLowerCase()) !== -1,
+    );
+  }
+
   async addRole(discordId, roleId) {
     const currMember = this.member(discordId);
     if (!currMember) return false;
