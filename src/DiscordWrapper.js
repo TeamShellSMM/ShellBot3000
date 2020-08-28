@@ -221,7 +221,10 @@ class DiscordWrapper {
   }
 
   async removeRoles(discordId, roleId) {
-    return this.member(discordId).removeRoles(roleId);
+    const currMember = this.member(discordId);
+    if (!currMember) return false;
+
+    return currMember.removeRoles(roleId);
   }
 
   hasRole(discordId, roleId) {
