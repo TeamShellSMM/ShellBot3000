@@ -371,7 +371,7 @@ module.exports = async function (client) {
                   levels.creator
                 FROM levels
                 ${tagJoins}
-                INNER JOIN points ON
+                LEFT JOIN points ON
                   points.difficulty=levels.difficulty
                   AND points.guild_id=levels.guild_id
                 WHERE
