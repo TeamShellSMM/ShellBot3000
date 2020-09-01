@@ -49,11 +49,19 @@ class TSRegister extends TSCommand {
       );
     }
 
+    const authorId = ts.discord.getAuthor(message);
     await ts.db.Members.query().insert({
       name: nickname,
-      discord_id: ts.discord.getAuthor(message), // insert as string
+      discord_id: authorId, // insert as string
       discord_name: ts.discord.getUsername(message),
     });
+
+    if (ts.teamVariables.nonMemberRoleId) {
+      await ts.discord.addRole(
+        authorId,
+        ts.teamVariables.nonMemberRoleId,
+      );
+    }
 
     const minPoints = Number(ts.teamVariables['Minimum Point']);
 
