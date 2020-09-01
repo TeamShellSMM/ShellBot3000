@@ -248,10 +248,18 @@ module.exports = async function (client) {
   }
 
   async function generateMembersJson(ts, data) {
-    let { membershipStatus, timePeriod, timePeriod2 } = data;
+    let {
+      membershipStatus,
+      timePeriod,
+      timePeriod2,
+      selectedTagId,
+    } = data;
     membershipStatus = parseInt(membershipStatus, 10);
     timePeriod = timePeriod ? parseInt(timePeriod, 10) : 1;
     timePeriod2 = timePeriod2 ? parseInt(timePeriod2, 10) : 1;
+    selectedTagId = selectedTagId
+      ? parseInt(selectedTagId, 10)
+      : null;
 
     const competitionWinners = await ts
       .knex('competition_winners')
@@ -267,7 +275,7 @@ module.exports = async function (client) {
     }
 
     const json = {};
-    if (timePeriod === 1 && timePeriod2 === 1) {
+    if (timePeriod === 1 && timePeriod2 === 1 && !selectedTagId) {
       const [rows] = await ts.knex.raw(
         `SELECT
           ROW_NUMBER() OVER ( ORDER BY clear_score_sum desc ) as id,
@@ -313,6 +321,11 @@ module.exports = async function (client) {
           "AND DATE_FORMAT(plays.created_at,'%j-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%j-%Y')";
       }
 
+      let tagJoins = '';
+      if (selectedTagId && Number.isInteger(selectedTagId)) {
+        tagJoins = `INNER JOIN level_tags on levels.id = level_tags.level_id and level_tags.tag_id = ${selectedTagId}`;
+      }
+
       const [rows] = await ts.knex.raw(
         `select
               ROW_NUMBER() OVER ( ORDER BY clear_score_sum desc ) as id,
@@ -331,6 +344,7 @@ module.exports = async function (client) {
                 INNER JOIN levels ON
                   levels.id=plays.code
                   AND levels.guild_id=plays.guild_id
+                ${tagJoins}
                 LEFT JOIN points ON
                   levels.difficulty=points.difficulty
                   AND points.guild_id=levels.guild_id
@@ -353,6 +367,7 @@ module.exports = async function (client) {
                   SUM(points.score) own_score,
                   levels.creator
                 FROM levels
+                ${tagJoins}
                 INNER JOIN points ON
                   points.difficulty=levels.difficulty
                   AND points.guild_id=levels.guild_id
@@ -376,6 +391,17 @@ module.exports = async function (client) {
       json.data = rows;
     }
 
+    const rankedTags = await ts.db.Tags.query().where('ranked', true);
+
+    const whitelistedKeys = ['id', 'name', 'type'];
+
+    for (const tag of rankedTags) {
+      Object.keys(tag).forEach(
+        (key) => whitelistedKeys.includes(key) || delete tag[key],
+      );
+    }
+
+    json.rankedTags = rankedTags;
     json.competition_winners = competitionWinners;
     return json;
   }
@@ -895,6 +921,7 @@ module.exports = async function (client) {
           'tags.remove_lock',
           'tags.is_hidden',
           'tags.verify_clears',
+          'tags.ranked',
         )
         .where({ guild_id: ts.team.id });
       return { data: ts.secureData(data) };
@@ -950,6 +977,7 @@ module.exports = async function (client) {
             'remove_lock',
             'is_hidden',
             'verify_clears',
+            'ranked',
           )
           .where({ guild_id: ts.team.id });
 
@@ -997,6 +1025,9 @@ module.exports = async function (client) {
             verify_clears: ['true', '1', 1, true].includes(
               data[i].verify_clears,
             )
+              ? 1
+              : 0,
+            ranked: ['true', '1', 1, true].includes(data[i].ranked)
               ? 1
               : 0,
           };
