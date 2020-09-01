@@ -322,8 +322,10 @@ module.exports = async function (client) {
       }
 
       let tagJoins = '';
+      let tagFilter = '';
       if (selectedTagId && Number.isInteger(selectedTagId)) {
         tagJoins = `INNER JOIN level_tags on levels.id = level_tags.level_id and level_tags.tag_id = ${selectedTagId}`;
+        tagFilter = `AND level_tags.tag_id = ${selectedTagId}`;
       }
 
       const [rows] = await ts.knex.raw(
@@ -354,6 +356,7 @@ module.exports = async function (client) {
                     AND levels.guild_id=:guild_id
                     ${levelFilter}
                     ${playsFilter}
+                    ${tagFilter}
                 GROUP BY plays.player,plays.guild_id
               ) clear_stats ON
                     members.guild_id=clear_stats.guild_id
