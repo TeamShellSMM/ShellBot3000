@@ -279,7 +279,13 @@ const defaultVariables = Object.freeze([
     description:
       'Roles assigned when a member gets an approved level',
   },
-
+  {
+    name: 'nonMemberRoleId',
+    caption: 'Non-Member Role Id',
+    default: '',
+    type: 'text',
+    description: 'Roles assigned when a member registers',
+  },
   {
     name: 'maxDifficulty',
     caption: 'Maximum Difficulty',
