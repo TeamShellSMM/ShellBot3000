@@ -29,6 +29,7 @@ const {
   SHOWN_IN_LIST,
   REMOVED_LEVELS,
   CHANNEL_LABELS,
+  GAME_STYLES,
 } = require('./constants');
 const CONSTANTS = require('./constants');
 
@@ -71,6 +72,7 @@ class TS {
     this.SHOWN_IN_LIST = SHOWN_IN_LIST;
     this.REMOVED_LEVELS = REMOVED_LEVELS;
     this.CHANNEL_LABELS = CHANNEL_LABELS;
+    this.GAME_STYLES = GAME_STYLES;
 
     this.commandLanguage = 'en';
 
@@ -806,6 +808,7 @@ class TS {
      */
     this.addLevel = async ({
       code,
+      gameStyle,
       level_name: levelName,
       discord_id,
       member,
@@ -813,6 +816,8 @@ class TS {
       if (!code) ts.userError(await ts.message('error.noCode'));
       if (!ts.validCode(code))
         ts.userError(await ts.message('error.invalidCode'));
+      if (!gameStyle || ts.GAME_STYLES.indexOf(gameStyle) === -1)
+        ts.userError(await ts.message('add.missingGameStyle'));
       if (!levelName) ts.userError(await ts.message('add.noName'));
       if (ts.isSpecialDiscordString(levelName))
         ts.userError(await ts.message('error.specialDiscordString'));
@@ -839,12 +844,69 @@ class TS {
         level_name: levelName,
         creator: player.id,
         difficulty: 0,
-        tags:
-          ts.teamVariables.allowSMM1 === 'true' && ts.is_smm1(code)
-            ? 'SMM1'
-            : '',
         status: 0,
       });
+
+      const initialTags = [gameStyle];
+
+      if (ts.teamVariables.allowSMM1 === 'true') {
+        if (ts.is_smm1(code)) {
+          initialTags.push('SMM1');
+        } else if (ts.is_smm2(code)) {
+          initialTags.push('SMM2');
+        }
+      }
+
+      if (initialTags.length > 0) {
+        const level = await ts.db.Levels.query()
+          .where({ code: code })
+          .first();
+
+        const newTags = await ts.addTags(
+          initialTags,
+          ts.knex,
+          player.discord_id,
+          true,
+        );
+        const oldTags = await ts
+          .knex('level_tags')
+          .where({ level_id: level.id });
+
+        const tagsToBeAdded = await ts
+          .knex('tags')
+          .where({ guild_id: ts.team.id })
+          .whereIn('name', newTags)
+          .whereNotIn(
+            'id',
+            oldTags.map((t) => t.tag_id),
+          );
+
+        const lockedTags = tagsToBeAdded.filter((t) => t.add_lock);
+        if (
+          lockedTags.length > 0 &&
+          !(await ts.modOnly(player.discord_id))
+        ) {
+          ts.userError('tags.cantAdd', {
+            tag: lockedTags.map((t) => t.name).join(','),
+          });
+        }
+
+        if (tagsToBeAdded.length !== 0) {
+          const rows = tagsToBeAdded.map((x) => {
+            return {
+              guild_id: ts.team.id,
+              level_id: level.id,
+              tag_id: x.id,
+              user_id: player.id,
+            };
+          });
+
+          await ts.knex.transaction((trx) => {
+            return trx('level_tags').insert(rows);
+          });
+        }
+      }
+
       await ts.recalculateAfterUpdate({ name: player.name });
       return {
         reply: await ts.message('add.success', {

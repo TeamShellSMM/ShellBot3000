@@ -14,11 +14,17 @@ class tsadd extends TSCommand {
     }
 
     const command = ts.parseCommand(message);
+
     let code = command.arguments.shift();
     if (code) code = code.toUpperCase();
+
+    let gameStyle = command.arguments.shift();
+    if (gameStyle) gameStyle = gameStyle.toUpperCase();
+
     const levelName = command.arguments.join(' ');
     const { reply, player } = await ts.addLevel({
       code,
+      gameStyle,
       level_name: levelName,
       discord_id: ts.discord.getAuthor(message),
     });

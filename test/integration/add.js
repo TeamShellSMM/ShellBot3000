@@ -57,9 +57,22 @@ describe('!add', function () {
       ),
     );
   });
+  it('no game style', async function () {
+    const result = await TEST.mockBotSend({
+      cmd: '!add XXX-XXX-XXX',
+      channel: 'general',
+      discord_id: '256',
+    });
+    assert.equal(
+      result,
+      await TEST.mockMessage('add.missingGameStyle', {
+        type: 'userError',
+      }),
+    );
+  });
   it('no level name', async function () {
     const result = await TEST.mockBotSend({
-      cmd: '!add xxx-xxx-xxx',
+      cmd: '!add xxx-xxx-xxx smw',
       channel: 'general',
       discord_id: '256',
     });
@@ -74,7 +87,7 @@ describe('!add', function () {
   });
   it('invalid code', async function () {
     const result = await TEST.mockBotSend({
-      cmd: '!add xx-xxx-xxx',
+      cmd: '!add xx-xxx-xxx smw',
       channel: 'general',
       discord_id: '256',
     });
@@ -90,7 +103,7 @@ describe('!add', function () {
 
   it('adding existing', async function () {
     const result = await TEST.mockBotSend({
-      cmd: '!add xxx-xxx-xxx long name',
+      cmd: '!add xxx-xxx-xxx smw long name',
       channel: 'general',
       discord_id: '256',
     });
@@ -111,7 +124,7 @@ describe('!add', function () {
   });
   it('no code', async function () {
     const result = await TEST.mockBotSend({
-      cmd: '!add long name',
+      cmd: '!add smw long name',
       channel: 'general',
       discord_id: '256',
     });
@@ -131,7 +144,7 @@ describe('!add', function () {
 
   it('successful', async function () {
     const result = await TEST.mockBotSend({
-      cmd: '!add XXX-XXX-XX4 long name',
+      cmd: '!add XXX-XXX-XX4 smw long name',
       channel: 'general',
       discord_id: '256',
     });
@@ -157,7 +170,7 @@ describe('!add', function () {
   it('adding level name with special discord strings, <@at>=reject', async function () {
     assert.deepEqual(
       await TEST.mockBotSend({
-        cmd: '!add XXX-XXX-XX4 house of <@80351110224678912>',
+        cmd: '!add XXX-XXX-XX4 smw house of <@80351110224678912>',
         channel: 'general',
         discord_id: '512',
       }),
@@ -170,7 +183,7 @@ describe('!add', function () {
   it('space after the !', async function () {
     assert.deepEqual(
       await TEST.mockBotSend({
-        cmd: '! add XXX-XXX-XX4 this is some long text',
+        cmd: '! add XXX-XXX-XX4 smw this is some long text',
         channel: 'general',
         discord_id: '256',
       }),
@@ -183,7 +196,7 @@ describe('!add', function () {
     TEST.ts.teamVariables['Minimum Point'] = 10;
     await TEST.ts.recalculateAfterUpdate();
     const result = await TEST.mockBotSend({
-      cmd: '!add XXX-XXX-XX4 long name',
+      cmd: '!add XXX-XXX-XX4 smw long name',
       channel: 'general',
       discord_id: '256',
     });
@@ -206,7 +219,7 @@ describe('!add', function () {
     TEST.ts.teamVariables.allowSMM1 = null;
     TEST.ts.teamVariables['Minimum Point'] = 0;
     const result = await TEST.mockBotSend({
-      cmd: '!add 0791-0000-03DD-2D52 The Ultimate Road of Shell',
+      cmd: '!add 0791-0000-03DD-2D52 smw The Ultimate Road of Shell',
       channel: 'general',
       discord_id: '256',
     });
@@ -223,7 +236,7 @@ describe('!add', function () {
   it('Submit SMM1 code with allowSMM1 flag on #dev', async function () {
     TEST.ts.teamVariables.allowSMM1 = 'true';
     const result = await TEST.mockBotSend({
-      cmd: '!add 0791-0000-03DD-2D52 The Ultimate Road of Shell',
+      cmd: '!add 0791-0000-03DD-2D52 smw The Ultimate Road of Shell',
       channel: 'general',
       discord_id: '128',
     });

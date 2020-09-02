@@ -14,6 +14,9 @@ class TSModAddLevel extends TSCommand {
     let code = command.arguments.shift();
     if (code) code = code.toUpperCase();
 
+    let gameStyle = command.arguments.shift();
+    if (gameStyle) gameStyle = gameStyle.toUpperCase();
+
     if (!memberName) {
       ts.userError(await ts.message('modaddlevel.missingMemberName'));
     }
@@ -35,6 +38,7 @@ class TSModAddLevel extends TSCommand {
     const levelName = command.arguments.join(' ');
     const { reply } = await ts.addLevel({
       code,
+      gameStyle,
       level_name: levelName,
       member: member,
     });

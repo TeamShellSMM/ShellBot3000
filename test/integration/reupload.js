@@ -332,7 +332,7 @@ describe('!reupload', function () {
     // check if can't upload a new level with current points
     assert.equal(
       await TEST.mockBotSend({
-        cmd: '!add XXX-XXX-YYY test name',
+        cmd: '!add XXX-XXX-YYY smw test name',
         channel: 'general',
         discord_id: '64',
       }),

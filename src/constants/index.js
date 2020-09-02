@@ -574,6 +574,18 @@ const CHANNEL_LABELS = Object.freeze({
 });
 
 /**
+ * Level status that doesn't appear in the list
+ * @type {GameStyle[]}
+ */
+const GAME_STYLES = Object.freeze([
+  'SMB1',
+  'SMB3',
+  'SMW',
+  'NSMBU',
+  '3DW',
+]);
+
+/**
  * Default permissions for all commands
  * allowedRoles are all, mods or admins
  * allowedChannels - if this is empty, all are allowed
@@ -907,4 +919,5 @@ module.exports = {
   SHOWN_IN_LIST,
   REMOVED_LEVELS,
   CHANNEL_LABELS,
+  GAME_STYLES,
 };
