@@ -851,6 +851,19 @@ const defaultCommandPermissions = Object.freeze({
       },
     ],
   },
+  discuss: {
+    allowedRoles: 'mods',
+    allowedChannels: [
+      {
+        type: 'category',
+        settingChannelName: 'levelDiscussionCategory',
+      },
+      {
+        type: 'text',
+        settingChannelName: 'modChannel',
+      },
+    ],
+  },
   auditapprove: {
     allowedRoles: 'mods',
     allowedChannels: [

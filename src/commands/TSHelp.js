@@ -20,13 +20,20 @@ class TSHelp extends TSCommand {
 
         const commandsDB = await ts
           .knex('commands')
-          .where('category', '<>', 'mods');
+          .orderBy('name', 'ASC');
 
         for (const commandDB of commandsDB) {
-          if (commandDB.category === 'important') {
-            replyMessage += `\n> **__${commandDB.name}__**`;
-          } else {
-            replyMessage += `\n> ${commandDB.name}`;
+          const allowed = await this.canRunCommand(
+            ts,
+            message,
+            commandDB,
+          );
+          if (allowed) {
+            if (commandDB.category === 'important') {
+              replyMessage += `\n> **__${commandDB.name}__**`;
+            } else {
+              replyMessage += `\n> ${commandDB.name}`;
+            }
           }
         }
 

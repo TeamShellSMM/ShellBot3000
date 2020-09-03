@@ -30,6 +30,10 @@ class TSCommand extends Command {
       .orWhere('aliases', 'like', `%,${commandName},%`)
       .first();
 
+    return this.canRunCommand(ts, message, commandDB);
+  }
+
+  async canRunCommand(ts, message, commandDB) {
     if (commandDB) {
       const commandPermission = await ts
         .knex('command_permissions')
