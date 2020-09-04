@@ -30,7 +30,7 @@ class ChangeName extends TSCommand {
 
     if (
       await ts.db.Members.query()
-        .whereRaw('lower(name) = ?', [newName])
+        .whereRaw('lower(name) = ?', [newName.toLowerCase()])
         .first()
     ) {
       ts.userError('renameMember.alreadyUsed', { newName });

@@ -1846,7 +1846,7 @@ class TS {
       }
       if (reuploadComment) {
         voteEmbed.addField(
-          `Creator (${level.creator_name}) reupload comment:`,
+          `Creator (${level.creator}) reupload comment:`,
           `\`\`\`\n${reuploadComment}\n\`\`\``,
         );
       }
@@ -2353,7 +2353,7 @@ class TS {
     this.judge = async function (code, fromFix = false, forceJudge) {
       const level = await ts.getExistingLevel(code, fromFix);
       const author = await ts.db.Members.query()
-        .where({ name: level.creator })
+        .where({ id: level.creator_id })
         .first();
       if (!PENDING_LEVELS.includes(level.status)) {
         ts.userError(await ts.message('approval.levelNotPending'));
@@ -2482,7 +2482,7 @@ class TS {
     ) {
       const level = await ts.getExistingLevel(code, true);
       const author = await ts.db.Members.query()
-        .where({ name: level.creator })
+        .where({ id: level.creator_id })
         .first();
       const player = await ts.db.Members.query()
         .where({ discord_id: discordId })
@@ -3016,7 +3016,7 @@ class TS {
       );
 
       const creator = await ts.db.Members.query()
-        .where({ name: level.creator })
+        .where({ id: level.creator_id })
         .first();
       const mention = `**<@${creator.discord_id}>, we got some news for you: **`;
       await ts.discord.send(
