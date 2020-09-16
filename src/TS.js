@@ -252,10 +252,14 @@ class TS {
 
       Object.entries(defaultStrings).forEach((v) => {
         const defaultString = v[1];
-        TS.defaultMessages[defaultString.name] = this.makeTemplate(
+        const messageKey =
+          defaultString.language === 'en'
+            ? defaultString.name
+            : `${defaultString.language}.${defaultString.name}`;
+        TS.defaultMessages[messageKey] = this.makeTemplate(
           defaultString.message,
         );
-        this.messages[defaultString.name] = this.makeTemplate(
+        this.messages[messageKey] = this.makeTemplate(
           defaultString.message,
         );
       });
@@ -945,9 +949,19 @@ class TS {
             this.commandLanguage,
           );
 
+          const enTranslation = await this.knex('default_strings')
+            .where({
+              name: `${type}`,
+              language: 'en',
+            })
+            .first();
+
           await this.knex('default_strings').insert({
-            name: `${this.commandLanguage}.${type}`,
+            name: `${type}`,
             message: translation,
+            language: this.commandLanguage,
+            version: enTranslation.version,
+            auto_translated: 1,
           });
 
           TS.addMessage(
