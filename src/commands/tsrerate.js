@@ -27,16 +27,6 @@ class TSRerate extends TSCommand {
   }
 
   async tsexec(ts, message) {
-    if (
-      !(
-        ts.discord.messageGetChannel(message) ===
-          ts.channels.modChannel || // only in shellder-bot channel
-        ts.discord.messageGetChannel(message) ===
-          ts.channels.pendingShellbot
-      )
-    )
-      return false; // silently fail
-
     const { code, command } = ts.getCodeArgument(message);
     const difficulty = Number(command.next());
     const reason = command.rest();

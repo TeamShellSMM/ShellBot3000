@@ -238,17 +238,18 @@ class DiscordWrapper {
   }
 
   hasRoleList(discordId, roleIds) {
-    for (let roleId of roleIds) {
+    const roleIdsLower = [];
+    for (const roleId of roleIds) {
       if (typeof roleId === 'string') {
-        roleId = roleId.toLowerCase();
+        roleIdsLower.push(roleId.toLowerCase());
       }
     }
     const currMember = this.member(discordId);
     if (!currMember || !currMember.roles) return false;
     return currMember.roles.some(
       (r) =>
-        roleIds.indexOf(r.id) !== -1 ||
-        roleIds.indexOf(r.name.toLowerCase()) !== -1,
+        roleIdsLower.indexOf(r.id) !== -1 ||
+        roleIdsLower.indexOf(r.name.toLowerCase()) !== -1,
     );
   }
 

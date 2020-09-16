@@ -9,20 +9,6 @@ class removevote extends TSCommand {
   }
 
   async tsexec(ts, message) {
-    if (
-      !(
-        ts.discord.messageGetChannel(message) ===
-          ts.channels.modChannel || // only in shellder-bot channel
-        ts.discord.messageGetChannel(message) ===
-          ts.channels.pendingShellbot || // or in pending-shellbot channel
-        ts.discord.messageGetParent(message) ===
-          ts.channels.levelDiscussionCategory || // should also work in the discussion channel for that level
-        ts.discord.messageGetParent(message) ===
-          ts.channels.levelAuditCategory
-      )
-    )
-      return false; // silently fail
-
     const { code } = ts.getCodeArgument(message);
     const player = await ts.getUser(message);
     const level = await ts.getExistingLevel(code);

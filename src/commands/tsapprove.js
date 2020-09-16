@@ -80,25 +80,8 @@ class TSApprove extends TSCommand {
       'fix+lc',
     ];
 
-    const {
-      code,
-      command,
-      inPendingDiscussionChannel,
-    } = ts.getCodeArgument(message);
+    const { code, command } = ts.getCodeArgument(message);
     const args = { code };
-
-    if (
-      !(
-        (
-          ts.discord.messageGetChannel(message) ===
-            ts.channels.modChannel || // only in shellder-bot channel
-          ts.discord.messageGetChannel(message) ===
-            ts.channels.pendingShellbot || // or in pending-shellbot channel
-          inPendingDiscussionChannel
-        ) // should also work in the discussion channel for that level
-      )
-    )
-      return false; // silently fail
 
     if (command.command.indexOf('reject') === -1) {
       // Difficulty doesn't exist in reject, so it get replaced by reason
