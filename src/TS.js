@@ -21,6 +21,7 @@ const Points = require('./models/Points');
 const Races = require('./models/Races');
 const RaceEntrants = require('./models/RaceEntrants');
 const Tags = require('./models/Tags');
+const Videos = require('./models/Videos');
 const {
   defaultChannels,
   defaultVariables,
@@ -30,6 +31,7 @@ const {
   REMOVED_LEVELS,
   CHANNEL_LABELS,
   GAME_STYLES,
+  ALLOWED_VIDEO_TYPES,
 } = require('./constants');
 const CONSTANTS = require('./constants');
 
@@ -73,6 +75,7 @@ class TS {
     this.REMOVED_LEVELS = REMOVED_LEVELS;
     this.CHANNEL_LABELS = CHANNEL_LABELS;
     this.GAME_STYLES = GAME_STYLES;
+    this.ALLOWED_VIDEO_TYPES = ALLOWED_VIDEO_TYPES;
 
     this.commandLanguage = 'en';
 
@@ -118,6 +121,7 @@ class TS {
         Races: Races(this.team.id),
         RaceEntrants: RaceEntrants(this.team.id),
         Tags: Tags(this.team.id),
+        Videos: Videos(this.team.id),
       };
 
       this.url_slug = this.team.url_slug;
@@ -661,9 +665,9 @@ class TS {
         levels.id level_id,
         levels.code code,
         levels.difficulty,
+        (SELECT GROUP_CONCAT(videos.url) from videos where videos.level_id = levels.id and videos.play_id = plays.id) as videos,
         points.score,
         levels.level_name,
-        levels.videos,
         levels.tags,
         creator_table.name creator_name,
         creator_table.id creator_id`),
@@ -700,6 +704,23 @@ class TS {
       return /<(@[!&]?|#|a?:[a-zA-Z0-9_]{2,}:)[0-9]{16,20}>/.test(
         str,
       );
+    };
+
+    /**
+     * This checks if a video url is from an allowed website
+     */
+    this.getVideoType = (url) => {
+      let vidType = null;
+      for (const allowedType of Object.keys(
+        this.ALLOWED_VIDEO_TYPES,
+      )) {
+        if (url.indexOf(allowedType) !== -1) {
+          vidType = this.ALLOWED_VIDEO_TYPES[allowedType];
+          break;
+        }
+      }
+
+      return vidType;
     };
 
     this.teamAdmin = (discord_id) => {
@@ -2777,9 +2798,13 @@ class TS {
       let { image } = args;
 
       let vidStr = [];
-      level.videos.split(',').forEach((vid) => {
-        if (vid) vidStr.push(`[ 🎬 ](${vid})`);
+      const videos = await ts.db.Videos.query().where({
+        level_id: level.id,
       });
+
+      for (const video of videos) {
+        vidStr.push(`[ 🎬 ](${video.url})`);
+      }
       vidStr = vidStr.join(',');
       let tagStr = [];
       level.tags = level.tags ? level.tags : '';

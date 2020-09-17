@@ -87,8 +87,8 @@ module.exports = async function (client) {
         ,levels.difficulty
         ,COALESCE(group_concat(distinct tags.name order by tags.id),'') tags
         ,BIT_OR(tags.verify_clears) as needs_clear_verification
-        ,levels.videos
         ,levels.created_at
+        ,(SELECT GROUP_CONCAT(videos.url) from videos where videos.level_id = levels.id) as videos
         ,levels.clears
         ,levels.likes
         ,levels.maker_points lcd

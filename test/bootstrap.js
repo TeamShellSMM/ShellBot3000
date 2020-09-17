@@ -314,6 +314,7 @@ before(async () => {
       TRUNCATE table competition_groups;
       TRUNCATE table tags;
       TRUNCATE table seasons;
+      TRUNCATE table videos;
       SET FOREIGN_KEY_CHECKS = 1;
     `);
   };

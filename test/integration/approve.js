@@ -48,6 +48,18 @@ describe('!approve', function () {
         difficulty: 1,
       },
     ],
+    Videos: [
+      {
+        level_id: 1,
+        url: 'http://twitch.tv',
+        type: 'twitch',
+      },
+      {
+        level_id: 1,
+        url: 'http://youtube.com',
+        type: 'youtube',
+      },
+    ],
   };
   beforeEach(async () => {
     await TEST.clearChannels();

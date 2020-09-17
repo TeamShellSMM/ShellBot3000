@@ -33,6 +33,47 @@ describe('!add/remove vids', () => {
           videos: 'https://youtube.com,https://twitch.tv',
         },
       ],
+      Plays: [
+        {
+          code: 1,
+          player: 3,
+          completed: 1,
+        },
+        {
+          code: 1,
+          player: 1,
+          completed: 1,
+        },
+      ],
+      Videos: [
+        {
+          level_id: 2,
+          url: 'https://youtube.com',
+          type: 'youtube',
+        },
+        {
+          level_id: 2,
+          url: 'https://twitch.tv',
+          type: 'twitch',
+        },
+        {
+          level_id: 1,
+          play_id: 2,
+          url: 'https://clips.twitch.tv/alreadyused',
+          type: 'twitch',
+        },
+        {
+          level_id: 1,
+          play_id: 2,
+          url: 'https://clips.twitch.tv/alreadyused2',
+          type: 'twitch',
+        },
+        {
+          level_id: 1,
+          url: 'https://clips.twitch.tv/alreadyused3',
+          type: 'twitch',
+        },
+      ],
     });
   });
 
@@ -44,7 +85,7 @@ describe('!add/remove vids', () => {
         channel: 'general',
         discord_id: '256',
       }),
-      '<@256> Clear videos added for "approved level" by "Creator" \nCurrent videos:```\nhttps://youtube.com\nhttps://clips.twitch.tv```',
+      '<@256> Clear videos added for "approved level" by "Creator" \nCurrent videos:```\nhttps://clips.twitch.tv/alreadyused\nhttps://clips.twitch.tv/alreadyused2\nhttps://clips.twitch.tv/alreadyused3\nhttps://youtube.com\nhttps://clips.twitch.tv```',
     );
   });
 
@@ -56,7 +97,7 @@ describe('!add/remove vids', () => {
         channel: 'general',
         discord_id: '256',
       }),
-      '<@256> Clear videos added for "approved level" by "Creator" \nCurrent videos:```\nhttps://youtube.com\nhttps://clips.twitch.tv```',
+      '<@256> Clear videos added for "approved level" by "Creator" \nCurrent videos:```\nhttps://clips.twitch.tv/alreadyused\nhttps://clips.twitch.tv/alreadyused2\nhttps://clips.twitch.tv/alreadyused3\nhttps://youtube.com\nhttps://clips.twitch.tv```',
     );
   });
 
@@ -68,7 +109,7 @@ describe('!add/remove vids', () => {
         channel: 'general',
         discord_id: '256',
       }),
-      '<@256> Clear videos added for "approved level" by "Creator" \nCurrent videos:```\nhttps://youtube.com\nhttps://clips.twitch.tv```',
+      '<@256> Clear videos added for "approved level" by "Creator" \nCurrent videos:```\nhttps://clips.twitch.tv/alreadyused\nhttps://clips.twitch.tv/alreadyused2\nhttps://clips.twitch.tv/alreadyused3\nhttps://youtube.com\nhttps://clips.twitch.tv```',
     );
   });
 
@@ -112,7 +153,7 @@ describe('!add/remove vids', () => {
         channel: 'general',
         discord_id: '256',
       }),
-      'No new clear video added for "pending level" by CreatorCurrent videos:```\nhttps://youtube.com\nhttps://twitch.tv``` ',
+      'No new clear video added for "pending level" by Creator\nCurrent videos:```\nhttps://youtube.com\nhttps://twitch.tv``` ',
     );
   });
 
@@ -157,6 +198,64 @@ describe('!add/remove vids', () => {
         discord_id: '256',
       }),
       'No videos have been removed for "pending level" by "Creator"\nCurrent videos:```\nhttps://youtube.com\nhttps://twitch.tv``` ',
+    );
+  });
+
+  it('!addmyvid', async () => {
+    assert.equal(
+      await TEST.mockBotSend({
+        cmd: '!addmyvids XXX-XXX-XXX https://clips.twitch.tv/12345',
+        channel: 'general',
+        discord_id: '512',
+      }),
+      '<@512> Clear videos added for "approved level" by "Creator" \nYour current videos:```\nhttps://clips.twitch.tv/12345```',
+    );
+  });
+
+  it('!addmyvid no clear', async () => {
+    assert.equal(
+      await TEST.mockBotSend({
+        cmd: '!addmyvids XXX-XXX-XXX https://clips.twitch.tv/12345',
+        channel: 'general',
+        discord_id: '256',
+      }),
+      "You haven't submitted have a clear on this level yet, try using `!clear XXX-XXX-XXX` before trying to add a video. ",
+    );
+  });
+
+  it('!addmyvid disallowed site', async () => {
+    assert.equal(
+      await TEST.mockBotSend({
+        cmd:
+          '!addmyvids XXX-XXX-XXX https://clips.othersite.tv/12345',
+        channel: 'general',
+        discord_id: '512',
+      }),
+      'The following urls are not from allowed video hosting websites: ```https://clips.othersite.tv/12345```\nCurrently we only allow videos from twitter, youtube, twitch, imgur, streamable and reddit. ',
+    );
+  });
+
+  it('!addmyvid already used clearvid', async () => {
+    assert.equal(
+      await TEST.mockBotSend({
+        cmd:
+          '!addmyvids XXX-XXX-XXX https://clips.twitch.tv/alreadyused',
+        channel: 'general',
+        discord_id: '512',
+      }),
+      'The following url is already used as a clearvid for another member: ```https://clips.twitch.tv/alreadyused``` ',
+    );
+  });
+
+  it('!removemyvids', async () => {
+    assert.equal(
+      await TEST.mockBotSend({
+        cmd:
+          '!removemyvids XXX-XXX-XXX https://clips.twitch.tv/alreadyused2',
+        channel: 'general',
+        discord_id: '128',
+      }),
+      '<@128> Clear videos removed for "approved level" by "Creator" \nCurrent videos:```\nhttps://clips.twitch.tv/alreadyused```',
     );
   });
 });
