@@ -151,8 +151,11 @@ describe('!ammendcode', function () {
   });
 
   it('owner successful', async function () {
+    console.log(TEST.ts.channels.modChannel);
+
     const ownerId = TEST.ts.discord.guild().owner.user.id;
     await TEST.clearChannels();
+    console.log(TEST.ts.channels.modChannel);
     await TEST.createChannel({
       name: 'XXX-XXX-XXX',
       parent: TEST.ts.channels.levelDiscussionCategory,

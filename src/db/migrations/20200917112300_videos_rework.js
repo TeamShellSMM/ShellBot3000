@@ -57,7 +57,7 @@ exports.up = function (knex) {
     {
       name: 'addVids.noClear',
       message:
-        "You haven't submitted have a clear on this level yet, try using `!clear {{{code}}}` before trying to add a video.",
+        "You haven't submitted a clear for this level yet, try using `!clear {{{code}}}` before trying to add a video.",
     },
     {
       name: 'addVids.alreadyUsed',

@@ -15,6 +15,10 @@ describe('!add/remove vids', () => {
           name: 'Other',
           discord_id: '512',
         },
+        {
+          name: 'Other2',
+          discord_id: '1024',
+        },
       ],
       Levels: [
         {
@@ -217,9 +221,9 @@ describe('!add/remove vids', () => {
       await TEST.mockBotSend({
         cmd: '!addmyvids XXX-XXX-XXX https://clips.twitch.tv/12345',
         channel: 'general',
-        discord_id: '256',
+        discord_id: '1024',
       }),
-      "You haven't submitted have a clear on this level yet, try using `!clear XXX-XXX-XXX` before trying to add a video. ",
+      "You haven't submitted a clear for this level yet, try using `!clear XXX-XXX-XXX` before trying to add a video. ",
     );
   });
 
