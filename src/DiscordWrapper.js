@@ -237,7 +237,7 @@ class DiscordWrapper {
     );
   }
 
-  //Checks if the user has one of the supplied roles
+  // Checks if the user has one of the supplied roles
   hasRoleList(discordId, roleIds) {
     const roleIdsLower = [];
     for (const roleId of roleIds) {
