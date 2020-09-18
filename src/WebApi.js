@@ -728,7 +728,7 @@ module.exports = async function (client) {
     const { page, size } = data;
 
     const videos = await ts.db.Videos.query()
-      .orderBy('created_at', 'asc')
+      .orderBy('created_at', 'desc')
       .offset(page * size)
       .limit(size);
 
