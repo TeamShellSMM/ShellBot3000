@@ -8,6 +8,7 @@ const stringSimilarity = require('string-similarity');
 const Handlebars = require('handlebars');
 const debug = require('debug')('shellbot3000:ts');
 const cron = require('node-cron');
+const validUrl = require('valid-url');
 const knex = require('./db/knex');
 const DiscordLog = require('./DiscordLog');
 const UserError = require('./UserError');
@@ -21,6 +22,7 @@ const Points = require('./models/Points');
 const Races = require('./models/Races');
 const RaceEntrants = require('./models/RaceEntrants');
 const Tags = require('./models/Tags');
+const Videos = require('./models/Videos');
 const {
   defaultChannels,
   defaultVariables,
@@ -30,6 +32,7 @@ const {
   REMOVED_LEVELS,
   CHANNEL_LABELS,
   GAME_STYLES,
+  ALLOWED_VIDEO_TYPES,
 } = require('./constants');
 const CONSTANTS = require('./constants');
 
@@ -73,6 +76,7 @@ class TS {
     this.REMOVED_LEVELS = REMOVED_LEVELS;
     this.CHANNEL_LABELS = CHANNEL_LABELS;
     this.GAME_STYLES = GAME_STYLES;
+    this.ALLOWED_VIDEO_TYPES = ALLOWED_VIDEO_TYPES;
 
     this.commandLanguage = 'en';
 
@@ -118,6 +122,7 @@ class TS {
         Races: Races(this.team.id),
         RaceEntrants: RaceEntrants(this.team.id),
         Tags: Tags(this.team.id),
+        Videos: Videos(this.team.id),
       };
 
       this.url_slug = this.team.url_slug;
@@ -661,9 +666,9 @@ class TS {
         levels.id level_id,
         levels.code code,
         levels.difficulty,
+        (SELECT GROUP_CONCAT(videos.url) from videos where videos.level_id = levels.id and videos.play_id = plays.id) as videos,
         points.score,
         levels.level_name,
-        levels.videos,
         levels.tags,
         creator_table.name creator_name,
         creator_table.id creator_id`),
@@ -700,6 +705,281 @@ class TS {
       return /<(@[!&]?|#|a?:[a-zA-Z0-9_]{2,}:)[0-9]{16,20}>/.test(
         str,
       );
+    };
+
+    /**
+     * This checks if a video url is from an allowed website
+     */
+    this.getVideoType = (url) => {
+      let vidType = null;
+      for (const allowedType of Object.keys(
+        this.ALLOWED_VIDEO_TYPES,
+      )) {
+        if (url.indexOf(allowedType) !== -1) {
+          vidType = this.ALLOWED_VIDEO_TYPES[allowedType];
+          break;
+        }
+      }
+
+      return vidType;
+    };
+
+    this.addVideos = async (args) => {
+      const { command, code, newVids, player, submitter } = args;
+      const addCommands = [
+        'tsaddvids',
+        'addvids',
+        'tsaddvid',
+        'addvid',
+        'addmyvids',
+        'addmyvid',
+        'modaddplayvids',
+        'modaddplayvid',
+      ];
+
+      const playCommands = [
+        'addmyvids',
+        'addmyvid',
+        'removemyvids',
+        'removemyvid',
+        'modaddplayvids',
+        'modaddplayvid',
+        'modremoveplayvids',
+        'modremoveplayvid',
+      ];
+
+      const filteredUrl = [];
+      const notUrls = [];
+      const notAllowedUrls = [];
+      newVids.forEach((url) => {
+        if (url) {
+          if (validUrl.isWebUri(url)) {
+            const videoType = ts.getVideoType(url);
+            if (videoType) {
+              filteredUrl.push({
+                url: url,
+                type: videoType,
+              });
+            } else {
+              notAllowedUrls.push(url);
+            }
+          } else {
+            notUrls.push(url);
+          }
+        }
+      });
+      if (notUrls.length)
+        ts.userError(
+          `The links below didn't look like urls: \`\`\`\n${notUrls.join(
+            '\n',
+          )}\`\`\``,
+        );
+
+      if (notAllowedUrls.length)
+        ts.userError(
+          `${await ts.message('addVids.notAllowed', {
+            videos: notAllowedUrls.join('\n'),
+          })}`,
+        );
+
+      const level = await ts.getExistingLevel(code);
+      const existingPlay = await ts.db.Plays.query()
+        .where('code', '=', level.id)
+        .where('player', '=', player.id)
+        .first();
+
+      let isPlaysCommand =
+        playCommands.indexOf(command.command) !== -1;
+
+      if (
+        isPlaysCommand &&
+        (!existingPlay || !existingPlay.completed)
+      ) {
+        if (level.creator === player.name) {
+          isPlaysCommand = false;
+        } else {
+          ts.userError(
+            `${await ts.message('addVids.noClear', {
+              code: level.code,
+            })}`,
+          );
+        }
+      }
+
+      let reply;
+
+      const updateJson = [];
+      const insertJson = [];
+      const removeJson = [];
+
+      if (addCommands.indexOf(command.command) !== -1) {
+        // adding
+        let oldVids = [];
+        let unassignedVids = [];
+        let assignedVids = [];
+        let allVids = [];
+        if (!isPlaysCommand) {
+          oldVids = await ts.db.Videos.query().where({
+            level_id: level.id,
+          });
+          allVids = oldVids;
+        } else {
+          oldVids = await ts.db.Videos.query()
+            .where({ level_id: level.id })
+            .where({ play_id: existingPlay.id });
+          unassignedVids = await ts.db.Videos.query()
+            .where({ level_id: level.id })
+            .whereNull('play_id');
+          assignedVids = await ts.db.Videos.query()
+            .where({ level_id: level.id })
+            .whereNotNull('play_id')
+            .where('play_id', '<>', existingPlay.id);
+          allVids = await ts.db.Videos.query().where({
+            level_id: level.id,
+          });
+        }
+
+        const oldVidUrls = oldVids.map((x) => x.url.trim());
+        const assignedVidUrls = assignedVids.map((x) => x.url.trim());
+        const allVidUrls = allVids.map((x) => x.url.trim());
+
+        for (const video of filteredUrl) {
+          video.url = video.url.trim();
+
+          if (allVidUrls.indexOf(video.url) !== -1) {
+            if (isPlaysCommand) {
+              if (assignedVidUrls.indexOf(video.url) !== -1) {
+                ts.userError(
+                  await ts.message('addVids.alreadyUsed', {
+                    video: video.url,
+                  }),
+                );
+              }
+
+              for (const unassignedVid of unassignedVids) {
+                if (unassignedVid.url === video.url) {
+                  updateJson.push({
+                    id: unassignedVid.id,
+                    level_id: level.id,
+                    play_id: existingPlay.id,
+                    submitter_id: submitter.id,
+                    type: video.type,
+                    url: video.url,
+                  });
+                  oldVidUrls.push(video.url.trim());
+                  break;
+                }
+              }
+            }
+          } else {
+            insertJson.push({
+              level_id: level.id,
+              play_id: isPlaysCommand ? existingPlay.id : null,
+              submitter_id: submitter.id,
+              type: video.type,
+              url: video.url,
+            });
+
+            oldVidUrls.push(video.url.trim());
+          }
+
+          // Check if url exists already on the level
+          // If playscommand
+          // Check if url already assigned to another player -> error
+
+          // Check if url already used as a level vid but no play -> update to add this play
+          // Else do nothing and inform the user that nothing was done
+          // Else add the url and inform the user
+        }
+
+        if (insertJson.length === 0 && updateJson.length === 0) {
+          ts.userError(
+            `No new clear video added for "${level.level_name}" by ${
+              level.creator
+            }\n${await ts.message('addVids.currentVideos', {
+              videos_str: oldVidUrls.join('\n'),
+            })}`,
+          );
+        }
+        reply =
+          (await ts.message('addVids.haveNew', level)) +
+          (!isPlaysCommand
+            ? await ts.message('addVids.currentVideos', {
+                videos_str: oldVidUrls.join('\n'),
+              })
+            : await ts.message('addVids.currentPlayVideos', {
+                videos_str: oldVidUrls.join('\n'),
+              }));
+      } else {
+        // removing
+        if (
+          !(level.creator === player.name || player.is_mod === 1) &&
+          !isPlaysCommand
+        ) {
+          ts.userError('addVids.noPermission', level);
+        }
+
+        let oldVids = [];
+        if (!isPlaysCommand) {
+          oldVids = await ts.db.Videos.query().where({
+            level_id: level.id,
+          });
+        } else {
+          oldVids = await ts.db.Videos.query()
+            .where({ level_id: level.id })
+            .where({ play_id: existingPlay.id });
+        }
+
+        const oldVidUrls = oldVids.map((x) => x.url.trim());
+
+        for (const video of filteredUrl) {
+          video.url = video.url.trim();
+
+          for (const oldVid of oldVids) {
+            if (oldVid.url === video.url) {
+              removeJson.push({
+                id: oldVid.id,
+              });
+              oldVidUrls.splice(oldVidUrls.indexOf(video.url), 1);
+              break;
+            }
+          }
+        }
+
+        if (removeJson.length === 0) {
+          ts.userError(
+            (await ts.message('addVids.noRemoved', level)) +
+              (await ts.message('addVids.currentVideos', {
+                videos_str: oldVidUrls.join('\n'),
+              })),
+          );
+        }
+        reply =
+          (await ts.message('addVids.haveRemoved', level)) +
+          (await ts.message('addVids.currentVideos', {
+            videos_str: oldVidUrls.join('\n'),
+          }));
+      }
+
+      if (insertJson.length > 0) {
+        for (const row of insertJson) {
+          await ts.db.Videos.query().insert(row);
+        }
+      }
+
+      if (updateJson.length > 0) {
+        for (const row of updateJson) {
+          await ts.db.Videos.query().where('id', row.id).update(row);
+        }
+      }
+
+      if (removeJson.length > 0) {
+        for (const row of removeJson) {
+          await ts.db.Videos.query().where('id', row.id).del();
+        }
+      }
+
+      return submitter.userReply + reply;
     };
 
     this.teamAdmin = (discord_id) => {
@@ -2777,9 +3057,13 @@ class TS {
       let { image } = args;
 
       let vidStr = [];
-      level.videos.split(',').forEach((vid) => {
-        if (vid) vidStr.push(`[ 🎬 ](${vid})`);
+      const videos = await ts.db.Videos.query().where({
+        level_id: level.id,
       });
+
+      for (const video of videos) {
+        vidStr.push(`[ 🎬 ](${video.url})`);
+      }
       vidStr = vidStr.join(',');
       let tagStr = [];
       level.tags = level.tags ? level.tags : '';

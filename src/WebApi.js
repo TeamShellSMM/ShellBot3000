@@ -87,8 +87,8 @@ module.exports = async function (client) {
         ,levels.difficulty
         ,COALESCE(group_concat(distinct tags.name order by tags.id),'') tags
         ,BIT_OR(tags.verify_clears) as needs_clear_verification
-        ,levels.videos
         ,levels.created_at
+        ,(SELECT GROUP_CONCAT(videos.url) from videos where videos.level_id = levels.id) as videos
         ,levels.clears
         ,levels.likes
         ,levels.maker_points lcd
@@ -724,6 +724,31 @@ module.exports = async function (client) {
     };
   }
 
+  async function generateVideosJson(ts, data) {
+    const { page, size } = data;
+
+    const videos = await ts.db.Videos.query()
+      .orderBy('created_at', 'asc')
+      .offset(page * size)
+      .limit(size);
+
+    for (const video of videos) {
+      video.level = null;
+      video.play = null;
+
+      video.level = await ts
+        .getLevels()
+        .where('levels.id', video.level_id)
+        .first();
+      video.play = await ts
+        .getPlays()
+        .where('plays.id', video.play_id)
+        .first();
+    }
+
+    return videos;
+  }
+
   const adminChecks = Object.freeze({
     admin: 'teamAdmin',
     mod: 'modOnly',
@@ -1203,6 +1228,14 @@ module.exports = async function (client) {
     '/json/races',
     webTS(async (ts, req) => {
       const json = await generateRacesJson(ts, req.body, req.user);
+      return json;
+    }),
+  );
+
+  app.post(
+    '/json/videos',
+    webTS(async (ts, req) => {
+      const json = await generateVideosJson(ts, req.body, req.user);
       return json;
     }),
   );

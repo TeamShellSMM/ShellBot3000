@@ -613,6 +613,14 @@ const defaultCommandPermissions = Object.freeze({
     allowedRoles: 'all',
     allowedChannels: [],
   },
+  addmyvids: {
+    allowedRoles: 'all',
+    allowedChannels: [],
+  },
+  removemyvids: {
+    allowedRoles: 'all',
+    allowedChannels: [],
+  },
   amendcode: {
     allowedRoles: 'mods',
     allowedChannels: [
@@ -712,6 +720,24 @@ const defaultCommandPermissions = Object.freeze({
     ],
   },
   modsetdiscordid: {
+    allowedRoles: 'mods',
+    allowedChannels: [
+      {
+        type: 'text',
+        settingChannelName: 'modChannel',
+      },
+    ],
+  },
+  modaddplayvids: {
+    allowedRoles: 'mods',
+    allowedChannels: [
+      {
+        type: 'text',
+        settingChannelName: 'modChannel',
+      },
+    ],
+  },
+  modremoveplayvids: {
     allowedRoles: 'mods',
     allowedChannels: [
       {
@@ -922,6 +948,20 @@ const defaultCommandPermissions = Object.freeze({
   },
 });
 
+/**
+ * Video types allowed for submission and supported by the site
+ * @type {AllowedVideoTypes[]}
+ */
+const ALLOWED_VIDEO_TYPES = Object.freeze({
+  't.co': 'twitter',
+  'twitter.com': 'twitter',
+  'youtu.be': 'youtube',
+  'youtube.com': 'youtube',
+  'twitch.tv/videos': 'twitch-videos',
+  'clips.twitch.tv': 'twitch-clips',
+  'streamable.com': 'streamable',
+});
+
 module.exports = {
   botPermissions,
   defaultChannels,
@@ -933,4 +973,5 @@ module.exports = {
   REMOVED_LEVELS,
   CHANNEL_LABELS,
   GAME_STYLES,
+  ALLOWED_VIDEO_TYPES,
 };
