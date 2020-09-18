@@ -746,7 +746,9 @@ module.exports = async function (client) {
         .first();
     }
 
-    return videos;
+    const tags = await ts.getShownTags();
+
+    return { videos, tag_labels: tags };
   }
 
   const adminChecks = Object.freeze({
