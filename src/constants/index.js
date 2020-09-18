@@ -949,18 +949,17 @@ const defaultCommandPermissions = Object.freeze({
 });
 
 /**
- * Level status that doesn't appear in the list
- * @type {GameStyle[]}
+ * Video types allowed for submission and supported by the site
+ * @type {AllowedVideoTypes[]}
  */
 const ALLOWED_VIDEO_TYPES = Object.freeze({
   't.co': 'twitter',
   'twitter.com': 'twitter',
   'youtu.be': 'youtube',
   'youtube.com': 'youtube',
-  'clips.twitch.tv': 'twitch',
-  'imgur.com': 'imgur',
+  'twitch.tv/videos': 'twitch-videos',
+  'clips.twitch.tv': 'twitch-clips',
   'streamable.com': 'streamable',
-  'reddit.com': 'reddit',
 });
 
 module.exports = {

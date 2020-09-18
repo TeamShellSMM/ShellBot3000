@@ -52,7 +52,7 @@ exports.up = function (knex) {
     {
       name: 'addVids.notAllowed',
       message:
-        'The following urls are not from allowed video hosting websites: ```{{{videos}}}```\nCurrently we only allow videos from twitter, youtube, twitch, imgur, streamable and reddit.',
+        'The following urls are not from allowed video hosting websites: ```{{{videos}}}```\nCurrently we only allow videos from twitter, youtube, twitch and streamable.',
     },
     {
       name: 'addVids.noClear',
@@ -124,10 +124,9 @@ exports.up = function (knex) {
                 'twitter.com': 'twitter',
                 'youtu.be': 'youtube',
                 'youtube.com': 'youtube',
-                'clips.twitch.tv': 'twitch',
-                'imgur.com': 'imgur',
+                'twitch.tv/videos': 'twitch-videos',
+                'clips.twitch.tv': 'twitch-clips',
                 'streamable.com': 'streamable',
-                'reddit.com': 'reddit',
               };
 
               vid = vid.trim();

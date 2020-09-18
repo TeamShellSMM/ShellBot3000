@@ -724,6 +724,31 @@ module.exports = async function (client) {
     };
   }
 
+  async function generateVideosJson(ts, data) {
+    const { page, size } = data;
+
+    const videos = await ts.db.Videos.query()
+      .orderBy('created_at', 'asc')
+      .offset(page * size)
+      .limit(size);
+
+    for (const video of videos) {
+      video.level = null;
+      video.play = null;
+
+      video.level = await ts
+        .getLevels()
+        .where('levels.id', video.level_id)
+        .first();
+      video.play = await ts
+        .getPlays()
+        .where('plays.id', video.play_id)
+        .first();
+    }
+
+    return videos;
+  }
+
   const adminChecks = Object.freeze({
     admin: 'teamAdmin',
     mod: 'modOnly',
@@ -1203,6 +1228,14 @@ module.exports = async function (client) {
     '/json/races',
     webTS(async (ts, req) => {
       const json = await generateRacesJson(ts, req.body, req.user);
+      return json;
+    }),
+  );
+
+  app.post(
+    '/json/videos',
+    webTS(async (ts, req) => {
+      const json = await generateVideosJson(ts, req.body, req.user);
       return json;
     }),
   );

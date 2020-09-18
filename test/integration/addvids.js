@@ -235,7 +235,7 @@ describe('!add/remove vids', () => {
         channel: 'general',
         discord_id: '512',
       }),
-      'The following urls are not from allowed video hosting websites: ```https://clips.othersite.tv/12345```\nCurrently we only allow videos from twitter, youtube, twitch, imgur, streamable and reddit. ',
+      'The following urls are not from allowed video hosting websites: ```https://clips.othersite.tv/12345```\nCurrently we only allow videos from twitter, youtube, twitch and streamable. ',
     );
   });
 
