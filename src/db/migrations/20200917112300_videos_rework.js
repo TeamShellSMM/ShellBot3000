@@ -72,7 +72,7 @@ exports.up = function (knex) {
 
   return knex.schema
     .createTable('videos', function (t) {
-      t.increments('id').unsigned().primary();
+      t.increments('id').primary();
       t.dateTime('created_at')
         .notNull()
         .defaultTo(knex.raw('CURRENT_TIMESTAMP'));
