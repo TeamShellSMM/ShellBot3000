@@ -72,7 +72,7 @@ exports.up = function (knex) {
 
   return knex.schema
     .createTable('videos', function (t) {
-      t.increments('id').primary();
+      t.increments('id').unsigned().primary();
       t.dateTime('created_at')
         .notNull()
         .defaultTo(knex.raw('CURRENT_TIMESTAMP'));
@@ -88,7 +88,6 @@ exports.up = function (knex) {
         .references('levels.id')
         .nullable();
       t.integer('play_id')
-        .unsigned()
         .references('plays.id')
         .nullable();
       t.integer('submitter_id')
