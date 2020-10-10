@@ -975,7 +975,7 @@ module.exports = async function (client) {
           disabled: false,
         };
         await ts.knex.transaction(async (trx) => {
-          await ts.trx('command_permissions').insert(newData);
+          await trx('command_permissions').insert(newData);
           return trx;
         });
       }
