@@ -87,9 +87,7 @@ exports.up = function (knex) {
         .unsigned()
         .references('levels.id')
         .nullable();
-      t.integer('play_id')
-        .references('plays.id')
-        .nullable();
+      t.integer('play_id').references('plays.id').nullable();
       t.integer('submitter_id')
         .unsigned()
         .references('members.id')

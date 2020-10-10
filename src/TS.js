@@ -3474,7 +3474,10 @@ class TS {
       let newStatus = 0;
       if (oldApproved === ts.LEVEL_STATUS.NEED_FIX) {
         newStatus = ts.LEVEL_STATUS.PENDING_FIXED_REUPLOAD; // should make another one
-      } else if (oldApproved === ts.LEVEL_STATUS.APPROVED) {
+      } else if (
+        oldApproved === ts.LEVEL_STATUS.APPROVED ||
+        oldApproved === ts.LEVEL_STATUS.PENDING_APPROVED_REUPLOAD
+      ) {
         newStatus = ts.LEVEL_STATUS.PENDING_APPROVED_REUPLOAD;
       }
       if (newStatus) {
@@ -4642,6 +4645,13 @@ class TS {
    * call to add a TS into the list.
    */
   static async add(guildId, client, gs) {
+    if (TS.TS_LIST[guildId]) {
+      console.log(
+        'ALREADY EXISTING TS FOR GUILD ID ',
+        guildId,
+        ' OVERWRITTEN!',
+      );
+    }
     TS.TS_LIST[guildId] = new TS(guildId, client, gs);
     await TS.TS_LIST[guildId].load();
     return TS.TS_LIST[guildId];

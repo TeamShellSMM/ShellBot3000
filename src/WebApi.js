@@ -971,7 +971,14 @@ module.exports = async function (client) {
           'command_permissions.text_channels',
           'command_permissions.channel_categories',
         )
-        .where({ guild_id: ts.team.id });
+        .leftJoin(
+          'commands',
+          'command_permissions.command_id',
+          '=',
+          'commands.id',
+        )
+        .where('command_permissions.guild_id', ts.team.id)
+        .orderBy('commands.name', 'asc');
 
       const commands = await ts
         .knex('commands')
