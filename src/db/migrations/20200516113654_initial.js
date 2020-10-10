@@ -140,7 +140,7 @@ exports.up = function (knex) {
       t.index(['guild_id', 'code']);
     })
     .createTable('plays', function (t) {
-      t.increments('id').unsigned().primary();
+      t.increments('id').primary();
       t.dateTime('created_at')
         .notNull()
         .defaultTo(knex.raw('CURRENT_TIMESTAMP'));
