@@ -961,6 +961,22 @@ module.exports = async function (client) {
   app.post(
     '/teams/commandpermissions',
     webTS(async (ts) => {
+      const commandsWithoutPermission = await ts
+        .knex('commands')
+        .whereRaw(
+          `id not in (select command_id from command_permissions where guild_id = ?);`,
+          [ts.team.id],
+        );
+
+      for (const commandWithoutPermission of commandsWithoutPermission) {
+        const newData = {
+          command_id: commandWithoutPermission.id,
+          guild_id: ts.team.id,
+          disabled: false,
+        };
+        await ts.trx('command_permissions').insert(newData);
+      }
+
       const commandPermissions = await ts
         .knex('command_permissions')
         .select(
