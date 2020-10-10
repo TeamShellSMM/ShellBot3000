@@ -974,7 +974,10 @@ module.exports = async function (client) {
           guild_id: ts.team.id,
           disabled: false,
         };
-        await ts.trx('command_permissions').insert(newData);
+        await ts.knex.transaction(async (trx) => {
+          await ts.trx('command_permissions').insert(newData);
+          return trx;
+        });
       }
 
       const commandPermissions = await ts
