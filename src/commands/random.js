@@ -7,12 +7,12 @@ class tsrandom extends TSCommand {
       args: [
         {
           id: 'minDifficulty',
-          type: 'string',
+          type: 'difficulty',
           default: null,
         },
         {
           id: 'maxDifficulty',
-          type: 'string',
+          type: 'difficulty',
           default: null,
         },
       ],

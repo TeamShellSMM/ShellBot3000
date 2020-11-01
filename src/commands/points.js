@@ -4,13 +4,6 @@ class points extends TSCommand {
   constructor() {
     super('points', {
       aliases: ['points', 'rank', 'point'],
-      args: [
-        {
-          id: 'role',
-          type: 'string',
-          default: null,
-        },
-      ],
       channelRestriction: 'guild',
     });
   }

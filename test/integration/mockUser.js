@@ -31,7 +31,7 @@ describe('!mockUser', function () {
         channel: 'general',
         discord_id: TEST.bot_id,
       }),
-      "You didn't give any names ",
+      "You have to enter a valid member name. ",
     );
   });
 
@@ -45,7 +45,7 @@ describe('!mockUser', function () {
         channel: 'general',
         discord_id: TEST.bot_id,
       }),
-      'No user found ',
+      'No member with the name "unknown" was found in the members list. ',
     );
   });
 

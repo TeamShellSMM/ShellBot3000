@@ -9,13 +9,13 @@ class TSJudge extends TSCommand {
     });
   }
 
-  async tsexec(ts, message) {
+  async tsexec(ts, message, {command}) {
     // Check if in level discussion channel
     if (
       ts.discord.messageGetParent(message) ===
       ts.channels.levelDiscussionCategory
     ) {
-      const { code, command } = ts.getCodeArgument(message);
+      const { code } = ts.getCodeArgument(message);
       await ts.judge(
         code,
         false,

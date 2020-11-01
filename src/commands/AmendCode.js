@@ -6,36 +6,24 @@ class AmendCode extends TSCommand {
       aliases: ['ammendcode', 'amendcode'],
       args: [
         {
-          id: 'oldCode',
-          type: 'uppercase',
+          id: 'existingLevel',
+          type: 'level',
           default: null,
         },
         {
           id: 'newCode',
-          type: 'uppercase',
+          type: 'levelcode',
           default: null,
         },
       ],
+      quoted: true
     });
   }
 
-  async tsexec(ts, message, { oldCode, newCode }) {
-    if (!oldCode)
-      ts.userError(await ts.message('reupload.noOldCode'));
-    if (!newCode)
-      ts.userError(await ts.message('reupload.noNewCode'));
-
-    if (!ts.validCode(oldCode)) {
-      ts.userError(await ts.message('reupload.invalidOldCode'));
-    }
-    if (!ts.validCode(newCode)) {
-      ts.userError(await ts.message('reupload.invalidNewCode'));
-    }
-    if (oldCode === newCode) {
+  async tsexec(ts, message, { existingLevel, newCode }) {
+    if (existingLevel.code === newCode) {
       ts.userError(await ts.message('reupload.sameCode'));
     }
-
-    const existingLevel = await ts.getExistingLevel(oldCode, true);
     const newCodeCheck = await ts
       .getLevels()
       .where({ code: newCode })
@@ -50,28 +38,28 @@ class AmendCode extends TSCommand {
 
     await ts.db.Levels.query()
       .patch({ code: newCode })
-      .where({ code: oldCode });
+      .where({ code: existingLevel.code });
 
     let notify = false;
     const existingPendingChannel = ts.discord.channel(
-      oldCode,
+      existingLevel.code,
       ts.channels.levelDiscussionCategory,
     );
     if (existingPendingChannel) {
       await ts.labelPendingLevel(
         { ...existingLevel, code: newCode },
-        oldCode,
+        existingLevel.code,
       );
       notify = true;
     }
 
     notify =
-      notify || (await ts.renameAuditChannels(oldCode, newCode));
+      notify || (await ts.renameAuditChannels(existingLevel.code, newCode));
 
     if (notify) {
       await ts.discord.send(
         newCode,
-        await ts.message('ammendcode.notify', { oldCode, newCode }),
+        await ts.message('ammendcode.notify', { oldCode: existingLevel.code, newCode }),
       );
     }
 
@@ -79,7 +67,7 @@ class AmendCode extends TSCommand {
       message,
       await ts.message('ammendCode.success', {
         level: existingLevel,
-        oldCode,
+        oldCode: existingLevel.code,
         newCode,
       }),
     );

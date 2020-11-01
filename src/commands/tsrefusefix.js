@@ -4,29 +4,26 @@ class TSRefuseFix extends TSCommand {
   constructor() {
     super('tsrefusefix', {
       aliases: ['tsrefusefix', 'refusefix'],
+      args: [
+        {
+          id: 'level',
+          type: 'level',
+          default: null,
+        },
+        {
+          id: 'reason',
+          type: 'text',
+          match: 'rest',
+          default: null,
+        },
+      ],
+      quoted: true,
       channelRestriction: 'guild',
     });
   }
 
-  async tsexec(ts, message) {
-    const command = ts.parseCommand(message);
-    let code = command.arguments.shift();
-    if (code) code = code.toUpperCase();
-
-    if (!ts.validCode(code))
-      ts.userError('You did not provide a valid code for the level');
-
-    const reason = command.arguments.join(' ');
-
-    if (!reason) {
-      ts.userError(
-        'Please provide a little message to the mods for context at the end of the command!',
-      );
-    }
-    ts.reasonLengthCheck(reason, 800);
-
+  async tsexec(ts, message, {command, level, reason}) {
     const player = await ts.getUser(message);
-    const level = await ts.getLevels().where({ code }).first();
     const author = await ts.db.Members.query()
       .where({ name: level.creator })
       .first();
@@ -44,12 +41,12 @@ class TSRefuseFix extends TSCommand {
       );
 
     await ts.db.Levels.query()
-      .where({ code })
+      .where({ code: level.code })
       .patch({ status: ts.LEVEL_STATUS.PENDING_NOT_FIXED_REUPLOAD });
     level.status = ts.LEVEL_STATUS.PENDING_NOT_FIXED_REUPLOAD;
 
     await ts.auditDiscussionChannel(
-      code,
+      level.code,
       null,
       ts.CHANNEL_LABELS.AUDIT_FIX_REQUEST,
       {
@@ -58,14 +55,14 @@ class TSRefuseFix extends TSCommand {
     );
 
     await ts.discord.send(
-      `${ts.CHANNEL_LABELS.AUDIT_FIX_REQUEST}${code}`,
+      `${ts.CHANNEL_LABELS.AUDIT_FIX_REQUEST}${level.code}`,
       `Reupload Request for <@${author.discord_id}>'s level got refused with message: \`\`\`${reason}\`\`\``,
     );
 
-    await ts.fixModPing(code);
+    await ts.fixModPing(level.code);
 
     const voteEmbed = await ts.makeVoteEmbed(level, reason);
-    await ts.discord.updatePinned(code, voteEmbed);
+    await ts.discord.updatePinned(level.code, voteEmbed);
 
     return ts.discord.reply(
       message,

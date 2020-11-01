@@ -45,7 +45,7 @@ describe('!ammendcode', function () {
     assert.equal(
       result,
       await TEST.mockMessage(
-        'reupload.noOldCode',
+        'error.noCode',
         { type: 'userError' },
         { name: 'Creator' },
       ),
@@ -61,7 +61,7 @@ describe('!ammendcode', function () {
     assert.equal(
       result,
       await TEST.mockMessage(
-        'reupload.noNewCode',
+        'error.noCode',
         { type: 'userError' },
         { name: 'Creator' },
       ),
@@ -77,7 +77,7 @@ describe('!ammendcode', function () {
     assert.equal(
       result,
       await TEST.mockMessage(
-        'reupload.invalidOldCode',
+        'error.invalidCode',
         { type: 'userError' },
         { name: 'Creator' },
       ),
@@ -93,7 +93,7 @@ describe('!ammendcode', function () {
     assert.equal(
       result,
       await TEST.mockMessage(
-        'reupload.invalidNewCode',
+        'error.invalidCode',
         { type: 'userError' },
         { name: 'Creator' },
       ),

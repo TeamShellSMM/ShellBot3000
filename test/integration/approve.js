@@ -137,7 +137,7 @@ describe('!approve', function () {
     });
     assert.equal(
       result,
-      "Your reason/comment can't be longer than 1500 ",
+      "The text you entered is too long for this command, a maximum of 1500 characters are allowed here. ",
     );
   });
 
@@ -188,7 +188,7 @@ describe('!approve', function () {
       color: 106911,
       author: {
         name: 'This level was approved for difficulty: 3.5!',
-        icon_url: undefined,
+        iconURL: undefined,
         url: undefined,
       },
     });
@@ -246,7 +246,7 @@ describe('!approve', function () {
       channel: TEST.ts.channels.modChannel,
       discord_id: '256',
     });
-    assert.equal(result, 'Level is already approved! ');
+    assert.equal(result, 'Level is not pending! ');
   });
 
   it('approve no code', async function () {
@@ -255,7 +255,7 @@ describe('!approve', function () {
       channel: TEST.ts.channels.modChannel,
       discord_id: '256',
     });
-    assert.equal(result, 'You did not give a level code ');
+    assert.equal(result, "You didn't enter a level code. ");
   });
 
   it('approve no reason', async function () {
@@ -266,7 +266,7 @@ describe('!approve', function () {
     });
     assert.equal(
       result,
-      'You need to give a reason for the change (in quotation marks)! ',
+      'Missing parameter. You have to enter something here. ',
     );
   });
 
@@ -295,7 +295,8 @@ describe('!approve', function () {
       channel: TEST.ts.channels.modChannel,
       discord_id: '256',
     });
-    assert.equal(result, 'Level is not pending! ');
+    console.log(result);
+    assert.equal(result, '"removed level" by Creator has already been removed ');
   });
 
   it('reject', async function () {
@@ -379,7 +380,7 @@ describe('!approve', function () {
         'Clear Video: [ 🎬 ](http://twitch.tv),[ 🎬 ](http://youtube.com)',
       author: {
         name: 'The Judgement  has now begun for this level:',
-        icon_url: undefined,
+        iconURL: undefined,
         url: undefined,
       },
     });
@@ -399,7 +400,7 @@ describe('!approve', function () {
       author: {
         name:
           "This level is one step from being approved, we'd just like to see some fixes!",
-        icon_url: undefined,
+          iconURL: undefined,
         url: undefined,
       },
       fields: [

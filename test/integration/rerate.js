@@ -50,7 +50,7 @@ describe('!rerate', function () {
         waitFor: 100,
         discord_id: '256',
       }),
-      0,
+      31,
     );
   });
   // waitFor:100,
@@ -61,7 +61,7 @@ describe('!rerate', function () {
         channel: TEST.ts.channels.modChannel,
         discord_id: '128',
       }),
-      'You did not give a level code ',
+      "You didn't enter a level code. ",
     );
   });
 
@@ -72,7 +72,7 @@ describe('!rerate', function () {
         channel: TEST.ts.channels.modChannel,
         discord_id: '128',
       }),
-      'You need to give a difficulty ',
+      "Missing parameter. You have to enter something here. ",
     );
   });
 
@@ -83,7 +83,7 @@ describe('!rerate', function () {
         channel: TEST.ts.channels.modChannel,
         discord_id: '128',
       }),
-      'You need to give a reason for the change (in quotation marks)! ',
+      "Missing parameter. You have to enter something here. ",
     );
   });
 
@@ -94,7 +94,7 @@ describe('!rerate', function () {
         channel: TEST.ts.channels.modChannel,
         discord_id: '128',
       }),
-      'The code `XXX-XXX-XX` was not found in AutoTest\'s list. Did you mean:```\nXXX-XXX-XXX - "approved level" by Creator``` ',
+      'This is not a valid level code. ',
     );
   });
 
@@ -147,7 +147,7 @@ describe('!rerate', function () {
     });
     assert.equal(
       result,
-      "Your reason/comment can't be longer than 800 ",
+      "The text you entered is too long for this command, a maximum of 800 characters are allowed here. ",
     );
   });
 
@@ -169,7 +169,7 @@ describe('!rerate', function () {
         channel: TEST.ts.channels.modChannel,
         discord_id: '128',
       }),
-      'Level is not approved ',
+      '"user removed level" by Creator has already been removed ',
     );
   });
 });

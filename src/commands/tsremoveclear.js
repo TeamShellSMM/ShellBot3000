@@ -6,11 +6,12 @@ class TSRemoveclear extends TSCommand {
       aliases: ['tsremoveclear', 'removeclear'],
       args: [
         {
-          id: 'code',
-          type: 'uppercase',
+          id: 'level',
+          type: 'level',
           default: null,
         },
       ],
+      quoted: true,
       channelRestriction: 'guild',
     });
   }

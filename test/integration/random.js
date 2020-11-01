@@ -49,7 +49,7 @@ describe('!random / !playersRandom', function () {
       channel: 'general',
       discord_id: '256',
     });
-    assert.equal(result, 'You did not provide any players ');
+    assert.equal(result, 'You have to enter at least one valid member name. ');
   });
 
   it('no players', async function () {
@@ -58,7 +58,7 @@ describe('!random / !playersRandom', function () {
       channel: 'general',
       discord_id: '256',
     });
-    assert.equal(result, 'You did not provide any players ');
+    assert.equal(result, 'No member with the name "3" was found in the members list. ');
   });
 
   it('unknown player', async function () {
@@ -67,7 +67,7 @@ describe('!random / !playersRandom', function () {
       channel: 'general',
       discord_id: '256',
     });
-    assert.equal(result, 'Other is not found in the memory banks ');
+    assert.equal(result, 'No member with the name "Other" was found in the members list. ');
   });
 
   it('!random check difficulty min only', async function () {
@@ -133,7 +133,7 @@ describe('!random / !playersRandom', function () {
       channel: 'general',
       discord_id: '128',
     });
-    assert.equal(result, "You didn't give a tag ");
+    assert.equal(result, "You didn't give any tags ");
   });
 
   it('!randomtag no tags in db', async function () {
@@ -176,7 +176,7 @@ describe('!random / !playersRandom', function () {
     });
     assert.equal(
       result,
-      'You have ran out of levels in this range (0.5-10) with tag: tag1 ',
+      'You have ran out of levels in this range (0.5-10) with tags: tag1 ',
     );
   });
 

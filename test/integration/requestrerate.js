@@ -54,7 +54,7 @@ describe('!requestrerate', function () {
         channel: 'general',
         discord_id: '64',
       }),
-      'The level you entered is not approved, difficulty can only be changed for approved levels. ',
+      'This level is not an approved level. ',
     );
   });
 
@@ -65,7 +65,7 @@ describe('!requestrerate', function () {
         channel: 'general',
         discord_id: '64',
       }),
-      'You did not give a level code ',
+      "You didn't enter a level code. ",
     );
   });
 
@@ -76,7 +76,7 @@ describe('!requestrerate', function () {
         channel: 'general',
         discord_id: '64',
       }),
-      'You did not provide a reason to rerate this level, please provide a reason and the difficulty you think would be correct for this level. ',
+      'Missing parameter. You have to enter something here. ',
     );
   });
 });

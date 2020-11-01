@@ -201,7 +201,9 @@ class TSCommand extends Command {
         DiscordLog.log(error, this.client);
       }
     } finally {
-      TS.promisedCallback();
+      if(TS.promisedCallback instanceof Function){
+        TS.promisedCallback();
+      }
       debug(`end ${message.content}`);
     }
     return true;

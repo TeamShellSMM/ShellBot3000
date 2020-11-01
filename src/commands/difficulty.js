@@ -6,13 +6,13 @@ class tsdifficulty extends TSCommand {
       aliases: ['tsdifficulty', 'difficulty', 'rate'],
       args: [
         {
-          id: 'code',
-          type: 'uppercase',
+          id: 'level',
+          type: 'level',
           default: null,
         },
         {
           id: 'difficulty',
-          type: 'string',
+          type: 'difficulty',
           default: null,
         },
       ],

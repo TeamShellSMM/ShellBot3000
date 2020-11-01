@@ -35,7 +35,7 @@ describe('!makerid', function () {
         channel: 'general',
         discord_id: '128',
       }),
-      "You didn't provide your maker name ",
+      "Missing parameter. You have to enter something here. ",
     );
   });
 

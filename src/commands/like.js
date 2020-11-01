@@ -6,22 +6,22 @@ class tslike extends TSCommand {
       aliases: ['tslike', 'like', 'tsunlike', 'unlike'],
       args: [
         {
-          id: 'code',
-          type: 'uppercase',
+          id: 'level',
+          type: 'level',
           default: null,
         },
       ],
+      quoted: true,
       channelRestriction: 'guild',
     });
   }
 
   async tsexec(ts, message, args) {
     const likeCommands = ['tslike', 'like'];
-    const command = ts.parseCommand(message);
+    args.liked = likeCommands.includes(args.command.command) ? 1 : 0;
     const clearArgs = {
       ...args,
-      discord_id: ts.discord.getAuthor(message),
-      liked: likeCommands.includes(command.command) ? 1 : 0,
+      discord_id: ts.discord.getAuthor(message)
     };
     const msg = await ts.clear(clearArgs);
     await ts.discord.messageSend(message, msg);

@@ -108,7 +108,7 @@ class TS {
       debug(`ts.load started for ${this.guild_id}`);
 
       const guild = ts.getGuild(this.guild_id);
-      await guild.fetchMembers(); // just load up all members
+      await guild.members.fetch(); // just load up all members ##not needed anymore in 8.1
       const Team = Teams(this.guild_id);
       this.team = await Team.query().select().first();
       this.db = {
@@ -725,7 +725,7 @@ class TS {
     };
 
     this.addVideos = async (args) => {
-      const { command, code, newVids, player, submitter } = args;
+      const { command, level, newVids, player, submitter } = args;
       const addCommands = [
         'tsaddvids',
         'addvids',
@@ -748,41 +748,6 @@ class TS {
         'modremoveplayvid',
       ];
 
-      const filteredUrl = [];
-      const notUrls = [];
-      const notAllowedUrls = [];
-      newVids.forEach((url) => {
-        if (url) {
-          if (validUrl.isWebUri(url)) {
-            const videoType = ts.getVideoType(url);
-            if (videoType) {
-              filteredUrl.push({
-                url: url,
-                type: videoType,
-              });
-            } else {
-              notAllowedUrls.push(url);
-            }
-          } else {
-            notUrls.push(url);
-          }
-        }
-      });
-      if (notUrls.length)
-        ts.userError(
-          `The links below didn't look like urls: \`\`\`\n${notUrls.join(
-            '\n',
-          )}\`\`\``,
-        );
-
-      if (notAllowedUrls.length)
-        ts.userError(
-          `${await ts.message('addVids.notAllowed', {
-            videos: notAllowedUrls.join('\n'),
-          })}`,
-        );
-
-      const level = await ts.getExistingLevel(code);
       const existingPlay = await ts.db.Plays.query()
         .where('code', '=', level.id)
         .where('player', '=', player.id)
@@ -843,7 +808,7 @@ class TS {
         const assignedVidUrls = assignedVids.map((x) => x.url.trim());
         const allVidUrls = allVids.map((x) => x.url.trim());
 
-        for (const video of filteredUrl) {
+        for (const video of newVids) {
           video.url = video.url.trim();
 
           if (allVidUrls.indexOf(video.url) !== -1) {
@@ -932,7 +897,7 @@ class TS {
 
         const oldVidUrls = oldVids.map((x) => x.url.trim());
 
-        for (const video of filteredUrl) {
+        for (const video of newVids) {
           video.url = video.url.trim();
 
           for (const oldVid of oldVids) {
@@ -985,7 +950,7 @@ class TS {
     this.teamAdmin = (discord_id) => {
       if (!discord_id) return false;
       const guild = this.discord.guild();
-      const discordUser = guild.members.get(discord_id);
+      const discordUser = guild.members.cache.get(discord_id);
       return (
         (Array.isArray(this.devs) &&
           this.devs.includes(discord_id)) ||
@@ -1046,7 +1011,7 @@ class TS {
       }
       if (ts.teamVariables.discordAdminCanMod === 'true') {
         // if yes, any discord mods can do team administrative stuff but won't officially appear in the "Mod" list
-        const discordUser = guild.members.get(discordId);
+        const discordUser = guild.members.cache.get(discordId);
         if (
           discordUser &&
           discordUser.hasPermission('ADMINISTRATOR')
@@ -1070,7 +1035,7 @@ class TS {
     this.saveSheetToDb = async function () {
       await ts.knex.transaction(async (trx) => {
         const guild = ts.getGuild();
-        let mods = [guild.owner.user.id];
+        let mods = [guild.ownerID];
         if (this.teamVariables.ModName) {
           mods = ts.discord.getMembersWithRole(
             this.teamVariables.ModName,
@@ -1097,14 +1062,6 @@ class TS {
       discord_id,
       member,
     }) => {
-      if (!code) ts.userError(await ts.message('error.noCode'));
-      if (!ts.validCode(code))
-        ts.userError(await ts.message('error.invalidCode'));
-      if (!gameStyle || ts.GAME_STYLES.indexOf(gameStyle) === -1)
-        ts.userError(await ts.message('add.missingGameStyle'));
-      if (!levelName) ts.userError(await ts.message('add.noName'));
-      if (ts.isSpecialDiscordString(levelName))
-        ts.userError(await ts.message('error.specialDiscordString'));
       const player = member || (await ts.getUser(discord_id));
       const existingLevel = await ts
         .getLevels()
@@ -1446,7 +1403,7 @@ class TS {
     /**
      * @typedef {Object.<string,string,boolean,boolean,number,boolean>} TsClearParam
      * @property {string} discord_id   - Discord id of user
-     * @property {string} code         - Level code
+     * @property {Level} level         - Level
      * @property {boolean} completed   - When 1, a clear will be saved. When 0 then a clear will be removed. Null will not updated the clear information
      * @property {boolean} liked       - When 1, a like will be saved. When 0 then a like will be removed. Null will not updated the like information
      * @property {number} difficulty   - When a valid difficulty is passed, a difficulty will be saved. When 0, the difficulty vote will be removed. Null will not update the difficulty infomration
@@ -1458,57 +1415,27 @@ class TS {
      * @return {string} A response string to be sent to the user.
      */
     this.clear = async (args = {}) => {
-      let { code, completed, liked, difficulty } = args;
+      let { level, completed, difficulty, liked, code } = args;
       const { discord_id, strOnly, playerDontAtMe, member } = args;
+
+      if(!level){
+        level = await this.getExistingLevel(code);
+      }
 
       if (!discord_id && !member)
         ts.userError(await ts.message('error.noDiscordId'));
 
-      if (typeof difficulty === 'string')
-        difficulty = difficulty.toLowerCase();
-      if (typeof liked === 'string') liked = liked.toLowerCase();
-
-      if (difficulty === 'like') {
-        difficulty = null;
-        liked = 1;
-      }
-      if (difficulty === 'unlike') {
-        difficulty = null;
-        liked = 0;
-      }
-
-      if (liked === 'like') {
-        liked = 1;
-      }
-      if (liked === 'unlike') {
-        liked = 0;
-      }
-      liked = ts.commandPassedBoolean(liked);
       completed = ts.commandPassedBoolean(completed);
-      if (difficulty === '') difficulty = null;
-      if (difficulty == null) difficulty = null;
+
       if (completed == null && liked == null && difficulty == null) {
         ts.userError(await ts.message('clear.noArgs'));
       }
-      if (code == null) {
-        ts.userError(await ts.message('error.noCode'));
-      }
-      code = code.toUpperCase();
+
       if (difficulty && Number.isNaN(Number(difficulty))) {
         ts.userError(await ts.message('clear.invalidDifficulty'));
       }
-      if (difficulty) {
-        difficulty = parseFloat(difficulty);
-      }
-      if (
-        difficulty !== 0 &&
-        difficulty &&
-        !ts.valid_difficulty(difficulty)
-      ) {
-        ts.userError(await ts.message('clear.invalidDifficulty'));
-      }
+
       const player = member || (await ts.getUser(discord_id));
-      const level = await ts.getExistingLevel(code);
       if (level.creator_id === player.id)
         ts.userError(await ts.message('clear.ownLevel'));
       const existingPlay = await ts.db.Plays.query()
@@ -1587,12 +1514,12 @@ class TS {
 
               const voteEmbed = await ts.makeVoteEmbed(level);
               await ts.discord.updatePinned(
-                `${ts.CHANNEL_LABELS.AUDIT_VERIFY_CLEARS}${code}`,
+                `${ts.CHANNEL_LABELS.AUDIT_VERIFY_CLEARS}${level.code}`,
                 voteEmbed,
               );
 
               await ts.discord.send(
-                `${ts.CHANNEL_LABELS.AUDIT_VERIFY_CLEARS}${code}`,
+                `${ts.CHANNEL_LABELS.AUDIT_VERIFY_CLEARS}${level.code}`,
                 `Clear by <@${player.discord_id}> requires verification, please check if their clear is valid.`,
               );
             }
@@ -1805,6 +1732,17 @@ class TS {
     };
 
     /**
+     * Helper function to create a user error
+     */
+    this.createUserError = function (errorStr, args) {
+      return new UserError(
+        this.messages[errorStr]
+          ? this.messages[errorStr](args)
+          : errorStr,
+      );
+    };
+
+    /**
      * Makes a custom object to pass to DiscordLog
      */
     this.makeErrorObj = function (obj, message) {
@@ -1863,25 +1801,17 @@ class TS {
       const {
         discord_id,
         players,
-        tag,
+        tags,
         randomAll,
         randomPending,
       } = args;
       let { minDifficulty, maxDifficulty } = args;
-      if (minDifficulty && !ts.valid_difficulty(minDifficulty)) {
-        ts.userError(
-          maxDifficulty
-            ? await ts.message('random.noMinDifficulty')
-            : await ts.message('random.noDifficulty'),
-        );
-      }
+
       if (maxDifficulty) {
-        if (!ts.valid_difficulty(maxDifficulty))
-          ts.userError(await ts.message('random.noMaxDifficulty'));
       } else if (minDifficulty) {
         maxDifficulty = minDifficulty;
       }
-      if (parseFloat(minDifficulty) > parseFloat(maxDifficulty)) {
+      if (minDifficulty > maxDifficulty) {
         const temp = maxDifficulty;
         maxDifficulty = minDifficulty;
         minDifficulty = temp;
@@ -1889,34 +1819,27 @@ class TS {
 
       let tagSql =
         'AND (tags.is_seperate!=1 or tags.is_seperate is null)';
-      let tagId;
-      if (tag) {
-        tagId = (await this.findTag(tag)).id;
-        tagSql = 'AND tags.id=:tagId';
+      let tagIds = [];
+      if(tags){
+        for(let tagName of tags){
+          let tag = await this.findTag(tagName)
+          tagIds.push(tag.id);
+        }
+        if(tags.length > 0){
+          tagSql = 'AND tags.id in (:tagIds:)';
+        }
       }
 
       let playerIds;
       const player =
         discord_id != null ? await ts.getUser(discord_id) : null;
       if (players) {
-        const playerNames = players.split(',');
-        const rawPlayers = await ts.db.Members.query().whereIn(
-          'name',
-          playerNames,
-        );
-        if (rawPlayers.length === 0)
+        if (players.length === 0)
           ts.userError(await ts.message('random.noPlayersGiven'));
         playerIds = [];
-        const dbPlayerNames = rawPlayers.map((n) => n.name);
-        if (rawPlayers.length !== playerNames.length) {
-          this.userError('random.playerNotFound', {
-            player: playerNames.find(
-              (n) => !dbPlayerNames.includes(n),
-            ),
-          });
-        }
+        const dbPlayerNames = players.map((n) => n.name);
 
-        playerIds = rawPlayers.map((p) => p.id);
+        playerIds = players.map((p) => p.id);
       } else if (player) {
         playerIds = [player.id];
       }
@@ -1964,7 +1887,7 @@ class TS {
         team_id: ts.team.id,
         min,
         max,
-        tagId,
+        tagIds,
         players: playerIds,
       };
       const [filteredLevels] = await knex.raw(
@@ -1993,8 +1916,8 @@ class TS {
           (await ts.message('random.outOfLevels', {
             range: min === max ? min : `${min}-${max}`,
           })) +
-            (tag
-              ? await ts.message('random.outOfLevelsTag', { tag })
+            (tags && tags.length > 0
+              ? await ts.message('random.outOfLevelsTags', { tags: tags.join(',') })
               : ''),
         );
       }
@@ -2184,10 +2107,15 @@ class TS {
      * This method is called and will process an approval vote. The method will generate the necessary discord channels if needed
      */
     this.approve = async function (args) {
-      const { discord_id, code, reason, type, difficulty } = args;
+      const { discord_id, reason, type, difficulty, code } = args;
+      let {level} = args;
+
+      if(!level){
+        level = await this.getExistingLevel(code);
+      }
+
       // Check if vote already exists
       const shellder = await ts.getUser(discord_id);
-      const level = await ts.getExistingLevel(code, true);
       const vote = await ts
         .getPendingVotes()
         .where('levels.id', level.id)
@@ -3327,23 +3255,12 @@ class TS {
       );
     };
 
-    this.reuploadLevel = async function (message) {
+    this.reuploadLevel = async function (message, {oldLevel, newCode, reason}) {
       const player = await ts.db.Members.query()
         .where({ discord_id: ts.discord.getAuthor(message) })
         .first();
       if (!player)
         ts.userError(await ts.message('error.notRegistered'));
-      const command = ts.parseCommand(message);
-      let oldCode = command.arguments.shift();
-      if (oldCode) {
-        oldCode = oldCode.toUpperCase();
-      } else {
-        ts.userError(await ts.message('reupload.noOldCode'));
-      }
-      if (!ts.validCode(oldCode)) {
-        ts.userError(await ts.message('reupload.invalidOldCode'));
-      }
-      let newCode = command.arguments.shift();
       if (newCode) {
         newCode = newCode.toUpperCase();
       } else {
@@ -3351,8 +3268,7 @@ class TS {
       }
       if (!ts.validCode(newCode))
         ts.userError(await ts.message('reupload.invalidNewCode'));
-      const reason = command.arguments.join(' ');
-      if (oldCode === newCode)
+      if (oldLevel.code === newCode)
         ts.userError(await ts.message('reupload.sameCode'));
       if (!reason)
         ts.userError(await ts.message('reupload.giveReason'));
@@ -3362,13 +3278,9 @@ class TS {
       const userReply = `<@${ts.discord.getAuthor(message)}>${
         rank.pips ? rank.pips : ''
       } `;
-      const level = await ts
-        .getLevels()
-        .where({ code: oldCode })
-        .first();
-      if (!level)
+      if (!oldLevel)
         ts.userError(
-          await ts.message('error.levelNotFound', { code: oldCode }),
+          await ts.message('error.levelNotFound', { code: oldLevel.code }),
         );
       let newLevel = await ts
         .getLevels()
@@ -3376,11 +3288,11 @@ class TS {
         .first();
       const newLevelExist = !!newLevel;
       const oldApproved =
-        level.status === ts.LEVEL_STATUS.USER_REMOVED
-          ? level.old_status
-          : level.status;
+        oldLevel.status === ts.LEVEL_STATUS.USER_REMOVED
+          ? oldLevel.old_status
+          : oldLevel.status;
 
-      if (newLevel && level.creator !== newLevel.creator)
+      if (newLevel && oldLevel.creator !== newLevel.creator)
         ts.userError(await ts.message('reupload.differentCreator'));
       if (
         newLevel &&
@@ -3393,56 +3305,56 @@ class TS {
         );
       // Reupload means you're going to replace the old one so need to do that for upload check
       const creatorPoints = await ts.calculatePoints(
-        level.creator,
-        ts.SHOWN_IN_LIST.includes(level.status),
+        oldLevel.creator,
+        ts.SHOWN_IN_LIST.includes(oldLevel.status),
       );
-      if (level.new_code)
+      if (oldLevel.new_code)
         ts.userError(
           await ts.message('reupload.haveReuploaded', {
-            code: level.new_code,
+            code: oldLevel.new_code,
           }),
         );
       if (
         !newLevel &&
         !(
-          ts.SHOWN_IN_LIST.includes(level.status) ||
-          (!ts.SHOWN_IN_LIST.includes(level.status) &&
+          ts.SHOWN_IN_LIST.includes(oldLevel.status) ||
+          (!ts.SHOWN_IN_LIST.includes(oldLevel.status) &&
             creatorPoints.canUpload)
         )
       ) {
         ts.userError(await ts.message('reupload.notEnoughPoints'));
       }
-      if (!(level.creator_id === player.id || player.is_mod)) {
+      if (!(oldLevel.creator_id === player.id || player.is_mod)) {
         ts.userError(
-          await ts.message('reupload.noPermission', level),
+          await ts.message('reupload.noPermission', oldLevel),
         );
       }
       await ts.db.Levels.query()
         .patch({
           status:
-            level.status === ts.LEVEL_STATUS.APPROVED
+          oldLevel.status === ts.LEVEL_STATUS.APPROVED
               ? ts.LEVEL_STATUS.REUPLOADED
               : ts.LEVEL_STATUS.REMOVED,
-          old_status: level.status,
+          old_status: oldLevel.status,
           new_code: newCode,
         })
         .where({
-          code: oldCode,
+          code: oldLevel.code,
         });
 
       await ts.db.Levels.query()
         .patch({ new_code: newCode })
-        .where({ new_code: oldCode });
+        .where({ new_code: oldLevel.code });
       if (!newLevel) {
         // if no new level was found create a new level copying over the old data
 
         await ts.db.Levels.query().insert({
           code: newCode,
-          level_name: level.level_name,
-          creator: level.creator_id,
+          level_name: oldLevel.level_name,
+          creator: oldLevel.creator_id,
           difficulty: false,
           status: 0,
-          tags: level.tags || '',
+          tags: oldLevel.tags || '',
         });
         newLevel = await ts
           .getLevels()
@@ -3451,7 +3363,7 @@ class TS {
 
         let oldTags = await ts
           .knex('level_tags')
-          .where({ level_id: level.id });
+          .where({ level_id: oldLevel.id });
 
         oldTags = oldTags.map(
           ({ guild_id, tag_id, user_id, created_at }) => {
@@ -3470,7 +3382,7 @@ class TS {
       }
       await ts.db.PendingVotes.query()
         .patch({ code: newLevel.id })
-        .where({ code: level.id });
+        .where({ code: oldLevel.id });
       let newStatus = 0;
       if (oldApproved === ts.LEVEL_STATUS.NEED_FIX) {
         newStatus = ts.LEVEL_STATUS.PENDING_FIXED_REUPLOAD; // should make another one
@@ -3491,14 +3403,14 @@ class TS {
         .first();
       if (
         newStatus !== 0 ||
-        (newStatus === 0 && ts.discord.channel(level.code))
+        (newStatus === 0 && ts.discord.channel(oldLevel.code))
       ) {
         // TODO:FIX HERE
         //
         if (newStatus === ts.LEVEL_STATUS.PENDING) {
           const { channel } = await ts.pendingDiscussionChannel(
             newCode,
-            level.code,
+            oldLevel.code,
           );
 
           const voteEmbed = await ts.makeVoteEmbed(
@@ -3509,7 +3421,7 @@ class TS {
           await ts.discord.send(
             newCode,
             await ts.message('reupload.reuploadNotify', {
-              oldCode,
+              oldCode: oldLevel.code,
               newCode,
             }),
           );
@@ -3520,7 +3432,7 @@ class TS {
         } else {
           const { channel } = await ts.auditDiscussionChannel(
             newCode,
-            level.code,
+            oldLevel.code,
             newStatus === ts.LEVEL_STATUS.PENDING_APPROVED_REUPLOAD
               ? this.CHANNEL_LABELS.AUDIT_APPROVED_REUPLOAD
               : this.CHANNEL_LABELS.AUDIT_FIX_REQUEST,
@@ -3538,7 +3450,7 @@ class TS {
           await ts.discord.send(
             newCode,
             await ts.message('reupload.reuploadNotify', {
-              oldCode,
+              oldCode: oldLevel.code,
               newCode,
             }),
           );
@@ -3558,12 +3470,12 @@ class TS {
         }
       }
 
-      await ts.renameAuditChannels(oldCode, newCode);
+      await ts.renameAuditChannels(oldLevel.code, newCode);
 
       // TODO: maybe post reupload message in all audit channels?
 
       let reply = await ts.message('reupload.success', {
-        level,
+        level: oldLevel,
         newCode,
       });
       if (!newLevelExist) {

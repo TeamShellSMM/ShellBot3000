@@ -5,23 +5,36 @@ class tsadd extends TSCommand {
     super('tsadd', {
       aliases: ['tsadd', 'add'],
       channelRestriction: 'guild',
+      args: [
+        {
+          id: 'code',
+          type: 'levelcode',
+          default: null,
+        },
+        {
+          id: 'gameStyle',
+          type: 'gamestyle',
+          default: null,
+        },
+        {
+          id: 'levelName',
+          type: 'text',
+          match: 'rest',
+          default: null,
+        },
+      ],
+      quoted: true,
     });
   }
 
-  async tsexec(ts, message) {
+  async tsexec(ts, message, {code, gameStyle, levelName}) {
     if (ts.teamVariables.disableMemberLevelSubmission === 'true') {
       ts.userError(await ts.message('add.notAllowed'));
     }
 
-    const command = ts.parseCommand(message);
-
-    let code = command.arguments.shift();
     if (code) code = code.toUpperCase();
-
-    let gameStyle = command.arguments.shift();
     if (gameStyle) gameStyle = gameStyle.toUpperCase();
 
-    const levelName = command.arguments.join(' ');
     const { reply, player } = await ts.addLevel({
       code,
       gameStyle,

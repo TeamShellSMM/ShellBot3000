@@ -5,7 +5,6 @@ class TSApprove extends TSCommand {
     super('tsapprove', {
       aliases: [
         'tsapprove',
-        'tsreject',
         'tsapprove+c',
         'tsapprove+cl',
         'tsapprove+lc',
@@ -14,7 +13,6 @@ class TSApprove extends TSCommand {
         'tsfix+cl',
         'tsfix+lc',
         'approve',
-        'reject',
         'approve+c',
         'approve+cl',
         'approve+lc',
@@ -23,38 +21,31 @@ class TSApprove extends TSCommand {
         'fix+cl',
         'fix+lc',
       ],
-      split: 'quoted',
+      quoted: true,
       args: [
         {
-          id: 'code',
-          type: 'string',
+          id: 'level',
+          type: 'level:pending',
           default: null,
         },
         {
           id: 'difficulty',
-          type: 'string',
+          type: 'difficulty',
           default: null,
         },
         {
           id: 'reason',
-          type: 'string',
+          type: 'longertext',
+          match: 'rest',
           default: null,
         },
       ],
+      quoted: true,
       channelRestriction: 'guild',
     });
   }
 
-  async tsexec(ts, message) {
-    /*
-        Possible command syntax:
-        !tsapprove code difficulty reason
-        !tsreject code reason
-
-        in channel
-        !tsapprove difficulty reason
-        !tsreject reason
-      */
+  async tsexec(ts, message, args) {
     const clearCommands = [
       'tsapprove+c',
       'tsapprove+cl',
@@ -80,33 +71,7 @@ class TSApprove extends TSCommand {
       'fix+lc',
     ];
 
-    const { code, command } = ts.getCodeArgument(message);
-    const args = { code };
-
-    if (command.command.indexOf('reject') === -1) {
-      // Difficulty doesn't exist in reject, so it get replaced by reason
-      args.difficulty = command.next();
-    } else {
-      args.difficulty = null;
-    }
-
-    args.reason = command.rest();
-
-    // Then Check the other args
-    if (
-      command.command.indexOf('approve') !== -1 ||
-      command.command.indexOf('fix') !== -1 ||
-      clearCommands.indexOf(command.command) !== -1
-    ) {
-      // We only check difficulty in tsapprove mode
-      if (!ts.valid_difficulty(args.difficulty)) {
-        ts.userError('approval.invalidDifficulty');
-      }
-    }
-
-    if (command.command.indexOf('reject') !== -1) {
-      args.type = 'reject';
-    } else if (command.command.indexOf('fix') !== -1) {
+    if (args.command.command.indexOf('fix') !== -1) {
       args.type = 'fix';
     } else {
       args.type = 'approve';
@@ -118,9 +83,9 @@ class TSApprove extends TSCommand {
     const user = await ts.getUser(message);
 
     // clear
-    if (clearCommands.indexOf(command.command) !== -1) {
+    if (clearCommands.indexOf(args.command.command) !== -1) {
       args.completed = 1;
-      if (likeCommands.indexOf(command.command) !== -1) {
+      if (likeCommands.indexOf(args.command.command) !== -1) {
         args.liked = 1;
       }
       args.playerDontAtMe = !user.atme;

@@ -4,23 +4,26 @@ class undoremovelevel extends TSCommand {
   constructor() {
     super('undoremovelevel', {
       aliases: ['undoremovelevel', 'undolevelstatus', 'undolevel'],
+      args: [
+        {
+          id: 'level',
+          type: 'level:any',
+          default: null,
+        },
+        {
+          id: 'reason',
+          type: 'text',
+          match: 'rest',
+          default: null,
+        },
+      ],
+      quoted: true,
       channelRestriction: 'guild',
     });
   }
 
-  async tsexec(ts, message, { command }) {
-    let code = command.arguments.shift();
-    if (!code) ts.userError(await ts.message('error.noCode'));
-    code = code.toUpperCase();
-    const reason = command.arguments.join(' ');
-
-    if (!reason) {
-      ts.userError('undoRemoveLevel.noReason');
-    }
-    ts.reasonLengthCheck(reason, 800);
-
+  async tsexec(ts, message, { command, level, reason }) {
     const player = await ts.getUser(message);
-    const level = await ts.getExistingLevel(code, true);
 
     if (!ts.REMOVED_LEVELS.includes(level.status))
       ts.userError(
@@ -42,8 +45,8 @@ class undoremovelevel extends TSCommand {
         old_status: level.status,
         new_code: null,
       })
-      .where({ code });
-    await ts.recalculateAfterUpdate({ code });
+      .where({ code: level.code });
+    await ts.recalculateAfterUpdate({ code: level.code });
 
     // Send updates to to #shellbot-level-update
     const undoEmbed = await ts.levelEmbed(level, ts.embedStyle.undo);

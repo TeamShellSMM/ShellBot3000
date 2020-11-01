@@ -248,12 +248,12 @@ describe('!fixapprove', function () {
       title: 'need fix reupload (XXX-XXX-XXX)',
       description:
         'made by Creator\nDifficulty: 0, Clears: 0, Likes: 0\n',
-      url: undefined,
+      url: null,
       color: 14431557,
       author: {
         name:
           "We're really sorry, but it seems there are still some issues after you reuploaded, so it got rejected for now.",
-        icon_url: undefined,
+          iconURL: undefined,
         url: undefined,
       },
     });
@@ -304,7 +304,7 @@ describe('!fixapprove', function () {
         channel: '🔨XXX-XXX-XX4',
         discord_id: '128',
       }),
-      'Please provide a short message to the creator explaining your decision! ',
+      "Missing parameter. You have to enter something here. ",
     );
   });
 
@@ -370,7 +370,7 @@ describe('!fixapprove', function () {
 
     assert.equal(
       result,
-      'Please provide a short message to the creator explaining your decision! ',
+      "Missing parameter. You have to enter something here. ",
     );
 
     assert.exists(TEST.findChannel({ name: '💀XXX-XXX-XX5' }));
@@ -413,7 +413,7 @@ describe('!fixapprove', function () {
 
     assert.equal(
       result,
-      'Please provide a short message to the creator explaining your decision! ',
+      "Missing parameter. You have to enter something here. ",
     );
   });
 
@@ -452,7 +452,7 @@ describe('!fixapprove', function () {
       discord_id: '128',
     });
 
-    assert.equal(result, 'Invalid difficulty format! ');
+    assert.equal(result, "Missing parameter. You have to enter something here. ");
   });
 
   it('approve rerate request missing reason', async () => {
@@ -468,7 +468,7 @@ describe('!fixapprove', function () {
 
     assert.equal(
       result,
-      'Please provide a short message to the creator explaining your decision! ',
+      "Missing parameter. You have to enter something here. ",
     );
   });
 
@@ -509,7 +509,7 @@ describe('!fixapprove', function () {
 
     assert.equal(
       result,
-      'Please provide a short message to the creator explaining your decision! ',
+      "Missing parameter. You have to enter something here. ",
     );
   });
 

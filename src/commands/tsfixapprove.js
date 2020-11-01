@@ -13,32 +13,22 @@ class TSFixApprove extends TSCommand {
         'auditapprove',
         'auditreject',
       ],
-      split: 'quoted',
       args: [
         {
           id: 'reason',
-          type: 'string',
+          type: 'longtext',
+          match: 'rest',
           default: null,
         },
       ],
+      quoted: true,
       channelRestriction: 'guild',
     });
   }
 
-  async tsexec(ts, message) {
-    /*
-        Possible command syntax:
-        !tsapprove code difficulty reason
-        !tsreject code reason
-
-        in channel
-        !tsapprove difficulty reason
-        !tsreject reason
-      */
-
+  async tsexec(ts, message, {command, reason}) {
     const {
       code,
-      command,
       inAuditDiscussionChannel,
     } = ts.getCodeArgument(message);
 
@@ -72,18 +62,18 @@ class TSFixApprove extends TSCommand {
       label === ts.CHANNEL_LABELS.AUDIT_RERATE_REQUEST &&
       approving
     ) {
-      difficulty = command.next();
+      if(reason.indexOf(" ") === -1){
+        difficulty = reason;
+        reason = "";
+      } else {
+        difficulty = reason.substring(0, reason.indexOf(" "));
+        reason = reason.substring(reason.indexOf(" ") + 1);
+      }
       // We only check difficulty in tsapprove mode
       if (!difficulty || !ts.valid_difficulty(difficulty)) {
         ts.userError('approval.invalidDifficulty');
       }
     }
-
-    const reason = command.rest();
-
-    if (!reason)
-      ts.userError(await ts.message('fixApprove.noReason'));
-    ts.reasonLengthCheck(reason, 800);
 
     if (
       label !== ts.CHANNEL_LABELS.AUDIT_FIX_REQUEST &&

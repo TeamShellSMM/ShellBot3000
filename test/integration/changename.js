@@ -53,7 +53,10 @@ describe('!changename', () => {
         channel: 'general',
         discord_id: '128',
       }),
-      "You didn't give a new name ",
+      await TEST.mockMessage(
+        'error.missingParameter',
+        { type: 'userError' },
+      )
     );
   });
 

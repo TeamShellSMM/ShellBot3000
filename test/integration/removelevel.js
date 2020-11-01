@@ -49,7 +49,7 @@ describe('!removelevel', function () {
         channel: 'general',
         discord_id: '256',
       }),
-      'You did not give a level code ',
+      "You didn't enter a level code. ",
     );
   });
 
@@ -60,7 +60,7 @@ describe('!removelevel', function () {
         channel: 'general',
         discord_id: '256',
       }),
-      "You did not provide a reason to remove this level. If you want to reupload, we recommend using the `!reupload` command. If you want to remove it now and reupload it later make sure __you don't lose the old code__ ",
+      "Missing parameter. You have to enter something here. ",
     );
   });
 

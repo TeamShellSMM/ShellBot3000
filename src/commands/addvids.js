@@ -18,29 +18,29 @@ class TSAddvids extends TSCommand {
         'removemyvid',
       ],
       channelRestriction: 'guild',
+      args: [
+        {
+          id: 'level',
+          type: 'level',
+          default: null,
+        },
+        {
+          id: 'newVids',
+          type: 'videos',
+          match: 'rest',
+          default: null,
+        },
+      ],
+      quoted: true,
     });
   }
 
-  async tsexec(ts, message) {
-    const command = ts.parseCommand(message);
-    let code = command.arguments.shift();
-    if (code) {
-      code = code.toUpperCase();
-    } else {
-      ts.userError('error.noCode');
-    }
-
-    let newVids = command.arguments.join(' ');
-    if (!newVids) {
-      ts.userError("You didn't give any links");
-    }
-    newVids = newVids.split(/[, \n]/);
-
+  async tsexec(ts, message, {command, level, newVids}) {
     const player = await ts.getUser(message);
 
     const reply = await ts.addVideos({
       command,
-      code,
+      level,
       newVids,
       player,
       submitter: player,

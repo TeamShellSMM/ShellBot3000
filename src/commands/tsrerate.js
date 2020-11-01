@@ -4,41 +4,30 @@ class TSRerate extends TSCommand {
   constructor() {
     super('tsrerate', {
       aliases: ['tsrerate', 'rerate'],
-      split: 'quoted',
       args: [
         {
-          id: 'code',
-          type: 'uppercase',
+          id: 'level',
+          type: 'level:approved',
           default: null,
         },
         {
           id: 'difficulty',
-          type: 'number',
+          type: 'difficulty',
           default: null,
         },
         {
           id: 'reason',
-          type: 'string',
+          type: 'longtext',
+          match: 'rest',
           default: null,
         },
       ],
+      quoted: true,
       channelRestriction: 'guild',
     });
   }
 
-  async tsexec(ts, message) {
-    const { code, command } = ts.getCodeArgument(message);
-    const difficulty = Number(command.next());
-    const reason = command.rest();
-
-    // Check all the args first
-    if (!difficulty) ts.userError('difficulty.noDifficulty');
-    if (!ts.valid_difficulty(difficulty))
-      ts.userError('Invalid difficulty format!');
-    if (!reason) ts.userError('difficulty.noReason');
-    ts.reasonLengthCheck(reason, 800);
-
-    const level = await ts.getExistingLevel(code, true);
+  async tsexec(ts, message, {level, difficulty, reason}) {
     if (level.status !== ts.LEVEL_STATUS.APPROVED) {
       ts.userError('error.notApproved');
     }
@@ -52,9 +41,9 @@ class TSRerate extends TSCommand {
         `"${level.level_name}" is already rated ${difficulty}`,
       );
 
-    await ts.db.Levels.query().patch({ difficulty }).where({ code });
+    await ts.db.Levels.query().patch({ difficulty }).where({ code: level.code });
 
-    await ts.recalculateAfterUpdate({ code });
+    await ts.recalculateAfterUpdate({ code: level.code });
 
     const rerateEmbed = (
       await ts.levelEmbed(level, ts.embedStyle.rerate, {

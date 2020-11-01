@@ -7,23 +7,16 @@ class ChangeName extends TSCommand {
       args: [
         {
           id: 'newName',
-          type: 'string',
+          type: 'text',
+          match: 'rest',
           default: null,
         },
       ],
-      split: 'quoted',
+      quoted: true
     });
   }
 
-  async tsexec(ts, message, args) {
-    let { newName } = args;
-    if (!newName) ts.userError('renameMember.noNewName');
-
-    newName = newName.trim();
-
-    if (ts.isSpecialDiscordString(newName))
-      ts.userError('error.specialDiscordString');
-
+  async tsexec(ts, message, {newName}) {
     const player = await ts.getUser(message);
     if (player.name === newName)
       ts.userError('nickname.already', { newName });

@@ -60,7 +60,7 @@ describe('!undoremove', function () {
       channel: TEST.ts.channels.modChannel,
       discord_id: '128',
     });
-    assert.lengthOf(result, 0, 'no result');
+    assert.lengthOf(result, 31, 'no result');
   });
 
   it('not mod or creator', async function () {
@@ -79,7 +79,7 @@ describe('!undoremove', function () {
         channel: TEST.ts.channels.modChannel,
         discord_id: '128',
       }),
-      0,
+      53,
       'no result',
     );
   });

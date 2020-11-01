@@ -63,7 +63,7 @@ describe('!rename', function () {
       channel: 'general',
       discord_id: '256',
     });
-    assert.equal(result, "You didn't give a new level name ");
+    assert.equal(result, "Missing parameter. You have to enter something here. ");
   });
 
   it('no code', async function () {
@@ -73,7 +73,7 @@ describe('!rename', function () {
         channel: 'general',
         discord_id: '256',
       }),
-      "The code `NEW` was not found in AutoTest's list. ",
+      "This is not a valid level code. ",
     );
   });
 

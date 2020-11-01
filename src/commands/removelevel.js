@@ -11,36 +11,29 @@ class tsremove extends TSCommand {
         'requestremoval',
         'tsrequestremoval',
       ],
+      args: [
+        {
+          id: 'level',
+          type: 'level',
+          default: null,
+        },
+        {
+          id: 'reason',
+          type: 'longtext',
+          match: 'rest',
+          default: null,
+        },
+      ],
+      quoted: true,
       channelRestriction: 'guild',
     });
   }
 
-  async tsexec(ts, message, { command }) {
-    let code = command.arguments.shift();
-    if (!code) {
-      ts.userError(await ts.message('error.noCode'));
-    } else {
-      code = code.toUpperCase();
-    }
-
-    const reason = command.arguments.join(' ');
-
-    if (!reason) {
-      ts.userError(await ts.message('removeLevel.noReason'));
-    }
-    ts.reasonLengthCheck(reason, 800);
-
+  async tsexec(ts, message, { level, reason }) {
     const player = await ts.getUser(message);
-    const level = await ts.getExistingLevel(code, true);
-
-    if (ts.REMOVED_LEVELS.includes(level.status)) {
-      ts.userError(
-        await ts.message('removeLevel.alreadyRemoved', level),
-      );
-    }
 
     await ts.auditDiscussionChannel(
-      code,
+      level.code,
       null,
       ts.CHANNEL_LABELS.AUDIT_DELETION_REQUEST,
       {
@@ -50,12 +43,12 @@ class tsremove extends TSCommand {
 
     const voteEmbed = await ts.makeVoteEmbed(level);
     await ts.discord.updatePinned(
-      `${ts.CHANNEL_LABELS.AUDIT_DELETION_REQUEST}${code}`,
+      `${ts.CHANNEL_LABELS.AUDIT_DELETION_REQUEST}${level.code}`,
       voteEmbed,
     );
 
     await ts.discord.send(
-      `${ts.CHANNEL_LABELS.AUDIT_DELETION_REQUEST}${code}`,
+      `${ts.CHANNEL_LABELS.AUDIT_DELETION_REQUEST}${level.code}`,
       `Deletion request by <@${player.discord_id}>' with message: \`\`\`${reason}\`\`\``,
     );
 

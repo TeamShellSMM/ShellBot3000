@@ -6,19 +6,18 @@ class tsinfo extends TSCommand {
       aliases: ['tsinfo', 'info', 'level'],
       args: [
         {
-          id: 'code',
-          type: 'uppercase',
+          id: 'level',
+          type: 'level',
           default: null,
         },
       ],
+      quoted: true,
       channelRestriction: 'guild',
     });
   }
 
-  async tsexec(ts, message, { code }) {
-    if (!code) ts.userError('error.noCode');
+  async tsexec(ts, message, { level }) {
     const player = await ts.getUser(message);
-    const level = await ts.getExistingLevel(code);
 
     const randomEmbed = await ts.levelEmbed(level);
 

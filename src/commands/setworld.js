@@ -6,39 +6,28 @@ class SetWorld extends TSCommand {
       aliases: ['setworld'],
       args: [
         {
-          id: 'world_count',
-          type: 'string',
+          id: 'worldCount',
+          type: 'int',
           default: null,
         },
         {
-          id: 'level_count',
-          type: 'string',
+          id: 'levelCount',
+          type: 'int',
           default: null,
         },
         {
-          id: 'world_name',
-          type: 'string',
+          id: 'worldName',
+          type: 'text',
+          match: 'rest',
           default: null,
         },
       ],
+      quoted: true,
       channelRestriction: 'guild',
     });
   }
 
-  async tsexec(ts, message) {
-    const command = ts.parseCommand(message);
-
-    const worldCount = parseInt(command.arguments.shift(), 10);
-    const levelCount = parseInt(command.arguments.shift(), 10);
-    const worldName = command.arguments.join(' ');
-
-    if (!worldCount)
-      ts.userError(await ts.message('setworld.invalidWorldCount'));
-    if (!levelCount)
-      ts.userError(await ts.message('setworld.invalidLevelCount'));
-    if (!worldName)
-      ts.userError(await ts.message('setworld.noWorldName'));
-
+  async tsexec(ts, message, {worldCount, levelCount, worldName}) {
     const player = await ts.getUser(message);
 
     if (!player.maker_id || !player.maker_name) {

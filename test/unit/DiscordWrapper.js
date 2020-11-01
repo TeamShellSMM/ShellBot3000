@@ -158,7 +158,7 @@ describe('DiscordWrapper', function () {
   it('add/removeRoles, getMembersWithRole', async () => {
     const botId = TEST.ts.discord.botId();
     const guild = TEST.ts.discord.guild();
-    let role1 = guild.roles.find((r) => r.name === 'role1-test');
+    let role1 = guild.roles.cache.find((r) => r.name === 'role1-test');
     if (!role1) {
       role1 = await guild.createRole({
         name: 'role1-test',
@@ -166,7 +166,7 @@ describe('DiscordWrapper', function () {
         color: 'BLUE',
       });
     }
-    let role2 = guild.roles.find((r) => r.name === 'role2-test');
+    let role2 = guild.roles.cache.find((r) => r.name === 'role2-test');
     if (!role2) {
       role2 = await guild.createRole({
         name: 'role2-test',
@@ -179,7 +179,7 @@ describe('DiscordWrapper', function () {
     assert.exists(
       TEST.ts.discord
         .member(botId)
-        .roles.find((r) => r.name === 'role1-test'),
+        .roles.cache.find((r) => r.name === 'role1-test'),
     );
     assert.isTrue(TEST.ts.discord.hasRole(botId, 'role1-test'));
     const memberWithRoles = TEST.ts.discord.getMembersWithRole(

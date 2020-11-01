@@ -117,7 +117,7 @@ describe('misc-integration', () => {
     sinon.restore();
   });
 
-  it('TSModel, ts error', async () => {
+  /*it('TSModel, ts error', async () => {
     const canRun = sinon.stub(TS, 'teams');
     canRun.throws(new Error('caution'));
     const result = await TEST.mockBotSend({
@@ -127,7 +127,7 @@ describe('misc-integration', () => {
     });
     assert.equal(result, 'Error: caution');
     canRun.restore();
-  });
+  });*/
 
   it('!help', async () => {
     const result = await TEST.mockBotSend({

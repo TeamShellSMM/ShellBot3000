@@ -107,7 +107,7 @@ describe('!addtags,!removetags', () => {
         channel: 'general',
         discord_id: '256',
       }),
-      'You did not give a level code ',
+      "You didn't enter a level code. ",
     );
   });
 

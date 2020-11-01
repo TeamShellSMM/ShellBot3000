@@ -114,7 +114,7 @@ describe('!refusefix', function () {
     });
     assert.equal(
       result,
-      'You did not provide a valid code for the level ',
+      "You didn't enter a level code. ",
     );
   });
 
@@ -126,7 +126,7 @@ describe('!refusefix', function () {
     });
     assert.equal(
       result,
-      'Please provide a little message to the mods for context at the end of the command! ',
+      "Missing parameter. You have to enter something here. ",
     );
   });
 
@@ -199,7 +199,7 @@ describe('!refusefix', function () {
       color: 31743,
       author: {
         name: 'This level has NOT been reuploaded!',
-        icon_url: undefined,
+        iconURL: undefined,
         url: undefined,
       },
     });
@@ -244,7 +244,7 @@ describe('!refusefix', function () {
       color: 31743,
       author: {
         name: 'This level has NOT been reuploaded!',
-        icon_url: undefined,
+        iconURL: undefined,
         url: undefined,
       },
     });

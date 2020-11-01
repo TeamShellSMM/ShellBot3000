@@ -4,30 +4,30 @@ class randomtag extends TSCommand {
   constructor() {
     super('randomtag', {
       aliases: ['randomtag'],
-      split: 'quoted',
+      quoted: true,
       args: [
         {
-          id: 'tag',
-          type: 'string',
+          id: 'tags',
+          type: 'tags:whitelisted',
           default: null,
         },
         {
           id: 'minDifficulty',
-          type: 'string',
+          type: 'difficulty',
           default: null,
         },
         {
           id: 'maxDifficulty',
-          type: 'string',
+          type: 'difficulty',
           default: null,
         },
       ],
+      quoted: true,
       channelRestriction: 'guild',
     });
   }
 
   async tsexec(ts, message, args) {
-    if (!args.tag) ts.userError('tag.noTag');
     const rand = await ts.randomLevel({
       ...args,
       discord_id: ts.discord.getAuthor(message),

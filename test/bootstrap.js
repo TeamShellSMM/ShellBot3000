@@ -1,8 +1,9 @@
 global.TEST = {};
 const chai = require('chai');
-const { AkairoClient } = require('discord-akairo');
+const { AkairoClient, CommandHandler } = require('discord-akairo');
 const debug = require('debug');
 const DiscordWrapper = require('../src/DiscordWrapper');
+const TSClient = require('../src/TSClient.js');
 
 const debugDiscordLog = debug('shellbot3000:log');
 const debugDiscordError = debug('shellbot3000:error');
@@ -36,26 +37,31 @@ const RUNNING_COVERAGE = !!process.env.NYC_PROCESS_ID;
 
 before(async () => {
   debugTests('setting up client');
-  global.TEST.client = new AkairoClient({
-    disableEveryone: true,
-    commandDirectory: 'src/commands/',
-    blockBots: false,
-    blockClient: false,
-    defaultCooldown: 0,
-  });
+  global.TEST.client = new TSClient();
   debugTests('logging in');
-  await TEST.client.login(process.env.DISCORD_TEST_TOKEN);
-  TEST.client.on('message', (m) => debugGetMessages(m.content));
+  await global.TEST.client.login(process.env.DISCORD_TEST_TOKEN);
   assert.exists(
     global.TEST.client,
     'should have discord client right now',
   );
 
-  DiscordWrapper.setClient(TEST.client);
+  DiscordWrapper.setClient(global.TEST.client);
 
-  const guild = TEST.client.guilds.get(process.env.TEST_GUILD);
+  let ready = false;
+
+  //global.TEST.client.on('message', (m) => debugGetMessages(m.content));
+  global.TEST.client.on('ready', async () => {
+    ready = true;
+  });
+
+  while(!ready){
+    await new Promise(resolve => setTimeout(resolve, 10));
+  }
+
+  const guild = global.TEST.client.guilds.cache.get(process.env.TEST_GUILD);
+  debugTests(guild.id);
   assert.exists(guild, 'TEST_GUILD needs to be valid');
-  const allowTesting = guild.channels.find(
+  const allowTesting = guild.channels.cache.find(
     (channel) => channel.name === 'allow-shellbot-test-here',
   );
   assert(
@@ -327,11 +333,12 @@ before(async () => {
     const sandbox = sinon.createSandbox();
     const cache = [];
     function collectReply(args) {
-      debugMockMessages(args);
+      debugMockMessages("collecting reply", args);
       cache.push(args);
     }
 
-    function getMsg(channel, msg) {
+    function getMsg(channel, msg){
+      debugMockMessages("getting msg");
       collectReply(msg);
     }
 
@@ -391,7 +398,7 @@ before(async () => {
 
   global.TEST.clearChannels = async () => {
     debugTests('clearing channels');
-    const channels = global.TEST.ts.getGuild().channels.array();
+    const channels = global.TEST.ts.getGuild().channels.cache.array();
     for (let i = 0; i < channels.length; i += 1) {
       const channel = channels[i];
       if (
@@ -402,9 +409,17 @@ before(async () => {
           channel.parentID ===
             global.TEST.ts.channels.levelAuditCategory)
       ) {
-        await channel.delete('AUTOTEST');
+        await channel.delete('AUTOTEST').catch(error => {
+          if (error.code !== 10003) {
+            throw error;
+          }
+        });
       } else if (TEST.ts.validCode(channel.name)) {
-        await channel.delete('AUTOTEST');
+        await channel.delete('AUTOTEST').catch(error => {
+          if (error.code !== 10003) {
+            throw error;
+          }
+        });
       }
     }
   };
@@ -446,15 +461,15 @@ before(async () => {
     guildId,
   }) => {
     debugTests(`mock sending '${cmd}'`);
-    TEST.message.author.id = discord_id;
-    TEST.message.content = cmd;
-    TEST.message.guild_id = guildId || process.env.TEST_GUILD;
-    TEST.message.channel = TEST.ts.discord.channel(
+    global.TEST.message.author.id = discord_id;
+    global.TEST.message.content = cmd;
+    global.TEST.message.guild_id = guildId || process.env.TEST_GUILD;
+    global.TEST.message.channel = TEST.ts.discord.channel(
       channel || 'general',
     );
 
     const ret = global.TEST.expectReply(waitFor);
-    TEST.client.emit('message', TEST.message);
+    global.TEST.client.emit('message', TEST.message);
     return ret;
   };
 

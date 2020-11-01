@@ -1,3 +1,5 @@
+const debug = require('debug')('shellbot3000:ts');
+
 describe('!reupload', function () {
   beforeEach(async () => {
     const initData = {
@@ -17,6 +19,14 @@ describe('!reupload', function () {
         },
       ],
       Levels: [
+        {
+          level_name: 'pending level',
+          creator: 1,
+          code: 'XXX-XXX-XXX',
+          status: TEST.ts.LEVEL_STATUS.PENDING,
+          difficulty: 0,
+          tags: 'tag1,tag2',
+        },
         {
           level_name: 'pending level',
           creator: 1,
@@ -109,7 +119,7 @@ describe('!reupload', function () {
     assert.equal(
       result,
       await TEST.mockMessage(
-        'reupload.noOldCode',
+        'error.noCode',
         { type: 'userError' },
         { name: 'Creator' },
       ),
@@ -125,7 +135,7 @@ describe('!reupload', function () {
     assert.equal(
       result,
       await TEST.mockMessage(
-        'reupload.noNewCode',
+        'error.noCode',
         { type: 'userError' },
         { name: 'Creator' },
       ),
@@ -140,7 +150,7 @@ describe('!reupload', function () {
     assert.equal(
       result,
       await TEST.mockMessage(
-        'reupload.invalidOldCode',
+        'error.invalidCode',
         { type: 'userError' },
         { name: 'Creator' },
       ),
@@ -156,7 +166,7 @@ describe('!reupload', function () {
     assert.equal(
       result,
       await TEST.mockMessage(
-        'reupload.invalidNewCode',
+        'error.invalidCode',
         { type: 'userError' },
         { name: 'Creator' },
       ),
@@ -165,7 +175,7 @@ describe('!reupload', function () {
 
   it('same code', async () => {
     const result = await TEST.mockBotSend({
-      cmd: '!reupload XXX-XXX-XXX XXX-XXX-XXX',
+      cmd: '!reupload XXX-XXX-XXX XXX-XXX-XXX test',
       channel: 'general',
       discord_id: '64',
     });
@@ -188,7 +198,7 @@ describe('!reupload', function () {
     assert.equal(
       result,
       await TEST.mockMessage(
-        'reupload.giveReason',
+        'error.missingParameter',
         { type: 'userError' },
         { name: 'Creator' },
       ),
@@ -219,11 +229,7 @@ describe('!reupload', function () {
     });
     assert.equal(
       result,
-      await TEST.mockMessage(
-        'error.levelNotFound',
-        { type: 'userError' },
-        { code: 'YYY-XXX-XX1' },
-      ),
+      "The code `YYY-XXX-XX1` was not found in AutoTest's list. Did you mean:```\nXXX-XXX-XX1 - \"pending level\" by Creator``` "
     );
   });
 
@@ -300,6 +306,10 @@ describe('!reupload', function () {
       channel: 'general',
       discord_id: '64',
     });
+    debug(result);
+    if(result instanceof Array){
+      result = result[2];
+    }
     assert.equal(
       result,
       "<@64> You have reuploaded 'pending level' by Creator with code `XXX-XXX-YYY`.  If you want to rename the new level, you can use !rename new-code level name.",
@@ -336,7 +346,7 @@ describe('!reupload', function () {
         channel: 'general',
         discord_id: '64',
       }),
-      'You need 1.0 more point to upload a new level . Check how the points are mapped on http://localhost:8080/makerteam ',
+      'You need 2.0 more points to upload a new level . Check how the points are mapped on http://localhost:8080/makerteam ',
     );
 
     assert.notExists(
@@ -475,7 +485,7 @@ describe('!reupload', function () {
       author: {
         name:
           'This level has been reuploaded and is now awaiting a decision!',
-        icon_url: undefined,
+        iconURL: undefined,
         url: undefined,
       },
     });
@@ -541,7 +551,7 @@ describe('!reupload', function () {
       author: {
         name:
           'This level has been reuploaded and is now awaiting a decision!',
-        icon_url: undefined,
+        iconURL: undefined,
         url: undefined,
       },
     });

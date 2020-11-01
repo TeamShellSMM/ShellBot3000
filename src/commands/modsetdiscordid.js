@@ -6,47 +6,24 @@ class TSModSetDiscordId extends TSCommand {
       aliases: ['tsmodsetdiscordid', 'modsetdiscordid'],
       args: [
         {
-          id: 'name',
-          type: 'string',
+          id: 'member',
+          type: 'teammember',
           default: null,
         },
         {
           id: 'discordId',
-          type: 'string',
+          type: 'text',
           default: null,
         },
       ],
+      quoted: true,
       channelRestriction: 'guild',
     });
   }
 
-  async tsexec(ts, message) {
-    const command = ts.parseCommand(message);
-
-    let name;
-    if (command.arguments.length >= 1) {
-      name = command.arguments.shift();
-    } else {
-      ts.userError(await ts.message('modsetdiscordid.missingName'));
-    }
-
-    let discordId;
-    if (command.arguments.length >= 1) {
-      discordId = command.arguments.shift();
-    } else {
-      ts.userError(await ts.message('modsetdiscordid.missingId'));
-    }
-
-    const player = await ts.db.Members.query()
-      .whereRaw('lower(name) = ?', [name.toLowerCase()])
-      .first();
-
-    if (!player) {
-      ts.userError(
-        await ts.message('modsetdiscordid.memberNotFound', {
-          name: name,
-        }),
-      );
+  async tsexec(ts, message, {command, member, discordId}) {
+    if(isNaN(discordId)){
+      ts.userError(await ts.message('modsetdiscordid.invalidId'));
     }
 
     const discordIdMember = await ts.db.Members.query()
@@ -59,13 +36,13 @@ class TSModSetDiscordId extends TSCommand {
       ts.userError(await ts.message('modsetdiscordid.duplicateId'));
     }
 
-    await ts.db.Members.query().where('id', player.id).update({
+    await ts.db.Members.query().where('id', member.id).update({
       discord_id: discordId,
     });
 
     await ts.discord.reply(
       message,
-      await ts.message('modsetdiscordid.success', { name: name }),
+      await ts.message('modsetdiscordid.success', { name: member.name }),
     );
   }
 }

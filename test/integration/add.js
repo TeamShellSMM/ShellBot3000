@@ -79,7 +79,7 @@ describe('!add', function () {
     assert.equal(
       result,
       await TEST.mockMessage(
-        'add.noName',
+        'error.missingParameter',
         { type: 'userError' },
         { name: 'Creator' },
       ),

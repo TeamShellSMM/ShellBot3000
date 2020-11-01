@@ -124,7 +124,7 @@ describe('!add/remove vids', () => {
         channel: 'general',
         discord_id: '256',
       }),
-      'You did not give a level code ',
+      "You didn't enter a level code. ",
     );
   });
 
@@ -135,7 +135,7 @@ describe('!add/remove vids', () => {
         channel: 'general',
         discord_id: '256',
       }),
-      "You didn't give any links ",
+      "You didn't enter any video urls. ",
     );
   });
 
