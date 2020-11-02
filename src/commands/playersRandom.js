@@ -4,7 +4,6 @@ class playersRandom extends TSCommand {
   constructor() {
     super('playersRandom', {
       aliases: ['playersRandom'],
-      quoted: true,
       args: [
         {
           id: 'players',

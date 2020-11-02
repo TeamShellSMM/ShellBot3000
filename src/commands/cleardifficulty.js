@@ -10,13 +10,13 @@ class TSClearDifficulty extends TSCommand {
           id: 'level',
           type: 'level',
           default: null,
-        }
+        },
       ],
       quoted: true,
     });
   }
 
-  async tsexec(ts, message, {level}) {
+  async tsexec(ts, message, { level }) {
     await ts.db.Plays.query()
       .where({ code: level.id })
       .patch({ difficulty_vote: null });

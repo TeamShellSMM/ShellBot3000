@@ -151,21 +151,25 @@ describe('!ammendcode', function () {
   });
 
   it('owner successful', async function () {
+    await TEST.sleep(2000);
+
     const ownerId = TEST.ts.discord.guild().owner.user.id;
     await TEST.clearChannels();
-    console.log(TEST.ts.channels.modChannel);
+    // console.log(TEST.ts.channels.modChannel);
     await TEST.createChannel({
       name: 'XXX-XXX-XXX',
       parent: TEST.ts.channels.levelDiscussionCategory,
     });
-    await TEST.fetchGuild();
-    const result = await TEST.mockBotSend({
+    let result = await TEST.mockBotSend({
       cmd: '!ammendcode xxx-xxx-xxx xxx-xxx-xx3',
       channel: TEST.ts.channels.modChannel,
       discord_id: ownerId,
     });
+    if (result instanceof Array) {
+      [, result] = result;
+    }
     assert.equal(
-      result[1],
+      result,
       await TEST.mockMessage(
         'ammendCode.success',
         { type: 'normal' },
@@ -191,13 +195,12 @@ describe('!ammendcode', function () {
     assert.notExists(oldLevel);
     assert.exists(newLevel);
 
-    assert.notExists(
-      await TEST.findChannel({
-        name: 'XXX-XXX-XXX',
-        parentID: TEST.ts.channels.levelDiscussionCategory,
-      }),
-      "old channel doesn't exist",
-    );
+    const oldChannel = await TEST.findChannel({
+      name: 'XXX-XXX-XXX',
+      parentID: TEST.ts.channels.levelDiscussionCategory,
+    });
+
+    assert.notExists(oldChannel, "old channel doesn't exist");
 
     assert.exists(
       await TEST.findChannel({

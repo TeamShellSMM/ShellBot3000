@@ -16,7 +16,7 @@ class removevote extends TSCommand {
     });
   }
 
-  async tsexec(ts, message, {level}) {
+  async tsexec(ts, message, { level }) {
     const player = await ts.getUser(message);
 
     if (level.status !== ts.LEVEL_STATUS.PENDING) {

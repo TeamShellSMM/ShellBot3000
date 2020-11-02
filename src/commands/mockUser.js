@@ -16,7 +16,7 @@ class mockUser extends TSCommand {
     });
   }
 
-  async tsexec(ts, message, {member}) {
+  async tsexec(ts, message, { member }) {
     const player = await ts.getUser(message);
 
     if (!member) ts.userError('mock.notFound');

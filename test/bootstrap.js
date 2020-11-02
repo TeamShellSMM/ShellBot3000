@@ -1,6 +1,5 @@
 global.TEST = {};
 const chai = require('chai');
-const { AkairoClient, CommandHandler } = require('discord-akairo');
 const debug = require('debug');
 const DiscordWrapper = require('../src/DiscordWrapper');
 const TSClient = require('../src/TSClient.js');
@@ -8,7 +7,6 @@ const TSClient = require('../src/TSClient.js');
 const debugDiscordLog = debug('shellbot3000:log');
 const debugDiscordError = debug('shellbot3000:error');
 const debugMockMessages = debug('shellbot3000:mockMessages');
-const debugGetMessages = debug('shellbot3000:onMessages');
 const debugTests = debug('shellbot3000:test');
 const WebApi = require('../src/WebApi');
 
@@ -49,16 +47,18 @@ before(async () => {
 
   let ready = false;
 
-  //global.TEST.client.on('message', (m) => debugGetMessages(m.content));
+  // global.TEST.client.on('message', (m) => debugGetMessages(m.content));
   global.TEST.client.on('ready', async () => {
     ready = true;
   });
 
-  while(!ready){
-    await new Promise(resolve => setTimeout(resolve, 10));
+  while (!ready) {
+    await new Promise((resolve) => setTimeout(resolve, 10));
   }
 
-  const guild = global.TEST.client.guilds.cache.get(process.env.TEST_GUILD);
+  const guild = global.TEST.client.guilds.cache.get(
+    process.env.TEST_GUILD,
+  );
   debugTests(guild.id);
   assert.exists(guild, 'TEST_GUILD needs to be valid');
   const allowTesting = guild.channels.cache.find(
@@ -240,7 +240,9 @@ before(async () => {
   };
 
   global.TEST.fetchGuild = async () => {
-    return await TEST.ts.discord.fetchGuild();
+    await TEST.ts.discord.fetchGuild();
+    await TEST.ts.discord.guild().members.fetch();
+    return TEST.ts.discord.guild();
   };
 
   TEST.bot_id = TEST.client.user.id;
@@ -337,12 +339,12 @@ before(async () => {
     const sandbox = sinon.createSandbox();
     const cache = [];
     function collectReply(args) {
-      debugMockMessages("collecting reply", args);
+      debugMockMessages('collecting reply', args);
       cache.push(args);
     }
 
-    function getMsg(channel, msg){
-      debugMockMessages("getting msg");
+    function getMsg(channel, msg) {
+      debugMockMessages('getting msg');
       collectReply(msg);
     }
 
@@ -413,13 +415,13 @@ before(async () => {
           channel.parentID ===
             global.TEST.ts.channels.levelAuditCategory)
       ) {
-        await channel.delete('AUTOTEST').catch(error => {
+        await channel.delete('AUTOTEST').catch((error) => {
           if (error.code !== 10003) {
             throw error;
           }
         });
       } else if (TEST.ts.validCode(channel.name)) {
-        await channel.delete('AUTOTEST').catch(error => {
+        await channel.delete('AUTOTEST').catch((error) => {
           if (error.code !== 10003) {
             throw error;
           }
@@ -435,13 +437,13 @@ before(async () => {
    */
   global.TEST.createChannel = async ({ name, parent }) => {
     debugTests(`create channel ${name}`);
-    try{
+    try {
       await global.TEST.ts.discord.createChannel(name, {
         type: 'text',
         parent,
       });
-    } catch(ex){
-
+    } catch (ex) {
+      debugTests(ex);
     }
   };
 

@@ -35,7 +35,7 @@ describe('!makerid', function () {
         channel: 'general',
         discord_id: '128',
       }),
-      "Missing parameter. You have to enter something here. ",
+      'Missing parameter. You have to enter something here. ',
     );
   });
 

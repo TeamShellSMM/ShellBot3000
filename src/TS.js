@@ -8,7 +8,7 @@ const stringSimilarity = require('string-similarity');
 const Handlebars = require('handlebars');
 const debug = require('debug')('shellbot3000:ts');
 const cron = require('node-cron');
-const validUrl = require('valid-url');
+// const validUrl = require('valid-url');
 const knex = require('./db/knex');
 const DiscordLog = require('./DiscordLog');
 const UserError = require('./UserError');
@@ -107,8 +107,8 @@ class TS {
     this.load = async function () {
       debug(`ts.load started for ${this.guild_id}`);
 
-      const guild = ts.getGuild(this.guild_id);
-      //await guild.members.fetch(); // just load up all members ##not needed anymore in 8.1
+      // const guild = ts.getGuild(this.guild_id);
+      // await guild.members.fetch(); // just load up all members ##not needed anymore in 8.1
       const Team = Teams(this.guild_id);
       this.team = await Team.query().select().first();
       this.db = {
@@ -1415,10 +1415,18 @@ class TS {
      * @return {string} A response string to be sent to the user.
      */
     this.clear = async (args = {}) => {
-      let { level, completed, difficulty, liked, code } = args;
-      const { discord_id, strOnly, playerDontAtMe, member } = args;
+      let { level, completed } = args;
+      const {
+        discord_id,
+        strOnly,
+        playerDontAtMe,
+        member,
+        difficulty,
+        liked,
+        code,
+      } = args;
 
-      if(!level){
+      if (!level) {
         level = await this.getExistingLevel(code);
       }
 
@@ -1807,8 +1815,7 @@ class TS {
       } = args;
       let { minDifficulty, maxDifficulty } = args;
 
-      if (maxDifficulty) {
-      } else if (minDifficulty) {
+      if (!maxDifficulty && minDifficulty) {
         maxDifficulty = minDifficulty;
       }
       if (minDifficulty > maxDifficulty) {
@@ -1819,13 +1826,13 @@ class TS {
 
       let tagSql =
         'AND (tags.is_seperate!=1 or tags.is_seperate is null)';
-      let tagIds = [];
-      if(tags){
-        for(let tagName of tags){
-          let tag = await this.findTag(tagName)
+      const tagIds = [];
+      if (tags) {
+        for (const tagName of tags) {
+          const tag = await this.findTag(tagName);
           tagIds.push(tag.id);
         }
-        if(tags.length > 0){
+        if (tags.length > 0) {
           tagSql = 'AND tags.id in (:tagIds:)';
         }
       }
@@ -1837,7 +1844,7 @@ class TS {
         if (players.length === 0)
           ts.userError(await ts.message('random.noPlayersGiven'));
         playerIds = [];
-        const dbPlayerNames = players.map((n) => n.name);
+        // const dbPlayerNames = players.map((n) => n.name);
 
         playerIds = players.map((p) => p.id);
       } else if (player) {
@@ -1917,7 +1924,9 @@ class TS {
             range: min === max ? min : `${min}-${max}`,
           })) +
             (tags && tags.length > 0
-              ? await ts.message('random.outOfLevelsTags', { tags: tags.join(',') })
+              ? await ts.message('random.outOfLevelsTags', {
+                  tags: tags.join(','),
+                })
               : ''),
         );
       }
@@ -1936,8 +1945,8 @@ class TS {
           );
         }
       }
-      let level = filteredLevels[randNum];
-      let dbLevel = await this.getExistingLevel(level.code);
+      const level = filteredLevels[randNum];
+      const dbLevel = await this.getExistingLevel(level.code);
       return {
         player: player,
         level: dbLevel,
@@ -2109,9 +2118,9 @@ class TS {
      */
     this.approve = async function (args) {
       const { discord_id, reason, type, difficulty, code } = args;
-      let {level} = args;
+      let { level } = args;
 
-      if(!level){
+      if (!level) {
         level = await this.getExistingLevel(code);
       }
 
@@ -2689,7 +2698,7 @@ class TS {
     };
 
     this.renameAuditChannel = async (oldCode, newCode, label) => {
-      return await this.discord.renameChannel(
+      return this.discord.renameChannel(
         `${label}${oldCode}`,
         `${label}${newCode}`,
       );
@@ -2964,9 +2973,9 @@ class TS {
       );
       for (const existingAuditChannelArr of existingAuditChannels) {
         const existingAuditChannel = existingAuditChannelArr[1];
-        try{
+        try {
           await existingAuditChannel.delete(reason);
-        } catch (ex){
+        } catch (ex) {
           debug(ex);
         }
       }
@@ -3260,7 +3269,9 @@ class TS {
       );
     };
 
-    this.reuploadLevel = async function (message, {oldLevel, newCode, reason}) {
+    this.reuploadLevel = async function (message, args) {
+      let { newCode } = args;
+      const { oldLevel, reason } = args;
       const player = await ts.db.Members.query()
         .where({ discord_id: ts.discord.getAuthor(message) })
         .first();
@@ -3285,7 +3296,9 @@ class TS {
       } `;
       if (!oldLevel)
         ts.userError(
-          await ts.message('error.levelNotFound', { code: oldLevel.code }),
+          await ts.message('error.levelNotFound', {
+            code: oldLevel.code,
+          }),
         );
       let newLevel = await ts
         .getLevels()
@@ -3337,7 +3350,7 @@ class TS {
       await ts.db.Levels.query()
         .patch({
           status:
-          oldLevel.status === ts.LEVEL_STATUS.APPROVED
+            oldLevel.status === ts.LEVEL_STATUS.APPROVED
               ? ts.LEVEL_STATUS.REUPLOADED
               : ts.LEVEL_STATUS.REMOVED,
           old_status: oldLevel.status,

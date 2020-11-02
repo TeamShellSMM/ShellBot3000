@@ -229,7 +229,7 @@ describe('!reupload', function () {
     });
     assert.equal(
       result,
-      "The code `YYY-XXX-XX1` was not found in AutoTest's list. Did you mean:```\nXXX-XXX-XX1 - \"pending level\" by Creator``` "
+      'The code `YYY-XXX-XX1` was not found in AutoTest\'s list. Did you mean:```\nXXX-XXX-XX1 - "pending level" by Creator``` ',
     );
   });
 
@@ -301,14 +301,14 @@ describe('!reupload', function () {
     await TEST.ts.db.Members.query()
       .patch({ clear_score_sum: 0 })
       .where({ discord_id: '64' });
-    const result = await TEST.mockBotSend({
+    let result = await TEST.mockBotSend({
       cmd: '!reupload XXX-XXX-XX1 XXX-XXX-YYY long reason',
       channel: 'general',
       discord_id: '64',
     });
     debug(result);
-    if(result instanceof Array){
-      result = result[2];
+    if (result instanceof Array) {
+      [, , result] = result;
     }
     assert.equal(
       result,

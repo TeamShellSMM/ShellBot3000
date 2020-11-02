@@ -253,7 +253,7 @@ describe('!fixapprove', function () {
       author: {
         name:
           "We're really sorry, but it seems there are still some issues after you reuploaded, so it got rejected for now.",
-          iconURL: undefined,
+        iconURL: undefined,
         url: undefined,
       },
     });
@@ -304,7 +304,7 @@ describe('!fixapprove', function () {
         channel: '🔨XXX-XXX-XX4',
         discord_id: '128',
       }),
-      "Missing parameter. You have to enter something here. ",
+      'Missing parameter. You have to enter something here. ',
     );
   });
 
@@ -348,8 +348,18 @@ describe('!fixapprove', function () {
       'A deletion request was approved and this level was removed from the list.',
     );
     await TEST.fetchGuild();
-    assert.notExists(TEST.findChannel({ name: '💀XXX-XXX-XX5', parent: TEST.ts.channels.levelAuditCategory }));
-    assert.notExists(TEST.findChannel({ name: '🔢XXX-XXX-XX5', parent: TEST.ts.channels.levelAuditCategory }));
+    assert.notExists(
+      TEST.findChannel({
+        name: '💀XXX-XXX-XX5',
+        parent: TEST.ts.channels.levelAuditCategory,
+      }),
+    );
+    assert.notExists(
+      TEST.findChannel({
+        name: '🔢XXX-XXX-XX5',
+        parent: TEST.ts.channels.levelAuditCategory,
+      }),
+    );
 
     const level = await TEST.ts.db.Levels.query()
       .where({ code: 'XXX-XXX-XX5' })
@@ -371,11 +381,16 @@ describe('!fixapprove', function () {
 
     assert.equal(
       result,
-      "Missing parameter. You have to enter something here. ",
+      'Missing parameter. You have to enter something here. ',
     );
 
     await TEST.fetchGuild();
-    assert.exists(TEST.findChannel({ name: '💀XXX-XXX-XX5', parent: TEST.ts.channels.levelAuditCategory }));
+    assert.exists(
+      TEST.findChannel({
+        name: '💀XXX-XXX-XX5',
+        parent: TEST.ts.channels.levelAuditCategory,
+      }),
+    );
   });
 
   it('reject deletion request', async () => {
@@ -394,7 +409,12 @@ describe('!fixapprove', function () {
       "We're sorry, but your deletion request was rejected, we don't wanna take people's points away, so we'd like this one to stay in the list.",
     );
     await TEST.fetchGuild();
-    assert.notExists(TEST.findChannel({ name: '💀XXX-XXX-XX5', parent: TEST.ts.channels.levelAuditCategory }));
+    assert.notExists(
+      TEST.findChannel({
+        name: '💀XXX-XXX-XX5',
+        parent: TEST.ts.channels.levelAuditCategory,
+      }),
+    );
 
     const level = await TEST.ts.db.Levels.query()
       .where({ code: 'XXX-XXX-XX5' })
@@ -416,7 +436,7 @@ describe('!fixapprove', function () {
 
     assert.equal(
       result,
-      "Missing parameter. You have to enter something here. ",
+      'Missing parameter. You have to enter something here. ',
     );
   });
 
@@ -436,7 +456,12 @@ describe('!fixapprove', function () {
       'A rerate request was approved for this level and the difficulty got updated from 1 to 1.5. Thanks for the report.',
     );
     await TEST.fetchGuild();
-    assert.notExists(TEST.findChannel({ name: '🔢XXX-XXX-XX5', parent: TEST.ts.channels.levelAuditCategory }));
+    assert.notExists(
+      TEST.findChannel({
+        name: '🔢XXX-XXX-XX5',
+        parent: TEST.ts.channels.levelAuditCategory,
+      }),
+    );
 
     const level = await TEST.ts.db.Levels.query()
       .where({ code: 'XXX-XXX-XX5' })
@@ -456,7 +481,10 @@ describe('!fixapprove', function () {
       discord_id: '128',
     });
 
-    assert.equal(result, "Missing parameter. You have to enter something here. ");
+    assert.equal(
+      result,
+      'Missing parameter. You have to enter something here. ',
+    );
   });
 
   it('approve rerate request missing reason', async () => {
@@ -472,7 +500,7 @@ describe('!fixapprove', function () {
 
     assert.equal(
       result,
-      "Missing parameter. You have to enter something here. ",
+      'Missing parameter. You have to enter something here. ',
     );
   });
 
@@ -492,7 +520,12 @@ describe('!fixapprove', function () {
       'Your rerate request was rejected, the difficulty of the level was NOT updated.',
     );
     await TEST.fetchGuild();
-    assert.notExists(TEST.findChannel({ name: '🔢XXX-XXX-XX5', parent: TEST.ts.channels.levelAuditCategory }));
+    assert.notExists(
+      TEST.findChannel({
+        name: '🔢XXX-XXX-XX5',
+        parent: TEST.ts.channels.levelAuditCategory,
+      }),
+    );
 
     const level = await TEST.ts.db.Levels.query()
       .where({ code: 'XXX-XXX-XX5' })
@@ -514,7 +547,7 @@ describe('!fixapprove', function () {
 
     assert.equal(
       result,
-      "Missing parameter. You have to enter something here. ",
+      'Missing parameter. You have to enter something here. ',
     );
   });
 
@@ -536,8 +569,18 @@ describe('!fixapprove', function () {
     );
 
     await TEST.fetchGuild();
-    assert.notExists(TEST.findChannel({ name: '🔢XXX-XXX-XX5', parent: TEST.ts.channels.levelAuditCategory }));
-    assert.exists(TEST.findChannel({ name: '🔢XXX-XXX-XXA', parent: TEST.ts.channels.levelAuditCategory }));
+    assert.notExists(
+      TEST.findChannel({
+        name: '🔢XXX-XXX-XX5',
+        parent: TEST.ts.channels.levelAuditCategory,
+      }),
+    );
+    assert.exists(
+      TEST.findChannel({
+        name: '🔢XXX-XXX-XXA',
+        parent: TEST.ts.channels.levelAuditCategory,
+      }),
+    );
 
     const level = await TEST.ts.db.Levels.query()
       .where({ code: 'XXX-XXX-XXA' })
@@ -570,9 +613,24 @@ describe('!fixapprove', function () {
     );
 
     await TEST.fetchGuild();
-    assert.exists(TEST.findChannel({ name: '🔢XXX-XXX-XXA', parent: TEST.ts.channels.levelAuditCategory }));
-    assert.exists(TEST.findChannel({ name: '🔨XXX-XXX-XXA', parent: TEST.ts.channels.levelAuditCategory }));
-    assert.exists(TEST.findChannel({ name: '🔁XXX-XXX-XXA', parent: TEST.ts.channels.levelAuditCategory }));
+    assert.exists(
+      TEST.findChannel({
+        name: '🔢XXX-XXX-XXA',
+        parent: TEST.ts.channels.levelAuditCategory,
+      }),
+    );
+    assert.exists(
+      TEST.findChannel({
+        name: '🔨XXX-XXX-XXA',
+        parent: TEST.ts.channels.levelAuditCategory,
+      }),
+    );
+    assert.exists(
+      TEST.findChannel({
+        name: '🔁XXX-XXX-XXA',
+        parent: TEST.ts.channels.levelAuditCategory,
+      }),
+    );
 
     const level = await TEST.ts.db.Levels.query()
       .where({ code: 'XXX-XXX-XXA' })

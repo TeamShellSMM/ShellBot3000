@@ -8,7 +8,7 @@ class atmebot extends TSCommand {
     });
   }
 
-  async tsexec(ts, message, {command}) {
+  async tsexec(ts, message, { command }) {
     const atmeCommands = ['atmebot', 'atme'];
     const player = await ts.getUser(message);
     let atmeVal;

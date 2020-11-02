@@ -53,7 +53,7 @@ describe('setworld', () => {
         channel: 'general',
         discord_id: '256',
       }),
-      "This is not a valid integer. ",
+      'This is not a valid integer. ',
     );
   });
 
@@ -64,7 +64,7 @@ describe('setworld', () => {
         channel: 'general',
         discord_id: '256',
       }),
-      "This is not a valid integer. ",
+      'This is not a valid integer. ',
     );
   });
 
@@ -75,7 +75,7 @@ describe('setworld', () => {
         channel: 'general',
         discord_id: '256',
       }),
-      "Missing parameter. You have to enter something here. ",
+      'Missing parameter. You have to enter something here. ',
     );
   });
 

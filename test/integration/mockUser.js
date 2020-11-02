@@ -31,7 +31,7 @@ describe('!mockUser', function () {
         channel: 'general',
         discord_id: TEST.bot_id,
       }),
-      "You have to enter a valid member name. ",
+      'You have to enter a valid member name. ',
     );
   });
 

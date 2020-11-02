@@ -35,7 +35,7 @@ class TSAddvids extends TSCommand {
     });
   }
 
-  async tsexec(ts, message, {command, level, newVids}) {
+  async tsexec(ts, message, { command, level, newVids }) {
     const player = await ts.getUser(message);
 
     const reply = await ts.addVideos({

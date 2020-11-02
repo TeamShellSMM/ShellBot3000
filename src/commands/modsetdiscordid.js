@@ -21,8 +21,8 @@ class TSModSetDiscordId extends TSCommand {
     });
   }
 
-  async tsexec(ts, message, {command, member, discordId}) {
-    if(isNaN(discordId)){
+  async tsexec(ts, message, { member, discordId }) {
+    if (Number.isNaN(discordId)) {
       ts.userError(await ts.message('modsetdiscordid.invalidId'));
     }
 
@@ -42,7 +42,9 @@ class TSModSetDiscordId extends TSCommand {
 
     await ts.discord.reply(
       message,
-      await ts.message('modsetdiscordid.success', { name: member.name }),
+      await ts.message('modsetdiscordid.success', {
+        name: member.name,
+      }),
     );
   }
 }

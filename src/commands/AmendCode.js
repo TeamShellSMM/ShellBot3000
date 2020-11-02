@@ -1,3 +1,4 @@
+const debug = require('debug')('shellbot3000:ts');
 const TSCommand = require('../TSCommand.js');
 
 class AmendCode extends TSCommand {
@@ -16,7 +17,7 @@ class AmendCode extends TSCommand {
           default: null,
         },
       ],
-      quoted: true
+      quoted: true,
     });
   }
 
@@ -54,16 +55,27 @@ class AmendCode extends TSCommand {
     }
 
     notify =
-      notify || (await ts.renameAuditChannels(existingLevel.code, newCode));
+      notify ||
+      (await ts.renameAuditChannels(existingLevel.code, newCode));
+
+    debug('after notify', notify);
 
     await ts.discord.fetchGuild();
 
+    debug('after fetch guild');
+
     if (notify) {
+      debug('should send notify');
       await ts.discord.send(
         newCode,
-        await ts.message('ammendcode.notify', { oldCode: existingLevel.code, newCode }),
+        await ts.message('ammendcode.notify', {
+          oldCode: existingLevel.code,
+          newCode,
+        }),
       );
     }
+
+    debug('should send success');
 
     await ts.discord.reply(
       message,

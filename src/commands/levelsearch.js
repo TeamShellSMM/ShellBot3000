@@ -20,7 +20,7 @@ class levelsearch extends TSCommand {
           type: 'text',
           match: 'rest',
           default: null,
-        }
+        },
       ],
       quoted: true,
     });
@@ -29,7 +29,7 @@ class levelsearch extends TSCommand {
   async tsexec(ts, message, { searchTerm }) {
     const player = await ts.getUser(message);
 
-    let searchTerms = searchTerm.split(" ");
+    const searchTerms = searchTerm.split(' ');
 
     const args = searchTerms.map((s) => `%${s}%`);
     const sql = JSON.parse(JSON.stringify(searchTerms))

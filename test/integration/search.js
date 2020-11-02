@@ -175,7 +175,7 @@ describe('!search', function () {
         channel: 'general',
         discord_id: '256',
       }),
-      "Missing parameter. You have to enter something here. ",
+      'Missing parameter. You have to enter something here. ',
     );
   });
 

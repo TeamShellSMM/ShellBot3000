@@ -49,7 +49,10 @@ describe('!random / !playersRandom', function () {
       channel: 'general',
       discord_id: '256',
     });
-    assert.equal(result, 'You have to enter at least one valid member name. ');
+    assert.equal(
+      result,
+      'You have to enter at least one valid member name. ',
+    );
   });
 
   it('no players', async function () {
@@ -58,7 +61,10 @@ describe('!random / !playersRandom', function () {
       channel: 'general',
       discord_id: '256',
     });
-    assert.equal(result, 'No member with the name "3" was found in the members list. ');
+    assert.equal(
+      result,
+      'No member with the name "3" was found in the members list. ',
+    );
   });
 
   it('unknown player', async function () {
@@ -67,7 +73,10 @@ describe('!random / !playersRandom', function () {
       channel: 'general',
       discord_id: '256',
     });
-    assert.equal(result, 'No member with the name "Other" was found in the members list. ');
+    assert.equal(
+      result,
+      'No member with the name "Other" was found in the members list. ',
+    );
   });
 
   it('!random check difficulty min only', async function () {

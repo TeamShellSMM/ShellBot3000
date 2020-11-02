@@ -21,7 +21,6 @@ class TSApprove extends TSCommand {
         'fix+cl',
         'fix+lc',
       ],
-      quoted: true,
       args: [
         {
           id: 'level',
@@ -45,7 +44,8 @@ class TSApprove extends TSCommand {
     });
   }
 
-  async tsexec(ts, message, args) {
+  async tsexec(ts, message, args2) {
+    const args = args2;
     const clearCommands = [
       'tsapprove+c',
       'tsapprove+cl',

@@ -1,22 +1,10 @@
-const { AkairoClient, CommandHandler, Flag } = require('discord-akairo');
 const debug = require('debug')('shellbot3000:discord');
-const debugError = require('debug')('shellbot3000:error');
 const knex = require('./db/knex');
 const TS = require('./TS.js');
-const TSClient = require('./TSClient.js')
+const TSClient = require('./TSClient.js');
 const DiscordLog = require('./DiscordLog');
 const WebApi = require('./WebApi');
 const DiscordWrapper = require('./DiscordWrapper');
-
-const devVars =
-  process.NODE_ENV !== 'production'
-    ? {
-        debug: true,
-        blockBots: false,
-        blockClient: false,
-        defaultCooldown: 0,
-      }
-    : {};
 
 const client = new TSClient();
 
@@ -43,7 +31,9 @@ client.on('ready', async () => {
 
   for (let i = 0; i < teams.length; i += 1) {
     const team = teams[i];
-    const guild = client.guilds.cache.find((g) => g.id === team.guild_id);
+    const guild = client.guilds.cache.find(
+      (g) => g.id === team.guild_id,
+    );
     if (team && guild) {
       // eslint-disable-next-line no-await-in-loop
       await TS.add(guild.id, DiscordWrapper);

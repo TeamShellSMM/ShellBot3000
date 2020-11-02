@@ -31,7 +31,10 @@ class TSAddtags extends TSCommand {
     });
   }
 
-  async tsexec(ts, message, {command, level, newTags}) {
+  async tsexec(ts, message, args) {
+    const { command, level } = args;
+    let { newTags } = args;
+
     const addCommands = [
       'tsaddtags',
       'addtags',

@@ -4,7 +4,6 @@ class randomtag extends TSCommand {
   constructor() {
     super('randomtags', {
       aliases: ['randomtags', 'randomtag'],
-      quoted: true,
       args: [
         {
           id: 'tags',

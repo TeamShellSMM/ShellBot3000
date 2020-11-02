@@ -27,7 +27,7 @@ class SetWorld extends TSCommand {
     });
   }
 
-  async tsexec(ts, message, {worldCount, levelCount, worldName}) {
+  async tsexec(ts, message, { worldCount, levelCount, worldName }) {
     const player = await ts.getUser(message);
 
     if (!player.maker_id || !player.maker_name) {

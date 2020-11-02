@@ -32,7 +32,7 @@ class ModAddPlayVids extends TSCommand {
     });
   }
 
-  async tsexec(ts, message, {command, member, level, newVids}) {
+  async tsexec(ts, message, { command, member, level, newVids }) {
     const submitter = await ts.getUser(message);
 
     const reply = await ts.addVideos({

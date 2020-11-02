@@ -17,9 +17,9 @@ class ModAddMember extends TSCommand {
     });
   }
 
-  async tsexec(ts, message, {command, memberName}) {
-
-    memberName = name.replace(/\\/g, '');
+  async tsexec(ts, message, args) {
+    let { memberName } = args;
+    memberName = memberName.replace(/\\/g, '');
 
     const player = await ts.db.Members.query()
       .whereRaw('lower(name) = ?', [memberName.toLowerCase()])

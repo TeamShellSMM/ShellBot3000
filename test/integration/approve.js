@@ -137,7 +137,7 @@ describe('!approve', function () {
     });
     assert.equal(
       result,
-      "The text you entered is too long for this command, a maximum of 1500 characters are allowed here. ",
+      'The text you entered is too long for this command, a maximum of 1500 characters are allowed here. ',
     );
   });
 
@@ -295,8 +295,11 @@ describe('!approve', function () {
       channel: TEST.ts.channels.modChannel,
       discord_id: '256',
     });
-    console.log(result);
-    assert.equal(result, '"removed level" by Creator has already been removed ');
+    // console.log(result);
+    assert.equal(
+      result,
+      '"removed level" by Creator has already been removed ',
+    );
   });
 
   it('reject', async function () {
@@ -400,7 +403,7 @@ describe('!approve', function () {
       author: {
         name:
           "This level is one step from being approved, we'd just like to see some fixes!",
-          iconURL: undefined,
+        iconURL: undefined,
         url: undefined,
       },
       fields: [

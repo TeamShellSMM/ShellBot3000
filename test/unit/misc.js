@@ -164,13 +164,13 @@ describe('misc-unit', function () {
     assert.isFalse(TEST.ts.checkForAgreement());
   });
 
-  /*it('ts.clear no argument', async () => {
+  /* it('ts.clear no argument', async () => {
     const reply = await TEST.ts.clear().catch((e) => {
       assert.instanceOf(e, TEST.TS.UserError);
       assert.equal(e.message, "We couldn't find your discord id");
     });
     assert.notExists(reply);
-  });*/
+  }); */
 
   it('ts.commandPassedBoolean invalid value', async () => {
     assert.isNull(await TEST.ts.commandPassedBoolean('invalid'));
@@ -182,10 +182,7 @@ describe('misc-unit', function () {
       .clear({ discord_id: '256', difficulty: null })
       .catch((e) => {
         assert.instanceOf(e, TEST.TS.UserError);
-        assert.equal(
-          e.message,
-          "You didn't enter a level code.",
-        );
+        assert.equal(e.message, "You didn't enter a level code.");
       });
     assert.notExists(reply);
   });
@@ -384,7 +381,7 @@ describe('misc-unit', function () {
     assert.notExists(result);
   });
 
-  /*it('ts.randomLevel invalid difficulty', async () => {
+  /* it('ts.randomLevel invalid difficulty', async () => {
     const level = await TEST.ts
       .randomLevel({
         minDifficulty: 'invalid',
@@ -397,9 +394,9 @@ describe('misc-unit', function () {
         );
       });
     assert.notExists(level);
-  });*/
+  }); */
 
-  /*it('ts.randomLevel invalid difficulty with max difficulty', async () => {
+  /* it('ts.randomLevel invalid difficulty with max difficulty', async () => {
     const level = await TEST.ts
       .randomLevel({
         minDifficulty: 'invalid',
@@ -413,9 +410,9 @@ describe('misc-unit', function () {
         );
       });
     assert.notExists(level);
-  });*/
+  }); */
 
-  /*it('ts.randomLevel invalid max difficulty', async () => {
+  /* it('ts.randomLevel invalid max difficulty', async () => {
     const level = await TEST.ts
       .randomLevel({
         minDifficulty: 1,
@@ -429,7 +426,7 @@ describe('misc-unit', function () {
         );
       });
     assert.notExists(level);
-  });*/
+  }); */
 
   it('no arguments deleteDiscussionChannel', async () => {
     const reply = await TEST.ts

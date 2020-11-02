@@ -22,7 +22,7 @@ class undoremovelevel extends TSCommand {
     });
   }
 
-  async tsexec(ts, message, { command, level, reason }) {
+  async tsexec(ts, message, { level, reason }) {
     const player = await ts.getUser(message);
 
     if (!ts.REMOVED_LEVELS.includes(level.status))

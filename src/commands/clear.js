@@ -22,41 +22,44 @@ class TSClear extends TSCommand {
     });
   }
 
-  async tsexec(ts, message, args) {
+  async tsexec(ts, message, args2) {
+    const args = args2;
+
     args.difficulty = null;
     args.liked = null;
 
-    let optionString = args.optionString;
-    if(optionString !== undefined && optionString !== null){
-      optionString = optionString + "";
+    let { optionString } = args;
+    if (optionString !== undefined && optionString !== null) {
+      optionString += '';
       optionString = optionString.toLowerCase();
-      let options = optionString.split(" ");
+      const options = optionString.split(' ');
 
-      if(options.length > 1){
+      if (options.length > 1) {
         if (options[0] === '') args.difficulty = null;
         if (options[0] == null) args.difficulty = null;
         if (options[0]) {
           args.difficulty = parseFloat(options[0]);
         }
-        if ((
-          args.difficulty !== 0 &&
-          args.difficulty &&
-          !ts.valid_difficulty(args.difficulty) || isNaN(args.difficulty))
+        if (
+          (args.difficulty !== 0 &&
+            args.difficulty &&
+            !ts.valid_difficulty(args.difficulty)) ||
+          Number.isNaN(args.difficulty)
         ) {
           ts.userError(await ts.message('clear.invalidDifficulty'));
         }
 
-        if(options[1] === 'like'){
+        if (options[1] === 'like') {
           args.liked = 1;
-        } else if (options[1] === 'unlike'){
+        } else if (options[1] === 'unlike') {
           args.liked = 0;
         } else {
           args.liked = ts.commandPassedBoolean(options[1]);
         }
-      } else if (options.length > 0){
-        if(options[0] === 'like'){
+      } else if (options.length > 0) {
+        if (options[0] === 'like') {
           args.liked = 1;
-        } else if (options[0] === 'unlike'){
+        } else if (options[0] === 'unlike') {
           args.liked = 0;
         } else {
           if (options[0] === '') args.difficulty = null;
@@ -67,7 +70,8 @@ class TSClear extends TSCommand {
           if (
             (args.difficulty !== 0 &&
               args.difficulty &&
-            !ts.valid_difficulty(args.difficulty) || isNaN(args.difficulty))
+              !ts.valid_difficulty(args.difficulty)) ||
+            Number.isNaN(args.difficulty)
           ) {
             ts.userError(await ts.message('clear.invalidDifficulty'));
           }

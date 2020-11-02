@@ -12,11 +12,11 @@ class ChangeName extends TSCommand {
           default: null,
         },
       ],
-      quoted: true
+      quoted: true,
     });
   }
 
-  async tsexec(ts, message, {newName}) {
+  async tsexec(ts, message, { newName }) {
     const player = await ts.getUser(message);
     if (player.name === newName)
       ts.userError('nickname.already', { newName });

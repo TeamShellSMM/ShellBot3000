@@ -56,7 +56,7 @@
     "rollback:test": "NODE_ENV=test npm run rollback:raw",
     "rollback:production": "NODE_ENV=production npm run rollback:raw",
     "start": "node -r dotenv-flow/config src/app.js",
-    "test": "env NODE_ENV=test mocha",
+    "test": "env NODE_ENV=test mocha -R dot",
     "coverage": "nyc --reporter=lcovonly --reporter=text npm test",
     "format": "prettier-eslint —eslint-config-path ./.eslintrc.js --write '$(pwd)/**/*.js'",
     "lint": "eslint --ignore-path .gitignore ."

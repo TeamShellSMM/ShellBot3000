@@ -26,11 +26,13 @@ class TSFixApprove extends TSCommand {
     });
   }
 
-  async tsexec(ts, message, {command, reason}) {
-    const {
-      code,
-      inAuditDiscussionChannel,
-    } = ts.getCodeArgument(message);
+  async tsexec(ts, message, args) {
+    const { command } = args;
+    let { reason } = args;
+
+    const { code, inAuditDiscussionChannel } = ts.getCodeArgument(
+      message,
+    );
 
     let approving = false;
 
@@ -62,27 +64,27 @@ class TSFixApprove extends TSCommand {
       label === ts.CHANNEL_LABELS.AUDIT_RERATE_REQUEST &&
       approving
     ) {
-      if(reason.indexOf(" ") === -1){
+      if (reason.indexOf(' ') === -1) {
         difficulty = reason;
-        reason = "";
+        reason = '';
       } else {
-        difficulty = reason.substring(0, reason.indexOf(" "));
-        reason = reason.substring(reason.indexOf(" ") + 1);
+        difficulty = reason.substring(0, reason.indexOf(' '));
+        reason = reason.substring(reason.indexOf(' ') + 1);
       }
       // We only check difficulty in tsapprove mode
       if (!difficulty || !ts.valid_difficulty(difficulty)) {
         ts.userError('approval.invalidDifficulty');
       }
 
-      if(!reason){
+      if (!reason) {
         ts.userError('error.missingParameter');
       }
 
-      if(reason.length > 800){
-        ts.userError('error.textTooLong', {maximumChars: 800});
+      if (reason.length > 800) {
+        ts.userError('error.textTooLong', { maximumChars: 800 });
       }
 
-      if (ts.isSpecialDiscordString(reason)){
+      if (ts.isSpecialDiscordString(reason)) {
         ts.userError('error.specialDiscordString');
       }
 

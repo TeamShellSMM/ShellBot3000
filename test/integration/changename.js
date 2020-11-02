@@ -53,10 +53,9 @@ describe('!changename', () => {
         channel: 'general',
         discord_id: '128',
       }),
-      await TEST.mockMessage(
-        'error.missingParameter',
-        { type: 'userError' },
-      )
+      await TEST.mockMessage('error.missingParameter', {
+        type: 'userError',
+      }),
     );
   });
 

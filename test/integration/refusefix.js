@@ -112,10 +112,7 @@ describe('!refusefix', function () {
       channel: 'general',
       discord_id: '64',
     });
-    assert.equal(
-      result,
-      "You didn't enter a level code. ",
-    );
+    assert.equal(result, "You didn't enter a level code. ");
   });
 
   it('no reason', async () => {
@@ -126,7 +123,7 @@ describe('!refusefix', function () {
     });
     assert.equal(
       result,
-      "Missing parameter. You have to enter something here. ",
+      'Missing parameter. You have to enter something here. ',
     );
   });
 

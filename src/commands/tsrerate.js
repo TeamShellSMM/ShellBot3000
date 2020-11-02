@@ -27,7 +27,7 @@ class TSRerate extends TSCommand {
     });
   }
 
-  async tsexec(ts, message, {level, difficulty, reason}) {
+  async tsexec(ts, message, { level, difficulty, reason }) {
     if (level.status !== ts.LEVEL_STATUS.APPROVED) {
       ts.userError('error.notApproved');
     }
@@ -41,7 +41,9 @@ class TSRerate extends TSCommand {
         `"${level.level_name}" is already rated ${difficulty}`,
       );
 
-    await ts.db.Levels.query().patch({ difficulty }).where({ code: level.code });
+    await ts.db.Levels.query()
+      .patch({ difficulty })
+      .where({ code: level.code });
 
     await ts.recalculateAfterUpdate({ code: level.code });
 

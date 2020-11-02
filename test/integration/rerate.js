@@ -72,7 +72,7 @@ describe('!rerate', function () {
         channel: TEST.ts.channels.modChannel,
         discord_id: '128',
       }),
-      "Missing parameter. You have to enter something here. ",
+      'Missing parameter. You have to enter something here. ',
     );
   });
 
@@ -83,7 +83,7 @@ describe('!rerate', function () {
         channel: TEST.ts.channels.modChannel,
         discord_id: '128',
       }),
-      "Missing parameter. You have to enter something here. ",
+      'Missing parameter. You have to enter something here. ',
     );
   });
 
@@ -147,7 +147,7 @@ describe('!rerate', function () {
     });
     assert.equal(
       result,
-      "The text you entered is too long for this command, a maximum of 800 characters are allowed here. ",
+      'The text you entered is too long for this command, a maximum of 800 characters are allowed here. ',
     );
   });
 

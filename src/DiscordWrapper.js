@@ -33,7 +33,11 @@ class DiscordWrapper {
    * @returns {Guild}
    */
   async fetchGuild() {
-    return await DiscordWrapper.client.guilds.fetch(this.guildId, true, true);
+    return DiscordWrapper.client.guilds.fetch(
+      this.guildId,
+      true,
+      true,
+    );
   }
 
   botId() {
@@ -229,11 +233,19 @@ class DiscordWrapper {
     return this.guild().members.cache.get(discordId);
   }
 
+  async fetchMember(discordId, cache = true, forceApi = false) {
+    return this.guild().members.fetch(discordId, cache, forceApi);
+  }
+
   async removeRoles(discordId, roleId) {
     const currMember = this.member(discordId);
     if (!currMember) return false;
 
-    return currMember.roles.remove(roleId);
+    // console.log("removing role", roleId);
+    const r = await currMember.roles.remove(roleId);
+    // console.log("done with remove");
+
+    return r;
   }
 
   hasRole(discordId, roleId) {
@@ -268,9 +280,10 @@ class DiscordWrapper {
     if (!currMember) return false;
     if (this.hasRole(discordId, roleId)) return false;
 
-    let role = currMember.roles.add(roleId);
-    currMember.fetch(true);
-    return role;
+    // console.log("adding role", roleId);
+    const r = await currMember.roles.add(roleId);
+    // console.log("done with add");
+    return r;
   }
 
   async reply(message, content) {

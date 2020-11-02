@@ -63,7 +63,10 @@ describe('!rename', function () {
       channel: 'general',
       discord_id: '256',
     });
-    assert.equal(result, "Missing parameter. You have to enter something here. ");
+    assert.equal(
+      result,
+      'Missing parameter. You have to enter something here. ',
+    );
   });
 
   it('no code', async function () {
@@ -73,7 +76,7 @@ describe('!rename', function () {
         channel: 'general',
         discord_id: '256',
       }),
-      "This is not a valid level code. ",
+      'This is not a valid level code. ',
     );
   });
 

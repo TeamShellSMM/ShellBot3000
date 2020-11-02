@@ -22,7 +22,7 @@ class TSRename extends TSCommand {
     });
   }
 
-  async tsexec(ts, message, {level, levelName}) {
+  async tsexec(ts, message, { level, levelName }) {
     const player = await ts.getUser(message);
 
     if (!(level.creator === player.name || player.is_mod))

@@ -17,7 +17,8 @@ class TSHelp extends TSCommand {
     });
   }
 
-  async tsexec(ts, message, {command, commandName}) {
+  async tsexec(ts, message, args) {
+    let { commandName } = args;
     if (commandName) {
       if (commandName === 'commands') {
         let replyMessage = await ts.message(`help.commands`);

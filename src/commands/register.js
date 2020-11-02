@@ -16,7 +16,7 @@ class TSRegister extends TSCommand {
     });
   }
 
-  async tsexec(ts, message, {nicknameOverride}) {
+  async tsexec(ts, message, { nicknameOverride }) {
     const player = await ts.db.Members.query()
       .where({ discord_id: ts.discord.getAuthor(message) })
       .first();
@@ -32,7 +32,7 @@ class TSRegister extends TSCommand {
     let nickname = ts.discord.getUsername(message);
 
     if (nicknameOverride) {
-      nickname = nicknameOverride
+      nickname = nicknameOverride;
     }
 
     if (ts.isSpecialDiscordString(nickname))

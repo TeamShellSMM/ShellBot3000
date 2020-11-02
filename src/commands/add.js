@@ -27,7 +27,10 @@ class tsadd extends TSCommand {
     });
   }
 
-  async tsexec(ts, message, {code, gameStyle, levelName}) {
+  async tsexec(ts, message, args) {
+    let { code, gameStyle } = args;
+    const { levelName } = args;
+
     if (ts.teamVariables.disableMemberLevelSubmission === 'true') {
       ts.userError(await ts.message('add.notAllowed'));
     }

@@ -22,7 +22,10 @@ class TSRefuseFix extends TSCommand {
     });
   }
 
-  async tsexec(ts, message, {command, level, reason}) {
+  async tsexec(ts, message, args) {
+    const { reason } = args;
+    const { level } = args;
+
     const player = await ts.getUser(message);
     const author = await ts.db.Members.query()
       .where({ name: level.creator })
