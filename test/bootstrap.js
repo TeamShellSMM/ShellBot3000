@@ -388,7 +388,7 @@ before(async () => {
 
   global.TEST.initClearChannels = async () => {
     debugTests('initial clearing channels');
-    const channels = global.TEST.ts.getGuild().channels.array();
+    const channels = global.TEST.ts.getGuild().channels.cache.array();
     for (let i = 0; i < channels.length; i += 1) {
       const channel = channels[i];
       if (
