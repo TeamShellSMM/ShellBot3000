@@ -56,6 +56,8 @@ class AmendCode extends TSCommand {
     notify =
       notify || (await ts.renameAuditChannels(existingLevel.code, newCode));
 
+    await ts.discord.fetchGuild();
+
     if (notify) {
       await ts.discord.send(
         newCode,

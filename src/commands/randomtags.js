@@ -2,8 +2,8 @@ const TSCommand = require('../TSCommand.js');
 
 class randomtag extends TSCommand {
   constructor() {
-    super('randomtag', {
-      aliases: ['randomtag'],
+    super('randomtags', {
+      aliases: ['randomtags', 'randomtag'],
       quoted: true,
       args: [
         {

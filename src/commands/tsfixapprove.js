@@ -73,6 +73,20 @@ class TSFixApprove extends TSCommand {
       if (!difficulty || !ts.valid_difficulty(difficulty)) {
         ts.userError('approval.invalidDifficulty');
       }
+
+      if(!reason){
+        ts.userError('error.missingParameter');
+      }
+
+      if(reason.length > 800){
+        ts.userError('error.textTooLong', {maximumChars: 800});
+      }
+
+      if (ts.isSpecialDiscordString(reason)){
+        ts.userError('error.specialDiscordString');
+      }
+
+      reason = reason.trim();
     }
 
     if (

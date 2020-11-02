@@ -124,6 +124,11 @@ exports.up = function (knex) {
         .update({ message: "This is not a valid level code." });
     })
     .then(() => {
+      return knex('commands')
+        .where('name', 'randomtag')
+        .update({name: 'randomtags', aliases: 'randomtag', format: '!randomtags <TagName> <MinDifficulty> <MaxDifficulty>'});
+    })
+    .then(() => {
       return knex('command_permissions')
         .whereRaw("command_id = (select id from commands where name = 'renamemember' limit 1)")
         .del();

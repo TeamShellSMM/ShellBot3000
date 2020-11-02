@@ -108,7 +108,7 @@ class TS {
       debug(`ts.load started for ${this.guild_id}`);
 
       const guild = ts.getGuild(this.guild_id);
-      await guild.members.fetch(); // just load up all members ##not needed anymore in 8.1
+      //await guild.members.fetch(); // just load up all members ##not needed anymore in 8.1
       const Team = Teams(this.guild_id);
       this.team = await Team.query().select().first();
       this.db = {
@@ -1936,10 +1936,11 @@ class TS {
           );
         }
       }
-      const level = filteredLevels[randNum];
+      let level = filteredLevels[randNum];
+      let dbLevel = await this.getExistingLevel(level.code);
       return {
         player: player,
-        level: level,
+        level: dbLevel,
       };
     };
 
@@ -2688,7 +2689,7 @@ class TS {
     };
 
     this.renameAuditChannel = async (oldCode, newCode, label) => {
-      return this.discord.renameChannel(
+      return await this.discord.renameChannel(
         `${label}${oldCode}`,
         `${label}${newCode}`,
       );
@@ -2963,7 +2964,11 @@ class TS {
       );
       for (const existingAuditChannelArr of existingAuditChannels) {
         const existingAuditChannel = existingAuditChannelArr[1];
-        await existingAuditChannel.delete(reason);
+        try{
+          await existingAuditChannel.delete(reason);
+        } catch (ex){
+          debug(ex);
+        }
       }
     };
     this.putFeedback = async function (ip, discordId, salt, content) {

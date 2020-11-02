@@ -184,7 +184,7 @@ describe('misc-unit', function () {
         assert.instanceOf(e, TEST.TS.UserError);
         assert.equal(
           e.message,
-          'There were no arguments in the request',
+          "You didn't enter a level code.",
         );
       });
     assert.notExists(reply);

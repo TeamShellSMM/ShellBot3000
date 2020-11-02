@@ -29,6 +29,13 @@ class DiscordWrapper {
     return DiscordWrapper.client.guilds.cache.get(this.guildId);
   }
 
+  /**
+   * @returns {Guild}
+   */
+  async fetchGuild() {
+    return await DiscordWrapper.client.guilds.fetch(this.guildId, true, true);
+  }
+
   botId() {
     return DiscordWrapper.client.user.id;
   }
@@ -199,7 +206,9 @@ class DiscordWrapper {
 
   async removeChannel(search, reason) {
     const channel = this.channel(search);
-    if (channel) return channel.delete(reason);
+    if (channel) {
+      return channel.delete(reason);
+    }
     return false;
   }
 
@@ -258,7 +267,10 @@ class DiscordWrapper {
     const currMember = this.member(discordId);
     if (!currMember) return false;
     if (this.hasRole(discordId, roleId)) return false;
-    return currMember.roles.add(roleId);
+
+    let role = currMember.roles.add(roleId);
+    currMember.fetch(true);
+    return role;
   }
 
   async reply(message, content) {

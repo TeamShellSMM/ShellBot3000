@@ -239,6 +239,10 @@ before(async () => {
     return TEST.ts.discord.channel(name, parentID);
   };
 
+  global.TEST.fetchGuild = async () => {
+    return await TEST.ts.discord.fetchGuild();
+  };
+
   TEST.bot_id = TEST.client.user.id;
   global.TEST.message = await TEST.findChannel({
     name: 'general',
@@ -431,10 +435,14 @@ before(async () => {
    */
   global.TEST.createChannel = async ({ name, parent }) => {
     debugTests(`create channel ${name}`);
-    await global.TEST.ts.discord.createChannel(name, {
-      type: 'text',
-      parent,
-    });
+    try{
+      await global.TEST.ts.discord.createChannel(name, {
+        type: 'text',
+        parent,
+      });
+    } catch(ex){
+
+    }
   };
 
   global.TEST.expectReply = (waitFor = 10000) => {

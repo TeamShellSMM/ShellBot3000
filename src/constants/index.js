@@ -770,7 +770,7 @@ const defaultCommandPermissions = Object.freeze({
     allowedRoles: 'all',
     allowedChannels: [],
   },
-  randomtag: {
+  randomtags: {
     allowedRoles: 'all',
     allowedChannels: [],
   },

@@ -347,8 +347,9 @@ describe('!fixapprove', function () {
       result[3].author.name,
       'A deletion request was approved and this level was removed from the list.',
     );
-    assert.notExists(TEST.findChannel({ name: '💀XXX-XXX-XX5' }));
-    assert.notExists(TEST.findChannel({ name: '🔢XXX-XXX-XX5' }));
+    await TEST.fetchGuild();
+    assert.notExists(TEST.findChannel({ name: '💀XXX-XXX-XX5', parent: TEST.ts.channels.levelAuditCategory }));
+    assert.notExists(TEST.findChannel({ name: '🔢XXX-XXX-XX5', parent: TEST.ts.channels.levelAuditCategory }));
 
     const level = await TEST.ts.db.Levels.query()
       .where({ code: 'XXX-XXX-XX5' })
@@ -373,7 +374,8 @@ describe('!fixapprove', function () {
       "Missing parameter. You have to enter something here. ",
     );
 
-    assert.exists(TEST.findChannel({ name: '💀XXX-XXX-XX5' }));
+    await TEST.fetchGuild();
+    assert.exists(TEST.findChannel({ name: '💀XXX-XXX-XX5', parent: TEST.ts.channels.levelAuditCategory }));
   });
 
   it('reject deletion request', async () => {
@@ -391,7 +393,8 @@ describe('!fixapprove', function () {
       result[1].author.name,
       "We're sorry, but your deletion request was rejected, we don't wanna take people's points away, so we'd like this one to stay in the list.",
     );
-    assert.notExists(TEST.findChannel({ name: '💀XXX-XXX-XX5' }));
+    await TEST.fetchGuild();
+    assert.notExists(TEST.findChannel({ name: '💀XXX-XXX-XX5', parent: TEST.ts.channels.levelAuditCategory }));
 
     const level = await TEST.ts.db.Levels.query()
       .where({ code: 'XXX-XXX-XX5' })
@@ -432,7 +435,8 @@ describe('!fixapprove', function () {
       result[1].author.name,
       'A rerate request was approved for this level and the difficulty got updated from 1 to 1.5. Thanks for the report.',
     );
-    assert.notExists(TEST.findChannel({ name: '🔢XXX-XXX-XX5' }));
+    await TEST.fetchGuild();
+    assert.notExists(TEST.findChannel({ name: '🔢XXX-XXX-XX5', parent: TEST.ts.channels.levelAuditCategory }));
 
     const level = await TEST.ts.db.Levels.query()
       .where({ code: 'XXX-XXX-XX5' })
@@ -487,7 +491,8 @@ describe('!fixapprove', function () {
       result[1].author.name,
       'Your rerate request was rejected, the difficulty of the level was NOT updated.',
     );
-    assert.notExists(TEST.findChannel({ name: '🔢XXX-XXX-XX5' }));
+    await TEST.fetchGuild();
+    assert.notExists(TEST.findChannel({ name: '🔢XXX-XXX-XX5', parent: TEST.ts.channels.levelAuditCategory }));
 
     const level = await TEST.ts.db.Levels.query()
       .where({ code: 'XXX-XXX-XX5' })
@@ -530,8 +535,9 @@ describe('!fixapprove', function () {
       'The level code has been ammended from `XXX-XXX-XX5` to `XXX-XXX-XXA`.',
     );
 
-    assert.notExists(TEST.findChannel({ name: '🔢XXX-XXX-XX5' }));
-    assert.exists(TEST.findChannel({ name: '🔢XXX-XXX-XXA' }));
+    await TEST.fetchGuild();
+    assert.notExists(TEST.findChannel({ name: '🔢XXX-XXX-XX5', parent: TEST.ts.channels.levelAuditCategory }));
+    assert.exists(TEST.findChannel({ name: '🔢XXX-XXX-XXA', parent: TEST.ts.channels.levelAuditCategory }));
 
     const level = await TEST.ts.db.Levels.query()
       .where({ code: 'XXX-XXX-XXA' })
@@ -563,9 +569,10 @@ describe('!fixapprove', function () {
       "<@64> You have reuploaded 'approved' by Creator with code `XXX-XXX-XXA`.  If you want to rename the new level, you can use !rename new-code level name. Your level has also been put in the reupload queue, we'll get back to you shortly.",
     );
 
-    assert.exists(TEST.findChannel({ name: '🔢XXX-XXX-XXA' }));
-    assert.exists(TEST.findChannel({ name: '🔨XXX-XXX-XXA' }));
-    assert.exists(TEST.findChannel({ name: '🔁XXX-XXX-XXA' }));
+    await TEST.fetchGuild();
+    assert.exists(TEST.findChannel({ name: '🔢XXX-XXX-XXA', parent: TEST.ts.channels.levelAuditCategory }));
+    assert.exists(TEST.findChannel({ name: '🔨XXX-XXX-XXA', parent: TEST.ts.channels.levelAuditCategory }));
+    assert.exists(TEST.findChannel({ name: '🔁XXX-XXX-XXA', parent: TEST.ts.channels.levelAuditCategory }));
 
     const level = await TEST.ts.db.Levels.query()
       .where({ code: 'XXX-XXX-XXA' })
