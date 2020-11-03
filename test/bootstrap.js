@@ -252,6 +252,12 @@ before(async () => {
   await global.TEST.message.delete();
 
   console.log(TEST.ts.discord.guild().owner, TEST.ts.discord.guild().ownerID, TEST.ts.discord.guild().available);
+  try {
+    var k = new Map();
+    console.log("ES6 supported!!")
+  } catch(err) {
+    console.log("ES6 not supported :(")
+  }
 
   global.app = await WebApi(TEST.client);
 
