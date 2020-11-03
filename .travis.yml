@@ -7,8 +7,8 @@ addons:
 env:
   - DB_HOST=localhost DB_PASS=testing DB_USER=testing DB_NAME=testing PAGE_URL=http://localhost:8080/ DEVS=1024
 before_install:
-  - systemctl stop mariadb
-  - /usr/sbin/mysqld --skip-grant-tables
+  - service mysql stop
+  - /usr/sbin/mysqld --skip-grant-tables &
   - mysql -e 'create database testing  DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci;'
   - sudo mysql -e "CREATE USER testing IDENTIFIED BY 'testing'; GRANT ALL ON testing.* to testing;"
 install:
