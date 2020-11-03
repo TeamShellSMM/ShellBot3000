@@ -251,14 +251,6 @@ before(async () => {
   }).send('ShellBotted');
   await global.TEST.message.delete();
 
-  console.log(TEST.ts.discord.guild().owner, TEST.ts.discord.guild().ownerID, TEST.ts.discord.guild().available);
-  try {
-    var k = new Map();
-    console.log("ES6 supported!!")
-  } catch(err) {
-    console.log("ES6 not supported :(")
-  }
-
   global.app = await WebApi(TEST.client);
 
   global.TEST.mockMessage = async (
@@ -490,6 +482,8 @@ before(async () => {
     global.TEST.client.emit('message', TEST.message);
     return ret;
   };
+
+  await TEST.fetchGuild();
 
   if (RUNNING_COVERAGE) {
     await TEST.initClearChannels();
