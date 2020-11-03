@@ -251,6 +251,8 @@ before(async () => {
   }).send('ShellBotted');
   await global.TEST.message.delete();
 
+  console.log(TEST.ts.discord.guild());
+
   global.app = await WebApi(TEST.client);
 
   global.TEST.mockMessage = async (
