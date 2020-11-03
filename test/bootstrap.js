@@ -251,7 +251,7 @@ before(async () => {
   }).send('ShellBotted');
   await global.TEST.message.delete();
 
-  console.log(TEST.ts.discord.guild().owner, TEST.ts.discord.guild().ownerID, TEST.ts.discord.guild.toString());
+  console.log(TEST.ts.discord.guild().owner, TEST.ts.discord.guild().ownerID, TEST.ts.discord.guild().available);
 
   global.app = await WebApi(TEST.client);
 
