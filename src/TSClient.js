@@ -18,9 +18,17 @@ class TSClient extends AkairoClient {
       {},
     );
 
-    this.handleError = async (ts, message, name, args = {}) => {
+    this.handleError = async (
+      ts,
+      message,
+      name,
+      argumentDefs,
+      args = {},
+    ) => {
       const error = ts.createUserError(await ts.message(name, args));
       debugError(error);
+      /* await message.channel.send(">>> **!randomtags __<tags>__ <minDifficulty> <maxDifficulty>**\n"
+        +`<@${message.member.id}>, ` + await ts.getUserErrorMsg(error, message)); */
       await TS.DiscordWrapper.reply(
         message,
         await ts.getUserErrorMsg(error, message),
@@ -34,6 +42,7 @@ class TSClient extends AkairoClient {
     this.resolveLevel = async (
       message,
       codeArg,
+      argumentDefs,
       levelStatus = 'all',
       includeRemoved = false,
     ) => {
@@ -41,13 +50,23 @@ class TSClient extends AkairoClient {
       const ts = TS.teams(TS.DiscordWrapper.messageGetGuild(message));
 
       if (!code) {
-        return this.handleError(ts, message, 'error.noCode');
+        return this.handleError(
+          ts,
+          message,
+          'error.noCode',
+          argumentDefs,
+        );
       }
 
       code = code.toUpperCase();
 
       if (!ts.validCode(code)) {
-        return this.handleError(ts, message, 'error.invalidCode');
+        return this.handleError(
+          ts,
+          message,
+          'error.invalidCode',
+          argumentDefs,
+        );
       }
 
       try {
@@ -61,6 +80,7 @@ class TSClient extends AkairoClient {
             ts,
             message,
             'removeLevel.alreadyRemoved',
+            argumentDefs,
             level,
           );
         }
@@ -83,6 +103,7 @@ class TSClient extends AkairoClient {
             ts,
             message,
             'error.levelNotApproved',
+            argumentDefs,
           );
         }
         return level;
@@ -97,7 +118,11 @@ class TSClient extends AkairoClient {
       }
     };
 
-    this.resolveMember = async (message, memberNameArg) => {
+    this.resolveMember = async (
+      message,
+      memberNameArg,
+      argumentDefs,
+    ) => {
       const memberName = memberNameArg;
       const ts = TS.teams(TS.DiscordWrapper.messageGetGuild(message));
 
@@ -106,6 +131,7 @@ class TSClient extends AkairoClient {
           ts,
           message,
           'error.missingMemberName',
+          argumentDefs,
         );
       }
 
@@ -114,9 +140,15 @@ class TSClient extends AkairoClient {
         .first();
 
       if (!member) {
-        return this.handleError(ts, message, 'error.memberNotFound', {
-          name: memberName,
-        });
+        return this.handleError(
+          ts,
+          message,
+          'error.memberNotFound',
+          argumentDefs,
+          {
+            name: memberName,
+          },
+        );
       }
 
       member = await ts.decorateMember(member);
@@ -124,7 +156,11 @@ class TSClient extends AkairoClient {
       return member;
     };
 
-    this.resolveMembers = async (message, memberNamesArg) => {
+    this.resolveMembers = async (
+      message,
+      memberNamesArg,
+      argumentDefs,
+    ) => {
       let memberNames = memberNamesArg;
       const ts = TS.teams(TS.DiscordWrapper.messageGetGuild(message));
 
@@ -138,6 +174,7 @@ class TSClient extends AkairoClient {
             ts,
             message,
             'error.missingMemberNames',
+            argumentDefs,
           );
         }
 
@@ -150,6 +187,7 @@ class TSClient extends AkairoClient {
             ts,
             message,
             'error.memberNotFound',
+            argumentDefs,
             {
               name: memberName,
             },
@@ -162,14 +200,19 @@ class TSClient extends AkairoClient {
       return members;
     };
 
-    this.resolveCode = async (message, codeArg, type = 'level') => {
+    this.resolveCode = async (
+      message,
+      codeArg,
+      argumentDefs,
+      type = 'level',
+    ) => {
       let code = codeArg;
       const ts = TS.teams(TS.DiscordWrapper.messageGetGuild(message));
 
       if (!code) {
         const errName =
           type === 'level' ? 'error.noCode' : 'makerid.noCode';
-        return this.handleError(ts, message, errName);
+        return this.handleError(ts, message, errName, argumentDefs);
       }
 
       code = code.toUpperCase();
@@ -179,24 +222,40 @@ class TSClient extends AkairoClient {
           type === 'level'
             ? 'error.invalidCode'
             : 'error.invalidMakerCode';
-        return this.handleError(ts, message, errName, { code });
+        return this.handleError(ts, message, errName, argumentDefs, {
+          code,
+        });
       }
 
       return code;
     };
 
-    this.resolveGameStyle = async (message, gameStyleArg) => {
+    this.resolveGameStyle = async (
+      message,
+      gameStyleArg,
+      argumentDefs,
+    ) => {
       let gameStyle = gameStyleArg;
       const ts = TS.teams(TS.DiscordWrapper.messageGetGuild(message));
 
       if (!gameStyle) {
-        return this.handleError(ts, message, 'add.missingGameStyle');
+        return this.handleError(
+          ts,
+          message,
+          'add.missingGameStyle',
+          argumentDefs,
+        );
       }
 
       gameStyle = gameStyle.toUpperCase();
 
       if (ts.GAME_STYLES.indexOf(gameStyle) === -1) {
-        return this.handleError(ts, message, 'error.wrongGameStyle');
+        return this.handleError(
+          ts,
+          message,
+          'error.wrongGameStyle',
+          argumentDefs,
+        );
       }
 
       return gameStyle;
@@ -205,6 +264,7 @@ class TSClient extends AkairoClient {
     this.resolveText = async (
       message,
       textArg,
+      argumentDefs,
       maximumChars,
       required = true,
     ) => {
@@ -217,15 +277,22 @@ class TSClient extends AkairoClient {
             ts,
             message,
             'error.missingParameter',
+            argumentDefs,
           );
         }
         text = '';
       }
 
       if (text.length > maximumChars) {
-        return this.handleError(ts, message, 'error.textTooLong', {
-          maximumChars,
-        });
+        return this.handleError(
+          ts,
+          message,
+          'error.textTooLong',
+          argumentDefs,
+          {
+            maximumChars,
+          },
+        );
       }
 
       if (ts.isSpecialDiscordString(text)) {
@@ -233,6 +300,7 @@ class TSClient extends AkairoClient {
           ts,
           message,
           'error.specialDiscordString',
+          argumentDefs,
         );
       }
 
@@ -242,22 +310,29 @@ class TSClient extends AkairoClient {
     this.resolveTags = async (
       message,
       tagsArg,
+      argumentDefs,
       whitelistedOnly = false,
     ) => {
       let tags = tagsArg;
       const ts = TS.teams(TS.DiscordWrapper.messageGetGuild(message));
 
       if (!tags) {
-        return this.handleError(ts, message, 'tags.noTags');
+        return this.handleError(
+          ts,
+          message,
+          'tags.noTags',
+          argumentDefs,
+        );
       }
       tags = tags.split(/[,\n]/);
 
       if (
-        ts.teamVariables.whitelistedTagsOnly === 'true' ||
-        whitelistedOnly
+        (ts.teamVariables.whitelistedTagsOnly === 'true' ||
+          whitelistedOnly) &&
+        !(await ts.modOnly(message.author.id))
       ) {
         for (const tag of tags) {
-          const existingTag = ts.db.Tags.query()
+          const existingTag = await ts.db.Tags.query()
             .where('name', tag)
             .first();
           if (!existingTag) {
@@ -265,6 +340,7 @@ class TSClient extends AkairoClient {
               ts,
               message,
               'tags.whitelistedOnly',
+              argumentDefs,
               { tag: tag },
             );
           }
@@ -274,12 +350,17 @@ class TSClient extends AkairoClient {
       return tags;
     };
 
-    this.resolveVideos = async (message, videosArg) => {
+    this.resolveVideos = async (message, videosArg, argumentDefs) => {
       let videos = videosArg;
       const ts = TS.teams(TS.DiscordWrapper.messageGetGuild(message));
 
       if (!videos) {
-        return this.handleError(ts, message, 'error.noVideos');
+        return this.handleError(
+          ts,
+          message,
+          'error.noVideos',
+          argumentDefs,
+        );
       }
       videos = videos.split(/[, \n]/);
 
@@ -305,21 +386,37 @@ class TSClient extends AkairoClient {
       });
 
       if (notUrls.length) {
-        return this.handleError(ts, message, 'error.notUrls', {
-          urls: notUrls.join('\n'),
-        });
+        return this.handleError(
+          ts,
+          message,
+          'error.notUrls',
+          argumentDefs,
+          {
+            urls: notUrls.join('\n'),
+          },
+        );
       }
 
       if (notAllowedUrls.length) {
-        return this.handleError(ts, message, 'addVids.notAllowed', {
-          videos: notAllowedUrls.join('\n'),
-        });
+        return this.handleError(
+          ts,
+          message,
+          'addVids.notAllowed',
+          argumentDefs,
+          {
+            videos: notAllowedUrls.join('\n'),
+          },
+        );
       }
 
       return filteredUrl;
     };
 
-    this.resolveDifficulty = async (message, difficultyArg) => {
+    this.resolveDifficulty = async (
+      message,
+      difficultyArg,
+      argumentDefs,
+    ) => {
       let difficulty = difficultyArg;
       const ts = TS.teams(TS.DiscordWrapper.messageGetGuild(message));
 
@@ -338,13 +435,14 @@ class TSClient extends AkairoClient {
           ts,
           message,
           'approval.invalidDifficulty',
+          argumentDefs,
         );
       }
 
       return difficulty;
     };
 
-    this.resolveInt = async (message, numArg) => {
+    this.resolveInt = async (message, numArg, argumentDefs) => {
       let num = numArg;
       const ts = TS.teams(TS.DiscordWrapper.messageGetGuild(message));
 
@@ -354,7 +452,12 @@ class TSClient extends AkairoClient {
         num = parseInt(num, 10);
       }
       if (Number.isNaN(num) || num <= 0) {
-        return this.handleError(ts, message, 'error.invalidInt');
+        return this.handleError(
+          ts,
+          message,
+          'error.invalidInt',
+          argumentDefs,
+        );
       }
 
       return num;
@@ -369,109 +472,139 @@ class TSClient extends AkairoClient {
 
     this.commandHandler.resolver.addType(
       'level:pending',
-      (message, phrase) => {
-        return this.resolveLevel(message, phrase, 'pending');
+      (message, phrase, argumentDefs) => {
+        return this.resolveLevel(
+          message,
+          phrase,
+          argumentDefs,
+          'pending',
+        );
       },
     );
     this.commandHandler.resolver.addType(
       'level:approved',
-      (message, phrase) => {
-        return this.resolveLevel(message, phrase, 'approved');
+      (message, phrase, argumentDefs) => {
+        return this.resolveLevel(
+          message,
+          phrase,
+          argumentDefs,
+          'approved',
+        );
       },
     );
     this.commandHandler.resolver.addType(
       'level:any',
-      (message, phrase) => {
-        return this.resolveLevel(message, phrase, 'all', true);
+      (message, phrase, argumentDefs) => {
+        return this.resolveLevel(
+          message,
+          phrase,
+          argumentDefs,
+          'all',
+          true,
+        );
       },
     );
     this.commandHandler.resolver.addType(
       'level',
-      (message, phrase) => {
-        return this.resolveLevel(message, phrase);
+      (message, phrase, argumentDefs) => {
+        return this.resolveLevel(message, phrase, argumentDefs);
       },
     );
     this.commandHandler.resolver.addType(
       'levelcode',
-      (message, phrase) => {
-        return this.resolveCode(message, phrase);
+      (message, phrase, argumentDefs) => {
+        return this.resolveCode(message, phrase, argumentDefs);
       },
     );
     this.commandHandler.resolver.addType(
       'makerid',
-      (message, phrase) => {
-        return this.resolveCode(message, phrase, 'maker');
+      (message, phrase, argumentDefs) => {
+        return this.resolveCode(
+          message,
+          phrase,
+          argumentDefs,
+          'maker',
+        );
       },
     );
     this.commandHandler.resolver.addType(
       'gamestyle',
-      (message, phrase) => {
-        return this.resolveGameStyle(message, phrase);
+      (message, phrase, argumentDefs) => {
+        return this.resolveGameStyle(message, phrase, argumentDefs);
       },
     );
     this.commandHandler.resolver.addType(
       'text',
-      (message, phrase) => {
-        return this.resolveText(message, phrase, 256);
+      (message, phrase, argumentDefs) => {
+        return this.resolveText(message, phrase, argumentDefs, 256);
       },
     );
     this.commandHandler.resolver.addType(
       'longtext',
-      (message, phrase) => {
-        return this.resolveText(message, phrase, 800);
+      (message, phrase, argumentDefs) => {
+        return this.resolveText(message, phrase, argumentDefs, 800);
       },
     );
     this.commandHandler.resolver.addType(
       'longertext',
-      (message, phrase) => {
-        return this.resolveText(message, phrase, 1500);
+      (message, phrase, argumentDefs) => {
+        return this.resolveText(message, phrase, argumentDefs, 1500);
       },
     );
     this.commandHandler.resolver.addType(
       'text:optional',
-      (message, phrase) => {
-        return this.resolveText(message, phrase, 256, false);
+      (message, phrase, argumentDefs) => {
+        return this.resolveText(
+          message,
+          phrase,
+          argumentDefs,
+          256,
+          false,
+        );
       },
     );
     this.commandHandler.resolver.addType(
       'tags',
-      (message, phrase) => {
-        return this.resolveTags(message, phrase);
+      (message, phrase, argumentDefs) => {
+        return this.resolveTags(message, phrase, argumentDefs);
       },
     );
     this.commandHandler.resolver.addType(
       'tags:whitelisted',
-      (message, phrase) => {
-        return this.resolveTags(message, phrase, true);
+      (message, phrase, argumentDefs) => {
+        return this.resolveTags(message, phrase, argumentDefs, true);
       },
     );
     this.commandHandler.resolver.addType(
       'videos',
-      (message, phrase) => {
-        return this.resolveVideos(message, phrase);
+      (message, phrase, argumentDefs) => {
+        return this.resolveVideos(message, phrase, argumentDefs);
       },
     );
     this.commandHandler.resolver.addType(
       'difficulty',
-      (message, phrase) => {
-        return this.resolveDifficulty(message, phrase);
+      (message, phrase, argumentDefs) => {
+        return this.resolveDifficulty(message, phrase, argumentDefs);
       },
     );
     this.commandHandler.resolver.addType(
       'teammember',
-      (message, phrase) => {
-        return this.resolveMember(message, phrase);
+      (message, phrase, argumentDefs) => {
+        return this.resolveMember(message, phrase, argumentDefs);
       },
     );
     this.commandHandler.resolver.addType(
       'teammembers',
-      (message, phrase) => {
-        return this.resolveMembers(message, phrase);
+      (message, phrase, argumentDefs) => {
+        return this.resolveMembers(message, phrase, argumentDefs);
       },
     );
-    this.commandHandler.resolver.addType('int', (message, phrase) => {
-      return this.resolveInt(message, phrase);
-    });
+    this.commandHandler.resolver.addType(
+      'int',
+      (message, phrase, argumentDefs) => {
+        return this.resolveInt(message, phrase, argumentDefs);
+      },
+    );
 
     this.commandHandler.loadAll();
   }

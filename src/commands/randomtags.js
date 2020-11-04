@@ -27,6 +27,7 @@ class randomtag extends TSCommand {
   }
 
   async tsexec(ts, message, args) {
+    // console.log(args.tags);
     const rand = await ts.randomLevel({
       ...args,
       discord_id: ts.discord.getAuthor(message),

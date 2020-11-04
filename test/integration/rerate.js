@@ -145,6 +145,7 @@ describe('!rerate', function () {
       channel: TEST.ts.channels.modChannel,
       discord_id: '128',
     });
+    // console.log(result);
     assert.equal(
       result,
       'The text you entered is too long for this command, a maximum of 800 characters are allowed here. ',

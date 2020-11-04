@@ -151,7 +151,10 @@ describe('!random / !playersRandom', function () {
       channel: 'general',
       discord_id: '128',
     });
-    assert.equal(result, 'There are no tags in the level list ');
+    assert.equal(
+      result,
+      '`smw` is not a tag that has been whitelisted. ',
+    );
   });
 
   it('!randomtag unknown tag and no similar tags', async function () {
@@ -161,7 +164,10 @@ describe('!random / !playersRandom', function () {
       channel: 'general',
       discord_id: '128',
     });
-    assert.equal(result, "We couldn't find the tag `smw`\n ");
+    assert.equal(
+      result,
+      '`smw` is not a tag that has been whitelisted. ',
+    );
   });
   it('!randomtag unknown tag but have similar tag', async function () {
     await TEST.ts.load();
@@ -172,7 +178,7 @@ describe('!random / !playersRandom', function () {
     });
     assert.equal(
       result,
-      "We couldn't find the tag `tag2`\n Did you mean:```\ntag1``` ",
+      '`tag2` is not a tag that has been whitelisted. ',
     );
   });
 

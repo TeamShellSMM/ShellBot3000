@@ -195,6 +195,8 @@ describe('!ammendcode', function () {
     assert.notExists(oldLevel);
     assert.exists(newLevel);
 
+    await TEST.fetchGuild();
+
     const oldChannel = await TEST.findChannel({
       name: 'XXX-XXX-XXX',
       parentID: TEST.ts.channels.levelDiscussionCategory,
