@@ -15,7 +15,7 @@ class TSClient extends AkairoClient {
       {
         ownerID: '284027418375618570', // or ['123992700587343872', '86890631690977280']
       },
-      {},
+      { fetchAllMembers: true },
     );
 
     this.handleError = async (
