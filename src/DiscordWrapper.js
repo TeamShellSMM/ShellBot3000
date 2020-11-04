@@ -268,7 +268,7 @@ class DiscordWrapper {
     }
     const currMember = this.member(discordId);
     if (!currMember || !currMember.roles) return false;
-    return currMember.roles.some(
+    return currMember.roles.cache.some(
       (r) =>
         roleIdsLower.indexOf(r.id) !== -1 ||
         roleIdsLower.indexOf(r.name.toLowerCase()) !== -1,
