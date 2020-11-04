@@ -2,7 +2,7 @@ const TSCommand = require('../TSCommand.js');
 
 class ChangeName extends TSCommand {
   constructor() {
-    super('changename', {
+    super('nickname', {
       aliases: ['changename', 'nickname', 'nick'],
       args: [
         {

@@ -2,16 +2,19 @@ const TSCommand = require('../TSCommand.js');
 
 class TSClear extends TSCommand {
   constructor() {
-    super('tsclear', {
+    super('clear', {
       aliases: ['tsclear', 'clear'],
       args: [
         {
           id: 'level',
+          description: 'levelCode',
           type: 'level',
           default: null,
         },
         {
           id: 'optionString',
+          description:
+            'difficultyVote | difficultyVote like/unlike | like/unlike',
           type: 'text:optional',
           match: 'rest',
           default: null,

@@ -49,7 +49,11 @@ describe('!removelevel', function () {
         channel: 'general',
         discord_id: '256',
       }),
-      "You didn't enter a level code. ",
+      `>>> **!requestremoval __<levelCode>__ <reason>**\n${await TEST.mockMessageReply(
+        'error.noCode',
+        { type: 'userError', discord_id: 256 },
+        {},
+      )}`,
     );
   });
 
@@ -60,7 +64,11 @@ describe('!removelevel', function () {
         channel: 'general',
         discord_id: '256',
       }),
-      'Missing parameter. You have to enter something here. ',
+      `>>> **!requestremoval <levelCode> __<reason>__**\n${await TEST.mockMessageReply(
+        'error.missingParameter',
+        { type: 'userError', discord_id: 256 },
+        {},
+      )}`,
     );
   });
 
@@ -98,7 +106,11 @@ describe('!removelevel', function () {
         waitFor: 100,
         discord_id: '256',
       }),
-      '"user removed level" by Creator has already been removed ',
+      `>>> **!requestremoval __<levelCode>__ <reason>**\n${await TEST.mockMessageReply(
+        'removeLevel.alreadyRemoved',
+        { type: 'userError', discord_id: 256 },
+        { level_name: 'user removed level', creator: 'Creator' },
+      )}`,
     );
   });
 

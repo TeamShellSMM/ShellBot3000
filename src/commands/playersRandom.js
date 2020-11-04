@@ -7,6 +7,7 @@ class playersRandom extends TSCommand {
       args: [
         {
           id: 'players',
+          description: 'memberNames',
           type: 'teammembers',
           default: '',
         },

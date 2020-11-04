@@ -7,6 +7,7 @@ class removevote extends TSCommand {
       args: [
         {
           id: 'level',
+          description: 'levelCode',
           type: 'level',
           default: null,
         },

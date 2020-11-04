@@ -7,11 +7,13 @@ class MakerId extends TSCommand {
       args: [
         {
           id: 'code',
+          description: 'makerId',
           type: 'makerid',
           default: null,
         },
         {
           id: 'name',
+          description: 'makerName',
           type: 'text',
           match: 'rest',
           default: null,

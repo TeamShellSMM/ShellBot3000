@@ -2,7 +2,7 @@ const TSCommand = require('../TSCommand.js');
 
 class TSApprove extends TSCommand {
   constructor() {
-    super('tsapprove', {
+    super('approve/fix(+cl)', {
       aliases: [
         'tsapprove',
         'tsapprove+c',
@@ -24,6 +24,7 @@ class TSApprove extends TSCommand {
       args: [
         {
           id: 'level',
+          description: 'levelCode',
           type: 'level:pending',
           default: null,
         },

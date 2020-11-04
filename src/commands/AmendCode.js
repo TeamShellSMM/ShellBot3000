@@ -3,11 +3,12 @@ const TSCommand = require('../TSCommand.js');
 
 class AmendCode extends TSCommand {
   constructor() {
-    super('ammendcode', {
+    super('amendcode', {
       aliases: ['ammendcode', 'amendcode'],
       args: [
         {
           id: 'existingLevel',
+          description: 'oldCode',
           type: 'level',
           default: null,
         },

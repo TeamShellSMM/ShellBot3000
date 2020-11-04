@@ -2,7 +2,7 @@ const TSCommand = require('../TSCommand.js');
 
 class points extends TSCommand {
   constructor() {
-    super('points', {
+    super('rank', {
       aliases: ['points', 'rank', 'point'],
       channelRestriction: 'guild',
     });

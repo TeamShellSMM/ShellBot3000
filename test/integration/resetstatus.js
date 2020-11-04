@@ -44,11 +44,11 @@ describe('!resetstatus', function () {
     });
     assert.equal(
       result,
-      await TEST.mockMessage(
+      `>>> **!resetstatus __<levelCode>__**\n${await TEST.mockMessageReply(
         'error.noCode',
-        { type: 'userError' },
-        { name: 'Creator' },
-      ),
+        { type: 'userError', discord_id: 128 },
+        {},
+      )}`,
     );
   });
 

@@ -2,7 +2,7 @@ const TSCommand = require('../TSCommand.js');
 
 class TSJudge extends TSCommand {
   constructor() {
-    super('tsjudge', {
+    super('judge', {
       aliases: ['tsjudge', 'judge', 'forcejudge'],
       args: [],
       channelRestriction: 'guild',

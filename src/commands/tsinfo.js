@@ -2,11 +2,12 @@ const TSCommand = require('../TSCommand.js');
 
 class tsinfo extends TSCommand {
   constructor() {
-    super('tsinfo', {
+    super('info', {
       aliases: ['tsinfo', 'info', 'level'],
       args: [
         {
           id: 'level',
+          description: 'levelCode',
           type: 'level',
           default: null,
         },

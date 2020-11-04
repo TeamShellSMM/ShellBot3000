@@ -2,7 +2,7 @@ const TSCommand = require('../TSCommand.js');
 
 class tsrandom extends TSCommand {
   constructor() {
-    super('tsrandom', {
+    super('random', {
       aliases: ['tsrandom', 'random', 'randomall', 'randompending'],
       args: [
         {

@@ -2,7 +2,7 @@ const TSCommand = require('../TSCommand.js');
 
 class TSFixApprove extends TSCommand {
   constructor() {
-    super('tsfixapprove', {
+    super('auditapprove/auditreject', {
       aliases: [
         'tsfixapprove',
         'tsfixreject',
@@ -16,6 +16,7 @@ class TSFixApprove extends TSCommand {
       args: [
         {
           id: 'reason',
+          description: 'reason | difficulty reason',
           type: 'longtext',
           match: 'rest',
           default: null,

@@ -2,12 +2,13 @@ const TSCommand = require('../TSCommand.js');
 
 class tsreupload extends TSCommand {
   constructor() {
-    super('tsreupload', {
+    super('reupload', {
       aliases: ['tsreupload', 'reupload'],
       channelRestriction: 'guild',
       args: [
         {
           id: 'oldLevel',
+          description: 'oldCode',
           type: 'level:any',
           default: null,
         },

@@ -107,7 +107,11 @@ describe('!addtags,!removetags', () => {
         channel: 'general',
         discord_id: '256',
       }),
-      "You didn't enter a level code. ",
+      `>>> **!addtags __<levelCode>__ <newTags>**\n${await TEST.mockMessageReply(
+        'error.noCode',
+        { type: 'userError', discord_id: 256 },
+        {},
+      )}`,
     );
   });
 
@@ -118,7 +122,11 @@ describe('!addtags,!removetags', () => {
         channel: 'general',
         discord_id: '256',
       }),
-      "You didn't give any tags ",
+      `>>> **!addtags <levelCode> __<newTags>__**\n${await TEST.mockMessageReply(
+        'tags.noTags',
+        { type: 'userError', discord_id: 256 },
+        {},
+      )}`,
     );
   });
 
@@ -177,7 +185,11 @@ describe('!addtags,!removetags', () => {
         channel: 'general',
         discord_id: '256',
       }),
-      '`tag3` is not a tag that has been whitelisted. ',
+      `>>> **!addtags <levelCode> __<newTags>__**\n${await TEST.mockMessageReply(
+        'tags.whitelistedOnly',
+        { type: 'userError', discord_id: 256 },
+        { tag: 'tag3' },
+      )}`,
     );
   });
 

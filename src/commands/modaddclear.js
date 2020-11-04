@@ -2,21 +2,25 @@ const TSCommand = require('../TSCommand.js');
 
 class TSModAddClear extends TSCommand {
   constructor() {
-    super('tsmodaddclear', {
+    super('modaddclear', {
       aliases: ['tsmodaddclear', 'modaddclear'],
       args: [
         {
           id: 'member',
+          description: 'memberName',
           type: 'teammember',
           default: null,
         },
         {
           id: 'level',
+          description: 'levelCode',
           type: 'level',
           default: null,
         },
         {
           id: 'optionString',
+          description:
+            'difficultyVote | difficultyVote like/unlike | like/unlike',
           type: 'string',
           match: 'rest',
           default: null,

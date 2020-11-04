@@ -12,11 +12,13 @@ class ModAddPlayVids extends TSCommand {
       args: [
         {
           id: 'member',
+          description: 'memberName',
           type: 'teammember',
           default: null,
         },
         {
           id: 'level',
+          description: 'levelCode',
           type: 'level',
           default: null,
         },

@@ -53,7 +53,11 @@ describe('setworld', () => {
         channel: 'general',
         discord_id: '256',
       }),
-      'This is not a valid integer. ',
+      `>>> **!setworld __<worldCount>__ <levelCount> <worldName>**\n${await TEST.mockMessageReply(
+        'error.invalidInt',
+        { type: 'userError', discord_id: 256 },
+        {},
+      )}`,
     );
   });
 
@@ -64,7 +68,11 @@ describe('setworld', () => {
         channel: 'general',
         discord_id: '256',
       }),
-      'This is not a valid integer. ',
+      `>>> **!setworld <worldCount> __<levelCount>__ <worldName>**\n${await TEST.mockMessageReply(
+        'error.invalidInt',
+        { type: 'userError', discord_id: 256 },
+        {},
+      )}`,
     );
   });
 
@@ -75,7 +83,11 @@ describe('setworld', () => {
         channel: 'general',
         discord_id: '256',
       }),
-      'Missing parameter. You have to enter something here. ',
+      `>>> **!setworld <worldCount> <levelCount> __<worldName>__**\n${await TEST.mockMessageReply(
+        'error.missingParameter',
+        { type: 'userError', discord_id: 256 },
+        {},
+      )}`,
     );
   });
 

@@ -2,11 +2,12 @@ const TSCommand = require('../TSCommand.js');
 
 class tsdifficulty extends TSCommand {
   constructor() {
-    super('tsdifficulty', {
+    super('difficulty', {
       aliases: ['tsdifficulty', 'difficulty', 'rate'],
       args: [
         {
           id: 'level',
+          description: 'levelCode',
           type: 'level',
           default: null,
         },

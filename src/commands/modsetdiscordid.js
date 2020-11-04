@@ -2,11 +2,12 @@ const TSCommand = require('../TSCommand.js');
 
 class TSModSetDiscordId extends TSCommand {
   constructor() {
-    super('tsmodsetdiscordid', {
+    super('modsetdiscordid', {
       aliases: ['tsmodsetdiscordid', 'modsetdiscordid'],
       args: [
         {
           id: 'member',
+          description: 'memberName',
           type: 'teammember',
           default: null,
         },

@@ -1,13 +1,14 @@
 const TSCommand = require('../TSCommand.js');
 
-class tsadd extends TSCommand {
+class add extends TSCommand {
   constructor() {
-    super('tsadd', {
+    super('add', {
       aliases: ['tsadd', 'add'],
       channelRestriction: 'guild',
       args: [
         {
           id: 'code',
+          description: 'levelCode',
           type: 'levelcode',
           default: null,
         },
@@ -47,4 +48,4 @@ class tsadd extends TSCommand {
     await ts.discord.messageSend(message, player.userReply + reply);
   }
 }
-module.exports = tsadd;
+module.exports = add;

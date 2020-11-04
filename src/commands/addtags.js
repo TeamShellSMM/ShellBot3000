@@ -2,7 +2,7 @@ const TSCommand = require('../TSCommand.js');
 
 class TSAddtags extends TSCommand {
   constructor() {
-    super('tsaddtags', {
+    super('addtags', {
       aliases: [
         'tsaddtags',
         'addtags',
@@ -17,6 +17,7 @@ class TSAddtags extends TSCommand {
       args: [
         {
           id: 'level',
+          description: 'levelCode',
           type: 'level',
           default: null,
         },

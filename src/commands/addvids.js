@@ -2,7 +2,7 @@ const TSCommand = require('../TSCommand.js');
 
 class TSAddvids extends TSCommand {
   constructor() {
-    super('tsaddvids', {
+    super('addvids', {
       aliases: [
         'tsaddvids',
         'addvids',
@@ -21,6 +21,7 @@ class TSAddvids extends TSCommand {
       args: [
         {
           id: 'level',
+          description: 'levelCode',
           type: 'level',
           default: null,
         },

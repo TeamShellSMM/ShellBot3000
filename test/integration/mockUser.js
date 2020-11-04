@@ -31,7 +31,11 @@ describe('!mockUser', function () {
         channel: 'general',
         discord_id: TEST.bot_id,
       }),
-      'You have to enter a valid member name. ',
+      `>>> **!mockUser __<memberName>__**\n${await TEST.mockMessageReply(
+        'error.missingMemberName',
+        { type: 'userError', discord_id: TEST.bot_id },
+        {},
+      )}`,
     );
   });
 
@@ -45,7 +49,11 @@ describe('!mockUser', function () {
         channel: 'general',
         discord_id: TEST.bot_id,
       }),
-      'No member with the name "unknown" was found in the members list. ',
+      `>>> **!mockUser __<memberName>__**\n${await TEST.mockMessageReply(
+        'error.memberNotFound',
+        { type: 'userError', discord_id: TEST.bot_id },
+        { name: 'unknown' },
+      )}`,
     );
   });
 

@@ -137,7 +137,11 @@ describe('!approve', function () {
     });
     assert.equal(
       result,
-      'The text you entered is too long for this command, a maximum of 1500 characters are allowed here. ',
+      `>>> **!approve/fix(+cl) <levelCode> <difficulty> __<reason>__**\n${await TEST.mockMessageReply(
+        'error.textTooLong',
+        { type: 'userError', discord_id: 256 },
+        { maximumChars: 1500 },
+      )}`,
     );
   });
 
@@ -246,7 +250,14 @@ describe('!approve', function () {
       channel: TEST.ts.channels.modChannel,
       discord_id: '256',
     });
-    assert.equal(result, 'Level is not pending! ');
+    assert.equal(
+      result,
+      `>>> **!approve/fix(+cl) __<levelCode>__ <difficulty> <reason>**\n${await TEST.mockMessageReply(
+        'approval.levelNotPending',
+        { type: 'userError', discord_id: 256 },
+        {},
+      )}`,
+    );
   });
 
   it('approve no code', async function () {
@@ -255,7 +266,14 @@ describe('!approve', function () {
       channel: TEST.ts.channels.modChannel,
       discord_id: '256',
     });
-    assert.equal(result, "You didn't enter a level code. ");
+    assert.equal(
+      result,
+      `>>> **!approve/fix(+cl) __<levelCode>__ <difficulty> <reason>**\n${await TEST.mockMessageReply(
+        'error.noCode',
+        { type: 'userError', discord_id: 256 },
+        {},
+      )}`,
+    );
   });
 
   it('approve no reason', async function () {
@@ -266,7 +284,11 @@ describe('!approve', function () {
     });
     assert.equal(
       result,
-      'Missing parameter. You have to enter something here. ',
+      `>>> **!approve/fix(+cl) <levelCode> <difficulty> __<reason>__**\n${await TEST.mockMessageReply(
+        'error.missingParameter',
+        { type: 'userError', discord_id: 256 },
+        {},
+      )}`,
     );
   });
 
@@ -276,7 +298,14 @@ describe('!approve', function () {
       channel: TEST.ts.channels.modChannel,
       discord_id: '256',
     });
-    assert.equal(result, 'Invalid difficulty format! ');
+    assert.equal(
+      result,
+      `>>> **!approve/fix(+cl) <levelCode> __<difficulty>__ <reason>**\n${await TEST.mockMessageReply(
+        'approval.invalidDifficulty',
+        { type: 'userError', discord_id: 256 },
+        {},
+      )}`,
+    );
   });
 
   it('approve with emoji reason', async function () {
@@ -298,7 +327,11 @@ describe('!approve', function () {
     // console.log(result);
     assert.equal(
       result,
-      '"removed level" by Creator has already been removed ',
+      `>>> **!approve/fix(+cl) __<levelCode>__ <difficulty> <reason>**\n${await TEST.mockMessageReply(
+        'removeLevel.alreadyRemoved',
+        { type: 'userError', discord_id: 256 },
+        { level_name: 'removed level', creator: 'Creator' },
+      )}`,
     );
   });
 
@@ -308,6 +341,9 @@ describe('!approve', function () {
       channel: TEST.ts.channels.modChannel,
       discord_id: '256',
     });
+
+    console.log(result);
+
     const channel = await TEST.ts.discord.channel('xxx-xxx-xxx');
     assert.isOk(channel);
     assert.deepInclude(result[0], {

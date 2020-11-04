@@ -50,7 +50,7 @@ describe('!rerate', function () {
         waitFor: 100,
         discord_id: '256',
       }),
-      31,
+      93,
     );
   });
   // waitFor:100,
@@ -61,7 +61,11 @@ describe('!rerate', function () {
         channel: TEST.ts.channels.modChannel,
         discord_id: '128',
       }),
-      "You didn't enter a level code. ",
+      `>>> **!rerate __<levelCode>__ <difficulty> <reason>**\n${await TEST.mockMessageReply(
+        'error.noCode',
+        { type: 'userError', discord_id: 128 },
+        {},
+      )}`,
     );
   });
 
@@ -72,7 +76,11 @@ describe('!rerate', function () {
         channel: TEST.ts.channels.modChannel,
         discord_id: '128',
       }),
-      'Missing parameter. You have to enter something here. ',
+      `>>> **!rerate <levelCode> <difficulty> __<reason>__**\n${await TEST.mockMessageReply(
+        'error.missingParameter',
+        { type: 'userError', discord_id: 128 },
+        {},
+      )}`,
     );
   });
 
@@ -83,7 +91,11 @@ describe('!rerate', function () {
         channel: TEST.ts.channels.modChannel,
         discord_id: '128',
       }),
-      'Missing parameter. You have to enter something here. ',
+      `>>> **!rerate <levelCode> <difficulty> __<reason>__**\n${await TEST.mockMessageReply(
+        'error.missingParameter',
+        { type: 'userError', discord_id: 128 },
+        {},
+      )}`,
     );
   });
 
@@ -94,7 +106,11 @@ describe('!rerate', function () {
         channel: TEST.ts.channels.modChannel,
         discord_id: '128',
       }),
-      'This is not a valid level code. ',
+      `>>> **!rerate __<levelCode>__ <difficulty> <reason>**\n${await TEST.mockMessageReply(
+        'error.invalidCode',
+        { type: 'userError', discord_id: 128 },
+        {},
+      )}`,
     );
   });
 
@@ -105,7 +121,11 @@ describe('!rerate', function () {
         channel: TEST.ts.channels.modChannel,
         discord_id: '128',
       }),
-      'Invalid difficulty format! ',
+      `>>> **!rerate <levelCode> __<difficulty>__ <reason>**\n${await TEST.mockMessageReply(
+        'approval.invalidDifficulty',
+        { type: 'userError', discord_id: 128 },
+        {},
+      )}`,
     );
   });
 
@@ -148,7 +168,11 @@ describe('!rerate', function () {
     // console.log(result);
     assert.equal(
       result,
-      'The text you entered is too long for this command, a maximum of 800 characters are allowed here. ',
+      `>>> **!rerate <levelCode> <difficulty> __<reason>__**\n${await TEST.mockMessageReply(
+        'error.textTooLong',
+        { type: 'userError', discord_id: 128 },
+        { maximumChars: 800 },
+      )}`,
     );
   });
 
@@ -170,7 +194,11 @@ describe('!rerate', function () {
         channel: TEST.ts.channels.modChannel,
         discord_id: '128',
       }),
-      '"user removed level" by Creator has already been removed ',
+      `>>> **!rerate __<levelCode>__ <difficulty> <reason>**\n${await TEST.mockMessageReply(
+        'removeLevel.alreadyRemoved',
+        { type: 'userError', discord_id: 128 },
+        { level_name: 'user removed level', creator: 'Creator' },
+      )}`,
     );
   });
 });

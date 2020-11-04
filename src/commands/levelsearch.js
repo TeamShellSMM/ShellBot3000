@@ -11,7 +11,7 @@ function highlight(levelName, needle) {
 
 class levelsearch extends TSCommand {
   constructor() {
-    super('levelsearch', {
+    super('search', {
       aliases: ['levelsearch', 'search'],
       channelRestriction: 'guild',
       args: [

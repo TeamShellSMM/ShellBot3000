@@ -7,6 +7,7 @@ class undoremovelevel extends TSCommand {
       args: [
         {
           id: 'level',
+          description: 'levelCode',
           type: 'level:any',
           default: null,
         },

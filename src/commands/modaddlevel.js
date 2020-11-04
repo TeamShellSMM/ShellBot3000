@@ -2,16 +2,18 @@ const TSCommand = require('../TSCommand.js');
 
 class TSModAddLevel extends TSCommand {
   constructor() {
-    super('tsmodaddlevel', {
+    super('modaddlevel', {
       aliases: ['tsmodaddlevel', 'modaddlevel'],
       args: [
         {
           id: 'member',
+          description: 'memberName',
           type: 'teammember',
           default: null,
         },
         {
           id: 'code',
+          description: 'levelCode',
           type: 'levelcode',
           default: null,
         },

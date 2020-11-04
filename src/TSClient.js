@@ -27,12 +27,25 @@ class TSClient extends AkairoClient {
     ) => {
       const error = ts.createUserError(await ts.message(name, args));
       debugError(error);
-      /* await message.channel.send(">>> **!randomtags __<tags>__ <minDifficulty> <maxDifficulty>**\n"
-        +`<@${message.member.id}>, ` + await ts.getUserErrorMsg(error, message)); */
-      await TS.DiscordWrapper.reply(
-        message,
-        await ts.getUserErrorMsg(error, message),
+
+      let argString = '';
+      for (const argumentDef of argumentDefs.all) {
+        if (argumentDef.id === argumentDefs.active.id) {
+          argString += ` __<${argumentDef.name}>__`;
+        } else {
+          argString += ` <${argumentDef.name}>`;
+        }
+      }
+
+      await ts.discord.sendChannel(
+        message.channel,
+        `>>> **!${argumentDefs.active.command.id}${argString}**\n` +
+          `<@${message.author.id}>, ${await ts.getUserErrorMsg(
+            error,
+            message,
+          )}`,
       );
+
       if (TS.promisedCallback instanceof Function) {
         TS.promisedCallback();
       }
@@ -93,6 +106,7 @@ class TSClient extends AkairoClient {
             ts,
             message,
             'approval.levelNotPending',
+            argumentDefs,
           );
         }
         if (

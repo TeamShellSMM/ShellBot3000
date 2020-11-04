@@ -2,12 +2,13 @@ const TSCommand = require('../TSCommand.js');
 
 class TSDiscussChannel extends TSCommand {
   constructor() {
-    super('discusschannel', {
+    super('fixdiscuss', {
       aliases: ['discusschannel', 'fixdiscuss', 'discuss'],
       channelRestriction: 'guild',
       args: [
         {
           id: 'level',
+          description: 'levelCode',
           type: 'level:pending',
           default: null,
         },

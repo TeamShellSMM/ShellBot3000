@@ -2,7 +2,7 @@ const TSCommand = require('../TSCommand.js');
 
 class tsremove extends TSCommand {
   constructor() {
-    super('tsremove', {
+    super('requestremoval', {
       aliases: [
         'tsremove',
         'tsremovelevel',
@@ -14,6 +14,7 @@ class tsremove extends TSCommand {
       args: [
         {
           id: 'level',
+          description: 'levelCode',
           type: 'level',
           default: null,
         },

@@ -2,12 +2,13 @@ const TSCommand = require('../TSCommand.js');
 
 class TSRename extends TSCommand {
   constructor() {
-    super('tsrename', {
+    super('rename', {
       aliases: ['tsrename', 'rename'],
       channelRestriction: 'guild',
       args: [
         {
           id: 'level',
+          description: 'levelCode',
           type: 'level',
           default: null,
         },

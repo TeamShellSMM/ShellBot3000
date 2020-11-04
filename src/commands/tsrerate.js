@@ -2,11 +2,12 @@ const TSCommand = require('../TSCommand.js');
 
 class TSRerate extends TSCommand {
   constructor() {
-    super('tsrerate', {
+    super('rerate', {
       aliases: ['tsrerate', 'rerate'],
       args: [
         {
           id: 'level',
+          description: 'levelCode',
           type: 'level:approved',
           default: null,
         },

@@ -8,6 +8,7 @@ class TSClearDifficulty extends TSCommand {
       args: [
         {
           id: 'level',
+          description: 'levelCode',
           type: 'level',
           default: null,
         },

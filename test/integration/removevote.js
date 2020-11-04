@@ -98,7 +98,7 @@ describe('!removevote', function () {
       waitFor: 100,
       discord_id: '128',
     });
-    assert.lengthOf(result, 31, 'no result');
+    assert.lengthOf(result, 75, 'no result');
   });
 
   it('not pending', async () => {

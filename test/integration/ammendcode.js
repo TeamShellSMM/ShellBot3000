@@ -44,11 +44,11 @@ describe('!ammendcode', function () {
     });
     assert.equal(
       result,
-      await TEST.mockMessage(
+      `>>> **!amendcode __<oldCode>__ <newCode>**\n${await TEST.mockMessageReply(
         'error.noCode',
-        { type: 'userError' },
-        { name: 'Creator' },
-      ),
+        { type: 'userError', discord_id: 128 },
+        {},
+      )}`,
     );
   });
 
@@ -60,11 +60,11 @@ describe('!ammendcode', function () {
     });
     assert.equal(
       result,
-      await TEST.mockMessage(
+      `>>> **!amendcode <oldCode> __<newCode>__**\n${await TEST.mockMessageReply(
         'error.noCode',
-        { type: 'userError' },
-        { name: 'Creator' },
-      ),
+        { type: 'userError', discord_id: 128 },
+        {},
+      )}`,
     );
   });
 
@@ -76,11 +76,11 @@ describe('!ammendcode', function () {
     });
     assert.equal(
       result,
-      await TEST.mockMessage(
+      `>>> **!amendcode __<oldCode>__ <newCode>**\n${await TEST.mockMessageReply(
         'error.invalidCode',
-        { type: 'userError' },
-        { name: 'Creator' },
-      ),
+        { type: 'userError', discord_id: 128 },
+        {},
+      )}`,
     );
   });
 
@@ -92,11 +92,11 @@ describe('!ammendcode', function () {
     });
     assert.equal(
       result,
-      await TEST.mockMessage(
+      `>>> **!amendcode <oldCode> __<newCode>__**\n${await TEST.mockMessageReply(
         'error.invalidCode',
-        { type: 'userError' },
-        { name: 'Creator' },
-      ),
+        { type: 'userError', discord_id: 128 },
+        {},
+      )}`,
     );
   });
 

@@ -2,7 +2,7 @@ const TSCommand = require('../TSCommand.js');
 
 class ModAddMember extends TSCommand {
   constructor() {
-    super('tsmodaddmember', {
+    super('modaddmember', {
       aliases: ['tsmodaddmember', 'modaddmember'],
       args: [
         {

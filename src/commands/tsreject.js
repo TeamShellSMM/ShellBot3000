@@ -1,12 +1,13 @@
 const TSCommand = require('../TSCommand.js');
 
-class TSApprove extends TSCommand {
+class TSReject extends TSCommand {
   constructor() {
-    super('tsreject', {
-      aliases: ['reject'],
+    super('reject', {
+      aliases: ['reject', 'tsreject'],
       args: [
         {
           id: 'level',
+          description: 'levelCode',
           type: 'level:pending',
           default: null,
         },
@@ -23,6 +24,7 @@ class TSApprove extends TSCommand {
   }
 
   async tsexec(ts, message, args2) {
+    console.log('not reacting');
     const args = args2;
     args.type = 'reject';
     args.discord_id = ts.discord.getAuthor(message);
@@ -33,4 +35,4 @@ class TSApprove extends TSCommand {
     return true;
   }
 }
-module.exports = TSApprove;
+module.exports = TSReject;

@@ -8,6 +8,7 @@ class mockUser extends TSCommand {
       args: [
         {
           id: 'member',
+          description: 'memberName',
           type: 'teammember',
           match: 'rest',
           default: null,

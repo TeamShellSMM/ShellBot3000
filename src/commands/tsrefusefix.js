@@ -2,11 +2,12 @@ const TSCommand = require('../TSCommand.js');
 
 class TSRefuseFix extends TSCommand {
   constructor() {
-    super('tsrefusefix', {
+    super('refusefix', {
       aliases: ['tsrefusefix', 'refusefix'],
       args: [
         {
           id: 'level',
+          description: 'levelCode',
           type: 'level',
           default: null,
         },

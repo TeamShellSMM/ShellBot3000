@@ -2,11 +2,12 @@ const TSCommand = require('../TSCommand.js');
 
 class tslike extends TSCommand {
   constructor() {
-    super('tslike', {
+    super('like', {
       aliases: ['tslike', 'like', 'tsunlike', 'unlike'],
       args: [
         {
           id: 'level',
+          description: 'levelCode',
           type: 'level',
           default: null,
         },

@@ -2,11 +2,12 @@ const TSCommand = require('../TSCommand.js');
 
 class TSRegister extends TSCommand {
   constructor() {
-    super('tsregister', {
+    super('register', {
       aliases: ['tsregister', 'register'],
       args: [
         {
           id: 'nicknameOverride',
+          description: 'nickname',
           type: 'text:optional',
           match: 'rest',
           default: null,

@@ -51,7 +51,11 @@ describe('!random / !playersRandom', function () {
     });
     assert.equal(
       result,
-      'You have to enter at least one valid member name. ',
+      `>>> **!playersRandom __<memberNames>__ <minDifficulty> <maxDifficulty>**\n${await TEST.mockMessageReply(
+        'error.missingMemberNames',
+        { type: 'userError', discord_id: 256 },
+        {},
+      )}`,
     );
   });
 
@@ -63,7 +67,11 @@ describe('!random / !playersRandom', function () {
     });
     assert.equal(
       result,
-      'No member with the name "3" was found in the members list. ',
+      `>>> **!playersRandom __<memberNames>__ <minDifficulty> <maxDifficulty>**\n${await TEST.mockMessageReply(
+        'error.memberNotFound',
+        { type: 'userError', discord_id: 256 },
+        { name: '3' },
+      )}`,
     );
   });
 
@@ -75,7 +83,11 @@ describe('!random / !playersRandom', function () {
     });
     assert.equal(
       result,
-      'No member with the name "Other" was found in the members list. ',
+      `>>> **!playersRandom __<memberNames>__ <minDifficulty> <maxDifficulty>**\n${await TEST.mockMessageReply(
+        'error.memberNotFound',
+        { type: 'userError', discord_id: 256 },
+        { name: 'Other' },
+      )}`,
     );
   });
 
@@ -142,7 +154,14 @@ describe('!random / !playersRandom', function () {
       channel: 'general',
       discord_id: '128',
     });
-    assert.equal(result, "You didn't give any tags ");
+    assert.equal(
+      result,
+      `>>> **!randomtags __<tags>__ <minDifficulty> <maxDifficulty>**\n${await TEST.mockMessageReply(
+        'tags.noTags',
+        { type: 'userError', discord_id: 128 },
+        {},
+      )}`,
+    );
   });
 
   it('!randomtag no tags in db', async function () {
@@ -153,7 +172,11 @@ describe('!random / !playersRandom', function () {
     });
     assert.equal(
       result,
-      '`smw` is not a tag that has been whitelisted. ',
+      `>>> **!randomtags __<tags>__ <minDifficulty> <maxDifficulty>**\n${await TEST.mockMessageReply(
+        'tags.whitelistedOnly',
+        { type: 'userError', discord_id: 128 },
+        { tag: 'smw' },
+      )}`,
     );
   });
 
@@ -166,9 +189,14 @@ describe('!random / !playersRandom', function () {
     });
     assert.equal(
       result,
-      '`smw` is not a tag that has been whitelisted. ',
+      `>>> **!randomtags __<tags>__ <minDifficulty> <maxDifficulty>**\n${await TEST.mockMessageReply(
+        'tags.whitelistedOnly',
+        { type: 'userError', discord_id: 128 },
+        { tag: 'smw' },
+      )}`,
     );
   });
+
   it('!randomtag unknown tag but have similar tag', async function () {
     await TEST.ts.load();
     const result = await TEST.mockBotSend({
@@ -178,7 +206,11 @@ describe('!random / !playersRandom', function () {
     });
     assert.equal(
       result,
-      '`tag2` is not a tag that has been whitelisted. ',
+      `>>> **!randomtags __<tags>__ <minDifficulty> <maxDifficulty>**\n${await TEST.mockMessageReply(
+        'tags.whitelistedOnly',
+        { type: 'userError', discord_id: 128 },
+        { tag: 'tag2' },
+      )}`,
     );
   });
 

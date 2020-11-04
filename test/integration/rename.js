@@ -50,11 +50,11 @@ describe('!rename', function () {
     });
     assert.equal(
       result,
-      await TEST.mockMessage(
+      `>>> **!rename __<levelCode>__ <levelName>**\n${await TEST.mockMessageReply(
         'error.noCode',
-        { type: 'userError' },
-        { name: 'Creator' },
-      ),
+        { type: 'userError', discord_id: 256 },
+        {},
+      )}`,
     );
   });
   it('no level name', async function () {
@@ -65,7 +65,11 @@ describe('!rename', function () {
     });
     assert.equal(
       result,
-      'Missing parameter. You have to enter something here. ',
+      `>>> **!rename <levelCode> __<levelName>__**\n${await TEST.mockMessageReply(
+        'error.missingParameter',
+        { type: 'userError', discord_id: 256 },
+        {},
+      )}`,
     );
   });
 
@@ -76,7 +80,11 @@ describe('!rename', function () {
         channel: 'general',
         discord_id: '256',
       }),
-      'This is not a valid level code. ',
+      `>>> **!rename __<levelCode>__ <levelName>**\n${await TEST.mockMessageReply(
+        'error.invalidCode',
+        { type: 'userError', discord_id: 256 },
+        {},
+      )}`,
     );
   });
 
@@ -87,9 +95,11 @@ describe('!rename', function () {
         channel: 'general',
         discord_id: '256',
       }),
-      await TEST.mockMessage('error.specialDiscordString', {
-        type: 'userError',
-      }),
+      `>>> **!rename <levelCode> __<levelName>__**\n${await TEST.mockMessageReply(
+        'error.specialDiscordString',
+        { type: 'userError', discord_id: 256 },
+        {},
+      )}`,
     );
   });
 

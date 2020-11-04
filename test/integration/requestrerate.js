@@ -54,7 +54,11 @@ describe('!requestrerate', function () {
         channel: 'general',
         discord_id: '64',
       }),
-      'This level is not an approved level. ',
+      `>>> **!requestrerate __<levelCode>__ <reason | difficulty reason>**\n${await TEST.mockMessageReply(
+        'error.levelNotApproved',
+        { type: 'userError', discord_id: 64 },
+        {},
+      )}`,
     );
   });
 
@@ -65,7 +69,11 @@ describe('!requestrerate', function () {
         channel: 'general',
         discord_id: '64',
       }),
-      "You didn't enter a level code. ",
+      `>>> **!requestrerate __<levelCode>__ <reason | difficulty reason>**\n${await TEST.mockMessageReply(
+        'error.noCode',
+        { type: 'userError', discord_id: 64 },
+        {},
+      )}`,
     );
   });
 
@@ -76,7 +84,11 @@ describe('!requestrerate', function () {
         channel: 'general',
         discord_id: '64',
       }),
-      'Missing parameter. You have to enter something here. ',
+      `>>> **!requestrerate <levelCode> __<reason | difficulty reason>__**\n${await TEST.mockMessageReply(
+        'error.missingParameter',
+        { type: 'userError', discord_id: 64 },
+        {},
+      )}`,
     );
   });
 });

@@ -118,11 +118,11 @@ describe('!reupload', function () {
     });
     assert.equal(
       result,
-      await TEST.mockMessage(
+      `>>> **!reupload __<oldCode>__ <newCode> <reason>**\n${await TEST.mockMessageReply(
         'error.noCode',
-        { type: 'userError' },
-        { name: 'Creator' },
-      ),
+        { type: 'userError', discord_id: 64 },
+        {},
+      )}`,
     );
   });
 
@@ -134,11 +134,11 @@ describe('!reupload', function () {
     });
     assert.equal(
       result,
-      await TEST.mockMessage(
+      `>>> **!reupload <oldCode> __<newCode>__ <reason>**\n${await TEST.mockMessageReply(
         'error.noCode',
-        { type: 'userError' },
-        { name: 'Creator' },
-      ),
+        { type: 'userError', discord_id: 64 },
+        {},
+      )}`,
     );
   });
   it('invalid old code', async () => {
@@ -149,11 +149,11 @@ describe('!reupload', function () {
     });
     assert.equal(
       result,
-      await TEST.mockMessage(
+      `>>> **!reupload __<oldCode>__ <newCode> <reason>**\n${await TEST.mockMessageReply(
         'error.invalidCode',
-        { type: 'userError' },
-        { name: 'Creator' },
-      ),
+        { type: 'userError', discord_id: 64 },
+        {},
+      )}`,
     );
   });
 
@@ -165,11 +165,11 @@ describe('!reupload', function () {
     });
     assert.equal(
       result,
-      await TEST.mockMessage(
+      `>>> **!reupload <oldCode> __<newCode>__ <reason>**\n${await TEST.mockMessageReply(
         'error.invalidCode',
-        { type: 'userError' },
-        { name: 'Creator' },
-      ),
+        { type: 'userError', discord_id: 64 },
+        {},
+      )}`,
     );
   });
 
@@ -197,11 +197,11 @@ describe('!reupload', function () {
     });
     assert.equal(
       result,
-      await TEST.mockMessage(
+      `>>> **!reupload <oldCode> <newCode> __<reason>__**\n${await TEST.mockMessageReply(
         'error.missingParameter',
-        { type: 'userError' },
-        { name: 'Creator' },
-      ),
+        { type: 'userError', discord_id: 64 },
+        {},
+      )}`,
     );
   });
 

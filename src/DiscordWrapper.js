@@ -290,8 +290,16 @@ class DiscordWrapper {
     return DiscordWrapper.reply(message, content);
   }
 
+  async sendChannel(channel, content) {
+    return DiscordWrapper.sendChannel(channel, content);
+  }
+
   static async reply(message, content) {
     return message.reply(content);
+  }
+
+  static async sendChannel(channel, content) {
+    return channel.send(content);
   }
 
   embed() {

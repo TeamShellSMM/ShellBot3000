@@ -3,17 +3,19 @@ const TSCommand = require('../TSCommand.js');
 
 class RequestRerate extends TSCommand {
   constructor() {
-    super('tsrequestrerate', {
+    super('requestrerate', {
       aliases: ['tsrequestrerate', 'requestrerate'],
       channelRestriction: 'guild',
       args: [
         {
           id: 'level',
+          description: 'levelCode',
           type: 'level:approved',
           default: null,
         },
         {
           id: 'reasonAndDifficulty',
+          description: 'reason | difficulty reason',
           type: 'longtext',
           match: 'rest',
           default: null,

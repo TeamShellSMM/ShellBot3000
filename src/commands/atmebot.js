@@ -2,7 +2,7 @@ const TSCommand = require('../TSCommand.js');
 
 class atmebot extends TSCommand {
   constructor() {
-    super('atmebot', {
+    super('atme', {
       aliases: ['atmebot', 'atme', 'dontatmebot', 'dontatme'],
       channelRestriction: 'guild',
     });

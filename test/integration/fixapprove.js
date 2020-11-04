@@ -304,7 +304,11 @@ describe('!fixapprove', function () {
         channel: '🔨XXX-XXX-XX4',
         discord_id: '128',
       }),
-      'Missing parameter. You have to enter something here. ',
+      `>>> **!auditapprove/auditreject __<reason | difficulty reason>__**\n${await TEST.mockMessageReply(
+        'error.missingParameter',
+        { type: 'userError', discord_id: 128 },
+        {},
+      )}`,
     );
   });
 
@@ -381,7 +385,11 @@ describe('!fixapprove', function () {
 
     assert.equal(
       result,
-      'Missing parameter. You have to enter something here. ',
+      `>>> **!auditapprove/auditreject __<reason | difficulty reason>__**\n${await TEST.mockMessageReply(
+        'error.missingParameter',
+        { type: 'userError', discord_id: 128 },
+        {},
+      )}`,
     );
 
     await TEST.fetchGuild();
@@ -436,7 +444,11 @@ describe('!fixapprove', function () {
 
     assert.equal(
       result,
-      'Missing parameter. You have to enter something here. ',
+      `>>> **!auditapprove/auditreject __<reason | difficulty reason>__**\n${await TEST.mockMessageReply(
+        'error.missingParameter',
+        { type: 'userError', discord_id: 128 },
+        {},
+      )}`,
     );
   });
 
@@ -483,7 +495,11 @@ describe('!fixapprove', function () {
 
     assert.equal(
       result,
-      'Missing parameter. You have to enter something here. ',
+      `>>> **!auditapprove/auditreject __<reason | difficulty reason>__**\n${await TEST.mockMessageReply(
+        'error.missingParameter',
+        { type: 'userError', discord_id: 128 },
+        {},
+      )}`,
     );
   });
 
@@ -547,7 +563,11 @@ describe('!fixapprove', function () {
 
     assert.equal(
       result,
-      'Missing parameter. You have to enter something here. ',
+      `>>> **!auditapprove/auditreject __<reason | difficulty reason>__**\n${await TEST.mockMessageReply(
+        'error.missingParameter',
+        { type: 'userError', discord_id: 128 },
+        {},
+      )}`,
     );
   });
 

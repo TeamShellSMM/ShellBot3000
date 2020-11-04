@@ -57,11 +57,11 @@ describe('!clears', function () {
     });
     assert.equal(
       result,
-      await TEST.mockMessage(
+      `>>> **!clear __<levelCode>__ <difficultyVote | difficultyVote like/unlike | like/unlike>**\n${await TEST.mockMessageReply(
         'error.noCode',
-        { type: 'userError' },
-        { name: 'Creator' },
-      ),
+        { type: 'userError', discord_id: 256 },
+        {},
+      )}`,
     );
   });
 

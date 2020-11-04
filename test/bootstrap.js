@@ -268,6 +268,23 @@ before(async () => {
     return msg;
   };
 
+  global.TEST.mockMessageReply = async (
+    template,
+    { type, discord_id },
+    args,
+  ) => {
+    const msg = await TEST.ts.message(template, args);
+    if (type === 'userError')
+      return `<@${discord_id}>, ${msg}${await TEST.ts.message(
+        'error.afterUserDiscord',
+      )}`;
+    if (type === 'registeredSuccess') {
+      const user = await TEST.ts.getUser(discord_id);
+      return user.userReply + msg;
+    }
+    return `<@${discord_id}>, ${msg}`;
+  };
+
   global.TEST.sleep = (ms) => {
     return new Promise((resolve) => setTimeout(resolve, ms));
   };
@@ -349,7 +366,9 @@ before(async () => {
     }
 
     const send = sandbox.fake(getMsg);
+    const sendChannel = sandbox.fake(getMsg);
     const reply = sandbox.fake(getMsg);
+    const DWsendChannel = sandbox.fake(getMsg);
     const DWreply = sandbox.fake(getMsg);
     const dm = sandbox.fake(getMsg);
     const messageSend = sandbox.fake(getMsg);
@@ -374,7 +393,13 @@ before(async () => {
 
     sandbox.replace(TEST.ts.discord, 'send', send);
     sandbox.replace(TEST.ts.discord, 'reply', reply);
+    sandbox.replace(TEST.ts.discord, 'sendChannel', sendChannel);
     sandbox.replace(TEST.ts.DiscordWrapper, 'reply', DWreply);
+    sandbox.replace(
+      TEST.ts.DiscordWrapper,
+      'sendChannel',
+      DWsendChannel,
+    );
     sandbox.replace(TEST.ts.discord, 'messageSend', messageSend);
     sandbox.replace(TEST.ts.discord, 'updatePinned', updatePin);
     // sandbox.replace(TEST.ts.discord, 'createChannel', createChannel);

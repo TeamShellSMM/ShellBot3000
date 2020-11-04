@@ -48,13 +48,14 @@ describe('!add', function () {
       channel: 'general',
       discord_id: '256',
     });
+
     assert.equal(
       result,
-      await TEST.mockMessage(
+      `>>> **!add __<levelCode>__ <gameStyle> <levelName>**\n${await TEST.mockMessageReply(
         'error.noCode',
-        { type: 'userError' },
+        { type: 'userError', discord_id: 256 },
         { name: 'Creator' },
-      ),
+      )}`,
     );
   });
   it('no game style', async function () {
@@ -65,9 +66,11 @@ describe('!add', function () {
     });
     assert.equal(
       result,
-      await TEST.mockMessage('add.missingGameStyle', {
-        type: 'userError',
-      }),
+      `>>> **!add <levelCode> __<gameStyle>__ <levelName>**\n${await TEST.mockMessageReply(
+        'add.missingGameStyle',
+        { type: 'userError', discord_id: 256 },
+        { name: 'Creator' },
+      )}`,
     );
   });
   it('no level name', async function () {
@@ -78,11 +81,11 @@ describe('!add', function () {
     });
     assert.equal(
       result,
-      await TEST.mockMessage(
+      `>>> **!add <levelCode> <gameStyle> __<levelName>__**\n${await TEST.mockMessageReply(
         'error.missingParameter',
-        { type: 'userError' },
+        { type: 'userError', discord_id: 256 },
         { name: 'Creator' },
-      ),
+      )}`,
     );
   });
   it('invalid code', async function () {
@@ -93,11 +96,11 @@ describe('!add', function () {
     });
     assert.equal(
       result,
-      await TEST.mockMessage(
+      `>>> **!add __<levelCode>__ <gameStyle> <levelName>**\n${await TEST.mockMessageReply(
         'error.invalidCode',
-        { type: 'userError' },
-        { code: 'XX-XXX-XXX' },
-      ),
+        { type: 'userError', discord_id: 256 },
+        { name: 'Creator' },
+      )}`,
     );
   });
 
@@ -130,15 +133,11 @@ describe('!add', function () {
     });
     assert.equal(
       result,
-      await TEST.mockMessage(
+      `>>> **!add __<levelCode>__ <gameStyle> <levelName>**\n${await TEST.mockMessageReply(
         'error.invalidCode',
-        { type: 'userError' },
-        {
-          level_name: '',
-          code: 'XXX-XXX-XXX',
-          creator: 'Creator',
-        },
-      ),
+        { type: 'userError', discord_id: 256 },
+        { name: 'Creator' },
+      )}`,
     );
   });
 
@@ -174,9 +173,11 @@ describe('!add', function () {
         channel: 'general',
         discord_id: '512',
       }),
-      await TEST.mockMessage('error.specialDiscordString', {
-        type: 'userError',
-      }),
+      `>>> **!add <levelCode> <gameStyle> __<levelName>__**\n${await TEST.mockMessageReply(
+        'error.specialDiscordString',
+        { type: 'userError', discord_id: 512 },
+        { name: 'Creator' },
+      )}`,
     );
   });
 
@@ -225,11 +226,11 @@ describe('!add', function () {
     });
     assert.equal(
       result,
-      await TEST.mockMessage(
+      `>>> **!add __<levelCode>__ <gameStyle> <levelName>**\n${await TEST.mockMessageReply(
         'error.invalidCode',
-        { type: 'userError' },
-        { code: '0791-0000-03DD-2D52' },
-      ),
+        { type: 'userError', discord_id: 256 },
+        { name: 'Creator' },
+      )}`,
     );
   });
 

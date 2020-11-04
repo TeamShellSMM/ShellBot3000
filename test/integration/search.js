@@ -175,7 +175,11 @@ describe('!search', function () {
         channel: 'general',
         discord_id: '256',
       }),
-      'Missing parameter. You have to enter something here. ',
+      `>>> **!search __<searchTerm>__**\n${await TEST.mockMessageReply(
+        'error.missingParameter',
+        { type: 'userError', discord_id: 256 },
+        {},
+      )}`,
     );
   });
 
