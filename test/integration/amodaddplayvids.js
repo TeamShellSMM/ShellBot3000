@@ -118,7 +118,11 @@ describe('!modadd/remove vids', () => {
         channel: TEST.ts.channels.modChannel,
         discord_id: '1024',
       }),
-      'The following urls are not from allowed video hosting websites: ```https://clips.othersite.tv/12345```\nCurrently we only allow videos from twitter, youtube, twitch and streamable. ',
+      `>>> **!modaddplayvids <memberName> <levelCode> __<newVids>__**\n${await TEST.mockMessageReply(
+        'addVids.notAllowed',
+        { type: 'userError', discord_id: 1024 },
+        { videos: 'https://clips.othersite.tv/12345' },
+      )}`,
     );
   });
 

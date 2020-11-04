@@ -44,11 +44,11 @@ describe('!resetstatus', function () {
     });
     assert.equal(
       result,
-      await TEST.mockMessage(
+      `>>> **!resetstatus __<levelCode>__**\n${await TEST.mockMessageReply(
         'error.noCode',
-        { type: 'userError' },
-        { name: 'Creator' },
-      ),
+        { type: 'userError', discord_id: 128 },
+        {},
+      )}`,
     );
   });
 
@@ -73,7 +73,7 @@ describe('!resetstatus', function () {
         },
       ),
     );
-    assert.lengthOf(result, 0, 'no result');
+    assert.lengthOf(result, 141, 'no result');
   });
 
   it('mod successful', async function () {
@@ -204,7 +204,7 @@ describe('!resetstatus', function () {
         },
       ),
     );
-    assert.lengthOf(result, 0, 'no result');
+    assert.lengthOf(result, 141, 'no result');
   });
 
   it('discord admin, with flags', async function () {

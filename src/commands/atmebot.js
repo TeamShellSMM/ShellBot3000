@@ -2,15 +2,14 @@ const TSCommand = require('../TSCommand.js');
 
 class atmebot extends TSCommand {
   constructor() {
-    super('atmebot', {
+    super('atme', {
       aliases: ['atmebot', 'atme', 'dontatmebot', 'dontatme'],
       channelRestriction: 'guild',
     });
   }
 
-  async tsexec(ts, message) {
+  async tsexec(ts, message, { command }) {
     const atmeCommands = ['atmebot', 'atme'];
-    const command = ts.parseCommand(message);
     const player = await ts.getUser(message);
     let atmeVal;
     let alreadyError;

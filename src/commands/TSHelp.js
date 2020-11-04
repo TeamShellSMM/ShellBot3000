@@ -4,16 +4,21 @@ class TSHelp extends TSCommand {
   constructor() {
     super('help', {
       aliases: ['help', 'help.*', '?'],
-      args: [],
+      args: [
+        {
+          id: 'commandName',
+          type: 'text:optional',
+          match: 'rest',
+          default: null,
+        },
+      ],
       category: 'help',
       channelRestriction: 'guild',
     });
   }
 
-  async tsexec(ts, message) {
-    const command = ts.parseCommand(message);
-    let commandName = command.next();
-
+  async tsexec(ts, message, args) {
+    let { commandName } = args;
     if (commandName) {
       if (commandName === 'commands') {
         let replyMessage = await ts.message(`help.commands`);

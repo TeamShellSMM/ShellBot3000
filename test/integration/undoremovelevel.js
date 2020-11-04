@@ -60,7 +60,7 @@ describe('!undoremove', function () {
       channel: TEST.ts.channels.modChannel,
       discord_id: '128',
     });
-    assert.lengthOf(result, 0, 'no result');
+    assert.lengthOf(result, 89, 'no result');
   });
 
   it('not mod or creator', async function () {
@@ -69,7 +69,7 @@ describe('!undoremove', function () {
       channel: TEST.ts.channels.modChannel,
       discord_id: '512',
     });
-    assert.lengthOf(result, 0, 'no result');
+    assert.lengthOf(result, 141, 'no result');
   });
 
   it('mod but no reason', async function () {
@@ -79,7 +79,7 @@ describe('!undoremove', function () {
         channel: TEST.ts.channels.modChannel,
         discord_id: '128',
       }),
-      0,
+      111,
       'no result',
     );
   });
@@ -91,7 +91,7 @@ describe('!undoremove', function () {
         channel: TEST.ts.channels.modChannel,
         discord_id: '128',
       }),
-      0,
+      141,
       'no result',
     );
   });
@@ -105,7 +105,7 @@ describe('!undoremove', function () {
       channel: TEST.ts.channels.modChannel,
       discord_id: '128',
     });
-    assert.lengthOf(result, 0, 'no result');
+    assert.lengthOf(result, 141, 'no result');
   });
 
   it('mod removed', async function () {
@@ -117,6 +117,6 @@ describe('!undoremove', function () {
       channel: TEST.ts.channels.modChannel,
       discord_id: '128',
     });
-    assert.lengthOf(result, 0, 'no result');
+    assert.lengthOf(result, 141, 'no result');
   });
 });

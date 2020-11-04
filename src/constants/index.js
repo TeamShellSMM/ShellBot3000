@@ -746,6 +746,42 @@ const defaultCommandPermissions = Object.freeze({
       },
     ],
   },
+  modmergemembers: {
+    allowedRoles: 'mods',
+    allowedChannels: [
+      {
+        type: 'text',
+        settingChannelName: 'modChannel',
+      },
+    ],
+  },
+  modremovelevel: {
+    allowedRoles: 'mods',
+    allowedChannels: [
+      {
+        type: 'text',
+        settingChannelName: 'modChannel',
+      },
+    ],
+  },
+  modrenamemember: {
+    allowedRoles: 'mods',
+    allowedChannels: [
+      {
+        type: 'text',
+        settingChannelName: 'modChannel',
+      },
+    ],
+  },
+  modremoveclear: {
+    allowedRoles: 'mods',
+    allowedChannels: [
+      {
+        type: 'text',
+        settingChannelName: 'modChannel',
+      },
+    ],
+  },
   pendingstatus: {
     allowedRoles: 'all',
     allowedChannels: [],
@@ -770,7 +806,7 @@ const defaultCommandPermissions = Object.freeze({
     allowedRoles: 'all',
     allowedChannels: [],
   },
-  randomtag: {
+  randomtags: {
     allowedRoles: 'all',
     allowedChannels: [],
   },

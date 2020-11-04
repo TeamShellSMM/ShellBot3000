@@ -3,7 +3,7 @@ token.json
 test.js
 config/
 #We'll ignore this for now. In the future we'll either use this or yarn when everything is stable
-package-lock.json
+#package-lock.json
 *.sqlite3
 
 .vscode

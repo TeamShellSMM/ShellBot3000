@@ -2,20 +2,20 @@ const TSCommand = require('../TSCommand.js');
 
 class TSJudge extends TSCommand {
   constructor() {
-    super('tsjudge', {
+    super('judge', {
       aliases: ['tsjudge', 'judge', 'forcejudge'],
       args: [],
       channelRestriction: 'guild',
     });
   }
 
-  async tsexec(ts, message) {
+  async tsexec(ts, message, { command }) {
     // Check if in level discussion channel
     if (
       ts.discord.messageGetParent(message) ===
       ts.channels.levelDiscussionCategory
     ) {
-      const { code, command } = ts.getCodeArgument(message);
+      const { code } = ts.getCodeArgument(message);
       await ts.judge(
         code,
         false,

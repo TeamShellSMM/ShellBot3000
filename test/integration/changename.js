@@ -53,7 +53,11 @@ describe('!changename', () => {
         channel: 'general',
         discord_id: '128',
       }),
-      "You didn't give a new name ",
+      `>>> **!nickname __<newName>__**\n${await TEST.mockMessageReply(
+        'error.missingParameter',
+        { type: 'userError', discord_id: 128 },
+        {},
+      )}`,
     );
   });
 
@@ -75,7 +79,11 @@ describe('!changename', () => {
         channel: 'general',
         discord_id: '256',
       }),
-      "We can't process your command because it had special discord strings like <@666085542085001246> in it ",
+      `>>> **!nickname __<newName>__**\n${await TEST.mockMessageReply(
+        'error.specialDiscordString',
+        { type: 'userError', discord_id: 256 },
+        {},
+      )}`,
     );
   });
 

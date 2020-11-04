@@ -1,28 +1,12 @@
-const { AkairoClient } = require('discord-akairo');
 const debug = require('debug')('shellbot3000:discord');
 const knex = require('./db/knex');
 const TS = require('./TS.js');
+const TSClient = require('./TSClient.js');
 const DiscordLog = require('./DiscordLog');
 const WebApi = require('./WebApi');
 const DiscordWrapper = require('./DiscordWrapper');
 
-const devVars =
-  process.NODE_ENV !== 'production'
-    ? {
-        debug: true,
-        blockBots: false,
-        blockClient: false,
-        defaultCooldown: 0,
-      }
-    : {};
-
-const client = new AkairoClient({
-  prefix: '!',
-  disableEveryone: true,
-  defaultCooldown: 500,
-  commandDirectory: 'src/commands/',
-  ...devVars,
-});
+const client = new TSClient();
 
 client.on('guildCreate', async (guild) => {
   DiscordLog.log(`Joined a new guild: ${guild.name}`, client);
@@ -39,7 +23,7 @@ client.on('debug', debug);
 
 client.on('ready', async () => {
   await DiscordLog.log(
-    `ShellBot3000 (${process.env.NODE_ENV}) has started , with ${client.users.size} users, in ${client.channels.size} channels of ${client.guilds.size} guilds.`,
+    `ShellBot3000 (${process.env.NODE_ENV}) has started , with ${client.users.cache.size} users, in ${client.channels.cache.size} channels of ${client.guilds.cache.size} guilds.`,
     client,
   );
   const teams = await knex('teams').select();
@@ -47,7 +31,9 @@ client.on('ready', async () => {
 
   for (let i = 0; i < teams.length; i += 1) {
     const team = teams[i];
-    const guild = client.guilds.find((g) => g.id === team.guild_id);
+    const guild = client.guilds.cache.find(
+      (g) => g.id === team.guild_id,
+    );
     if (team && guild) {
       // eslint-disable-next-line no-await-in-loop
       await TS.add(guild.id, DiscordWrapper);

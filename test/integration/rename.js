@@ -50,11 +50,11 @@ describe('!rename', function () {
     });
     assert.equal(
       result,
-      await TEST.mockMessage(
+      `>>> **!rename __<levelCode>__ <levelName>**\n${await TEST.mockMessageReply(
         'error.noCode',
-        { type: 'userError' },
-        { name: 'Creator' },
-      ),
+        { type: 'userError', discord_id: 256 },
+        {},
+      )}`,
     );
   });
   it('no level name', async function () {
@@ -63,7 +63,14 @@ describe('!rename', function () {
       channel: 'general',
       discord_id: '256',
     });
-    assert.equal(result, "You didn't give a new level name ");
+    assert.equal(
+      result,
+      `>>> **!rename <levelCode> __<levelName>__**\n${await TEST.mockMessageReply(
+        'error.missingParameter',
+        { type: 'userError', discord_id: 256 },
+        {},
+      )}`,
+    );
   });
 
   it('no code', async function () {
@@ -73,7 +80,11 @@ describe('!rename', function () {
         channel: 'general',
         discord_id: '256',
       }),
-      "The code `NEW` was not found in AutoTest's list. ",
+      `>>> **!rename __<levelCode>__ <levelName>**\n${await TEST.mockMessageReply(
+        'error.invalidCode',
+        { type: 'userError', discord_id: 256 },
+        {},
+      )}`,
     );
   });
 
@@ -84,9 +95,11 @@ describe('!rename', function () {
         channel: 'general',
         discord_id: '256',
       }),
-      await TEST.mockMessage('error.specialDiscordString', {
-        type: 'userError',
-      }),
+      `>>> **!rename <levelCode> __<levelName>__**\n${await TEST.mockMessageReply(
+        'error.specialDiscordString',
+        { type: 'userError', discord_id: 256 },
+        {},
+      )}`,
     );
   });
 

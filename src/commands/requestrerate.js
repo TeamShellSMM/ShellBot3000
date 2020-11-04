@@ -3,36 +3,33 @@ const TSCommand = require('../TSCommand.js');
 
 class RequestRerate extends TSCommand {
   constructor() {
-    super('tsrequestrerate', {
+    super('requestrerate', {
       aliases: ['tsrequestrerate', 'requestrerate'],
       channelRestriction: 'guild',
+      args: [
+        {
+          id: 'level',
+          description: 'levelCode',
+          type: 'level:approved',
+          default: null,
+        },
+        {
+          id: 'reasonAndDifficulty',
+          description: 'reason | difficulty reason',
+          type: 'longtext',
+          match: 'rest',
+          default: null,
+        },
+      ],
+      quoted: true,
     });
   }
 
-  async tsexec(ts, message, { command }) {
-    let code = command.arguments.shift();
-    if (!code) {
-      ts.userError(await ts.message('error.noCode'));
-    } else {
-      code = code.toUpperCase();
-    }
-
-    const reason = command.arguments.join(' ');
-
-    if (!reason) {
-      ts.userError(await ts.message('requestRerate.noReason'));
-    }
-    ts.reasonLengthCheck(reason, 800);
-
+  async tsexec(ts, message, { level, reasonAndDifficulty }) {
     const player = await ts.getUser(message);
-    const level = await ts.getExistingLevel(code, true);
-
-    if (level.status !== ts.LEVEL_STATUS.APPROVED) {
-      ts.userError(await ts.message('requestRerate.notApproved'));
-    }
 
     await ts.auditDiscussionChannel(
-      code,
+      level.code,
       null,
       ts.CHANNEL_LABELS.AUDIT_RERATE_REQUEST,
       {
@@ -42,13 +39,13 @@ class RequestRerate extends TSCommand {
 
     const voteEmbed = await ts.makeVoteEmbed(level);
     await ts.discord.updatePinned(
-      `${ts.CHANNEL_LABELS.AUDIT_RERATE_REQUEST}${code}`,
+      `${ts.CHANNEL_LABELS.AUDIT_RERATE_REQUEST}${level.code}`,
       voteEmbed,
     );
 
     await ts.discord.send(
-      `${ts.CHANNEL_LABELS.AUDIT_RERATE_REQUEST}${code}`,
-      `Rerate request by <@${player.discord_id}> with message: \`\`\`${reason}\`\`\``,
+      `${ts.CHANNEL_LABELS.AUDIT_RERATE_REQUEST}${level.code}`,
+      `Rerate request by <@${player.discord_id}> with message: \`\`\`${reasonAndDifficulty}\`\`\``,
     );
 
     return ts.discord.reply(

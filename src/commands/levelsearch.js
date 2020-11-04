@@ -11,21 +11,30 @@ function highlight(levelName, needle) {
 
 class levelsearch extends TSCommand {
   constructor() {
-    super('levelsearch', {
+    super('search', {
       aliases: ['levelsearch', 'search'],
       channelRestriction: 'guild',
+      args: [
+        {
+          id: 'searchTerm',
+          type: 'text',
+          match: 'rest',
+          default: null,
+        },
+      ],
+      quoted: true,
     });
   }
 
-  async tsexec(ts, message, { command }) {
+  async tsexec(ts, message, { searchTerm }) {
     const player = await ts.getUser(message);
-    if (command.arguments.length === 0)
-      ts.userError('error.noSearch');
 
-    const sql = new Array(command.arguments.length)
+    const searchTerms = searchTerm.split(' ');
+
+    const args = searchTerms.map((s) => `%${s}%`);
+    const sql = JSON.parse(JSON.stringify(searchTerms))
       .fill('level_name like ?')
       .join(' and ');
-    const args = command.arguments.map((s) => `%${s}%`);
 
     const levels = await ts
       .getLevels()
@@ -38,7 +47,7 @@ class levelsearch extends TSCommand {
         (l) =>
           `• \`${l.code}\` - "${highlight(
             l.level_name,
-            command.arguments,
+            searchTerms,
           )}" by "${l.creator}"`,
       )
       .join('\n');

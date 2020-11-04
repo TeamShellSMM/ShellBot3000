@@ -93,7 +93,11 @@ describe('!fixdiscuss', function () {
         channel: TEST.ts.channels.modChannel,
         discord_id: '128',
       }),
-      await TEST.mockMessage('error.noCode', { type: 'userError' }),
+      `>>> **!fixdiscuss __<levelCode>__**\n${await TEST.mockMessageReply(
+        'error.noCode',
+        { type: 'userError', discord_id: 128 },
+        {},
+      )}`,
     );
   });
 
@@ -119,7 +123,7 @@ describe('!fixdiscuss', function () {
         waitFor: 100,
         discord_id: '64',
       }),
-      0,
+      65,
     );
   });
 

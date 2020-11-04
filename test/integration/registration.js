@@ -110,9 +110,11 @@ describe('registration', function () {
     });
     assert.deepEqual(
       result,
-      await TEST.mockMessage('error.specialDiscordString', {
-        type: 'userError',
-      }),
+      `>>> **!register __<nickname>__**\n${await TEST.mockMessageReply(
+        'error.specialDiscordString',
+        { type: 'userError', discord_id: 512 },
+        {},
+      )}`,
     );
   });
 
@@ -124,9 +126,11 @@ describe('registration', function () {
     });
     assert.deepEqual(
       result,
-      await TEST.mockMessage('error.specialDiscordString', {
-        type: 'userError',
-      }),
+      `>>> **!register __<nickname>__**\n${await TEST.mockMessageReply(
+        'error.specialDiscordString',
+        { type: 'userError', discord_id: 512 },
+        {},
+      )}`,
     );
   });
 

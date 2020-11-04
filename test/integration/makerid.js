@@ -24,7 +24,11 @@ describe('!makerid', function () {
         channel: 'general',
         discord_id: '128',
       }),
-      "You didn't provide any maker code ",
+      `>>> **!makerid __<makerId>__ <makerName>**\n${await TEST.mockMessageReply(
+        'makerid.noCode',
+        { type: 'userError', discord_id: 128 },
+        {},
+      )}`,
     );
   });
 
@@ -35,7 +39,11 @@ describe('!makerid', function () {
         channel: 'general',
         discord_id: '128',
       }),
-      "You didn't provide your maker name ",
+      `>>> **!makerid <makerId> __<makerName>__**\n${await TEST.mockMessageReply(
+        'error.missingParameter',
+        { type: 'userError', discord_id: 128 },
+        {},
+      )}`,
     );
   });
 
@@ -46,7 +54,11 @@ describe('!makerid', function () {
         channel: 'general',
         discord_id: '128',
       }),
-      '`XX-XXX-XXX` is not a valid maker id ',
+      `>>> **!makerid __<makerId>__ <makerName>**\n${await TEST.mockMessageReply(
+        'error.invalidMakerCode',
+        { type: 'userError', discord_id: 128 },
+        { code: 'XX-XXX-XXX' },
+      )}`,
     );
   });
 

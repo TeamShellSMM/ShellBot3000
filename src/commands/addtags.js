@@ -2,7 +2,7 @@ const TSCommand = require('../TSCommand.js');
 
 class TSAddtags extends TSCommand {
   constructor() {
-    super('tsaddtags', {
+    super('addtags', {
       aliases: [
         'tsaddtags',
         'addtags',
@@ -14,10 +14,28 @@ class TSAddtags extends TSCommand {
         'removetag',
       ],
       channelRestriction: 'guild',
+      args: [
+        {
+          id: 'level',
+          description: 'levelCode',
+          type: 'level',
+          default: null,
+        },
+        {
+          id: 'newTags',
+          type: 'tags',
+          match: 'rest',
+          default: null,
+        },
+      ],
+      quoted: true,
     });
   }
 
-  async tsexec(ts, message) {
+  async tsexec(ts, message, args) {
+    const { command, level } = args;
+    let { newTags } = args;
+
     const addCommands = [
       'tsaddtags',
       'addtags',
@@ -25,16 +43,7 @@ class TSAddtags extends TSCommand {
       'addtag',
     ];
 
-    const { code, command } = ts.getCodeArgument(message);
-
-    let newTags = command.rest();
-    if (!newTags) {
-      ts.userError(await ts.message('tags.noTags'));
-    }
-    newTags = newTags.split(/[,\n]/);
-
     const player = await ts.getUser(message);
-    const level = await ts.getExistingLevel(code);
     // First we get all available tags
     newTags = await ts.addTags(
       newTags,

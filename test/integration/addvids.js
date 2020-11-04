@@ -124,7 +124,11 @@ describe('!add/remove vids', () => {
         channel: 'general',
         discord_id: '256',
       }),
-      'You did not give a level code ',
+      `>>> **!addvids __<levelCode>__ <newVids>**\n${await TEST.mockMessageReply(
+        'error.noCode',
+        { type: 'userError', discord_id: 256 },
+        {},
+      )}`,
     );
   });
 
@@ -135,7 +139,11 @@ describe('!add/remove vids', () => {
         channel: 'general',
         discord_id: '256',
       }),
-      "You didn't give any links ",
+      `>>> **!addvids <levelCode> __<newVids>__**\n${await TEST.mockMessageReply(
+        'error.noVideos',
+        { type: 'userError', discord_id: 256 },
+        {},
+      )}`,
     );
   });
 
@@ -146,7 +154,11 @@ describe('!add/remove vids', () => {
         channel: 'general',
         discord_id: '256',
       }),
-      "The links below didn't look like urls: ```\nexample\nof\nnot\nurl``` ",
+      `>>> **!addvids <levelCode> __<newVids>__**\n${await TEST.mockMessageReply(
+        'error.notUrls',
+        { type: 'userError', discord_id: 256 },
+        { urls: 'example\nof\nnot\nurl' },
+      )}`,
     );
   });
 
@@ -235,7 +247,11 @@ describe('!add/remove vids', () => {
         channel: 'general',
         discord_id: '512',
       }),
-      'The following urls are not from allowed video hosting websites: ```https://clips.othersite.tv/12345```\nCurrently we only allow videos from twitter, youtube, twitch and streamable. ',
+      `>>> **!addvids <levelCode> __<newVids>__**\n${await TEST.mockMessageReply(
+        'addVids.notAllowed',
+        { type: 'userError', discord_id: 512 },
+        { videos: 'https://clips.othersite.tv/12345' },
+      )}`,
     );
   });
 

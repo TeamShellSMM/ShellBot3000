@@ -2,15 +2,8 @@ const TSCommand = require('../TSCommand.js');
 
 class points extends TSCommand {
   constructor() {
-    super('points', {
+    super('rank', {
       aliases: ['points', 'rank', 'point'],
-      args: [
-        {
-          id: 'role',
-          type: 'string',
-          default: null,
-        },
-      ],
       channelRestriction: 'guild',
     });
   }

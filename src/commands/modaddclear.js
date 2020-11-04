@@ -2,48 +2,92 @@ const TSCommand = require('../TSCommand.js');
 
 class TSModAddClear extends TSCommand {
   constructor() {
-    super('tsmodaddclear', {
+    super('modaddclear', {
       aliases: ['tsmodaddclear', 'modaddclear'],
       args: [
         {
-          id: 'memberName',
-          type: 'string',
+          id: 'member',
+          description: 'memberName',
+          type: 'teammember',
           default: null,
         },
         {
-          id: 'code',
-          type: 'uppercase',
+          id: 'level',
+          description: 'levelCode',
+          type: 'level',
           default: null,
         },
         {
-          id: 'difficulty',
+          id: 'optionString',
+          description:
+            'difficultyVote | difficultyVote like/unlike | like/unlike',
           type: 'string',
-          default: null,
-        },
-        {
-          id: 'liked',
-          type: 'string',
+          match: 'rest',
           default: null,
         },
       ],
       channelRestriction: 'guild',
+      quoted: true,
     });
   }
 
-  async tsexec(ts, message, args) {
-    let member = await ts.db.Members.query()
-      .whereRaw('lower(name) = ?', [args.memberName.toLowerCase()])
-      .first();
+  async tsexec(ts, message, args2) {
+    const args = args2;
+    const { member } = args;
 
-    if (!member) {
-      ts.userError(
-        await ts.message('modaddlevel.memberNotFound', {
-          name: args.memberName,
-        }),
-      );
+    args.difficulty = null;
+    args.liked = null;
+
+    let { optionString } = args;
+    if (optionString !== undefined && optionString !== null) {
+      optionString += '';
+      optionString = optionString.toLowerCase();
+      const options = optionString.split(' ');
+
+      if (options.length > 1) {
+        if (options[0] === '') args.difficulty = null;
+        if (options[0] == null) args.difficulty = null;
+        if (options[0]) {
+          args.difficulty = parseFloat(options[0]);
+        }
+        if (
+          (args.difficulty !== 0 &&
+            args.difficulty &&
+            !ts.valid_difficulty(args.difficulty)) ||
+          Number.isNaN(args.difficulty)
+        ) {
+          ts.userError(await ts.message('clear.invalidDifficulty'));
+        }
+
+        if (options[1] === 'like') {
+          args.liked = 1;
+        } else if (options[1] === 'unlike') {
+          args.liked = 0;
+        } else {
+          args.liked = ts.commandPassedBoolean(options[1]);
+        }
+      } else if (options.length > 0) {
+        if (options[0] === 'like') {
+          args.liked = 1;
+        } else if (options[0] === 'unlike') {
+          args.liked = 0;
+        } else {
+          if (options[0] === '') args.difficulty = null;
+          if (options[0] == null) args.difficulty = null;
+          if (options[0]) {
+            args.difficulty = parseFloat(options[0]);
+          }
+          if (
+            (args.difficulty !== 0 &&
+              args.difficulty &&
+              !ts.valid_difficulty(args.difficulty)) ||
+            Number.isNaN(args.difficulty)
+          ) {
+            ts.userError(await ts.message('clear.invalidDifficulty'));
+          }
+        }
+      }
     }
-
-    member = await ts.decorateMember(member);
 
     const msg = await ts.clear({
       ...args,

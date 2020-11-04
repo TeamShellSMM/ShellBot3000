@@ -26,7 +26,18 @@ class DiscordWrapper {
    * @returns {Guild}
    */
   guild() {
-    return DiscordWrapper.client.guilds.get(this.guildId);
+    return DiscordWrapper.client.guilds.cache.get(this.guildId);
+  }
+
+  /**
+   * @returns {Guild}
+   */
+  async fetchGuild() {
+    return DiscordWrapper.client.guilds.fetch(
+      this.guildId,
+      true,
+      true,
+    );
   }
 
   botId() {
@@ -43,7 +54,7 @@ class DiscordWrapper {
 
     const searchl = search.toLowerCase();
     const parent = parentID ? this.channel(parentID) : null;
-    return this.guild().channels.find((c) => {
+    return this.guild().channels.cache.find((c) => {
       const untaggedName = c.name.toLowerCase().split(/[^0-9a-z-]/g);
       return (
         ((!exact &&
@@ -65,7 +76,7 @@ class DiscordWrapper {
 
     const searchl = search.toLowerCase();
     const parent = parentID ? this.channel(parentID) : null;
-    return this.guild().channels.filter((c) => {
+    return this.guild().channels.cache.filter((c) => {
       const untaggedName = c.name.toLowerCase().split(/[^0-9a-z-]/g);
       return (
         ((!exact &&
@@ -141,7 +152,7 @@ class DiscordWrapper {
       return this.setChannelParent(name, parent);
     }
     this.checkChannelFull(parent);
-    return this.guild().createChannel(name, {
+    return this.guild().channels.create(name, {
       type,
       parent: parentCategory,
     });
@@ -165,9 +176,9 @@ class DiscordWrapper {
    */
   getMembersWithRole(role) {
     const guild = this.guild();
-    return guild.members
+    return guild.members.cache
       .filter((m) =>
-        m.roles.some((r) => r.name === role || r.id === role),
+        m.roles.cache.some((r) => r.name === role || r.id === role),
       )
       .map((m) => m.user.id);
   }
@@ -178,7 +189,7 @@ class DiscordWrapper {
    */
   getMember(discord_id) {
     const guild = this.guild();
-    return guild.members.find((m) => m.id === discord_id);
+    return guild.members.cache.find((m) => m.id === discord_id);
   }
 
   async setChannelParent(search, parent) {
@@ -199,7 +210,9 @@ class DiscordWrapper {
 
   async removeChannel(search, reason) {
     const channel = this.channel(search);
-    if (channel) return channel.delete(reason);
+    if (channel) {
+      return channel.delete(reason);
+    }
     return false;
   }
 
@@ -209,7 +222,7 @@ class DiscordWrapper {
   }
 
   static channel(channelId) {
-    return this.client.channels.get(channelId);
+    return this.client.channels.cache.get(channelId);
   }
 
   static async send(channelId, content) {
@@ -217,20 +230,28 @@ class DiscordWrapper {
   }
 
   member(discordId) {
-    return this.guild().members.get(discordId);
+    return this.guild().members.cache.get(discordId);
+  }
+
+  async fetchMember(discordId, cache = true, forceApi = false) {
+    return this.guild().members.fetch(discordId, cache, forceApi);
   }
 
   async removeRoles(discordId, roleId) {
     const currMember = this.member(discordId);
     if (!currMember) return false;
 
-    return currMember.removeRoles(roleId);
+    // console.log("removing role", roleId);
+    const r = await currMember.roles.remove(roleId);
+    // console.log("done with remove");
+
+    return r;
   }
 
   hasRole(discordId, roleId) {
     const currMember = this.member(discordId);
     if (!currMember || !currMember.roles) return false;
-    return currMember.roles.some(
+    return currMember.roles.cache.some(
       (r) =>
         r.id === roleId ||
         r.name.toLowerCase() === roleId.toLowerCase(),
@@ -258,15 +279,27 @@ class DiscordWrapper {
     const currMember = this.member(discordId);
     if (!currMember) return false;
     if (this.hasRole(discordId, roleId)) return false;
-    return currMember.addRole(roleId);
+
+    // console.log("adding role", roleId);
+    const r = await currMember.roles.add(roleId);
+    // console.log("done with add");
+    return r;
   }
 
   async reply(message, content) {
     return DiscordWrapper.reply(message, content);
   }
 
+  async sendChannel(channel, content) {
+    return DiscordWrapper.sendChannel(channel, content);
+  }
+
   static async reply(message, content) {
     return message.reply(content);
+  }
+
+  static async sendChannel(channel, content) {
+    return channel.send(content);
   }
 
   embed() {
@@ -357,7 +390,7 @@ class DiscordWrapper {
     const channel = this.channel(channelName);
     debug(`fetching pinned messages ${channelName}`);
     let overviewMessage = (
-      await channel.fetchPinnedMessages(false)
+      await channel.messages.fetchPinned()
     ).last();
     if (!overviewMessage) {
       debug(

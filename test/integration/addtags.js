@@ -107,7 +107,11 @@ describe('!addtags,!removetags', () => {
         channel: 'general',
         discord_id: '256',
       }),
-      'You did not give a level code ',
+      `>>> **!addtags __<levelCode>__ <newTags>**\n${await TEST.mockMessageReply(
+        'error.noCode',
+        { type: 'userError', discord_id: 256 },
+        {},
+      )}`,
     );
   });
 
@@ -118,7 +122,11 @@ describe('!addtags,!removetags', () => {
         channel: 'general',
         discord_id: '256',
       }),
-      "You didn't give any tags ",
+      `>>> **!addtags <levelCode> __<newTags>__**\n${await TEST.mockMessageReply(
+        'tags.noTags',
+        { type: 'userError', discord_id: 256 },
+        {},
+      )}`,
     );
   });
 
@@ -145,13 +153,15 @@ describe('!addtags,!removetags', () => {
       TEST.ts.discord,
       'messageGetChannelName',
     );
-    getChannel.returns('XXX-XXX-XXX');
-    const getParent = sinon.stub(TEST.ts.discord, 'messageGetParent');
-    getParent.returns(TEST.ts.channels.levelDiscussionCategory);
+
+    await TEST.createChannel({
+      name: 'XXX-XXX-XXX',
+      parent: TEST.ts.channels.levelAuditCategory,
+    });
     assert.equal(
       await TEST.mockBotSend({
         cmd: '!addtags tag1,tag2,tag3',
-        channel: 'general',
+        channel: 'XXX-XXX-XXX',
         discord_id: '256',
       }),
       '<@256> Tags added for "approved level" by "Creator" \nCurrent tags:```\ntag1\ntag2\ntag3```',
@@ -175,7 +185,11 @@ describe('!addtags,!removetags', () => {
         channel: 'general',
         discord_id: '256',
       }),
-      '`tag3` is not a tag that has been whitelisted. ',
+      `>>> **!addtags <levelCode> __<newTags>__**\n${await TEST.mockMessageReply(
+        'tags.whitelistedOnly',
+        { type: 'userError', discord_id: 256 },
+        { tag: 'tag3' },
+      )}`,
     );
   });
 

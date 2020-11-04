@@ -4,26 +4,24 @@ class mockUser extends TSCommand {
   constructor() {
     super('mockUser', {
       aliases: ['mockUser'],
-      split: 'quoted',
+      quoted: true,
       args: [
         {
-          id: 'user',
-          type: 'string',
+          id: 'member',
+          description: 'memberName',
+          type: 'teammember',
+          match: 'rest',
           default: null,
         },
       ],
     });
   }
 
-  async tsexec(ts, message, args) {
-    if (!args.user) ts.userError('mock.noTargetGiven');
+  async tsexec(ts, message, { member }) {
     const player = await ts.getUser(message);
-    const target = await ts.db.Members.query()
-      .where({ name: args.user })
-      .first();
 
-    if (!target) ts.userError('mock.notFound');
-    if (target.name === player.name) ts.userError('mock.already');
+    if (!member) ts.userError('mock.notFound');
+    if (member.name === player.name) ts.userError('mock.already');
 
     await ts.db.Members.query()
       .patch({ discord_id: player.discord_id_temp || '1' })
@@ -32,9 +30,9 @@ class mockUser extends TSCommand {
     await ts.db.Members.query()
       .patch({
         discord_id: ts.discord.getAuthor(message),
-        discord_id_temp: target.discord_id,
+        discord_id_temp: member.discord_id,
       })
-      .where({ name: target.name });
+      .where({ name: member.name });
 
     const p = await ts.getUser(message);
     await ts.discord.messageSend(

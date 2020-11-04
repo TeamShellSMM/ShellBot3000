@@ -180,9 +180,10 @@ class TSCommand extends Command {
       }
 
       if (!(await this.canRun(ts, message))) {
-        /* DiscordLog.info(
-          ts.makeErrorObj(`can't run: ${message.content}`, message),
-        ); */
+        await TS.DiscordWrapper.reply(
+          message,
+          "You don't have permission to use this command. Try using `!help commands` to see a list of all commands available to you **in this channel.**",
+        );
         return false;
       }
       await this.tsexec(ts, message, {
@@ -201,7 +202,9 @@ class TSCommand extends Command {
         DiscordLog.log(error, this.client);
       }
     } finally {
-      TS.promisedCallback();
+      if (TS.promisedCallback instanceof Function) {
+        TS.promisedCallback();
+      }
       debug(`end ${message.content}`);
     }
     return true;

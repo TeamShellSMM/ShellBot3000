@@ -1,41 +1,31 @@
+const debug = require('debug')('shellbot3000:ts');
 const TSCommand = require('../TSCommand.js');
 
 class AmendCode extends TSCommand {
   constructor() {
-    super('ammendcode', {
+    super('amendcode', {
       aliases: ['ammendcode', 'amendcode'],
       args: [
         {
-          id: 'oldCode',
-          type: 'uppercase',
+          id: 'existingLevel',
+          description: 'oldCode',
+          type: 'level',
           default: null,
         },
         {
           id: 'newCode',
-          type: 'uppercase',
+          type: 'levelcode',
           default: null,
         },
       ],
+      quoted: true,
     });
   }
 
-  async tsexec(ts, message, { oldCode, newCode }) {
-    if (!oldCode)
-      ts.userError(await ts.message('reupload.noOldCode'));
-    if (!newCode)
-      ts.userError(await ts.message('reupload.noNewCode'));
-
-    if (!ts.validCode(oldCode)) {
-      ts.userError(await ts.message('reupload.invalidOldCode'));
-    }
-    if (!ts.validCode(newCode)) {
-      ts.userError(await ts.message('reupload.invalidNewCode'));
-    }
-    if (oldCode === newCode) {
+  async tsexec(ts, message, { existingLevel, newCode }) {
+    if (existingLevel.code === newCode) {
       ts.userError(await ts.message('reupload.sameCode'));
     }
-
-    const existingLevel = await ts.getExistingLevel(oldCode, true);
     const newCodeCheck = await ts
       .getLevels()
       .where({ code: newCode })
@@ -50,36 +40,49 @@ class AmendCode extends TSCommand {
 
     await ts.db.Levels.query()
       .patch({ code: newCode })
-      .where({ code: oldCode });
+      .where({ code: existingLevel.code });
 
     let notify = false;
     const existingPendingChannel = ts.discord.channel(
-      oldCode,
+      existingLevel.code,
       ts.channels.levelDiscussionCategory,
     );
     if (existingPendingChannel) {
       await ts.labelPendingLevel(
         { ...existingLevel, code: newCode },
-        oldCode,
+        existingLevel.code,
       );
       notify = true;
     }
 
     notify =
-      notify || (await ts.renameAuditChannels(oldCode, newCode));
+      notify ||
+      (await ts.renameAuditChannels(existingLevel.code, newCode));
+
+    debug('after notify', notify);
+
+    await ts.discord.fetchGuild();
+
+    debug('after fetch guild');
 
     if (notify) {
+      debug('should send notify');
       await ts.discord.send(
         newCode,
-        await ts.message('ammendcode.notify', { oldCode, newCode }),
+        await ts.message('ammendcode.notify', {
+          oldCode: existingLevel.code,
+          newCode,
+        }),
       );
     }
+
+    debug('should send success');
 
     await ts.discord.reply(
       message,
       await ts.message('ammendCode.success', {
         level: existingLevel,
-        oldCode,
+        oldCode: existingLevel.code,
         newCode,
       }),
     );

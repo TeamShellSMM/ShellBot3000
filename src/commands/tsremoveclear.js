@@ -2,15 +2,17 @@ const TSCommand = require('../TSCommand.js');
 
 class TSRemoveclear extends TSCommand {
   constructor() {
-    super('tsremoveclear', {
+    super('removeclear', {
       aliases: ['tsremoveclear', 'removeclear'],
       args: [
         {
-          id: 'code',
-          type: 'uppercase',
+          id: 'level',
+          description: 'levelCode',
+          type: 'level',
           default: null,
         },
       ],
+      quoted: true,
       channelRestriction: 'guild',
     });
   }

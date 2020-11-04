@@ -54,7 +54,11 @@ describe('!requestrerate', function () {
         channel: 'general',
         discord_id: '64',
       }),
-      'The level you entered is not approved, difficulty can only be changed for approved levels. ',
+      `>>> **!requestrerate __<levelCode>__ <reason | difficulty reason>**\n${await TEST.mockMessageReply(
+        'error.levelNotApproved',
+        { type: 'userError', discord_id: 64 },
+        {},
+      )}`,
     );
   });
 
@@ -65,7 +69,11 @@ describe('!requestrerate', function () {
         channel: 'general',
         discord_id: '64',
       }),
-      'You did not give a level code ',
+      `>>> **!requestrerate __<levelCode>__ <reason | difficulty reason>**\n${await TEST.mockMessageReply(
+        'error.noCode',
+        { type: 'userError', discord_id: 64 },
+        {},
+      )}`,
     );
   });
 
@@ -76,7 +84,11 @@ describe('!requestrerate', function () {
         channel: 'general',
         discord_id: '64',
       }),
-      'You did not provide a reason to rerate this level, please provide a reason and the difficulty you think would be correct for this level. ',
+      `>>> **!requestrerate <levelCode> __<reason | difficulty reason>__**\n${await TEST.mockMessageReply(
+        'error.missingParameter',
+        { type: 'userError', discord_id: 64 },
+        {},
+      )}`,
     );
   });
 });

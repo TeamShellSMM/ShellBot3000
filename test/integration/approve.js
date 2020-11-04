@@ -88,7 +88,7 @@ describe('!approve', function () {
       waitFor: 100,
       discord_id: '256',
     });
-    assert.lengthOf(result, 0, 'no result');
+    assert.lengthOf(result, 141, 'no result');
   });
 
   it('in non modChannel', async () => {
@@ -98,7 +98,7 @@ describe('!approve', function () {
       waitFor: 100,
       discord_id: '256',
     });
-    assert.lengthOf(result, 0, 'no result');
+    assert.lengthOf(result, 141, 'no result');
   });
 
   it('approve judge not pending', async () => {
@@ -137,7 +137,11 @@ describe('!approve', function () {
     });
     assert.equal(
       result,
-      "Your reason/comment can't be longer than 1500 ",
+      `>>> **!approve/fix(+cl) <levelCode> <difficulty> __<reason>__**\n${await TEST.mockMessageReply(
+        'error.textTooLong',
+        { type: 'userError', discord_id: 256 },
+        { maximumChars: 1500 },
+      )}`,
     );
   });
 
@@ -188,7 +192,7 @@ describe('!approve', function () {
       color: 106911,
       author: {
         name: 'This level was approved for difficulty: 3.5!',
-        icon_url: undefined,
+        iconURL: undefined,
         url: undefined,
       },
     });
@@ -246,7 +250,14 @@ describe('!approve', function () {
       channel: TEST.ts.channels.modChannel,
       discord_id: '256',
     });
-    assert.equal(result, 'Level is already approved! ');
+    assert.equal(
+      result,
+      `>>> **!approve/fix(+cl) __<levelCode>__ <difficulty> <reason>**\n${await TEST.mockMessageReply(
+        'approval.levelNotPending',
+        { type: 'userError', discord_id: 256 },
+        {},
+      )}`,
+    );
   });
 
   it('approve no code', async function () {
@@ -255,7 +266,14 @@ describe('!approve', function () {
       channel: TEST.ts.channels.modChannel,
       discord_id: '256',
     });
-    assert.equal(result, 'You did not give a level code ');
+    assert.equal(
+      result,
+      `>>> **!approve/fix(+cl) __<levelCode>__ <difficulty> <reason>**\n${await TEST.mockMessageReply(
+        'error.noCode',
+        { type: 'userError', discord_id: 256 },
+        {},
+      )}`,
+    );
   });
 
   it('approve no reason', async function () {
@@ -266,7 +284,11 @@ describe('!approve', function () {
     });
     assert.equal(
       result,
-      'You need to give a reason for the change (in quotation marks)! ',
+      `>>> **!approve/fix(+cl) <levelCode> <difficulty> __<reason>__**\n${await TEST.mockMessageReply(
+        'error.missingParameter',
+        { type: 'userError', discord_id: 256 },
+        {},
+      )}`,
     );
   });
 
@@ -276,7 +298,14 @@ describe('!approve', function () {
       channel: TEST.ts.channels.modChannel,
       discord_id: '256',
     });
-    assert.equal(result, 'Invalid difficulty format! ');
+    assert.equal(
+      result,
+      `>>> **!approve/fix(+cl) <levelCode> __<difficulty>__ <reason>**\n${await TEST.mockMessageReply(
+        'approval.invalidDifficulty',
+        { type: 'userError', discord_id: 256 },
+        {},
+      )}`,
+    );
   });
 
   it('approve with emoji reason', async function () {
@@ -295,7 +324,15 @@ describe('!approve', function () {
       channel: TEST.ts.channels.modChannel,
       discord_id: '256',
     });
-    assert.equal(result, 'Level is not pending! ');
+    // console.log(result);
+    assert.equal(
+      result,
+      `>>> **!approve/fix(+cl) __<levelCode>__ <difficulty> <reason>**\n${await TEST.mockMessageReply(
+        'removeLevel.alreadyRemoved',
+        { type: 'userError', discord_id: 256 },
+        { level_name: 'removed level', creator: 'Creator' },
+      )}`,
+    );
   });
 
   it('reject', async function () {
@@ -304,6 +341,9 @@ describe('!approve', function () {
       channel: TEST.ts.channels.modChannel,
       discord_id: '256',
     });
+
+    console.log(result);
+
     const channel = await TEST.ts.discord.channel('xxx-xxx-xxx');
     assert.isOk(channel);
     assert.deepInclude(result[0], {
@@ -379,7 +419,7 @@ describe('!approve', function () {
         'Clear Video: [ 🎬 ](http://twitch.tv),[ 🎬 ](http://youtube.com)',
       author: {
         name: 'The Judgement  has now begun for this level:',
-        icon_url: undefined,
+        iconURL: undefined,
         url: undefined,
       },
     });
@@ -399,7 +439,7 @@ describe('!approve', function () {
       author: {
         name:
           "This level is one step from being approved, we'd just like to see some fixes!",
-        icon_url: undefined,
+        iconURL: undefined,
         url: undefined,
       },
       fields: [

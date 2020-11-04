@@ -49,7 +49,14 @@ describe('!random / !playersRandom', function () {
       channel: 'general',
       discord_id: '256',
     });
-    assert.equal(result, 'You did not provide any players ');
+    assert.equal(
+      result,
+      `>>> **!playersRandom __<memberNames>__ <minDifficulty> <maxDifficulty>**\n${await TEST.mockMessageReply(
+        'error.missingMemberNames',
+        { type: 'userError', discord_id: 256 },
+        {},
+      )}`,
+    );
   });
 
   it('no players', async function () {
@@ -58,7 +65,14 @@ describe('!random / !playersRandom', function () {
       channel: 'general',
       discord_id: '256',
     });
-    assert.equal(result, 'You did not provide any players ');
+    assert.equal(
+      result,
+      `>>> **!playersRandom __<memberNames>__ <minDifficulty> <maxDifficulty>**\n${await TEST.mockMessageReply(
+        'error.memberNotFound',
+        { type: 'userError', discord_id: 256 },
+        { name: '3' },
+      )}`,
+    );
   });
 
   it('unknown player', async function () {
@@ -67,7 +81,14 @@ describe('!random / !playersRandom', function () {
       channel: 'general',
       discord_id: '256',
     });
-    assert.equal(result, 'Other is not found in the memory banks ');
+    assert.equal(
+      result,
+      `>>> **!playersRandom __<memberNames>__ <minDifficulty> <maxDifficulty>**\n${await TEST.mockMessageReply(
+        'error.memberNotFound',
+        { type: 'userError', discord_id: 256 },
+        { name: 'Other' },
+      )}`,
+    );
   });
 
   it('!random check difficulty min only', async function () {
@@ -133,7 +154,14 @@ describe('!random / !playersRandom', function () {
       channel: 'general',
       discord_id: '128',
     });
-    assert.equal(result, "You didn't give a tag ");
+    assert.equal(
+      result,
+      `>>> **!randomtags __<tags>__ <minDifficulty> <maxDifficulty>**\n${await TEST.mockMessageReply(
+        'tags.noTags',
+        { type: 'userError', discord_id: 128 },
+        {},
+      )}`,
+    );
   });
 
   it('!randomtag no tags in db', async function () {
@@ -142,7 +170,14 @@ describe('!random / !playersRandom', function () {
       channel: 'general',
       discord_id: '128',
     });
-    assert.equal(result, 'There are no tags in the level list ');
+    assert.equal(
+      result,
+      `>>> **!randomtags __<tags>__ <minDifficulty> <maxDifficulty>**\n${await TEST.mockMessageReply(
+        'tags.whitelistedOnly',
+        { type: 'userError', discord_id: 128 },
+        { tag: 'smw' },
+      )}`,
+    );
   });
 
   it('!randomtag unknown tag and no similar tags', async function () {
@@ -152,8 +187,16 @@ describe('!random / !playersRandom', function () {
       channel: 'general',
       discord_id: '128',
     });
-    assert.equal(result, "We couldn't find the tag `smw`\n ");
+    assert.equal(
+      result,
+      `>>> **!randomtags __<tags>__ <minDifficulty> <maxDifficulty>**\n${await TEST.mockMessageReply(
+        'tags.whitelistedOnly',
+        { type: 'userError', discord_id: 128 },
+        { tag: 'smw' },
+      )}`,
+    );
   });
+
   it('!randomtag unknown tag but have similar tag', async function () {
     await TEST.ts.load();
     const result = await TEST.mockBotSend({
@@ -163,7 +206,11 @@ describe('!random / !playersRandom', function () {
     });
     assert.equal(
       result,
-      "We couldn't find the tag `tag2`\n Did you mean:```\ntag1``` ",
+      `>>> **!randomtags __<tags>__ <minDifficulty> <maxDifficulty>**\n${await TEST.mockMessageReply(
+        'tags.whitelistedOnly',
+        { type: 'userError', discord_id: 128 },
+        { tag: 'tag2' },
+      )}`,
     );
   });
 
@@ -176,7 +223,7 @@ describe('!random / !playersRandom', function () {
     });
     assert.equal(
       result,
-      'You have ran out of levels in this range (0.5-10) with tag: tag1 ',
+      'You have ran out of levels in this range (0.5-10) with tags: tag1 ',
     );
   });
 

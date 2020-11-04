@@ -11,7 +11,7 @@ class InitMembers extends TSCommand {
     let registeredCount = 0;
     let alreadyRegisteredCount = 0;
 
-    for (const memberArr of message.guild.members) {
+    for (const memberArr of message.guild.members.cache) {
       const discord_id = memberArr[0];
       const member = memberArr[1];
 

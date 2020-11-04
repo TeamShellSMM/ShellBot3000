@@ -44,11 +44,11 @@ describe('!ammendcode', function () {
     });
     assert.equal(
       result,
-      await TEST.mockMessage(
-        'reupload.noOldCode',
-        { type: 'userError' },
-        { name: 'Creator' },
-      ),
+      `>>> **!amendcode __<oldCode>__ <newCode>**\n${await TEST.mockMessageReply(
+        'error.noCode',
+        { type: 'userError', discord_id: 128 },
+        {},
+      )}`,
     );
   });
 
@@ -60,11 +60,11 @@ describe('!ammendcode', function () {
     });
     assert.equal(
       result,
-      await TEST.mockMessage(
-        'reupload.noNewCode',
-        { type: 'userError' },
-        { name: 'Creator' },
-      ),
+      `>>> **!amendcode <oldCode> __<newCode>__**\n${await TEST.mockMessageReply(
+        'error.noCode',
+        { type: 'userError', discord_id: 128 },
+        {},
+      )}`,
     );
   });
 
@@ -76,11 +76,11 @@ describe('!ammendcode', function () {
     });
     assert.equal(
       result,
-      await TEST.mockMessage(
-        'reupload.invalidOldCode',
-        { type: 'userError' },
-        { name: 'Creator' },
-      ),
+      `>>> **!amendcode __<oldCode>__ <newCode>**\n${await TEST.mockMessageReply(
+        'error.invalidCode',
+        { type: 'userError', discord_id: 128 },
+        {},
+      )}`,
     );
   });
 
@@ -92,11 +92,11 @@ describe('!ammendcode', function () {
     });
     assert.equal(
       result,
-      await TEST.mockMessage(
-        'reupload.invalidNewCode',
-        { type: 'userError' },
-        { name: 'Creator' },
-      ),
+      `>>> **!amendcode <oldCode> __<newCode>__**\n${await TEST.mockMessageReply(
+        'error.invalidCode',
+        { type: 'userError', discord_id: 128 },
+        {},
+      )}`,
     );
   });
 
@@ -147,26 +147,29 @@ describe('!ammendcode', function () {
       waitFor: 100,
       discord_id: '256',
     });
-    assert.lengthOf(result, 0, 'no result');
+    assert.lengthOf(result, 141, 'no result');
   });
 
   it('owner successful', async function () {
-    console.log(TEST.ts.channels.modChannel);
+    await TEST.sleep(2000);
 
     const ownerId = TEST.ts.discord.guild().owner.user.id;
     await TEST.clearChannels();
-    console.log(TEST.ts.channels.modChannel);
+    // console.log(TEST.ts.channels.modChannel);
     await TEST.createChannel({
       name: 'XXX-XXX-XXX',
       parent: TEST.ts.channels.levelDiscussionCategory,
     });
-    const result = await TEST.mockBotSend({
+    let result = await TEST.mockBotSend({
       cmd: '!ammendcode xxx-xxx-xxx xxx-xxx-xx3',
       channel: TEST.ts.channels.modChannel,
       discord_id: ownerId,
     });
+    if (result instanceof Array) {
+      [, result] = result;
+    }
     assert.equal(
-      result[1],
+      result,
       await TEST.mockMessage(
         'ammendCode.success',
         { type: 'normal' },
@@ -192,13 +195,14 @@ describe('!ammendcode', function () {
     assert.notExists(oldLevel);
     assert.exists(newLevel);
 
-    assert.notExists(
-      await TEST.findChannel({
-        name: 'XXX-XXX-XXX',
-        parentID: TEST.ts.channels.levelDiscussionCategory,
-      }),
-      "old channel doesn't exist",
-    );
+    await TEST.fetchGuild();
+
+    const oldChannel = await TEST.findChannel({
+      name: 'XXX-XXX-XXX',
+      parentID: TEST.ts.channels.levelDiscussionCategory,
+    });
+
+    assert.notExists(oldChannel, "old channel doesn't exist");
 
     assert.exists(
       await TEST.findChannel({
@@ -208,6 +212,7 @@ describe('!ammendcode', function () {
       'next channel should exist',
     );
   });
+
   it('discord admin, with no flag', async function () {
     delete TEST.ts.teamVariables.discordAdminCanMod;
     const result = await TEST.mockBotSend({
@@ -217,7 +222,7 @@ describe('!ammendcode', function () {
       discord_id: TEST.bot_id, // we use bot for now as bot was set to have admin rights in test server
       // TODO: make admin test users
     });
-    assert.lengthOf(result, 0, 'no result');
+    assert.lengthOf(result, 141, 'no result');
   });
 
   it('discord admin, with flags', async function () {

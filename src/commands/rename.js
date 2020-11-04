@@ -2,27 +2,29 @@ const TSCommand = require('../TSCommand.js');
 
 class TSRename extends TSCommand {
   constructor() {
-    super('tsrename', {
+    super('rename', {
       aliases: ['tsrename', 'rename'],
       channelRestriction: 'guild',
+      args: [
+        {
+          id: 'level',
+          description: 'levelCode',
+          type: 'level',
+          default: null,
+        },
+        {
+          id: 'levelName',
+          type: 'text',
+          match: 'rest',
+          default: null,
+        },
+      ],
+      quoted: true,
     });
   }
 
-  async tsexec(ts, message) {
-    const command = ts.parseCommand(message);
-    let code = command.arguments.shift();
-    const levelName = command.arguments.join(' ');
-    if (!code) {
-      ts.userError(await ts.message('error.noCode'));
-    } else {
-      code = code.toUpperCase();
-    }
-    if (!levelName)
-      ts.userError(await ts.message('rename.noNewName'));
-    if (ts.isSpecialDiscordString(levelName))
-      ts.userError(await ts.message('error.specialDiscordString'));
+  async tsexec(ts, message, { level, levelName }) {
     const player = await ts.getUser(message);
-    const level = await ts.getExistingLevel(code);
 
     if (!(level.creator === player.name || player.is_mod))
       ts.userError(await ts.message('rename.noPermission', level));
@@ -31,7 +33,7 @@ class TSRename extends TSCommand {
 
     await ts.db.Levels.query()
       .patch({ level_name: levelName })
-      .where({ code });
+      .where({ code: level.code });
 
     const reply = await ts.message('rename.success', {
       new_level_name: levelName,

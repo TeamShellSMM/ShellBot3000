@@ -4,14 +4,21 @@ class removevote extends TSCommand {
   constructor() {
     super('removevote', {
       aliases: ['removevote', 'tsremovevote'],
+      args: [
+        {
+          id: 'level',
+          description: 'levelCode',
+          type: 'level',
+          default: null,
+        },
+      ],
+      quoted: true,
       channelRestriction: 'guild',
     });
   }
 
-  async tsexec(ts, message) {
-    const { code } = ts.getCodeArgument(message);
+  async tsexec(ts, message, { level }) {
     const player = await ts.getUser(message);
-    const level = await ts.getExistingLevel(code);
 
     if (level.status !== ts.LEVEL_STATUS.PENDING) {
       ts.userError(await ts.message('approval.levelNotPending'));

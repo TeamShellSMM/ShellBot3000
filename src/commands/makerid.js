@@ -7,12 +7,15 @@ class MakerId extends TSCommand {
       args: [
         {
           id: 'code',
-          type: 'uppercase',
+          description: 'makerId',
+          type: 'makerid',
           default: null,
         },
         {
           id: 'name',
-          type: 'string',
+          description: 'makerName',
+          type: 'text',
+          match: 'rest',
           default: null,
         },
       ],
@@ -21,16 +24,7 @@ class MakerId extends TSCommand {
   }
 
   async tsexec(ts, message, { code, name }) {
-    if (!code) ts.userError(await ts.message('makerid.noCode'));
-    if (!name) ts.userError(await ts.message('makerid.noName'));
-
     const player = await ts.getUser(message);
-
-    if (!ts.validCode(code)) {
-      ts.userError(
-        await ts.message('error.invalidMakerCode', { code }),
-      );
-    }
 
     const existingMember = await ts.db.Members.query()
       .where({ maker_id: code })

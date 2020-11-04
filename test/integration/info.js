@@ -49,7 +49,11 @@ describe('!info', function () {
         channel: 'general',
         discord_id: '256',
       }),
-      'You did not give a level code ',
+      `>>> **!info __<levelCode>__**\n${await TEST.mockMessageReply(
+        'error.noCode',
+        { type: 'userError', discord_id: 256 },
+        {},
+      )}`,
     );
   });
 

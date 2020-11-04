@@ -31,7 +31,11 @@ describe('!mockUser', function () {
         channel: 'general',
         discord_id: TEST.bot_id,
       }),
-      "You didn't give any names ",
+      `>>> **!mockUser __<memberName>__**\n${await TEST.mockMessageReply(
+        'error.missingMemberName',
+        { type: 'userError', discord_id: TEST.bot_id },
+        {},
+      )}`,
     );
   });
 
@@ -45,7 +49,11 @@ describe('!mockUser', function () {
         channel: 'general',
         discord_id: TEST.bot_id,
       }),
-      'No user found ',
+      `>>> **!mockUser __<memberName>__**\n${await TEST.mockMessageReply(
+        'error.memberNotFound',
+        { type: 'userError', discord_id: TEST.bot_id },
+        { name: 'unknown' },
+      )}`,
     );
   });
 
