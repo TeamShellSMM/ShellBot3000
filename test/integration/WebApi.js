@@ -204,7 +204,9 @@ describe('Web Apis', function () {
       getMember.returns({
         hexColor: '#000',
         user: {
-          avatarURL: 'have',
+          avatarURL: () => {
+            return 'have';
+          },
         },
       });
 
@@ -228,7 +230,9 @@ describe('Web Apis', function () {
       getMember.returns({
         hexColor: '#000',
         user: {
-          avatarURL: null,
+          avatarURL: () => {
+            return null;
+          },
         },
       });
 

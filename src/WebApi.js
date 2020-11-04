@@ -194,10 +194,9 @@ module.exports = async function (client) {
           if (makerMember) {
             json.maker.hexColor = makerMember.displayHexColor;
             if (makerMember.user.avatarURL()) {
-              json.maker.avatarURL = makerMember.user.avatarURL().replace(
-                /size=.*/g,
-                'size=128',
-              );
+              json.maker.avatarURL = makerMember.user
+                .avatarURL()
+                .replace(/size=.*/g, 'size=128');
             }
           }
 
@@ -644,10 +643,9 @@ module.exports = async function (client) {
               if (raceMember.user.avatarURL()) {
                 raceData[row.id].race_entrants[
                   row.race_entrant_id
-                ].member.avatarURL = raceMember.user.avatarURL().replace(
-                  /size=.*/g,
-                  'size=128',
-                );
+                ].member.avatarURL = raceMember.user
+                  .avatarURL()
+                  .replace(/size=.*/g, 'size=128');
               }
             }
           }

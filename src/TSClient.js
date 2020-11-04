@@ -341,9 +341,8 @@ class TSClient extends AkairoClient {
       tags = tags.split(/[,\n]/);
 
       if (
-        (ts.teamVariables.whitelistedTagsOnly === 'true' ||
-          whitelistedOnly) &&
-        !(await ts.modOnly(message.author.id))
+        ts.teamVariables.whitelistedTagsOnly === 'true' ||
+        whitelistedOnly
       ) {
         for (const tag of tags) {
           const existingTag = await ts.db.Tags.query()

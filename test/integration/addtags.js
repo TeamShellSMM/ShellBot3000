@@ -205,7 +205,7 @@ describe('!addtags,!removetags', () => {
     modOnly.restore();
     assert.equal(
       result,
-      '<@128> Tags added for "approved level" by "Creator" \nCurrent tags:```\ntag1\ntag2\ntag3```',
+      '>>> **!addtags <levelCode> __<newTags>__**\n<@128>, `tag3` is not a tag that has been whitelisted. ',
     );
   });
 
