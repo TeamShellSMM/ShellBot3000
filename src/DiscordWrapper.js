@@ -241,7 +241,7 @@ class DiscordWrapper {
     const currMember = this.member(discordId);
     if (!currMember) return false;
 
-    // console.log("removing role", roleId);
+    console.log("removing roles", roleId);
     const r = await currMember.roles.remove(roleId);
     // console.log("done with remove");
 
