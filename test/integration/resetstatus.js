@@ -73,7 +73,7 @@ describe('!resetstatus', function () {
         },
       ),
     );
-    assert.lengthOf(result, 0, 'no result');
+    assert.lengthOf(result, 141, 'no result');
   });
 
   it('mod successful', async function () {
@@ -204,7 +204,7 @@ describe('!resetstatus', function () {
         },
       ),
     );
-    assert.lengthOf(result, 0, 'no result');
+    assert.lengthOf(result, 141, 'no result');
   });
 
   it('discord admin, with flags', async function () {

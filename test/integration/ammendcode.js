@@ -147,7 +147,7 @@ describe('!ammendcode', function () {
       waitFor: 100,
       discord_id: '256',
     });
-    assert.lengthOf(result, 0, 'no result');
+    assert.lengthOf(result, 141, 'no result');
   });
 
   it('owner successful', async function () {
@@ -222,7 +222,7 @@ describe('!ammendcode', function () {
       discord_id: TEST.bot_id, // we use bot for now as bot was set to have admin rights in test server
       // TODO: make admin test users
     });
-    assert.lengthOf(result, 0, 'no result');
+    assert.lengthOf(result, 141, 'no result');
   });
 
   it('discord admin, with flags', async function () {
