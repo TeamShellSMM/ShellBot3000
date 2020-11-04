@@ -107,8 +107,8 @@ class TS {
     this.load = async function () {
       debug(`ts.load started for ${this.guild_id}`);
 
-      // const guild = ts.getGuild(this.guild_id);
-      // await guild.members.fetch(); // just load up all members ##not needed anymore in 8.1
+      const guild = ts.getGuild(this.guild_id);
+      await guild.members.fetch(); // just load up all members ##not needed anymore in 8.1
       const Team = Teams(this.guild_id);
       this.team = await Team.query().select().first();
       this.db = {
