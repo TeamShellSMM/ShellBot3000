@@ -193,8 +193,8 @@ module.exports = async function (client) {
           const makerMember = ts.discord.getMember(maker.discord_id);
           if (makerMember) {
             json.maker.hexColor = makerMember.displayHexColor;
-            if (makerMember.user.avatarURL) {
-              json.maker.avatarURL = makerMember.user.avatarURL.replace(
+            if (makerMember.user.avatarURL()) {
+              json.maker.avatarURL = makerMember.user.avatarURL().replace(
                 /size=.*/g,
                 'size=128',
               );
@@ -641,10 +641,10 @@ module.exports = async function (client) {
               raceData[row.id].race_entrants[
                 row.race_entrant_id
               ].member.hexColor = raceMember.displayHexColor;
-              if (raceMember.user.avatarURL) {
+              if (raceMember.user.avatarURL()) {
                 raceData[row.id].race_entrants[
                   row.race_entrant_id
-                ].member.avatarURL = raceMember.user.avatarURL.replace(
+                ].member.avatarURL = raceMember.user.avatarURL().replace(
                   /size=.*/g,
                   'size=128',
                 );
