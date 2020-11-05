@@ -281,6 +281,7 @@ class TSClient extends AkairoClient {
       argumentDefs,
       maximumChars,
       required = true,
+      discordStringsAllowed = false,
     ) => {
       let text = textArg;
       const ts = TS.teams(TS.DiscordWrapper.messageGetGuild(message));
@@ -309,7 +310,7 @@ class TSClient extends AkairoClient {
         );
       }
 
-      if (ts.isSpecialDiscordString(text)) {
+      if (!discordStringsAllowed && ts.isSpecialDiscordString(text)) {
         return this.handleError(
           ts,
           message,
@@ -562,6 +563,32 @@ class TSClient extends AkairoClient {
       'longertext',
       (message, phrase, argumentDefs) => {
         return this.resolveText(message, phrase, argumentDefs, 1500);
+      },
+    );
+    this.commandHandler.resolver.addType(
+      'longtext:emotes',
+      (message, phrase, argumentDefs) => {
+        return this.resolveText(
+          message,
+          phrase,
+          argumentDefs,
+          800,
+          true,
+          true,
+        );
+      },
+    );
+    this.commandHandler.resolver.addType(
+      'longertext:emotes',
+      (message, phrase, argumentDefs) => {
+        return this.resolveText(
+          message,
+          phrase,
+          argumentDefs,
+          1500,
+          true,
+          true,
+        );
       },
     );
     this.commandHandler.resolver.addType(

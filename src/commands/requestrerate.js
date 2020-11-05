@@ -16,7 +16,7 @@ class RequestRerate extends TSCommand {
         {
           id: 'reasonAndDifficulty',
           description: 'reason | difficulty reason',
-          type: 'longtext',
+          type: 'longtext:emotes',
           match: 'rest',
           default: null,
         },

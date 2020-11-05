@@ -18,7 +18,7 @@ class TSRerate extends TSCommand {
         },
         {
           id: 'reason',
-          type: 'longtext',
+          type: 'longtext:emotes',
           match: 'rest',
           default: null,
         },

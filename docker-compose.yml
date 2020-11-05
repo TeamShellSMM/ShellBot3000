@@ -1,0 +1,60 @@
+version: "3.8"
+
+networks:
+  shellbot-net:
+    driver: bridge
+    name: shellbot-net
+    ipam:
+        config:
+            - subnet: 172.18.0.0/24
+
+services:
+  mariadb:
+    image: mariadb:10.4
+    container_name: shellbot-mariadb
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 500M
+        reservations:
+          cpus: '0.5'
+          memory: 250M
+    ports:
+        - "3306:3306"
+    networks:
+      shellbot-net:      
+        ipv4_address: 172.18.0.102
+    hostname: shellbot-mariadb
+    environment:
+        MYSQL_ALLOW_EMPTY_PASSWORD: "true"
+    volumes:
+        - ./docker/mariadb:/docker-entrypoint-initdb.d
+  web:
+    image: liaf/shellbot3000
+    container_name: shellbot3000
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 4G
+        reservations:
+          cpus: '2'
+          memory: 2G
+    ports:
+        - "8080:8080"
+    networks:
+      shellbot-net:      
+        ipv4_address: 172.18.0.101
+    hostname: shellbot3000
+    extra_hosts:
+        - "shellbot-mariadb:172.18.0.102"
+    environment:
+        NODE_ENV: "development"
+        WAIT_HOSTS: shellbot-mariadb:3306
+        DOCKER_ENV: "${DOCKER_ENV}"
+    volumes:
+        - .:/usr/src/app
+        - /usr/src/app/node_modules
+    command: sh -c "/wait && npm install && if test "$DOCKER_ENV" = 'testing'; then npm run migrate:test; else npm run migrate && mysql -h shellbot-mariadb -u root < initdev.sql; fi && if test "$DOCKER_ENV" = 'testing'; then npm run lint -- --fix && npm run test; else npm run dev:watch; fi"
+    

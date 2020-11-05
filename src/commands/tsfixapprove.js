@@ -17,7 +17,7 @@ class TSFixApprove extends TSCommand {
         {
           id: 'reason',
           description: 'reason | difficulty reason',
-          type: 'longtext',
+          type: 'longtext:emotes',
           match: 'rest',
           default: null,
         },

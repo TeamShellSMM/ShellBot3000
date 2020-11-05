@@ -9,6 +9,13 @@
   "repository": "github:TeamShellSMM/ShellBot3000",
   "issues": "https://github.com/TeamShellSMM/ShellBot3000/issues",
   "main": "src/app.js",
+  "nodemonConfig": {
+    "watch": [
+      "src"
+    ],
+    "ext": "js",
+    "delay": "3"
+  },
   "dependencies": {
     "@google-cloud/translate": "6.0.2",
     "body-parser": "^1.19.0",
@@ -44,7 +51,8 @@
     "prettier-eslint": "^9.0.1",
     "prettier-eslint-cli": "^5.0.0",
     "sinon": "9.0.2",
-    "supertest": "^4.0.2"
+    "supertest": "^4.0.2",
+    "nodemon": "1.19.1"
   },
   "scripts": {
     "migrate:raw": "node -r dotenv-flow/config ./node_modules/.bin/knex --knexfile src/knexfile.js migrate:latest",
@@ -59,7 +67,8 @@
     "test": "env NODE_ENV=test mocha",
     "coverage": "nyc --reporter=lcovonly --reporter=text npm test",
     "format": "prettier-eslint —eslint-config-path ./.eslintrc.js --write '$(pwd)/**/*.js'",
-    "lint": "eslint --ignore-path .gitignore ."
+    "lint": "eslint --ignore-path .gitignore .",
+    "dev:watch": "nodemon -L -r dotenv-flow/config src/app.js"
   },
   "keywords": [
     "Discord",

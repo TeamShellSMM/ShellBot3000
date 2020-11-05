@@ -13,7 +13,7 @@ class TSRefuseFix extends TSCommand {
         },
         {
           id: 'reason',
-          type: 'text',
+          type: 'longtext:emotes',
           match: 'rest',
           default: null,
         },

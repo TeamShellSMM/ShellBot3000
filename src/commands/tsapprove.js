@@ -35,7 +35,7 @@ class TSApprove extends TSCommand {
         },
         {
           id: 'reason',
-          type: 'longertext',
+          type: 'longertext:emotes',
           match: 'rest',
           default: null,
         },
