@@ -347,7 +347,7 @@ class TSClient extends AkairoClient {
       ) {
         for (const tag of tags) {
           const existingTag = await ts.db.Tags.query()
-            .where('name', tag)
+            .where('name', tag.trim())
             .first();
           if (!existingTag) {
             return this.handleError(
