@@ -237,11 +237,18 @@ class DiscordWrapper {
     return this.guild().members.fetch(discordId, cache, forceApi);
   }
 
-  async removeRoles(discordId, roleId) {
+  async removeRoles(discordId, roleIdArg) {
+    let roleId = roleIdArg;
     const currMember = this.member(discordId);
     if (!currMember) return false;
 
-    console.log("removing roles", roleId);
+    if (roleId == null) {
+      return null;
+    }
+    if (roleId instanceof Array) {
+      roleId = roleId.filter((x) => x != null);
+    }
+
     const r = await currMember.roles.remove(roleId);
     // console.log("done with remove");
 
