@@ -18,9 +18,6 @@ install:
 before_script:
   - npm run migrate:test
 script:
-  - npm list discord.js
-  - npm list discord-akairo
-  - npm run lint
   - npm run coverage
 after_success:
   - curl -s https://codecov.io/bash | bash
