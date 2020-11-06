@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 global.TEST = {};
 const chai = require('chai');
 const debug = require('debug');

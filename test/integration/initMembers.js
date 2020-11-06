@@ -1,5 +1,5 @@
 describe('initMembers', () => {
-  beforeEach(async () => {
+  before(async () => {
     await TEST.clearDb();
   });
 

@@ -2,7 +2,7 @@ const assert10 = require('assert');
 const DiscordWrapper = require('../../src/DiscordWrapper');
 
 describe('misc-unit', function () {
-  beforeEach(async () => {
+  before(async () => {
     const initData = {
       Members: [
         {
@@ -536,7 +536,7 @@ describe('misc-unit', function () {
   });
 
   it('ts.checkBearerToken', async () => {
-    await TEST.ts.db.Tokens.query().insert({
+    await TEST.ts.db.Tokens.query().where({ token: '123' }).update({
       discord_id: 1,
       token: '123',
       created_at: '2000-01-01 01:00:00',

@@ -1,5 +1,5 @@
 describe('misc-integration', () => {
-  beforeEach(async () => {
+  before(async () => {
     await TEST.setupData({
       Members: [
         {

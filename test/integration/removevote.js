@@ -74,6 +74,8 @@ describe('!removevote', function () {
   };
   beforeEach(async () => {
     await TEST.clearChannels();
+  });
+  before(async () => {
     await TEST.ts.load();
     await TEST.setupData(initData);
   });

@@ -1,5 +1,5 @@
 describe('!clears', function () {
-  beforeEach(async () => {
+  before(async () => {
     await TEST.setupData({
       Members: [
         {
@@ -149,7 +149,7 @@ describe('!clears', function () {
     });
     assert.equal(
       result,
-      "<@128> \n ‣You have cleared 'level1'  by Creator \n ‣You have earned 1.0 point\n ‣You also have liked this level ",
+      "<@128> \n ‣You have already submitted a clear for 'level1'  by Creator\n ‣You have liked this level ",
     );
   });
 
@@ -161,7 +161,7 @@ describe('!clears', function () {
     });
     assert.equal(
       result,
-      "<@128> \n ‣You have cleared 'level1'  by Creator \n ‣You have earned 1.0 point\n ‣You also have liked this level ",
+      "<@128> \n ‣You have already submitted a clear for 'level1'  by Creator\n ‣You have already liked this level ",
     );
   });
 
@@ -185,7 +185,7 @@ describe('!clears', function () {
     });
     assert.equal(
       result,
-      "<@128> \n ‣You have cleared 'level1'  by Creator \n ‣You have earned 1.0 point\n ‣You also have voted 5.0 as the difficulty for this level ",
+      "<@128> \n ‣You have already submitted a clear for 'level1'  by Creator\n ‣You have voted 5.0 as the difficulty for this level ",
     );
   });
 
@@ -196,7 +196,7 @@ describe('!clears', function () {
         channel: 'general',
         discord_id: '128',
       }),
-      "<@128> \n ‣You have cleared 'level1'  by Creator \n ‣You have earned 1.0 point\n ‣You also have voted 5.0 as the difficulty for this level \n ‣You also have liked this level ",
+      "<@128> \n ‣You have already submitted a clear for 'level1'  by Creator\n ‣You have already voted 5 for this level \n ‣You also have already liked this level ",
     );
 
     let play = await TEST.ts.db.Plays.query()
@@ -237,7 +237,7 @@ describe('!clears', function () {
         channel: 'general',
         discord_id: '128',
       }),
-      "<@128> \n ‣You have cleared 'level1'  by Creator \n ‣You have earned 1.0 point\n ‣You also have voted 5.0 as the difficulty for this level \n ‣You also have liked this level ",
+      "<@128> \n ‣You have already submitted a clear for 'level1'  by Creator\n ‣You have voted 5.0 as the difficulty for this level \n ‣You also have already liked this level ",
     );
 
     assert.equal(
@@ -257,7 +257,7 @@ describe('!clears', function () {
         channel: 'general',
         discord_id: '128',
       }),
-      "<@128> \n ‣You have cleared 'level1'  by Creator \n ‣You have earned 1.0 point\n ‣You also have liked this level ",
+      "<@128> \n ‣You have already submitted a clear for 'level1'  by Creator\n ‣You have liked this level ",
     );
 
     assert.equal(
@@ -280,7 +280,7 @@ describe('!clears', function () {
         channel: 'general',
         discord_id: '128',
       }),
-      "<@128> \n ‣You have cleared 'level1'  by <@256> \n ‣You have earned 1.0 point\n ‣You also have voted 5.0 as the difficulty for this level \n ‣You also have liked this level ",
+      "<@128> \n ‣You have already submitted a clear for 'level1'  by <@256>\n ‣You have already voted 5 for this level \n ‣You also have liked this level ",
     );
   });
 
@@ -292,7 +292,7 @@ describe('!clears', function () {
     });
     assert.equal(
       result,
-      "<@128> \n ‣You have cleared 'level4'  by Creator \n ‣You have earned 2.5 points\n ‣You also have voted 5.0 as the difficulty for this level \n ‣You also have liked this level ",
+      "<@128> \n ‣You have cleared 'level4'  by <@256> \n ‣You have earned 2.5 points\n ‣You also have voted 5.0 as the difficulty for this level \n ‣You also have liked this level ",
     );
   });
 
@@ -303,7 +303,7 @@ describe('!clears', function () {
         channel: 'general',
         discord_id: '128',
       }),
-      "<@128> \n ‣You have voted 5.0 as the difficulty for 'level4'  by Creator ",
+      "<@128> \n ‣You have already voted 5 for 'level4'  by <@256> ",
     );
 
     assert.equal(
@@ -312,7 +312,7 @@ describe('!clears', function () {
         channel: 'general',
         discord_id: '128',
       }),
-      "<@128> \n ‣You have already voted 5 for 'level4'  by Creator ",
+      "<@128> \n ‣You have already voted 5 for 'level4'  by <@256> ",
     );
 
     assert.equal(
@@ -321,7 +321,7 @@ describe('!clears', function () {
         channel: 'general',
         discord_id: '128',
       }),
-      "<@128> \n‣You have removed your difficulty vote for 'level4'  by Creator ",
+      "<@128> \n‣You have removed your difficulty vote for 'level4'  by <@256> ",
     );
 
     assert.equal(
@@ -330,7 +330,7 @@ describe('!clears', function () {
         channel: 'general',
         discord_id: '128',
       }),
-      "<@128> \n ‣You haven't submitted a difficulty vote for 'level4'  by Creator ",
+      "<@128> \n ‣You haven't submitted a difficulty vote for 'level4'  by <@256> ",
     );
   });
 
@@ -341,7 +341,7 @@ describe('!clears', function () {
         channel: 'general',
         discord_id: '128',
       }),
-      "<@128> \n ‣You have liked 'level4'  by Creator ",
+      "<@128> \n ‣You have already liked 'level4'  by <@256> ",
     );
 
     assert.equal(
@@ -350,7 +350,7 @@ describe('!clears', function () {
         channel: 'general',
         discord_id: '128',
       }),
-      "<@128> \n ‣You have already liked 'level4'  by Creator ",
+      "<@128> \n ‣You have already liked 'level4'  by <@256> ",
     );
 
     assert.equal(
@@ -359,7 +359,7 @@ describe('!clears', function () {
         channel: 'general',
         discord_id: '128',
       }),
-      "<@128> \n‣You have unliked 'level4'  by Creator ",
+      "<@128> \n‣You have unliked 'level4'  by <@256> ",
     );
 
     assert.equal(
@@ -368,7 +368,7 @@ describe('!clears', function () {
         channel: 'general',
         discord_id: '128',
       }),
-      "<@128> \n ‣You have not added a like for 'level4'  by Creator ",
+      "<@128> \n ‣You have not added a like for 'level4'  by <@256> ",
     );
   });
 
@@ -379,7 +379,7 @@ describe('!clears', function () {
         channel: 'general',
         discord_id: '128',
       }),
-      "<@128> \n ‣You have cleared 'level4'  by Creator \n ‣You have earned 2.5 points",
+      "<@128> \n ‣You have already submitted a clear for 'level4'  by <@256>",
       'clear',
     );
 
@@ -389,7 +389,7 @@ describe('!clears', function () {
         channel: 'general',
         discord_id: '128',
       }),
-      "<@128> \n ‣You have already submitted a clear for 'level4'  by Creator",
+      "<@128> \n ‣You have already submitted a clear for 'level4'  by <@256>",
       'already cleared',
     );
 
@@ -399,7 +399,7 @@ describe('!clears', function () {
         channel: 'general',
         discord_id: '128',
       }),
-      "<@128> \nYou have removed your clear for 'level4'  by Creator",
+      "<@128> \nYou have removed your clear for 'level4'  by <@256>",
       'remove clear',
     );
 
@@ -409,7 +409,7 @@ describe('!clears', function () {
         channel: 'general',
         discord_id: '128',
       }),
-      "<@128> \n ‣You have not submited a clear for 'level4'  by Creator",
+      "<@128> \n ‣You have not submited a clear for 'level4'  by <@256>",
       'already removed clear',
     );
   });

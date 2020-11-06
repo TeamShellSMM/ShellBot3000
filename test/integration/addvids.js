@@ -1,5 +1,5 @@
 describe('!add/remove vids', () => {
-  beforeEach(async () => {
+  before(async () => {
     await TEST.setupData({
       Members: [
         {
@@ -36,6 +36,35 @@ describe('!add/remove vids', () => {
           difficulty: 0,
           videos: 'https://youtube.com,https://twitch.tv',
         },
+        {
+          level_name: 'approved level',
+          creator: 2,
+          code: 'XXX-XXX-XX1',
+          status: 1,
+          difficulty: 1,
+        },
+        {
+          level_name: 'approved level',
+          creator: 2,
+          code: 'XXX-XXX-XX3',
+          status: 1,
+          difficulty: 1,
+        },
+        {
+          level_name: 'approved level',
+          creator: 2,
+          code: 'XXX-XXX-XX4',
+          status: 1,
+          difficulty: 1,
+        },
+        {
+          level_name: 'pending level',
+          creator: 2,
+          code: 'XXX-XXX-XX8',
+          status: 0,
+          difficulty: 0,
+          videos: 'https://youtube.com,https://twitch.tv',
+        },
       ],
       Plays: [
         {
@@ -57,7 +86,7 @@ describe('!add/remove vids', () => {
         },
         {
           level_id: 2,
-          url: 'https://twitch.tv',
+          url: 'https://twitch.tv/videos',
           type: 'twitch',
         },
         {
@@ -74,6 +103,53 @@ describe('!add/remove vids', () => {
         },
         {
           level_id: 1,
+          play_id: 2,
+          url: 'https://clips.twitch.tv/alreadyused3',
+          type: 'twitch',
+        },
+        {
+          level_id: 6,
+          url: 'https://youtube.com',
+          type: 'youtube',
+        },
+        {
+          level_id: 6,
+          url: 'https://twitch.tv/videos',
+          type: 'twitch',
+        },
+        {
+          level_id: 3,
+          play_id: 2,
+          url: 'https://clips.twitch.tv/alreadyused',
+          type: 'twitch',
+        },
+        {
+          level_id: 3,
+          play_id: 2,
+          url: 'https://clips.twitch.tv/alreadyused2',
+          type: 'twitch',
+        },
+        {
+          level_id: 3,
+          play_id: 2,
+          url: 'https://clips.twitch.tv/alreadyused3',
+          type: 'twitch',
+        },
+        {
+          level_id: 4,
+          play_id: 2,
+          url: 'https://clips.twitch.tv/alreadyused',
+          type: 'twitch',
+        },
+        {
+          level_id: 4,
+          play_id: 2,
+          url: 'https://clips.twitch.tv/alreadyused2',
+          type: 'twitch',
+        },
+        {
+          level_id: 4,
+          play_id: 2,
           url: 'https://clips.twitch.tv/alreadyused3',
           type: 'twitch',
         },
@@ -97,7 +173,7 @@ describe('!add/remove vids', () => {
     assert.equal(
       await TEST.mockBotSend({
         cmd:
-          '!addvids xxx-xxx-xxx \nhttps://youtube.com\nhttps://clips.twitch.tv',
+          '!addvids xxx-xxx-xx1 \nhttps://youtube.com\nhttps://clips.twitch.tv',
         channel: 'general',
         discord_id: '256',
       }),
@@ -109,7 +185,7 @@ describe('!add/remove vids', () => {
     assert.equal(
       await TEST.mockBotSend({
         cmd:
-          '!addvids xxx-xxx-xxx https://youtube.com https://clips.twitch.tv',
+          '!addvids xxx-xxx-xx3 https://youtube.com https://clips.twitch.tv',
         channel: 'general',
         discord_id: '256',
       }),
@@ -169,7 +245,7 @@ describe('!add/remove vids', () => {
         channel: 'general',
         discord_id: '256',
       }),
-      'No new clear video added for "pending level" by Creator\nCurrent videos:```\nhttps://youtube.com\nhttps://twitch.tv``` ',
+      'No new clear video added for "pending level" by Creator\nCurrent videos:```\nhttps://youtube.com\nhttps://twitch.tv/videos``` ',
     );
   });
 
@@ -180,25 +256,25 @@ describe('!add/remove vids', () => {
         channel: 'general',
         discord_id: '256',
       }),
-      '<@256> Clear videos removed for "pending level" by "Creator" \nCurrent videos:```\nhttps://twitch.tv```',
+      '<@256> Clear videos removed for "pending level" by "Creator" \nCurrent videos:```\nhttps://twitch.tv/videos```',
     );
   });
 
   it('!removevid success by mod', async () => {
     assert.equal(
       await TEST.mockBotSend({
-        cmd: '!removevids XXX-XXX-XX2 https://youtube.com',
+        cmd: '!removevids XXX-XXX-XX2 https://twitch.tv/videos',
         channel: 'general',
         discord_id: '128',
       }),
-      '<@128> Clear videos removed for "pending level" by "Creator" \nCurrent videos:```\nhttps://twitch.tv```',
+      '<@128> Clear videos removed for "pending level" by "Creator" \nCurrent videos:```\n```',
     );
   });
 
   it('!removevid fail by other player', async () => {
     assert.equal(
       await TEST.mockBotSend({
-        cmd: '!removevids XXX-XXX-XX2 https://youtube.com',
+        cmd: '!removevids XXX-XXX-XX8 https://youtube.com',
         channel: 'general',
         discord_id: '512',
       }),
@@ -209,11 +285,11 @@ describe('!add/remove vids', () => {
   it('!removevid none', async () => {
     assert.equal(
       await TEST.mockBotSend({
-        cmd: '!removevids XXX-XXX-XX2 https://clips.twitch.tv',
+        cmd: '!removevids XXX-XXX-XX8 https://clips.twitch.tv',
         channel: 'general',
         discord_id: '256',
       }),
-      'No videos have been removed for "pending level" by "Creator"\nCurrent videos:```\nhttps://youtube.com\nhttps://twitch.tv``` ',
+      'No videos have been removed for "pending level" by "Creator"\nCurrent videos:```\nhttps://youtube.com\nhttps://twitch.tv/videos``` ',
     );
   });
 
@@ -275,7 +351,7 @@ describe('!add/remove vids', () => {
         channel: 'general',
         discord_id: '128',
       }),
-      '<@128> Clear videos removed for "approved level" by "Creator" \nCurrent videos:```\nhttps://clips.twitch.tv/alreadyused```',
+      '<@128> Clear videos removed for "approved level" by "Creator" \nCurrent videos:```\nhttps://clips.twitch.tv/alreadyused\nhttps://clips.twitch.tv/alreadyused3```',
     );
   });
 });

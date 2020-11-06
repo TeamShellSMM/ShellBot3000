@@ -1,5 +1,5 @@
 describe('!resetstatus', function () {
-  beforeEach(async () => {
+  before(async () => {
     await TEST.setupData({
       Members: [
         {
@@ -31,6 +31,27 @@ describe('!resetstatus', function () {
           code: 'XXX-XXX-XX2',
           status: 0,
           difficulty: 0,
+        },
+        {
+          level_name: 'approved level',
+          creator: 2,
+          code: 'XXX-XXX-XX3',
+          status: 1,
+          difficulty: 1,
+        },
+        {
+          level_name: 'approved level',
+          creator: 2,
+          code: 'XXX-XXX-XX4',
+          status: 1,
+          difficulty: 1,
+        },
+        {
+          level_name: 'approved level',
+          creator: 2,
+          code: 'XXX-XXX-XX5',
+          status: 1,
+          difficulty: 1,
         },
       ],
     });
@@ -131,7 +152,7 @@ describe('!resetstatus', function () {
   it('owner successful', async function () {
     const ownerId = TEST.ts.discord.guild().owner.user.id;
     const result = await TEST.mockBotSend({
-      cmd: '!resetstatus xxx-xxx-xxx',
+      cmd: '!resetstatus xxx-xxx-XX3',
       channel: TEST.ts.channels.modChannel,
       discord_id: ownerId,
     });
@@ -143,14 +164,14 @@ describe('!resetstatus', function () {
         {
           level_name: 'approved level',
           creator: 'Creator',
-          code: 'XXX-XXX-XXX',
+          code: 'XXX-XXX-XX3',
           status: 1,
           difficulty: 1,
         },
       ),
     );
     const level = await TEST.ts.db.Levels.query()
-      .where({ code: 'XXX-XXX-XXX' })
+      .where({ code: 'XXX-XXX-XX3' })
       .first();
     assert.equal(level.status, 0);
   });
@@ -158,7 +179,7 @@ describe('!resetstatus', function () {
   it('owner successful', async function () {
     const ownerId = TEST.ts.discord.guild().owner.user.id;
     const result = await TEST.mockBotSend({
-      cmd: '!resetstatus xxx-xxx-xxx',
+      cmd: '!resetstatus xxx-xxx-XX4',
       channel: TEST.ts.channels.modChannel,
       discord_id: ownerId,
     });
@@ -170,14 +191,14 @@ describe('!resetstatus', function () {
         {
           level_name: 'approved level',
           creator: 'Creator',
-          code: 'XXX-XXX-XXX',
+          code: 'XXX-XXX-XX4',
           status: 1,
           difficulty: 1,
         },
       ),
     );
     const level = await TEST.ts.db.Levels.query()
-      .where({ code: 'XXX-XXX-XXX' })
+      .where({ code: 'XXX-XXX-XX4' })
       .first();
     assert.equal(level.status, 0);
   });
@@ -210,7 +231,7 @@ describe('!resetstatus', function () {
   it('discord admin, with flags', async function () {
     TEST.ts.teamVariables.discordAdminCanMod = 'true';
     const result = await TEST.mockBotSend({
-      cmd: '!resetstatus xxx-xxx-xxx',
+      cmd: '!resetstatus xxx-xxx-XX5',
       channel: TEST.ts.channels.modChannel,
       discord_id: TEST.bot_id, // we use bot for now as bot was set to have admin rights in test server
       // TODO: make admin test users
@@ -223,14 +244,14 @@ describe('!resetstatus', function () {
         {
           level_name: 'approved level',
           creator: 'Creator',
-          code: 'XXX-XXX-XXX',
+          code: 'XXX-XXX-XX5',
           status: 1,
           difficulty: 1,
         },
       ),
     );
     const level = await TEST.ts.db.Levels.query()
-      .where({ code: 'XXX-XXX-XXX' })
+      .where({ code: 'XXX-XXX-XX5' })
       .first();
     assert.equal(level.status, 0);
   });

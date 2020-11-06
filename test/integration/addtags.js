@@ -1,5 +1,5 @@
 describe('!addtags,!removetags', () => {
-  beforeEach(async () => {
+  before(async () => {
     TEST.ts.teamVariables.whitelistedTagsOnly = 'false';
     await TEST.clearDb();
     await TEST.setupKnex({
@@ -47,6 +47,22 @@ describe('!addtags,!removetags', () => {
           status: 0,
           difficulty: 0,
           tags: 'tag2',
+        },
+        {
+          guild_id: 1,
+          level_name: 'approved level',
+          creator: 2,
+          code: 'XXX-XXX-XX4',
+          status: 1,
+          difficulty: 1,
+        },
+        {
+          guild_id: 1,
+          level_name: 'approved level',
+          creator: 2,
+          code: 'XXX-XXX-XX5',
+          status: 1,
+          difficulty: 1,
         },
       ],
       tags: [
@@ -133,11 +149,11 @@ describe('!addtags,!removetags', () => {
   it('!addtag success', async () => {
     assert.equal(
       await TEST.mockBotSend({
-        cmd: '!addtags xxx-xxx-xxx tag1,tag2,tag3',
+        cmd: '!addtags xxx-xxx-xxx tag1,tag2,tag9',
         channel: 'general',
         discord_id: '256',
       }),
-      '<@256> Tags added for "approved level" by "Creator" \nCurrent tags:```\ntag1\ntag2\ntag3```',
+      '<@256> Tags added for "approved level" by "Creator" \nCurrent tags:```\ntag1\ntag2\ntag9```',
     );
     const tags = await TEST.knex('level_tags')
       .where({ guild_id: 1 })
@@ -155,16 +171,16 @@ describe('!addtags,!removetags', () => {
     );
 
     await TEST.createChannel({
-      name: 'XXX-XXX-XXX',
+      name: 'XXX-XXX-XX4',
       parent: TEST.ts.channels.levelAuditCategory,
     });
     assert.equal(
       await TEST.mockBotSend({
-        cmd: '!addtags tag1,tag2,tag3',
-        channel: 'XXX-XXX-XXX',
+        cmd: '!addtags tag1,tag2,tag9',
+        channel: 'XXX-XXX-XX4',
         discord_id: '256',
       }),
-      '<@256> Tags added for "approved level" by "Creator" \nCurrent tags:```\ntag1\ntag2\ntag3```',
+      '<@256> Tags added for "approved level" by "Creator" \nCurrent tags:```\ntag1\ntag2\ntag9```',
     );
     const tags = await TEST.knex('level_tags')
       .where({ guild_id: 1 })
@@ -181,7 +197,7 @@ describe('!addtags,!removetags', () => {
     TEST.ts.teamVariables.whitelistedTagsOnly = 'true';
     assert.equal(
       await TEST.mockBotSend({
-        cmd: '!addtags xxx-xxx-xxx tag1,tag2,tag3',
+        cmd: '!addtags xxx-xxx-xx5 tag1,tag2,tag3',
         channel: 'general',
         discord_id: '256',
       }),
@@ -198,7 +214,7 @@ describe('!addtags,!removetags', () => {
     modOnly.returns(true);
     TEST.ts.teamVariables.whitelistedTagsOnly = 'true';
     const result = await TEST.mockBotSend({
-      cmd: '!addtags xxx-xxx-xxx tag1,tag2,tag3',
+      cmd: '!addtags xxx-xxx-xx5 tag1,tag2,tag3',
       channel: 'general',
       discord_id: '128',
     });
@@ -210,10 +226,10 @@ describe('!addtags,!removetags', () => {
   });
 
   it('!addtag success no existing tags', async () => {
-    await TEST.clearTable('tags');
+    TEST.ts.teamVariables.whitelistedTagsOnly = 'false';
     assert.equal(
       await TEST.mockBotSend({
-        cmd: '!addtags xxx-xxx-xxx tag1,tag2,tag3',
+        cmd: '!addtags xxx-xxx-xx5 tag1,tag2,tag3',
         channel: 'general',
         discord_id: '256',
       }),
@@ -224,43 +240,43 @@ describe('!addtags,!removetags', () => {
       .where({ level_id: 1 });
     assert.deepEqual(
       tags.map((t) => t.tag_id),
-      [1, 2, 3],
+      [1, 2, 8],
     );
   });
 
   it('!addtag new-tag with space after comma', async () => {
     assert.equal(
       await TEST.mockBotSend({
-        cmd: '!addtags xxx-xxx-xxx tag1, new-tag',
+        cmd: '!addtags xxx-xxx-xx5 tag1, new-tag',
         channel: 'general',
         discord_id: '256',
       }),
-      '<@256> Tags added for "approved level" by "Creator" \nCurrent tags:```\ntag1\nnew-tag```',
+      '<@256> Tags added for "approved level" by "Creator" \nCurrent tags:```\ntag1\ntag2\ntag3\nnew-tag```',
     );
     const tags = await TEST.knex('level_tags')
       .where({ guild_id: 1 })
       .where({ level_id: 1 });
     assert.deepEqual(
       tags.map((t) => t.tag_id),
-      [1, 8],
+      [1, 2, 8],
     );
   });
 
   it('!addtag new-tag with 2 spaces after code', async () => {
     assert.equal(
       await TEST.mockBotSend({
-        cmd: '!addtags xxx-xxx-xxx   new-tag,tag1',
+        cmd: '!addtags xxx-xxx-xx5   new-tag2,tag1',
         channel: 'general',
         discord_id: '256',
       }),
-      '<@256> Tags added for "approved level" by "Creator" \nCurrent tags:```\ntag1\nnew-tag```',
+      '<@256> Tags added for "approved level" by "Creator" \nCurrent tags:```\ntag1\ntag2\ntag3\nnew-tag\nnew-tag2```',
     );
     const tags = await TEST.knex('level_tags')
       .where({ guild_id: 1 })
       .where({ level_id: 1 });
     assert.deepEqual(
       tags.map((t) => t.tag_id),
-      [1, 8],
+      [1, 2, 8],
     );
   });
 
@@ -317,18 +333,18 @@ describe('!addtags,!removetags', () => {
     modOnly.returns(true);
     assert.equal(
       await TEST.mockBotSend({
-        cmd: '!removetags XXX-XXX-XX2 removetag1,removetag3',
+        cmd: '!removetags XXX-XXX-XX2 tag2',
         channel: 'general',
         discord_id: '128',
       }),
-      '<@128> Tags removed for "pending level" by "Creator "\nCurrent tags:```\ntag2\nall_locked\nremove_locked```',
+      '<@128> Tags removed for "pending level" by "Creator "\nCurrent tags:```\nall_locked\nremove_locked```',
     );
     const tags = await TEST.knex('level_tags')
       .where({ guild_id: 1 })
       .where({ level_id: 2 });
     assert.deepEqual(
       tags.map((t) => t.tag_id),
-      [2, 4, 5],
+      [4, 5],
     );
     modOnly.restore();
   });
@@ -347,7 +363,7 @@ describe('!addtags,!removetags', () => {
       .where({ level_id: 2 });
     assert.deepEqual(
       tags.map((t) => t.tag_id),
-      [6, 2, 7, 4, 5],
+      [4, 5],
     );
   });
 
@@ -358,7 +374,7 @@ describe('!addtags,!removetags', () => {
         channel: 'general',
         discord_id: '256',
       }),
-      'No tags have been removed for "pending level" by "Creator"\nCurrent tags:```\nremovetag1\ntag2\nremovetag3\nall_locked\nremove_locked``` ',
+      'No tags have been removed for "pending level" by "Creator"\nCurrent tags:```\nall_locked\nremove_locked``` ',
     );
   });
 

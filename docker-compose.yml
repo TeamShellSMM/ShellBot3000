@@ -15,11 +15,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1'
-          memory: 500M
+          cpus: '4'
+          memory: 4G
         reservations:
-          cpus: '0.5'
-          memory: 250M
+          cpus: '2'
+          memory: 2G
     ports:
         - "3306:3306"
     networks:
@@ -28,8 +28,10 @@ services:
     hostname: shellbot-mariadb
     environment:
         MYSQL_ALLOW_EMPTY_PASSWORD: "true"
+        MYSQL_HOME: /etc/mysql/conf.d
     volumes:
-        - ./docker/mariadb:/docker-entrypoint-initdb.d
+        - ./docker/mariadb-migrations:/docker-entrypoint-initdb.d
+    command: mysqld --innodb-file-per-table=0 --innodb-adaptive-hash-index=0
   web:
     image: liaf/shellbot3000
     container_name: shellbot3000
@@ -56,5 +58,5 @@ services:
     volumes:
         - .:/usr/src/app
         - /usr/src/app/node_modules
-    command: sh -c "/wait && npm install && if test "$DOCKER_ENV" = 'testing'; then npm run migrate:test; else npm run migrate && mysql -h shellbot-mariadb -u root < initdev.sql; fi && if test "$DOCKER_ENV" = 'testing'; then npm run lint -- --fix && npm run test; else npm run dev:watch; fi"
+    command: sh -c "/wait && npm install && if test "$DOCKER_ENV" = 'testing'; then npm run migrate:test; else npm run migrate && mysql -h shellbot-mariadb -u root < initdev.sql; fi && if test "$DOCKER_ENV" = 'testing'; then npm run test && echo '' && echo '>>>>>>>>> GOING TO SLEEP NOW, READY FOR MANUAL CLI TESTS <<<<<<<<<<<' && sleep infinity; else npm run dev:watch; fi"
     

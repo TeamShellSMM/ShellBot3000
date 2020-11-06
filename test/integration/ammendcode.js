@@ -1,5 +1,5 @@
 describe('!ammendcode', function () {
-  beforeEach(async () => {
+  before(async () => {
     await TEST.setupData({
       Members: [
         {
@@ -31,6 +31,13 @@ describe('!ammendcode', function () {
           code: 'XXX-XXX-XX2',
           status: 0,
           difficulty: 0,
+        },
+        {
+          level_name: 'approved level',
+          creator: 2,
+          code: 'XXX-XXX-XX9',
+          status: 1,
+          difficulty: 1,
         },
       ],
     });
@@ -151,8 +158,6 @@ describe('!ammendcode', function () {
   });
 
   it('owner successful', async function () {
-    await TEST.sleep(2000);
-
     const ownerId = TEST.ts.discord.guild().owner.user.id;
     await TEST.clearChannels();
     // console.log(TEST.ts.channels.modChannel);
@@ -222,13 +227,13 @@ describe('!ammendcode', function () {
       discord_id: TEST.bot_id, // we use bot for now as bot was set to have admin rights in test server
       // TODO: make admin test users
     });
-    assert.lengthOf(result, 141, 'no result');
+    assert.lengthOf(result, 119, 'no result');
   });
 
   it('discord admin, with flags', async function () {
     TEST.ts.teamVariables.discordAdminCanMod = 'true';
     const result = await TEST.mockBotSend({
-      cmd: '!ammendcode xxx-xxx-xxx xxx-xxx-xx3',
+      cmd: '!ammendcode xxx-xxx-xx9 xxx-xxx-xx5',
       channel: TEST.ts.channels.modChannel,
       discord_id: TEST.bot_id, // we use bot for now as bot was set to have admin rights in test server
       // TODO: make admin test users
@@ -242,12 +247,12 @@ describe('!ammendcode', function () {
           level: {
             level_name: 'approved level',
             creator: 'Creator',
-            code: 'XXX-XXX-XXX',
+            code: 'XXX-XXX-XX9',
             status: 1,
             difficulty: 1,
           },
-          oldCode: 'XXX-XXX-XXX',
-          newCode: 'XXX-XXX-XX3',
+          oldCode: 'XXX-XXX-XX9',
+          newCode: 'XXX-XXX-XX5',
         },
       ),
     );

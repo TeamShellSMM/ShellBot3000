@@ -208,8 +208,6 @@ describe('DiscordWrapper', function () {
     await TEST.ts.discord.removeRoles(botId, [role1.id, role2.id]);
     // console.log(">>> done with the test");
 
-    await TEST.sleep(1000);
-
     // await guild.fetchMembers();
     // TODO: this sometimes fail and returns something, and we're not sure why. Rerunning the tests usually pass it though
     /* //Temporarily removing this until we can figure out/recreate this problem

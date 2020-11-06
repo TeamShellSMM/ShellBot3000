@@ -1,6 +1,8 @@
 describe('!requestrerate', function () {
   beforeEach(async () => {
     await TEST.clearChannels();
+  });
+  before(async () => {
     await TEST.setupData({
       Members: [
         {

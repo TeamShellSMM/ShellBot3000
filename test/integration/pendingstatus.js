@@ -1,5 +1,5 @@
 describe('!pendingstatus', function () {
-  beforeEach(async () => {
+  before(async () => {
     await TEST.clearChannels();
     await TEST.setupData({
       Members: [

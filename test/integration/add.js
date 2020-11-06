@@ -1,5 +1,5 @@
 describe('!add', function () {
-  beforeEach(async () => {
+  before(async () => {
     await TEST.setupData({
       Members: [
         {
@@ -184,11 +184,11 @@ describe('!add', function () {
   it('space after the !', async function () {
     assert.deepEqual(
       await TEST.mockBotSend({
-        cmd: '! add XXX-XXX-XX4 smw this is some long text',
+        cmd: '! add XXX-XXX-XX5 smw this is some long text',
         channel: 'general',
         discord_id: '256',
       }),
-      '<@256> The level this is some long text (XXX-XXX-XX4) has been added ',
+      '<@256> The level this is some long text (XXX-XXX-XX5) has been added ',
     );
   });
 

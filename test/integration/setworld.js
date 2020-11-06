@@ -1,5 +1,5 @@
 describe('setworld', () => {
-  beforeEach(async () => {
+  before(async () => {
     await TEST.setupData({
       Members: [
         {

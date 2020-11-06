@@ -1,5 +1,5 @@
 describe('!changename', () => {
-  beforeEach(async () => {
+  before(async () => {
     await TEST.setupData({
       Members: [
         {

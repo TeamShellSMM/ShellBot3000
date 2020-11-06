@@ -1,6 +1,6 @@
 describe('Web Apis', function () {
   describe('unauthenticated calls', function () {
-    beforeEach(async () => {
+    before(async () => {
       await TEST.setupData({
         Members: [
           {
@@ -464,7 +464,7 @@ describe('Web Apis', function () {
   });
 
   describe('authenticated calls', function () {
-    beforeEach(async () => {
+    before(async () => {
       await TEST.setupData({
         Members: [
           {
@@ -502,6 +502,13 @@ describe('Web Apis', function () {
             level_name: 'pending',
             creator: 2,
             code: 'XXX-XXX-XX2',
+            status: 0,
+            difficulty: 0,
+          },
+          {
+            level_name: 'pending2',
+            creator: 2,
+            code: 'XXX-XXX-XX3',
             status: 0,
             difficulty: 0,
           },
@@ -626,42 +633,6 @@ describe('Web Apis', function () {
       assert.equal(body.levels[0].creator, 'Creator');
     });
 
-    it('POST /json see pending votes', async function () {
-      await TEST.ts.db.Members.query()
-        .patch({ is_mod: 1 })
-        .where({ discord_id: '128' });
-      const { body } = await TEST.request(app)
-        .post('/json')
-        .send({
-          url_slug: TEST.ts.url_slug,
-          token: '123',
-          code: 'XXX-XXX-XX2',
-        })
-        .expect('Content-Type', /json/)
-        .expect(200);
-
-      assert.notEqual(
-        body.status,
-        'error',
-        'Should not return error',
-      );
-
-      assert.equal(body.levels[0].code, 'XXX-XXX-XX2');
-      assert.exists(body.pending_comments);
-      assert.deepInclude(body.pending_comments[0], {
-        id: 1,
-        guild_id: 1,
-        player: 'Mod2',
-        code: 'XXX-XXX-XX2',
-        is_shellder: 0,
-        type: 'approve',
-        difficulty_vote: 4,
-        reason: 'true',
-        player_id: 4,
-        level_id: 2,
-      });
-    });
-
     it('POST /json with name', async function () {
       const { body } = await TEST.request(app)
         .post('/json')
@@ -762,10 +733,43 @@ describe('Web Apis', function () {
       });
     });
 
-    it('POST /approve', async function () {
-      await TEST.knex('members')
-        .update({ is_mod: 1 })
+    it('POST /json see pending votes', async function () {
+      await TEST.ts.db.Members.query()
+        .patch({ is_mod: 1 })
         .where({ discord_id: '128' });
+      const { body } = await TEST.request(app)
+        .post('/json')
+        .send({
+          url_slug: TEST.ts.url_slug,
+          token: '123',
+          code: 'XXX-XXX-XX2',
+        })
+        .expect('Content-Type', /json/)
+        .expect(200);
+
+      assert.notEqual(
+        body.status,
+        'error',
+        'Should not return error',
+      );
+
+      assert.equal(body.levels[0].code, 'XXX-XXX-XX2');
+      assert.exists(body.pending_comments);
+      assert.deepInclude(body.pending_comments[0], {
+        id: 1,
+        guild_id: 1,
+        player: 'Mod2',
+        code: 'XXX-XXX-XX2',
+        is_shellder: 0,
+        type: 'approve',
+        difficulty_vote: 4,
+        reason: 'true',
+        player_id: 4,
+        level_id: 2,
+      });
+    });
+
+    it('POST /approve', async function () {
       const done = TEST.acceptReply();
       const { body } = await TEST.request(app)
         .post('/approve')
@@ -785,9 +789,6 @@ describe('Web Apis', function () {
     });
 
     it('POST /approve w clear', async function () {
-      await TEST.knex('members')
-        .update({ is_mod: 1 })
-        .where({ discord_id: '128' });
       const done = TEST.acceptReply();
       const { body } = await TEST.request(app)
         .post('/approve')
@@ -802,22 +803,19 @@ describe('Web Apis', function () {
         .expect('Content-Type', /json/)
         .expect(200);
       done();
-      assert.match(body.msg, /Your vote was added to <#[0-9]+>!/);
+      assert.match(body.msg, /Your vote was changed in <#[0-9]+>!/);
       assert.equal(body.status, 'successful');
       assert.equal(body.url_slug, 'makerteam');
     });
 
     it('POST /clear', async function () {
-      await TEST.knex('members')
-        .update({ is_mod: 1 })
-        .where({ discord_id: '128' });
       const done = TEST.acceptReply();
       const { body } = await TEST.request(app)
         .post('/clear')
         .send({
           url_slug: TEST.ts.url_slug,
           token: '123',
-          code: 'XXX-XXX-XX2',
+          code: 'XXX-XXX-XX3',
           completed: 1,
         })
         .expect('Content-Type', /json/)
@@ -825,11 +823,11 @@ describe('Web Apis', function () {
       const reply = done();
       assert.equal(
         reply,
-        "Mod \n ‣You have cleared 'pending'  by Creator \n ‣This level is still pending",
+        "Mod \n ‣You have cleared 'pending2'  by Creator \n ‣This level is still pending",
       );
       assert.equal(
         body.msg,
-        "Mod \n ‣You have cleared 'pending'  by Creator \n ‣This level is still pending",
+        "Mod \n ‣You have cleared 'pending2'  by Creator \n ‣This level is still pending",
       );
       assert.equal(body.status, 'successful');
       assert.equal(body.url_slug, 'makerteam');
@@ -940,6 +938,18 @@ describe('Web Apis', function () {
     });
 
     it('POST /teams/tags', async () => {
+      await TEST.knex('tags').insert([
+        {
+          guild_id: 1,
+          name: 'seperate',
+          is_seperate: 1,
+        },
+        {
+          guild_id: 1,
+          name: 'normal',
+        },
+      ]);
+
       const teamAdmin = sinon.stub(TEST.ts, 'teamAdmin');
       teamAdmin.returns(true);
       const done = TEST.acceptReply();

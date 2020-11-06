@@ -3,6 +3,8 @@
 describe('!fixapprove', function () {
   beforeEach(async () => {
     await TEST.clearChannels();
+  });
+  before(async () => {
     await TEST.ts.load();
     await TEST.setupData({
       Members: [
@@ -73,6 +75,55 @@ describe('!fixapprove', function () {
           code: 'XXX-XXX-XX7',
           status: TEST.ts.LEVEL_STATUS.PENDING_APPROVED_REUPLOAD,
           difficulty: 0,
+        },
+        {
+          level_name: 'need fix reupload',
+          creator: 1,
+          code: 'XXX-XXX-XX8',
+          status: TEST.ts.LEVEL_STATUS.PENDING_FIXED_REUPLOAD,
+          difficulty: 0,
+        },
+        {
+          level_name: 'need fixreject',
+          creator: 1,
+          code: 'XXX-XXX-XX9',
+          status: TEST.ts.LEVEL_STATUS.PENDING_NOT_FIXED_REUPLOAD,
+          difficulty: 0,
+        },
+        {
+          level_name: 'approved',
+          creator: 1,
+          code: 'XXX-XXX-X10',
+          status: TEST.ts.LEVEL_STATUS.APPROVED,
+          difficulty: 1,
+        },
+        {
+          level_name: 'approved',
+          creator: 1,
+          code: 'XXX-XXX-X11',
+          status: TEST.ts.LEVEL_STATUS.APPROVED,
+          difficulty: 1,
+        },
+        {
+          level_name: 'approved',
+          creator: 1,
+          code: 'XXX-XXX-X12',
+          status: TEST.ts.LEVEL_STATUS.APPROVED,
+          difficulty: 1,
+        },
+        {
+          level_name: 'approved',
+          creator: 1,
+          code: 'XXX-XXX-X13',
+          status: TEST.ts.LEVEL_STATUS.APPROVED,
+          difficulty: 1,
+        },
+        {
+          level_name: 'approved',
+          creator: 1,
+          code: 'XXX-XXX-X14',
+          status: TEST.ts.LEVEL_STATUS.APPROVED,
+          difficulty: 1,
         },
       ],
       PendingVotes: [
@@ -235,17 +286,17 @@ describe('!fixapprove', function () {
 
   it('reject already fixed', async () => {
     await TEST.createChannel({
-      name: '🔨XXX-XXX-XXX',
+      name: '🔨XXX-XXX-XX8',
       parent: TEST.ts.channels.levelAuditCategory,
     });
     const result = await TEST.mockBotSend({
       cmd: '!fixreject "unfortunately no"',
-      channel: '🔨XXX-XXX-XXX',
+      channel: '🔨XXX-XXX-XX8',
       discord_id: '128',
     });
     assert.equal(result[0], '**<@64>, we got some news for you: **');
     assert.deepInclude(result[1], {
-      title: 'need fix reupload (XXX-XXX-XXX)',
+      title: 'need fix reupload (XXX-XXX-XX8)',
       description:
         'made by Creator\nDifficulty: 0, Clears: 0, Likes: 0\n',
       url: null,
@@ -273,12 +324,12 @@ describe('!fixapprove', function () {
 
   it('reject success', async () => {
     await TEST.createChannel({
-      name: '🔨XXX-XXX-XX4',
+      name: '🔨XXX-XXX-XX9',
       parent: TEST.ts.channels.levelAuditCategory,
     });
     const result = await TEST.mockBotSend({
       cmd: '!fixreject "unfortunately no"',
-      channel: '🔨XXX-XXX-XX4',
+      channel: '🔨XXX-XXX-XX9',
       discord_id: '128',
     });
     assert.equal(result[0], '**<@64>, we got some news for you: **');
@@ -403,12 +454,12 @@ describe('!fixapprove', function () {
 
   it('reject deletion request', async () => {
     await TEST.createChannel({
-      name: '💀XXX-XXX-XX5',
+      name: '💀XXX-XXX-X10',
       parent: TEST.ts.channels.levelAuditCategory,
     });
     const result = await TEST.mockBotSend({
       cmd: '!auditreject it gud',
-      channel: '💀XXX-XXX-XX5',
+      channel: '💀XXX-XXX-X10',
       discord_id: '128',
     });
 
@@ -419,13 +470,13 @@ describe('!fixapprove', function () {
     await TEST.fetchGuild();
     assert.notExists(
       TEST.findChannel({
-        name: '💀XXX-XXX-XX5',
+        name: '💀XXX-XXX-X10',
         parent: TEST.ts.channels.levelAuditCategory,
       }),
     );
 
     const level = await TEST.ts.db.Levels.query()
-      .where({ code: 'XXX-XXX-XX5' })
+      .where({ code: 'XXX-XXX-X10' })
       .first();
     assert.isOk(level);
     assert.notEqual(level.status, TEST.ts.LEVEL_STATUS.USER_REMOVED);
@@ -433,12 +484,12 @@ describe('!fixapprove', function () {
 
   it('reject deletion request missing reason', async () => {
     await TEST.createChannel({
-      name: '💀XXX-XXX-XX5',
+      name: '💀XXX-XXX-X11',
       parent: TEST.ts.channels.levelAuditCategory,
     });
     const result = await TEST.mockBotSend({
       cmd: '!auditreject',
-      channel: '💀XXX-XXX-XX5',
+      channel: '💀XXX-XXX-X11',
       discord_id: '128',
     });
 
@@ -522,12 +573,12 @@ describe('!fixapprove', function () {
 
   it('reject rerate request', async () => {
     await TEST.createChannel({
-      name: '🔢XXX-XXX-XX5',
+      name: '🔢XXX-XXX-X12',
       parent: TEST.ts.channels.levelAuditCategory,
     });
     const result = await TEST.mockBotSend({
       cmd: '!auditreject it alright',
-      channel: '🔢XXX-XXX-XX5',
+      channel: '🔢XXX-XXX-X12',
       discord_id: '128',
     });
 
@@ -538,13 +589,13 @@ describe('!fixapprove', function () {
     await TEST.fetchGuild();
     assert.notExists(
       TEST.findChannel({
-        name: '🔢XXX-XXX-XX5',
+        name: '🔢XXX-XXX-X12',
         parent: TEST.ts.channels.levelAuditCategory,
       }),
     );
 
     const level = await TEST.ts.db.Levels.query()
-      .where({ code: 'XXX-XXX-XX5' })
+      .where({ code: 'XXX-XXX-X12' })
       .first();
     assert.isOk(level);
     assert.notEqual(level.difficulty, 1.5);
@@ -574,24 +625,24 @@ describe('!fixapprove', function () {
   it('amend level with open audit request', async () => {
     const ownerId = TEST.ts.discord.guild().owner.user.id;
     await TEST.createChannel({
-      name: '🔢XXX-XXX-XX5',
+      name: '🔢XXX-XXX-X13',
       parent: TEST.ts.channels.levelAuditCategory,
     });
     const result = await TEST.mockBotSend({
-      cmd: '!amendcode XXX-XXX-XX5 XXX-XXX-XXA',
+      cmd: '!amendcode XXX-XXX-X13 XXX-XXX-XXA',
       channel: TEST.ts.channels.modChannel,
       discord_id: ownerId,
     });
 
     assert.equal(
       result[0],
-      'The level code has been ammended from `XXX-XXX-XX5` to `XXX-XXX-XXA`.',
+      'The level code has been ammended from `XXX-XXX-X13` to `XXX-XXX-XXA`.',
     );
 
     await TEST.fetchGuild();
     assert.notExists(
       TEST.findChannel({
-        name: '🔢XXX-XXX-XX5',
+        name: '🔢XXX-XXX-X13',
         parent: TEST.ts.channels.levelAuditCategory,
       }),
     );
@@ -607,57 +658,57 @@ describe('!fixapprove', function () {
       .first();
     assert.exists(level);
     const oldLevel = await TEST.ts.db.Levels.query()
-      .where({ code: 'XXX-XXX-XX5' })
+      .where({ code: 'XXX-XXX-X13' })
       .first();
     assert.notExists(oldLevel);
   });
 
   it('reupload level with open audit request', async () => {
     await TEST.createChannel({
-      name: '🔢XXX-XXX-XX5',
+      name: '🔢XXX-XXX-X14',
       parent: TEST.ts.channels.levelAuditCategory,
     });
     await TEST.createChannel({
-      name: '🔨XXX-XXX-XX5',
+      name: '🔨XXX-XXX-X14',
       parent: TEST.ts.channels.levelAuditCategory,
     });
     const result = await TEST.mockBotSend({
-      cmd: '!reupload XXX-XXX-XX5 XXX-XXX-XXA yea',
+      cmd: '!reupload XXX-XXX-X14 XXX-XXX-XXB yea',
       channel: 'general',
       discord_id: '64',
     });
 
     assert.equal(
       result[3],
-      "<@64> You have reuploaded 'approved' by Creator with code `XXX-XXX-XXA`.  If you want to rename the new level, you can use !rename new-code level name. Your level has also been put in the reupload queue, we'll get back to you shortly.",
+      "<@64> You have reuploaded 'approved' by Creator with code `XXX-XXX-XXB`.  If you want to rename the new level, you can use !rename new-code level name. Your level has also been put in the reupload queue, we'll get back to you shortly.",
     );
 
     await TEST.fetchGuild();
     assert.exists(
       TEST.findChannel({
-        name: '🔢XXX-XXX-XXA',
+        name: '🔢XXX-XXX-XXB',
         parent: TEST.ts.channels.levelAuditCategory,
       }),
     );
     assert.exists(
       TEST.findChannel({
-        name: '🔨XXX-XXX-XXA',
+        name: '🔨XXX-XXX-XXB',
         parent: TEST.ts.channels.levelAuditCategory,
       }),
     );
     assert.exists(
       TEST.findChannel({
-        name: '🔁XXX-XXX-XXA',
+        name: '🔁XXX-XXX-XXB',
         parent: TEST.ts.channels.levelAuditCategory,
       }),
     );
 
     const level = await TEST.ts.db.Levels.query()
-      .where({ code: 'XXX-XXX-XXA' })
+      .where({ code: 'XXX-XXX-XXB' })
       .first();
     assert.exists(level);
     const oldLevel = await TEST.ts.db.Levels.query()
-      .where({ code: 'XXX-XXX-XX5' })
+      .where({ code: 'XXX-XXX-X14' })
       .first();
     assert.equal(oldLevel.status, TEST.ts.LEVEL_STATUS.REUPLOADED);
   });

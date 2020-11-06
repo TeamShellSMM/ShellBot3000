@@ -1,5 +1,5 @@
 describe('cleardifficulty', () => {
-  beforeEach(async () => {
+  before(async () => {
     await TEST.setupData({
       Members: [
         {

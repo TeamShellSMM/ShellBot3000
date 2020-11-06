@@ -24,7 +24,6 @@ class TSReject extends TSCommand {
   }
 
   async tsexec(ts, message, args2) {
-    console.log('not reacting');
     const args = args2;
     args.type = 'reject';
     args.discord_id = ts.discord.getAuthor(message);

@@ -47,6 +47,60 @@ describe('!approve', function () {
         tags: 'tag1,tag2,tag3',
         difficulty: 1,
       },
+      {
+        level_name: 'level1',
+        creator: 1,
+        code: 'XXX-XXX-XX4',
+        status: 0,
+        difficulty: 0,
+        tags: 'tag1,tag2,tag3',
+        videos: 'http://twitch.tv,http://youtube.com',
+      },
+      {
+        level_name: 'level1',
+        creator: 1,
+        code: 'XXX-XXX-XX5',
+        status: 0,
+        difficulty: 0,
+        tags: 'tag1,tag2,tag3',
+        videos: 'http://twitch.tv,http://youtube.com',
+      },
+      {
+        level_name: 'level1',
+        creator: 1,
+        code: 'XXX-XXX-XX6',
+        status: 0,
+        difficulty: 0,
+        tags: 'tag1,tag2,tag3',
+        videos: 'http://twitch.tv,http://youtube.com',
+      },
+      {
+        level_name: 'level1',
+        creator: 1,
+        code: 'XXX-XXX-XX7',
+        status: 0,
+        difficulty: 0,
+        tags: 'tag1,tag2,tag3',
+        videos: 'http://twitch.tv,http://youtube.com',
+      },
+      {
+        level_name: 'level1',
+        creator: 1,
+        code: 'XXX-XXX-XX8',
+        status: 0,
+        difficulty: 0,
+        tags: 'tag1,tag2,tag3',
+        videos: 'http://twitch.tv,http://youtube.com',
+      },
+      {
+        level_name: 'level1',
+        creator: 1,
+        code: 'XXX-XXX-XX9',
+        status: 0,
+        difficulty: 0,
+        tags: 'tag1,tag2,tag3',
+        videos: 'http://twitch.tv,http://youtube.com',
+      },
     ],
     Videos: [
       {
@@ -62,6 +116,9 @@ describe('!approve', function () {
     ],
   };
   beforeEach(async () => {
+    await TEST.clearChannels();
+  });
+  before(async () => {
     await TEST.clearChannels();
     await TEST.setupData(initData);
     await TEST.ts.load();
@@ -159,7 +216,7 @@ describe('!approve', function () {
     });
     const channel = await TEST.ts.discord.channel('xxx-xxx-xxx');
     assert.isOk(channel);
-    assert.match(result[1], /Your vote was added to <#[0-9]+>!/);
+    assert.match(result[1], /Your vote was changed in <#[0-9]+>!/);
 
     const dwMember = sinon.stub(TEST.ts.discord, 'member');
     const addRole = sinon.stub(TEST.ts.discord, 'addRole');
@@ -210,7 +267,7 @@ describe('!approve', function () {
 
   it('approve+cl', async function () {
     await TEST.mockBotSend({
-      cmd: '!approve+cl XXX-XXX-XXX 5 "is good level"',
+      cmd: '!approve+cl XXX-XXX-XX4 5 "is good level"',
       channel: TEST.ts.channels.modChannel,
       discord_id: '128',
     });
@@ -219,28 +276,30 @@ describe('!approve', function () {
       .getPlays()
       .where({ player: 2 })
       .first();
+
     assert.deepInclude(plays, {
       liked: 1,
       completed: 1,
-      code: 'XXX-XXX-XXX',
+      code: 'XXX-XXX-XX4',
     });
   });
 
   it('approve+c', async function () {
     await TEST.mockBotSend({
-      cmd: '!approve+c XXX-XXX-XXX 5 "is good level"',
+      cmd: '!approve+c XXX-XXX-XX5 5 "is good level"',
       channel: TEST.ts.channels.modChannel,
       discord_id: '128',
     });
 
     const plays = await TEST.ts
       .getPlays()
-      .where({ player: 2 })
+      .where({ player: 2, 'levels.id': 5 })
       .first();
+
     assert.deepInclude(plays, {
       liked: 0,
       completed: 1,
-      code: 'XXX-XXX-XXX',
+      code: 'XXX-XXX-XX5',
     });
   });
 
@@ -278,7 +337,7 @@ describe('!approve', function () {
 
   it('approve no reason', async function () {
     const result = await TEST.mockBotSend({
-      cmd: '!approve XXX-XXX-XXX 5',
+      cmd: '!approve XXX-XXX-XX6 5',
       channel: TEST.ts.channels.modChannel,
       discord_id: '256',
     });
@@ -294,7 +353,7 @@ describe('!approve', function () {
 
   it('approve invalid difficulty', async function () {
     const result = await TEST.mockBotSend({
-      cmd: '!approve XXX-XXX-XXX invalid long reason',
+      cmd: '!approve XXX-XXX-XX6 invalid long reason',
       channel: TEST.ts.channels.modChannel,
       discord_id: '256',
     });
@@ -310,7 +369,7 @@ describe('!approve', function () {
 
   it('approve with emoji reason', async function () {
     const result = await TEST.mockBotSend({
-      cmd: '!approve XXX-XXX-XXX 5 "I like it 💀"',
+      cmd: '!approve XXX-XXX-XX6 5 "I like it 💀"',
       channel: TEST.ts.channels.modChannel,
       discord_id: '256',
     });
@@ -337,28 +396,25 @@ describe('!approve', function () {
 
   it('reject', async function () {
     const result = await TEST.mockBotSend({
-      cmd: '!reject XXX-XXX-XXX "is not good level"',
+      cmd: '!reject XXX-XXX-XX7 "is not good level"',
       channel: TEST.ts.channels.modChannel,
       discord_id: '256',
     });
 
-    console.log(result);
-
-    const channel = await TEST.ts.discord.channel('xxx-xxx-xxx');
+    const channel = await TEST.ts.discord.channel('xxx-xxx-xx7');
     assert.isOk(channel);
     assert.deepInclude(result[0], {
-      title: 'level1 (XXX-XXX-XXX)',
+      title: 'level1 (XXX-XXX-XX7)',
       description:
         'made by [Creator](http://localhost:8080/makerteam/maker/Creator)\n' +
         'Difficulty: 0, Clears: 0, Likes: 0\n' +
-        'Tags: [tag1](http://localhost:8080/makerteam/levels/tags/tag1),[tag2](http://localhost:8080/makerteam/levels/tags/tag2),[tag3](http://localhost:8080/makerteam/levels/tags/tag3)\n' +
-        'Clear Video: [ 🎬 ](http://twitch.tv),[ 🎬 ](http://youtube.com)',
+        'Tags: [tag1](http://localhost:8080/makerteam/levels/tags/tag1),[tag2](http://localhost:8080/makerteam/levels/tags/tag2),[tag3](http://localhost:8080/makerteam/levels/tags/tag3)\n',
     });
     assert.match(result[1], /Your vote was added to <#[0-9]+>!/);
 
     const result2 = await TEST.mockBotSend({
       cmd: '!reject "no"',
-      channel: 'xxx-xxx-xxx',
+      channel: 'xxx-xxx-XX7',
       discord_id: '512',
     });
     assert.equal(
@@ -378,7 +434,7 @@ describe('!approve', function () {
     // TODO: check embed info here: result3[1]
     const result3 = await TEST.mockBotSend({
       cmd: '!judge',
-      channel: 'XXX-XXX-XXX',
+      channel: 'XXX-XXX-XX7',
       discord_id: '256',
     });
     assert.notEqual(
@@ -389,34 +445,33 @@ describe('!approve', function () {
     );
 
     const level = await TEST.ts.db.Levels.query()
-      .where({ code: 'XXX-XXX-XXX' })
+      .where({ code: 'XXX-XXX-XX7' })
       .first();
     assert.isOk(level);
-    assert.equal(level.code, 'XXX-XXX-XXX');
+    assert.equal(level.code, 'XXX-XXX-XX7');
     assert.equal(level.status, TEST.ts.LEVEL_STATUS.REJECTED);
     assert.equal(level.difficulty, 0);
   });
 
   it('apr.fix', async function () {
     const result = await TEST.mockBotSend({
-      cmd: '!fix XXX-XXX-XXX 4 Fix your jank',
+      cmd: '!fix XXX-XXX-XX8 4 Fix your jank',
       channel: TEST.ts.channels.modChannel,
       discord_id: '256',
     });
     await TEST.mockBotSend({
-      cmd: '!fix XXX-XXX-XXX 2 no',
+      cmd: '!fix XXX-XXX-XX8 2 no',
       channel: TEST.ts.channels.modChannel,
       discord_id: '512',
     });
-    const channel = await TEST.ts.discord.channel('xxx-xxx-xxx');
+    const channel = await TEST.ts.discord.channel('xxx-xxx-XX8');
     assert.isOk(channel);
     assert.deepInclude(result[0], {
-      title: 'level1 (XXX-XXX-XXX)',
+      title: 'level1 (XXX-XXX-XX8)',
       description:
         'made by [Creator](http://localhost:8080/makerteam/maker/Creator)\n' +
         'Difficulty: 0, Clears: 0, Likes: 0\n' +
-        'Tags: [tag1](http://localhost:8080/makerteam/levels/tags/tag1),[tag2](http://localhost:8080/makerteam/levels/tags/tag2),[tag3](http://localhost:8080/makerteam/levels/tags/tag3)\n' +
-        'Clear Video: [ 🎬 ](http://twitch.tv),[ 🎬 ](http://youtube.com)',
+        'Tags: [tag1](http://localhost:8080/makerteam/levels/tags/tag1),[tag2](http://localhost:8080/makerteam/levels/tags/tag2),[tag3](http://localhost:8080/makerteam/levels/tags/tag3)\n',
       author: {
         name: 'The Judgement  has now begun for this level:',
         iconURL: undefined,
@@ -426,15 +481,15 @@ describe('!approve', function () {
     assert.match(result[1], /Your vote was added to <#[0-9]+>!/);
     const result3 = await TEST.mockBotSend({
       cmd: '!judge',
-      channel: 'XXX-XXX-XXX',
+      channel: 'XXX-XXX-XX8',
       discord_id: '256',
     });
 
     assert.deepInclude(result3[1], {
-      title: 'level1 (XXX-XXX-XXX)',
+      title: 'level1 (XXX-XXX-XX8)',
       description:
         "If you want to fix these issues use **!reupload** (to get it approved really quickly) or if you don't want to just use **!refusefix** and the mods will decide if it's still acceptable.",
-      url: 'http://localhost:8080/makerteam/level/XXX-XXX-XXX',
+      url: 'http://localhost:8080/makerteam/level/XXX-XXX-XX8',
       color: 14057728,
       author: {
         name:
@@ -469,26 +524,26 @@ describe('!approve', function () {
       }),
     );
     const level = await TEST.ts.db.Levels.query()
-      .where({ code: 'XXX-XXX-XXX' })
+      .where({ code: 'XXX-XXX-XX8' })
       .first();
     assert.isOk(level);
-    assert.equal(level.code, 'XXX-XXX-XXX');
+    assert.equal(level.code, 'XXX-XXX-XX8');
     assert.equal(level.status, TEST.ts.LEVEL_STATUS.NEED_FIX);
     assert.equal(level.difficulty, 0);
   });
 
   it('approve', async function () {
     await TEST.mockBotSend({
-      cmd: '!approve XXX-XXX-XXX 5 "is good level"',
+      cmd: '!approve XXX-XXX-XX9 5 "is good level"',
       channel: TEST.ts.channels.modChannel,
       discord_id: '256',
     });
     const result = await TEST.mockBotSend({
-      cmd: '!approve XXX-XXX-XXX 2 "i changed my mind"',
+      cmd: '!approve XXX-XXX-XX9 2 "i changed my mind"',
       channel: TEST.ts.channels.modChannel,
       discord_id: '256',
     });
-    const channel = await TEST.ts.discord.channel('xxx-xxx-xxx');
+    const channel = await TEST.ts.discord.channel('xxx-xxx-XX9');
     assert.equal(
       result[1],
       `Your vote was changed in <#${channel.id}>!`,

@@ -1,5 +1,5 @@
 describe('!random / !playersRandom', function () {
-  beforeEach(async () => {
+  before(async () => {
     await TEST.setupData({
       Members: [
         {

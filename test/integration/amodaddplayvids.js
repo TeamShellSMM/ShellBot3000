@@ -1,5 +1,5 @@
 describe('!modadd/remove vids', () => {
-  beforeEach(async () => {
+  before(async () => {
     await TEST.setupData({
       Members: [
         {

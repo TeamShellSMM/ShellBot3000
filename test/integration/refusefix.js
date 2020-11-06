@@ -1,5 +1,5 @@
 describe('!refusefix', function () {
-  beforeEach(async () => {
+  before(async () => {
     const initData = {
       Members: [
         {
@@ -96,6 +96,13 @@ describe('!refusefix', function () {
           code: 'XXX-XXX-X13',
           status: TEST.ts.LEVEL_STATUS.PENDING_NOT_FIXED_REUPLOAD,
           difficulty: 2,
+        },
+        {
+          level_name: 'need fix level',
+          creator: 1,
+          code: 'XXX-XXX-X14',
+          status: TEST.ts.LEVEL_STATUS.NEED_FIX,
+          difficulty: 0,
         },
       ],
     };
@@ -235,7 +242,7 @@ describe('!refusefix', function () {
   it('creator successful no ping', async () => {
     await TEST.clearChannels();
     const result = await TEST.mockBotSend({
-      cmd: '!refusefix XXX-XXX-XX3 long reason',
+      cmd: '!refusefix XXX-XXX-X14 long reason',
       channel: 'general',
       discord_id: '64',
     });
@@ -245,10 +252,10 @@ describe('!refusefix', function () {
     );
 
     assert.deepInclude(result[1], {
-      title: 'need fix level (XXX-XXX-XX3)',
+      title: 'need fix level (XXX-XXX-X14)',
       description:
         'Refused by: Please check the fixvotes and decide if this is still acceptable to approve or not (use **!fixapprove** or **!fixreject** with a message).',
-      url: 'http://localhost:8080/makerteam/level/XXX-XXX-XX3',
+      url: 'http://localhost:8080/makerteam/level/XXX-XXX-X14',
       color: 31743,
       author: {
         name: 'This level has NOT been reuploaded!',

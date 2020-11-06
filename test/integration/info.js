@@ -1,5 +1,5 @@
 describe('!info', function () {
-  beforeEach(async () => {
+  before(async () => {
     await TEST.setupData({
       Members: [
         {

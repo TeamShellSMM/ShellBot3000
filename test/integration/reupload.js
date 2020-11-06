@@ -1,7 +1,7 @@
 const debug = require('debug')('shellbot3000:ts');
 
 describe('!reupload', function () {
-  beforeEach(async () => {
+  before(async () => {
     const initData = {
       Members: [
         {
@@ -16,6 +16,10 @@ describe('!reupload', function () {
         {
           name: 'Another Creator',
           discord_id: '256',
+        },
+        {
+          name: 'Another Creator2',
+          discord_id: '257',
         },
       ],
       Levels: [
@@ -100,6 +104,52 @@ describe('!reupload', function () {
           status: TEST.ts.LEVEL_STATUS.USER_REMOVED,
           old_status: TEST.ts.LEVEL_STATUS.NEED_FIX,
           difficulty: 2,
+        },
+        {
+          level_name: 'pending level',
+          creator: 1,
+          code: 'XXX-XXX-X13',
+          status: TEST.ts.LEVEL_STATUS.PENDING,
+          difficulty: 0,
+          tags: 'tag1,tag2',
+        },
+        {
+          level_name: 'user removed level',
+          creator: 1,
+          code: 'XXX-XXX-X14',
+          status: TEST.ts.LEVEL_STATUS.USER_REMOVED,
+          difficulty: 1,
+        },
+        {
+          level_name: 'pending level',
+          creator: 1,
+          code: 'XXX-XXX-AB5',
+          status: TEST.ts.LEVEL_STATUS.PENDING,
+          difficulty: 0,
+          tags: 'tag1,tag2',
+        },
+        {
+          level_name: 'pending level',
+          creator: 1,
+          code: 'XXX-XXX-X15',
+          status: TEST.ts.LEVEL_STATUS.PENDING,
+          difficulty: 0,
+          tags: 'tag1,tag2',
+        },
+        {
+          level_name: 'pending level',
+          creator: 1,
+          code: 'XXX-XXX-X16',
+          status: TEST.ts.LEVEL_STATUS.PENDING,
+          difficulty: 0,
+          tags: 'tag1,tag2',
+        },
+        {
+          level_name: 'need fix level',
+          creator: 1,
+          code: 'XXX-XXX-X17',
+          status: TEST.ts.LEVEL_STATUS.NEED_FIX,
+          difficulty: 0,
         },
       ],
     };
@@ -342,16 +392,16 @@ describe('!reupload', function () {
     // check if can't upload a new level with current points
     assert.equal(
       await TEST.mockBotSend({
-        cmd: '!add XXX-XXX-YYY smw test name',
+        cmd: '!add XXX-XXX-XXY smw test name',
         channel: 'general',
         discord_id: '64',
       }),
-      'You need 2.0 more points to upload a new level . Check how the points are mapped on http://localhost:8080/makerteam ',
+      'You need 7.0 more points to upload a new level . Check how the points are mapped on http://localhost:8080/makerteam ',
     );
 
     assert.notExists(
       await TEST.findChannel({
-        name: 'XXX-XXX-YYY',
+        name: 'XXX-XXX-XXY',
         parentID: TEST.ts.channels.levelAuditCategory,
       }),
       'channel not be created in the normal pending list',
@@ -360,14 +410,14 @@ describe('!reupload', function () {
     // check can upload a new level with current points
     assert.equal(
       await TEST.mockBotSend({
-        cmd: '!reupload XXX-XXX-XX1 XXX-XXX-YYY long reason',
+        cmd: '!reupload XXX-XXX-X13 XXX-XXX-AA1 long reason',
         channel: 'general',
         discord_id: '64',
       }),
-      "<@64> You have reuploaded 'pending level' by Creator with code `XXX-XXX-YYY`.  If you want to rename the new level, you can use !rename new-code level name.",
+      "<@64> You have reuploaded 'pending level' by Creator with code `XXX-XXX-AA1`.  If you want to rename the new level, you can use !rename new-code level name.",
     );
     const newLevel = await TEST.knex('levels')
-      .where({ code: 'XXX-XXX-YYY' })
+      .where({ code: 'XXX-XXX-AA1' })
       .first();
     const newTags = await TEST.knex('level_tags').where({
       level_id: newLevel.id,
@@ -388,7 +438,7 @@ describe('!reupload', function () {
     // check can upload a new level with current points
     assert.equal(
       await TEST.mockBotSend({
-        cmd: '!reupload XXX-XXX-XX6 XXX-XXX-YYY long reason',
+        cmd: '!reupload XXX-XXX-X14 XXX-XXX-XYX long reason',
         channel: 'general',
         discord_id: '64',
       }),
@@ -404,18 +454,18 @@ describe('!reupload', function () {
       .where({ discord_id: '64' });
     // check can upload a new level with current points
     const result = await TEST.mockBotSend({
-      cmd: '!reupload XXX-XXX-XX2 XXX-XXX-YYY long reason',
+      cmd: '!reupload XXX-XXX-XX2 XXX-XXX-AB2 long reason',
       channel: 'general',
       discord_id: '64',
     });
     assert.deepInclude(result[2], {
-      title: 'approved level (XXX-XXX-YYY)',
+      title: 'approved level (XXX-XXX-AB2)',
       description:
         "This level was already approved before so if everything's alright you can approve it (use **!fixapprove**)",
     });
     assert.equal(
       result[3],
-      "<@64> You have reuploaded 'approved level' by Creator with code `XXX-XXX-YYY`.  If you want to rename the new level, you can use !rename new-code level name. Your level has also been put in the reupload queue, we'll get back to you shortly.",
+      "<@64> You have reuploaded 'approved level' by Creator with code `XXX-XXX-AB2`.  If you want to rename the new level, you can use !rename new-code level name. Your level has also been put in the reupload queue, we'll get back to you shortly.",
     );
 
     const oldLevel = await TEST.ts
@@ -424,7 +474,7 @@ describe('!reupload', function () {
       .first();
     const newLevel = await TEST.ts
       .getLevels()
-      .where({ code: 'XXX-XXX-YYY' })
+      .where({ code: 'XXX-XXX-AB2' })
       .first();
 
     assert.exists(oldLevel);
@@ -438,7 +488,7 @@ describe('!reupload', function () {
 
     assert.notExists(
       await TEST.findChannel({
-        name: 'XXX-XXX-YYY',
+        name: 'XXX-XXX-AB2',
         parentID: TEST.ts.channels.levelDiscussionCategory,
       }),
       'channel not created in the normal pending list',
@@ -446,7 +496,7 @@ describe('!reupload', function () {
 
     assert.exists(
       await TEST.findChannel({
-        name: 'XXX-XXX-YYY',
+        name: 'XXX-XXX-AB2',
         parentID: TEST.ts.channels.levelAuditCategory,
       }),
       'a channel created in the pending reupload list',
@@ -458,15 +508,17 @@ describe('!reupload', function () {
     await TEST.ts.db.Members.query()
       .patch({ is_mod: 1 })
       .where({ discord_id: '128' });
+    TEST.ts.teamVariables['Minimum Point'] = 0;
+    TEST.ts.teamVariables['New Level'] = 0;
     // check can upload a new level with current points
     const reply = await TEST.mockBotSend({
-      cmd: '!reupload XXX-XXX-X12 XXX-XXX-XX1 long reason',
+      cmd: '!reupload XXX-XXX-X12 XXX-XXX-AB5 long reason',
       channel: 'general',
       discord_id: '128',
     });
     assert.equal(
       reply[3],
-      "<@128> You have reuploaded 'User removed neex fix' by Creator with code `XXX-XXX-XX1`.  Your level has also been put in the reupload queue, we'll get back to you shortly.",
+      "<@128> You have reuploaded 'User removed neex fix' by Creator with code `XXX-XXX-AB5`.  Your level has also been put in the reupload queue, we'll get back to you shortly.",
     );
     assert.equal(
       reply[1],
@@ -474,13 +526,13 @@ describe('!reupload', function () {
     );
     assert.equal(
       reply[0],
-      'This level has been reuploaded from XXX-XXX-X12 to XXX-XXX-XX1.',
+      'This level has been reuploaded from XXX-XXX-X12 to XXX-XXX-AB5.',
     );
     assert.deepInclude(reply[2], {
-      title: 'pending level (XXX-XXX-XX1)',
+      title: 'pending level (XXX-XXX-AB5)',
       description:
         'Please check if the mandatory fixes were made and make your decision (use **!fixapprove** or **!fixreject** with a message).',
-      url: 'http://localhost:8080/makerteam/level/XXX-XXX-XX1',
+      url: 'http://localhost:8080/makerteam/level/XXX-XXX-AB5',
       color: 31743,
       author: {
         name:
@@ -496,7 +548,7 @@ describe('!reupload', function () {
       .first();
     const newLevel = await TEST.ts
       .getLevels()
-      .where({ code: 'XXX-XXX-XX1' })
+      .where({ code: 'XXX-XXX-AB5' })
       .first();
 
     assert.exists(oldLevel);
@@ -510,7 +562,7 @@ describe('!reupload', function () {
 
     assert.exists(
       await TEST.findChannel({
-        name: 'XXX-XXX-XX1',
+        name: 'XXX-XXX-AB5',
         parentID: TEST.ts.channels.levelAuditCategory,
       }),
       'a channel created in the pending reupload list',
@@ -525,13 +577,13 @@ describe('!reupload', function () {
       .where({ discord_id: '64' });
     // check can upload a new level with current points
     const reply = await TEST.mockBotSend({
-      cmd: '!reupload XXX-XXX-XX3 XXX-XXX-YYY long reason',
+      cmd: '!reupload XXX-XXX-XX3 XXX-XXX-AB6 long reason',
       channel: 'general',
       discord_id: '64',
     });
     assert.equal(
       reply[0],
-      'This level has been reuploaded from XXX-XXX-XX3 to XXX-XXX-YYY.',
+      'This level has been reuploaded from XXX-XXX-XX3 to XXX-XXX-AB6.',
     );
     assert.equal(
       reply[1],
@@ -539,14 +591,14 @@ describe('!reupload', function () {
     );
     assert.equal(
       reply[3],
-      "<@64> You have reuploaded 'need fix level' by Creator with code `XXX-XXX-YYY`.  If you want to rename the new level, you can use !rename new-code level name. Your level has also been put in the reupload queue, we'll get back to you shortly.",
+      "<@64> You have reuploaded 'need fix level' by Creator with code `XXX-XXX-AB6`.  If you want to rename the new level, you can use !rename new-code level name. Your level has also been put in the reupload queue, we'll get back to you shortly.",
     );
 
     assert.deepInclude(reply[2], {
-      title: 'need fix level (XXX-XXX-YYY)',
+      title: 'need fix level (XXX-XXX-AB6)',
       description:
         'Please check if the mandatory fixes were made and make your decision (use **!fixapprove** or **!fixreject** with a message).',
-      url: 'http://localhost:8080/makerteam/level/XXX-XXX-YYY',
+      url: 'http://localhost:8080/makerteam/level/XXX-XXX-AB6',
       color: 31743,
       author: {
         name:
@@ -562,7 +614,7 @@ describe('!reupload', function () {
       .first();
     const newLevel = await TEST.ts
       .getLevels()
-      .where({ code: 'XXX-XXX-YYY' })
+      .where({ code: 'XXX-XXX-AB6' })
       .first();
 
     assert.exists(oldLevel);
@@ -576,7 +628,7 @@ describe('!reupload', function () {
 
     assert.notExists(
       await TEST.findChannel({
-        name: 'XXX-XXX-YYY',
+        name: 'XXX-XXX-AB6',
         parentID: TEST.ts.channels.levelDiscussionCategory,
       }),
       'channel not created in the normal pending list',
@@ -584,7 +636,7 @@ describe('!reupload', function () {
 
     assert.exists(
       await TEST.findChannel({
-        name: 'XXX-XXX-YYY',
+        name: 'XXX-XXX-AB6',
         parentID: TEST.ts.channels.levelAuditCategory,
       }),
       'a channel created in the pending reupload list',
@@ -600,18 +652,18 @@ describe('!reupload', function () {
     // check can upload a new level with current points
     assert.equal(
       await TEST.mockBotSend({
-        cmd: '!reupload XXX-XXX-X11 XXX-XXX-YYY long reason',
+        cmd: '!reupload XXX-XXX-X11 XXX-XXX-AB7 long reason',
         channel: 'general',
         discord_id: '64',
       }),
-      "<@64> You have reuploaded 'User removed' by Creator with code `XXX-XXX-YYY`.  If you want to rename the new level, you can use !rename new-code level name.",
+      "<@64> You have reuploaded 'User removed' by Creator with code `XXX-XXX-AB7`.  If you want to rename the new level, you can use !rename new-code level name.",
     );
   });
 
   it('successful pending level reupload. Discussion channel exists, rename channel', async () => {
     await TEST.clearChannels();
     await TEST.createChannel({
-      name: 'XXX-XXX-XX1',
+      name: 'XXX-XXX-X15',
       parent: TEST.ts.channels.levelDiscussionCategory,
     });
 
@@ -621,17 +673,17 @@ describe('!reupload', function () {
       .where({ discord_id: '64' });
 
     const result = await TEST.mockBotSend({
-      cmd: '!reupload XXX-XXX-XX1 XXX-XXX-YYY long reason',
+      cmd: '!reupload XXX-XXX-X15 XXX-XXX-AB8 long reason',
       channel: 'general',
       discord_id: '64',
     });
     assert.equal(
       result[0],
-      'This level has been reuploaded from XXX-XXX-XX1 to XXX-XXX-YYY.',
+      'This level has been reuploaded from XXX-XXX-X15 to XXX-XXX-AB8.',
     ); // check can upload a new level with current points
     assert.equal(
       result[2],
-      "<@64> You have reuploaded 'pending level' by Creator with code `XXX-XXX-YYY`.  If you want to rename the new level, you can use !rename new-code level name.",
+      "<@64> You have reuploaded 'pending level' by Creator with code `XXX-XXX-AB8`.  If you want to rename the new level, you can use !rename new-code level name.",
     ); // check can upload a new level with current points
     assert.equal(
       result[1].author.name,
@@ -640,7 +692,7 @@ describe('!reupload', function () {
 
     assert.notExists(
       await TEST.findChannel({
-        name: 'XXX-XXX-XX1',
+        name: 'XXX-XXX-X15',
         parentID: TEST.ts.channels.levelDiscussionCategory,
       }),
       "old channel shouuldn't exist",
@@ -648,7 +700,7 @@ describe('!reupload', function () {
 
     assert.exists(
       await TEST.findChannel({
-        name: 'XXX-XXX-YYY',
+        name: 'XXX-XXX-AB8',
         parentID: TEST.ts.channels.levelDiscussionCategory,
       }),
       'next channel should exist',
@@ -656,7 +708,7 @@ describe('!reupload', function () {
 
     assert.notExists(
       await TEST.findChannel({
-        name: '🔨XXX-XXX-YYY',
+        name: '🔨XXX-XXX-AB8',
         parentID: TEST.ts.channels.levelAuditCategory,
       }),
       'new channel should not exist in pending reupload',
@@ -667,14 +719,14 @@ describe('!reupload', function () {
     await TEST.clearChannels();
 
     const result = await TEST.mockBotSend({
-      cmd: '!reupload XXX-XXX-XX3 XXX-XXX-XX1 long reason',
+      cmd: '!reupload XXX-XXX-X17 XXX-XXX-X16 long reason',
       channel: 'general',
       discord_id: '64',
     });
 
     assert.equal(
       result[0],
-      'This level has been reuploaded from XXX-XXX-XX3 to XXX-XXX-XX1.',
+      'This level has been reuploaded from XXX-XXX-X17 to XXX-XXX-X16.',
     ); // check can upload a new level with current points
     assert.equal(
       result[1],
@@ -687,12 +739,12 @@ describe('!reupload', function () {
 
     assert.equal(
       result[3],
-      "<@64> You have reuploaded 'need fix level' by Creator with code `XXX-XXX-XX1`.  Your level has also been put in the reupload queue, we'll get back to you shortly.",
+      "<@64> You have reuploaded 'need fix level' by Creator with code `XXX-XXX-X16`.  Your level has also been put in the reupload queue, we'll get back to you shortly.",
     );
 
     assert.exists(
       await TEST.findChannel({
-        name: 'XXX-XXX-XX1',
+        name: 'XXX-XXX-X16',
         parentID: TEST.ts.channels.levelAuditCategory,
       }),
       'next channel should exist',

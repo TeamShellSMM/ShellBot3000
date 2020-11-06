@@ -1,5 +1,5 @@
 describe('!removelevel', function () {
-  beforeEach(async () => {
+  before(async () => {
     await TEST.setupData({
       Members: [
         {

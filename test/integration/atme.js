@@ -1,5 +1,5 @@
 describe('!atmebot', () => {
-  beforeEach(async () => {
+  before(async () => {
     await TEST.setupData({
       Members: [
         {
@@ -11,6 +11,10 @@ describe('!atmebot', () => {
         {
           name: 'Creator',
           discord_id: '256',
+        },
+        {
+          name: 'Creator2',
+          discord_id: '257',
         },
       ],
     });
@@ -66,12 +70,12 @@ describe('!atmebot', () => {
       await TEST.mockBotSend({
         cmd: '!dontatmebot',
         channel: 'general',
-        discord_id: '256',
+        discord_id: '257',
       }),
       'You already have chosen not to be atted ',
     );
     const member = await TEST.ts.db.Members.query()
-      .where({ discord_id: '256' })
+      .where({ discord_id: '257' })
       .first();
     assert.notExists(member.atme);
   });
