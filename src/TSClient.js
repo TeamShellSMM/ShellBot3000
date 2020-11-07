@@ -348,7 +348,9 @@ class TSClient extends AkairoClient {
         for (let tag of tags) {
           tag = tag.trim();
           const existingTag = await ts.db.Tags.query()
-            .whereRaw('lower(name) = ?', [tag.trim().toLowerCase()])
+            .whereRaw('replace(lower(name), " ", "") = ?', [
+              tag.trim().toLowerCase().replace(' ', ''),
+            ])
             .first();
           if (!existingTag) {
             return this.handleError(
