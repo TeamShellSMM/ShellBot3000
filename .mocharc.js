@@ -16,7 +16,7 @@ module.exports = {
   retries: 0,
   slow: 75,
   sort: false,
-  timeout: 10000, // same as "no-timeout: true" or "timeout: 0"
+  timeout: 0, // same as "no-timeout: true" or "timeout: 0"
   'trace-warnings': true, // node flags ok
   ui: 'bdd',
   watch: false,

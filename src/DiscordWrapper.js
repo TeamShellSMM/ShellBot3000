@@ -135,7 +135,11 @@ class DiscordWrapper {
     if (!newChannel) {
       debug(`found oldChannel and no newChannel. renaming`);
       // TODO: it seems that we ger rate limited here
-      await oldChannel.setName(newName);
+      // I think this is what we have to do unfortunately
+      const result = await oldChannel.setName(newName);
+      this.guild().channels.cache.delete(result.id);
+      this.guild().channels.cache.set(result.id, result);
+      return result;
     }
     debug(`Did not find old channel or found new channel`);
     return false;
@@ -211,7 +215,10 @@ class DiscordWrapper {
   async removeChannel(search, reason) {
     const channel = this.channel(search);
     if (channel) {
-      return channel.delete(reason);
+      const { id } = channel;
+      const result = await channel.delete(reason);
+      this.guild().channels.cache.delete(id);
+      return result;
     }
     return false;
   }
