@@ -1415,34 +1415,63 @@ class TS {
      * @return {string} A response string to be sent to the user.
      */
     this.clear = async (args = {}) => {
-      let { level, completed } = args;
-      const {
-        discord_id,
-        strOnly,
-        playerDontAtMe,
-        member,
-        difficulty,
-        liked,
-        code,
-      } = args;
+      let { level, completed, difficulty, liked, code } = args;
+      const { discord_id, strOnly, playerDontAtMe, member } = args;
 
       if (!level) {
+        if (code) {
+          code = code.toUpperCase();
+        }
         level = await this.getExistingLevel(code);
+      } else {
+        code = level.code;
       }
 
       if (!discord_id && !member)
         ts.userError(await ts.message('error.noDiscordId'));
 
-      completed = ts.commandPassedBoolean(completed);
+      if (typeof difficulty === 'string')
+        difficulty = difficulty.toLowerCase();
+      if (typeof liked === 'string') liked = liked.toLowerCase();
 
+      if (difficulty === 'like') {
+        difficulty = null;
+        liked = 1;
+      }
+      if (difficulty === 'unlike') {
+        difficulty = null;
+        liked = 0;
+      }
+
+      if (liked === 'like') {
+        liked = 1;
+      }
+      if (liked === 'unlike') {
+        liked = 0;
+      }
+      liked = ts.commandPassedBoolean(liked);
+      completed = ts.commandPassedBoolean(completed);
+      if (difficulty === '') difficulty = null;
+      if (difficulty == null) difficulty = null;
       if (completed == null && liked == null && difficulty == null) {
         ts.userError(await ts.message('clear.noArgs'));
       }
-
+      if (code == null) {
+        ts.userError(await ts.message('error.noCode'));
+      }
       if (difficulty && Number.isNaN(Number(difficulty))) {
         ts.userError(await ts.message('clear.invalidDifficulty'));
       }
-
+      if (difficulty) {
+        difficulty = parseFloat(difficulty);
+      }
+      if (
+        difficulty !== 0 &&
+        difficulty &&
+        !ts.valid_difficulty(difficulty)
+      ) {
+        ts.userError(await ts.message('clear.invalidDifficulty'));
+      }
       const player = member || (await ts.getUser(discord_id));
       if (level.creator_id === player.id)
         ts.userError(await ts.message('clear.ownLevel'));
@@ -1522,12 +1551,12 @@ class TS {
 
               const voteEmbed = await ts.makeVoteEmbed(level);
               await ts.discord.updatePinned(
-                `${ts.CHANNEL_LABELS.AUDIT_VERIFY_CLEARS}${level.code}`,
+                `${ts.CHANNEL_LABELS.AUDIT_VERIFY_CLEARS}${code}`,
                 voteEmbed,
               );
 
               await ts.discord.send(
-                `${ts.CHANNEL_LABELS.AUDIT_VERIFY_CLEARS}${level.code}`,
+                `${ts.CHANNEL_LABELS.AUDIT_VERIFY_CLEARS}${code}`,
                 `Clear by <@${player.discord_id}> requires verification, please check if their clear is valid.`,
               );
             }
