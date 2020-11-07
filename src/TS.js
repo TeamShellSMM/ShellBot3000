@@ -1896,12 +1896,13 @@ class TS {
         max,
         tagIds,
         players: playerIds,
+        tagCount: tagIds.length === 0 ? 1 : tagIds.length,
       };
       const [filteredLevels] = await knex.raw(
         `
     SELECT levels.*, members.id creator_id,
     members.name creator,
-    COALESCE(group_concat(tags.name),'') tags from
+    COALESCE(group_concat(tags.name),'') tags, count(*) as tag_count from
     levels
     inner join members on levels.creator=members.id
     left join level_tags on levels.id=level_tags.level_id
@@ -1915,6 +1916,7 @@ class TS {
     ${playsSQL3}
     ${tagSql}
     group by levels.id
+    having tag_count = :tagCount
     order by likes;`,
         par,
       );

@@ -23,7 +23,7 @@ services:
     ports:
         - "3306:3306"
     networks:
-      shellbot-net:      
+      shellbot-net:
         ipv4_address: 172.18.0.102
     hostname: shellbot-mariadb
     environment:
@@ -46,7 +46,7 @@ services:
     ports:
         - "8080:8080"
     networks:
-      shellbot-net:      
+      shellbot-net:
         ipv4_address: 172.18.0.101
     hostname: shellbot3000
     extra_hosts:
@@ -58,5 +58,4 @@ services:
     volumes:
         - .:/usr/src/app
         - /usr/src/app/node_modules
-    command: sh -c "/wait && npm install && if test "$DOCKER_ENV" = 'testing'; then npm run migrate:test; else npm run migrate && mysql -h shellbot-mariadb -u root < initdev.sql; fi && if test "$DOCKER_ENV" = 'testing'; then npm run test && echo '' && echo '>>>>>>>>> GOING TO SLEEP NOW, READY FOR MANUAL CLI TESTS <<<<<<<<<<<' && sleep infinity; else npm run dev:watch; fi"
-    
+    command: sh -c "/wait && npm install && if test "$DOCKER_ENV" = 'testing'; then npm run migrate:test; else npm run migrate && mysql -h shellbot-mariadb -u root < initdev.sql; fi && if test "$DOCKER_ENV" = 'testing'; then echo '' && echo '>>>>>>>>> GOING TO SLEEP NOW, READY FOR MANUAL CLI TESTS <<<<<<<<<<<' && sleep infinity; else npm run dev:watch; fi"

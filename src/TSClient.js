@@ -345,7 +345,8 @@ class TSClient extends AkairoClient {
         ts.teamVariables.whitelistedTagsOnly === 'true' ||
         whitelistedOnly
       ) {
-        for (const tag of tags) {
+        for (let tag of tags) {
+          tag = tag.trim();
           const existingTag = await ts.db.Tags.query()
             .whereRaw('lower(name) = ?', [tag.trim().toLowerCase()])
             .first();
