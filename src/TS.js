@@ -1945,7 +1945,7 @@ class TS {
     ${playsSQL3}
     ${tagSql}
     group by levels.id
-    having tag_count = :tagCount
+    ${tags ? 'having tag_count = :tagCount' : ''}
     order by likes;`,
         par,
       );
