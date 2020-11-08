@@ -182,9 +182,16 @@ class TS {
         'MiscChannel',
       ];
       suggestedChannels.forEach((c) => {
-        const channelName = this.teamVariables[c];
-        if (channelName && this.discord.channel(channelName))
-          this.teamVariables[c] = this.discord.channel(channelName);
+        if (this.teamVariables[c]) {
+          const foundChannel = this.discord.channel(
+            this.teamVariables[c],
+          );
+          if (foundChannel) {
+            this.teamVariables[c] = `<#${foundChannel.id}>`;
+          } else {
+            this.teamVariables[c] = `#${this.teamVariables[c]}`;
+          }
+        }
       }, this);
 
       this.emotes = {
@@ -4570,6 +4577,7 @@ class TS {
         ...that.teamVariables,
         ...args,
       };
+
       return handlebar(obj);
     };
   }
