@@ -340,7 +340,7 @@ describe('!fixapprove', function () {
     );
     assert.equal(
       result[1].fields[0].value,
-      '**Reason** :```"unfortunately no"```-<@128>',
+      '**Reason** :```unfortunately no```-<@128>',
     );
   });
 

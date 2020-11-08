@@ -60,7 +60,7 @@ describe('!pendingstatus', function () {
         channel: 'general',
         discord_id: '64',
       }),
-      '<@64> \nYour Pending Levels:```XXX-XXX-XXX - "need fix reupload":\n •1 approval,1 rejects,1 fix request\n\nXXX-XXX-XX3 - "approved reuploaded":\n •No votes has been cast yet\n\nXXX-XXX-XX4 - "need fixreject":\n •No votes has been cast yet\n\n```',
+      '<@64> \nYour Pending Levels:```XXX-XXX-XXX - "need fix reupload":\n •1 approval,1 reject,1 fix request\n\nXXX-XXX-XX3 - "approved reuploaded":\n •No votes has been cast yet\n\nXXX-XXX-XX4 - "need fixreject":\n •No votes has been cast yet\n\n```',
     );
   });
 

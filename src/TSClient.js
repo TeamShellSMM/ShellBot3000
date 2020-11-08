@@ -137,7 +137,8 @@ class TSClient extends AkairoClient {
       memberNameArg,
       argumentDefs,
     ) => {
-      const memberName = memberNameArg;
+      let memberName = memberNameArg;
+      memberName = memberName.replace(/"/g, '');
       const ts = TS.teams(TS.DiscordWrapper.messageGetGuild(message));
 
       if (!memberName) {
@@ -182,7 +183,7 @@ class TSClient extends AkairoClient {
       const members = [];
 
       for (let memberName of memberNames) {
-        memberName = memberName.trim();
+        memberName = memberName.trim().replace(/"/g, '');
         if (!memberName) {
           return this.handleError(
             ts,
@@ -319,7 +320,7 @@ class TSClient extends AkairoClient {
         );
       }
 
-      return text.trim();
+      return text.trim().replace(/"/g, '');
     };
 
     this.resolveTags = async (
@@ -349,7 +350,7 @@ class TSClient extends AkairoClient {
           tag = tag.trim();
           const existingTag = await ts.db.Tags.query()
             .whereRaw('replace(lower(name), " ", "") = ?', [
-              tag.trim().toLowerCase().replace(' ', ''),
+              tag.trim().toLowerCase().replace(/ /g, ''),
             ])
             .first();
           if (!existingTag) {
