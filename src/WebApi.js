@@ -145,6 +145,72 @@ module.exports = async function (client) {
     };
 
     if (name) {
+      // get collab levels
+      const [collabs] = await knex.raw(
+        `
+        SELECT
+          levels.row_num no
+          ,levels.id
+          ,levels.id DR_RowId
+          ,levels.code
+          ,members.name creator
+          ,members.id creator_id
+          ,members.is_member creator_is_member
+          ,levels.level_name
+          ,levels.status
+          ,levels.difficulty
+          ,COALESCE(group_concat(distinct tags.name order by tags.id),'') tags
+          ,BIT_OR(tags.verify_clears) as needs_clear_verification
+          ,levels.created_at
+          ,(SELECT GROUP_CONCAT(videos.url) from videos where videos.level_id = levels.id) as videos
+          ,(SELECT COUNT(*) from collaborators where collaborators.level_id = levels.id) as collaborator_count
+          ,levels.clears
+          ,levels.likes
+          ,levels.maker_points lcd
+          ,concat(average_votes,',',num_votes) votestr
+          ,levels.num_votes
+          ,points.score
+          ,members.maker_id
+          ,levels.approves
+          ,levels.rejects
+          ,levels.want_fixes
+          ${registeredColumns}
+        FROM
+          members m1
+        inner join collaborators
+          on collaborators.member_id = m1.id
+        inner join levels on
+          collaborators.level_id = levels.id
+        INNER JOIN teams on
+          levels.guild_id=teams.id
+        LEFT JOIN points on
+          points.guild_id=teams.id
+          AND points.difficulty=levels.difficulty
+        INNER JOIN members on
+          levels.creator=members.id and
+          members.is_banned is null
+        LEFT JOIN level_tags on
+          levels.id=level_tags.level_id
+        LEFT JOIN tags on
+          level_tags.tag_id=tags.id
+        ${registeredSql}
+        WHERE
+          levels.status IN (:statuses:)
+          AND teams.guild_id=:guild_id
+          AND m1.name=:name
+        GROUP BY levels.id
+        order by levels.id
+      `,
+        {
+          guild_id: ts.guild_id,
+          name,
+          player_id: user ? user.id : -1,
+          statuses: ts.SHOWN_IN_LIST,
+        },
+      );
+
+      json.collabs = collabs;
+
       const [makerDetails] = await knex.raw(
         `
       SELECT members.*,members.id creator_id
