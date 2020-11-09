@@ -33,6 +33,7 @@ const {
   CHANNEL_LABELS,
   GAME_STYLES,
   ALLOWED_VIDEO_TYPES,
+  EMOJIS,
 } = require('./constants');
 const CONSTANTS = require('./constants');
 
@@ -77,6 +78,7 @@ class TS {
     this.CHANNEL_LABELS = CHANNEL_LABELS;
     this.GAME_STYLES = GAME_STYLES;
     this.ALLOWED_VIDEO_TYPES = ALLOWED_VIDEO_TYPES;
+    this.EMOJIS = EMOJIS;
 
     this.commandLanguage = 'en';
 
@@ -950,6 +952,129 @@ class TS {
           await ts.db.Videos.query().where('id', row.id).del();
         }
       }
+
+      return submitter.userReply + reply;
+    };
+
+    this.addCollaborators = async (args) => {
+      return this.changeCollaborators(args);
+    };
+
+    this.removeCollaborators = async (args) => {
+      return this.changeCollaborators(args, false);
+    };
+
+    this.changeCollaborators = async (args, adding = true) => {
+      const { level, newMembers, submitter } = args;
+
+      if (
+        !(await ts.modOnly(submitter.discord_id)) &&
+        level.creator_id !== submitter.id
+      ) {
+        ts.userError(
+          `${await ts.message('collaborators.notAllowed')}`,
+        );
+      }
+
+      let reply;
+
+      const existingCollaborators = await ts
+        .knex('collaborators')
+        .where({ level_id: level.id, guild_id: this.team.id })
+        .whereIn(
+          'member_id',
+          newMembers.map((x) => x.id),
+        );
+
+      const existingCollaboratorIds = existingCollaborators.map(
+        (x) => x.member_id,
+      );
+
+      if (adding) {
+        const insertJson = [];
+
+        for (const newMember of newMembers) {
+          if (
+            existingCollaboratorIds.indexOf(newMember.id) === -1 &&
+            newMember.id !== level.creator_id
+          ) {
+            // Create new one
+            insertJson.push({
+              level_id: level.id,
+              member_id: newMember.id,
+              guild_id: this.team.id,
+            });
+          }
+        }
+
+        if (insertJson.length > 0) {
+          await ts.knex('collaborators').insert(insertJson);
+          reply = `${await ts.message('addcollaborators.success')}\n`;
+        } else {
+          reply = `${await ts.message('collaborators.noChange')}\n`;
+        }
+      } else {
+        const deleteJsonArr = [];
+
+        for (const newMember of newMembers) {
+          if (existingCollaboratorIds.indexOf(newMember.id) !== -1) {
+            // Delete that one
+            deleteJsonArr.push({
+              level_id: level.id,
+              member_id: newMember.id,
+              guild_id: this.team.id,
+            });
+          }
+        }
+        if (deleteJsonArr.length > 0) {
+          const queryBuilder = ts.knex('collaborators');
+          let first = true;
+          for (const deleteJson of deleteJsonArr) {
+            if (first) {
+              queryBuilder.where(deleteJson);
+              first = false;
+            } else {
+              queryBuilder.orWhere(deleteJson);
+            }
+          }
+          await queryBuilder.del();
+          reply = `${await ts.message(
+            'removecollaborators.success',
+          )}\n`;
+        } else {
+          reply = `${await ts.message('collaborators.noChange')}\n`;
+        }
+      }
+
+      let currentCollaborators = await ts
+        .knex('collaborators')
+        .select('members.name as name')
+        .leftJoin(
+          'members',
+          'collaborators.member_id',
+          '=',
+          'members.id',
+        )
+        .where({
+          'collaborators.level_id': level.id,
+          'collaborators.guild_id': this.team.id,
+        });
+
+      if (currentCollaborators && currentCollaborators.length > 0) {
+        currentCollaborators = currentCollaborators.map(
+          (x) => x.name,
+        );
+      } else {
+        currentCollaborators = [];
+      }
+
+      const collabStr = currentCollaborators.join('\n');
+
+      reply += `${await ts.message('collaborators.list', {
+        levelName: level.level_name,
+        levelCode: level.code,
+        collaborators: collabStr || '-',
+      })}`;
 
       return submitter.userReply + reply;
     };
@@ -3033,6 +3158,21 @@ class TS {
 
     this.levelEmbed = async function (pLevel, args = {}, titleArgs) {
       const level = pLevel;
+
+      const currentCollaborators = await ts
+        .knex('collaborators')
+        .select('members.name as name')
+        .leftJoin(
+          'members',
+          'collaborators.member_id',
+          '=',
+          'members.id',
+        )
+        .where({
+          'collaborators.level_id': level.id,
+          'collaborators.guild_id': this.team.id,
+        });
+
       const { color, title, noLink } = args;
       let { image } = args;
 
@@ -3066,7 +3206,11 @@ class TS {
               ? level.creator
               : `[${level.creator}](${ts.page_url}${
                   ts.url_slug
-                }/maker/${encodeURIComponent(level.creator)})`
+                }/maker/${encodeURIComponent(level.creator)})${
+                  currentCollaborators.length > 0
+                    ? ` [(+${currentCollaborators.length}${this.EMOJIS.COLLAB})](${ts.page_url}${ts.url_slug}/level/${level.code})`
+                    : ''
+                }`
           }\n${
             ts.is_smm1(level.code)
               ? `Links: [Bookmark Page](https://supermariomakerbookmark.nintendo.net/courses/${level.code})\n`

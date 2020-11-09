@@ -118,7 +118,7 @@ describe('!modadd/remove vids', () => {
         channel: TEST.ts.channels.modChannel,
         discord_id: '1024',
       }),
-      `>>> **!modaddplayvids <memberName> <levelCode> __<newVids>__**\n${await TEST.mockMessageReply(
+      `>>> **!modaddplayvids <memberName> <levelCode> __<Link1,Link2,Link3,...>__**\n${await TEST.mockMessageReply(
         'addVids.notAllowed',
         { type: 'userError', discord_id: 1024 },
         { videos: 'https://clips.othersite.tv/12345' },

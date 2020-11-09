@@ -8,6 +8,7 @@ class randomtag extends TSCommand {
         {
           id: 'tags',
           type: 'tags:whitelisted',
+          description: '"Tag1,Tag2,Tag3,..."',
           default: null,
         },
         {

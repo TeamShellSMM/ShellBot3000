@@ -200,7 +200,7 @@ describe('!add/remove vids', () => {
         channel: 'general',
         discord_id: '256',
       }),
-      `>>> **!addvids __<levelCode>__ <newVids>**\n${await TEST.mockMessageReply(
+      `>>> **!addvids __<levelCode>__ <Link1,Link2,Link3,...>**\n${await TEST.mockMessageReply(
         'error.noCode',
         { type: 'userError', discord_id: 256 },
         {},
@@ -215,7 +215,7 @@ describe('!add/remove vids', () => {
         channel: 'general',
         discord_id: '256',
       }),
-      `>>> **!addvids <levelCode> __<newVids>__**\n${await TEST.mockMessageReply(
+      `>>> **!addvids <levelCode> __<Link1,Link2,Link3,...>__**\n${await TEST.mockMessageReply(
         'error.noVideos',
         { type: 'userError', discord_id: 256 },
         {},
@@ -230,7 +230,7 @@ describe('!add/remove vids', () => {
         channel: 'general',
         discord_id: '256',
       }),
-      `>>> **!addvids <levelCode> __<newVids>__**\n${await TEST.mockMessageReply(
+      `>>> **!addvids <levelCode> __<Link1,Link2,Link3,...>__**\n${await TEST.mockMessageReply(
         'error.notUrls',
         { type: 'userError', discord_id: 256 },
         { urls: 'example\nof\nnot\nurl' },
@@ -323,7 +323,7 @@ describe('!add/remove vids', () => {
         channel: 'general',
         discord_id: '512',
       }),
-      `>>> **!addvids <levelCode> __<newVids>__**\n${await TEST.mockMessageReply(
+      `>>> **!addvids <levelCode> __<Link1,Link2,Link3,...>__**\n${await TEST.mockMessageReply(
         'addVids.notAllowed',
         { type: 'userError', discord_id: 512 },
         { videos: 'https://clips.othersite.tv/12345' },

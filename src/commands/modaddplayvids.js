@@ -25,6 +25,7 @@ class ModAddPlayVids extends TSCommand {
         {
           id: 'newVids',
           type: 'videos',
+          description: 'Link1,Link2,Link3,...',
           match: 'rest',
           default: null,
         },

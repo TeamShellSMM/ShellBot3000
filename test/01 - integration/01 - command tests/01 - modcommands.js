@@ -342,7 +342,7 @@ describe('modcommands', function () {
 
     assert.equal(
       result,
-      '>>> **!modaddplayvids __<memberName>__ <levelCode> <newVids>**\n<@128>, No member with the name "Player2" was found in the members list. ',
+      '>>> **!modaddplayvids __<memberName>__ <levelCode> <Link1,Link2,Link3,...>**\n<@128>, No member with the name "Player2" was found in the members list. ',
     );
   });
 

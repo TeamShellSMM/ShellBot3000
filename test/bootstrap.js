@@ -344,6 +344,7 @@ before(async () => {
       TRUNCATE table tags;
       TRUNCATE table seasons;
       TRUNCATE table videos;
+      TRUNCATE table collaborators;
       SET FOREIGN_KEY_CHECKS = 1;
     `);
   };

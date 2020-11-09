@@ -66,9 +66,48 @@ class TSRegister extends TSCommand {
 
     const minPoints = Number(ts.teamVariables['Minimum Point']);
 
+    let msgStr = await ts.message('register.success', {
+      name: nickname,
+    });
+
+    const commandDB = await ts
+      .knex('commands')
+      .where({
+        name: 'add',
+      })
+      .first();
+
+    if (commandDB) {
+      const commandPermission = await ts
+        .knex('command_permissions')
+        .where({
+          command_id: commandDB.id,
+          guild_id: ts.team.id,
+        })
+        .first();
+
+      // If the add command is disabled we just remove the line with the level submission channel from the help text, hopefully that should be correct for all languages
+      if (commandPermission && commandPermission.disabled) {
+        const msgArr = msgStr.split('\n');
+        const newArr = [];
+        for (const msgPart of msgArr) {
+          if (
+            msgPart.indexOf(
+              ts.teamVariables.LevelSubmissionChannel.id
+                ? ts.teamVariables.LevelSubmissionChannel.id
+                : ts.teamVariables.LevelSubmissionChannel,
+            ) === -1
+          ) {
+            newArr.push(msgPart);
+          }
+        }
+        msgStr = newArr.join('\n');
+      }
+    }
+
     await ts.discord.reply(
       message,
-      (await ts.message('register.success', { name: nickname })) +
+      msgStr +
         (minPoints > 0
           ? await ts.message('register.pointsNeeded', { minPoints })
           : await ts.message('register.noPointsNeeded')),

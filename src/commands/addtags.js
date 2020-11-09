@@ -24,6 +24,7 @@ class TSAddtags extends TSCommand {
         {
           id: 'newTags',
           type: 'tags',
+          description: 'Tag1,Tag2,Tag3,...',
           match: 'rest',
           default: null,
         },

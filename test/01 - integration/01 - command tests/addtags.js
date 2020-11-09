@@ -123,7 +123,7 @@ describe('!addtags,!removetags', () => {
         channel: 'general',
         discord_id: '256',
       }),
-      `>>> **!addtags __<levelCode>__ <newTags>**\n${await TEST.mockMessageReply(
+      `>>> **!addtags __<levelCode>__ <Tag1,Tag2,Tag3,...>**\n${await TEST.mockMessageReply(
         'error.noCode',
         { type: 'userError', discord_id: 256 },
         {},
@@ -138,7 +138,7 @@ describe('!addtags,!removetags', () => {
         channel: 'general',
         discord_id: '256',
       }),
-      `>>> **!addtags <levelCode> __<newTags>__**\n${await TEST.mockMessageReply(
+      `>>> **!addtags <levelCode> __<Tag1,Tag2,Tag3,...>__**\n${await TEST.mockMessageReply(
         'tags.noTags',
         { type: 'userError', discord_id: 256 },
         {},
@@ -201,7 +201,7 @@ describe('!addtags,!removetags', () => {
         channel: 'general',
         discord_id: '256',
       }),
-      `>>> **!addtags <levelCode> __<newTags>__**\n${await TEST.mockMessageReply(
+      `>>> **!addtags <levelCode> __<Tag1,Tag2,Tag3,...>__**\n${await TEST.mockMessageReply(
         'tags.whitelistedOnly',
         { type: 'userError', discord_id: 256 },
         { tag: 'tag3' },
@@ -221,7 +221,7 @@ describe('!addtags,!removetags', () => {
     modOnly.restore();
     assert.equal(
       result,
-      '>>> **!addtags <levelCode> __<newTags>__**\n<@128>, `tag3` is not a tag that has been whitelisted. ',
+      '>>> **!addtags <levelCode> __<Tag1,Tag2,Tag3,...>__**\n<@128>, `tag3` is not a tag that has been whitelisted. ',
     );
   });
 

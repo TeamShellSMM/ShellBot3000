@@ -573,6 +573,10 @@ const CHANNEL_LABELS = Object.freeze({
   AUDIT_VERIFY_CLEARS: '✅',
 });
 
+const EMOJIS = Object.freeze({
+  COLLAB: '🤝',
+});
+
 /**
  * Level status that doesn't appear in the list
  * @type {GameStyle[]}
@@ -602,6 +606,14 @@ const defaultCommandPermissions = Object.freeze({
     allowedChannels: [],
   },
   removetags: {
+    allowedRoles: 'all',
+    allowedChannels: [],
+  },
+  addcollaborators: {
+    allowedRoles: 'all',
+    allowedChannels: [],
+  },
+  removecollaborators: {
     allowedRoles: 'all',
     allowedChannels: [],
   },
@@ -1010,4 +1022,5 @@ module.exports = {
   CHANNEL_LABELS,
   GAME_STYLES,
   ALLOWED_VIDEO_TYPES,
+  EMOJIS,
 };

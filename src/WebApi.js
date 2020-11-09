@@ -89,6 +89,7 @@ module.exports = async function (client) {
         ,BIT_OR(tags.verify_clears) as needs_clear_verification
         ,levels.created_at
         ,(SELECT GROUP_CONCAT(videos.url) from videos where videos.level_id = levels.id) as videos
+        ,(SELECT COUNT(*) from collaborators where collaborators.level_id = levels.id) as collaborator_count
         ,levels.clears
         ,levels.likes
         ,levels.maker_points lcd
@@ -229,6 +230,46 @@ module.exports = async function (client) {
       json.plays = await ts
         .getPlays()
         .where('levels.id', levels[0].id);
+
+      const currentCollaborators = await ts
+        .knex('collaborators')
+        .leftJoin(
+          'members',
+          'collaborators.member_id',
+          '=',
+          'members.id',
+        )
+        .where({
+          'collaborators.level_id': levels[0].id,
+          'collaborators.guild_id': ts.team.id,
+        });
+
+      const collaborators = [];
+
+      if (currentCollaborators && currentCollaborators.length > 0) {
+        for (const currentCollaborator of currentCollaborators) {
+          if (currentCollaborator.discord_id) {
+            const member = ts.discord.getMember(
+              currentCollaborator.discord_id,
+            );
+            if (member) {
+              currentCollaborator.hexColor = member.displayHexColor;
+              if (member.user.avatarURL()) {
+                currentCollaborator.avatarURL = member.user
+                  .avatarURL()
+                  .replace(/size=.*/g, 'size=128');
+              }
+            }
+          }
+          delete currentCollaborator.discord_id;
+          delete currentCollaborator.discord_id_temp;
+          delete currentCollaborator.discord_name;
+          collaborators.push(currentCollaborator);
+        }
+      }
+
+      json.collaborators = collaborators;
+
       if (
         user &&
         user.is_mod

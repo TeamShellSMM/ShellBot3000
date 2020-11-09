@@ -51,7 +51,7 @@ describe('!random / !playersRandom', function () {
     });
     assert.equal(
       result,
-      `>>> **!playersRandom __<memberNames>__ <minDifficulty> <maxDifficulty>**\n${await TEST.mockMessageReply(
+      `>>> **!playersRandom __<"Member1,Member2,Member3,...">__ <minDifficulty> <maxDifficulty>**\n${await TEST.mockMessageReply(
         'error.missingMemberNames',
         { type: 'userError', discord_id: 256 },
         {},
@@ -67,7 +67,7 @@ describe('!random / !playersRandom', function () {
     });
     assert.equal(
       result,
-      `>>> **!playersRandom __<memberNames>__ <minDifficulty> <maxDifficulty>**\n${await TEST.mockMessageReply(
+      `>>> **!playersRandom __<"Member1,Member2,Member3,...">__ <minDifficulty> <maxDifficulty>**\n${await TEST.mockMessageReply(
         'error.memberNotFound',
         { type: 'userError', discord_id: 256 },
         { name: '3' },
@@ -83,7 +83,7 @@ describe('!random / !playersRandom', function () {
     });
     assert.equal(
       result,
-      `>>> **!playersRandom __<memberNames>__ <minDifficulty> <maxDifficulty>**\n${await TEST.mockMessageReply(
+      `>>> **!playersRandom __<"Member1,Member2,Member3,...">__ <minDifficulty> <maxDifficulty>**\n${await TEST.mockMessageReply(
         'error.memberNotFound',
         { type: 'userError', discord_id: 256 },
         { name: 'Other' },
@@ -156,7 +156,7 @@ describe('!random / !playersRandom', function () {
     });
     assert.equal(
       result,
-      `>>> **!randomtags __<tags>__ <minDifficulty> <maxDifficulty>**\n${await TEST.mockMessageReply(
+      `>>> **!randomtags __<"Tag1,Tag2,Tag3,...">__ <minDifficulty> <maxDifficulty>**\n${await TEST.mockMessageReply(
         'tags.noTags',
         { type: 'userError', discord_id: 128 },
         {},
@@ -172,7 +172,7 @@ describe('!random / !playersRandom', function () {
     });
     assert.equal(
       result,
-      `>>> **!randomtags __<tags>__ <minDifficulty> <maxDifficulty>**\n${await TEST.mockMessageReply(
+      `>>> **!randomtags __<"Tag1,Tag2,Tag3,...">__ <minDifficulty> <maxDifficulty>**\n${await TEST.mockMessageReply(
         'tags.whitelistedOnly',
         { type: 'userError', discord_id: 128 },
         { tag: 'smw' },
@@ -189,7 +189,7 @@ describe('!random / !playersRandom', function () {
     });
     assert.equal(
       result,
-      `>>> **!randomtags __<tags>__ <minDifficulty> <maxDifficulty>**\n${await TEST.mockMessageReply(
+      `>>> **!randomtags __<"Tag1,Tag2,Tag3,...">__ <minDifficulty> <maxDifficulty>**\n${await TEST.mockMessageReply(
         'tags.whitelistedOnly',
         { type: 'userError', discord_id: 128 },
         { tag: 'smw' },
@@ -206,7 +206,7 @@ describe('!random / !playersRandom', function () {
     });
     assert.equal(
       result,
-      `>>> **!randomtags __<tags>__ <minDifficulty> <maxDifficulty>**\n${await TEST.mockMessageReply(
+      `>>> **!randomtags __<"Tag1,Tag2,Tag3,...">__ <minDifficulty> <maxDifficulty>**\n${await TEST.mockMessageReply(
         'tags.whitelistedOnly',
         { type: 'userError', discord_id: 128 },
         { tag: 'tag2' },
