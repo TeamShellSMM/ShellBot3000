@@ -200,7 +200,7 @@ describe('!search', function () {
     });
     assert.equal(
       result,
-      '<@256> , we found 2 levels.\n• `XXX-XXX-XXX` - "approved ***level***" by "Creator"\n• `XXX-XXX-XX2` - "pending ***level***" by "Creator"',
+      '<@256> , we found 2 levels.\n• "approved ***level***" by "Creator" (XXX-XXX-XXX)\n• "pending ***level***" by "Creator" (XXX-XXX-XX2)',
     );
   });
 
@@ -212,7 +212,7 @@ describe('!search', function () {
     });
     assert.equal(
       result,
-      '<@256> , we found 2 levels.\n• `XXX-XXX-XXX` - "approved ***lev***el" by "Creator"\n• `XXX-XXX-XX2` - "pending ***lev***el" by "Creator"',
+      '<@256> , we found 2 levels.\n• "approved ***lev***el" by "Creator" (XXX-XXX-XXX)\n• "pending ***lev***el" by "Creator" (XXX-XXX-XX2)',
     );
   });
 
@@ -224,7 +224,7 @@ describe('!search', function () {
     });
     assert.equal(
       result,
-      '<@256> , we found 8 levels. Showing only 5 levels\n• `XXX-XXX-XX4` - "When he had to picnic on ***the*** beach, he purposely put sand in o***the***r people’s food." by "Creator"\n• `XXX-XXX-XX6` - "Patricia loves ***the*** sound of nails strongly pressed against ***the*** chalkboard." by "Creator"\n• `XXX-XXX-XX7` - "He found ***the*** end of ***the*** rainbow and was surprised at what he found ***the***re." by "Creator"\n• `XXX-XXX-XX8` - "He looked behind ***the*** door and didn\'t like what he saw." by "Creator"\n• `XXX-XXX-X11` - "***The*** efficiency we have at removing trash has made creating trash more acceptable." by "Creator"',
+      '<@256> , we found 8 levels. Showing only 5 levels\n• "When he had to picnic on ***the*** beach, he purposely put sand in o***the***r people’s food." by "Creator" (XXX-XXX-XX4)\n• "Patricia loves ***the*** sound of nails strongly pressed against ***the*** chalkboard." by "Creator" (XXX-XXX-XX6)\n• "He found ***the*** end of ***the*** rainbow and was surprised at what he found ***the***re." by "Creator" (XXX-XXX-XX7)\n• "He looked behind ***the*** door and didn\'t like what he saw." by "Creator" (XXX-XXX-XX8)\n• "***The*** efficiency we have at removing trash has made creating trash more acceptable." by "Creator" (XXX-XXX-X11)',
     );
   });
 
@@ -236,7 +236,7 @@ describe('!search', function () {
     });
     assert.equal(
       result,
-      '<@256> , we found 1 level.\n• `XXX-XXX-X16` - "***She*** opened up her third bottle of wine of ***the*** night." by "Creator"',
+      '<@256> , we found 1 level.\n• "***She*** opened up her third bottle of wine of ***the*** night." by "Creator" (XXX-XXX-X16)',
     );
   });
 
@@ -248,7 +248,7 @@ describe('!search', function () {
     });
     assert.equal(
       result,
-      '<@256> , we found 1 level.\n• `XXX-XXX-X18` - "***repeat*** ***repeat*** ***repeat***" by "Creator"',
+      '<@256> , we found 1 level.\n• "***repeat*** ***repeat*** ***repeat***" by "C***re***ator" (XXX-XXX-X18)',
     );
   });
 
@@ -260,7 +260,7 @@ describe('!search', function () {
     });
     assert.equal(
       result,
-      '<@256> , we found 1 level.\n• `XXX-XXX-X19` - "name\\_with\\_***dash***es" by "Creator"',
+      '<@256> , we found 1 level.\n• "name\\_with\\_***dash***es" by "Creator" (XXX-XXX-X19)',
     );
   });
 });
