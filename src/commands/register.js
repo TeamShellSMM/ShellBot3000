@@ -66,9 +66,13 @@ class TSRegister extends TSCommand {
 
     const minPoints = Number(ts.teamVariables['Minimum Point']);
 
-    let msgStr = await ts.message('register.success', {
-      name: nickname,
-    });
+    let msgStr =
+      (await ts.message('register.success', {
+        name: nickname,
+      })) +
+      (minPoints > 0
+        ? await ts.message('register.pointsNeeded', { minPoints })
+        : await ts.message('register.noPointsNeeded'));
 
     const commandDB = await ts
       .knex('commands')
@@ -105,13 +109,7 @@ class TSRegister extends TSCommand {
       }
     }
 
-    await ts.discord.reply(
-      message,
-      msgStr +
-        (minPoints > 0
-          ? await ts.message('register.pointsNeeded', { minPoints })
-          : await ts.message('register.noPointsNeeded')),
-    );
+    await ts.discord.reply(message, msgStr);
   }
 }
 module.exports = TSRegister;

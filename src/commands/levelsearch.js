@@ -31,24 +31,37 @@ class levelsearch extends TSCommand {
 
     const searchTerms = searchTerm.split(' ');
 
-    const args = searchTerms.map((s) => `%${s}%`);
+    const argsOnce = searchTerms.map((s) => `%${s}%`);
+    const args = [];
+    for (const arg of argsOnce) {
+      for (let i = 0; i < 3; i += 1) {
+        args.push(arg);
+      }
+    }
+
     const sql = JSON.parse(JSON.stringify(searchTerms))
-      .fill('level_name like ?')
+      .fill(
+        '(levels.level_name like ? or members.name like ? or levels.code like ?)',
+      )
       .join(' and ');
 
     const levels = await ts
       .getLevels()
       .whereIn('levels.status', ts.SHOWN_IN_LIST)
       .whereRaw(sql, args);
+
     const levelsFound = levels.length;
     const levelsStr = levels
       .slice(0, 5)
       .map(
         (l) =>
-          `• \`${l.code}\` - "${highlight(
+          `• "${highlight(
             l.level_name,
             searchTerms,
-          )}" by "${l.creator}"`,
+          )}" by "${highlight(l.creator, searchTerms)}" (${highlight(
+            l.code,
+            searchTerms,
+          )})`,
       )
       .join('\n');
 
