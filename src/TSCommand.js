@@ -16,7 +16,7 @@ class TSCommand extends Command {
    * @param {object} message
    * @returns {boolean}
    */
-  async canRun(ts, message) {
+  async canRun(ts, message, withReply = false) {
     const commandName = ts.parseCommand(message).cmd;
 
     const commandDB = await ts
@@ -30,10 +30,10 @@ class TSCommand extends Command {
       .orWhere('aliases', 'like', `%,${commandName},%`)
       .first();
 
-    return this.canRunCommand(ts, message, commandDB);
+    return this.canRunCommand(ts, message, commandDB, withReply);
   }
 
-  async canRunCommand(ts, message, commandDB) {
+  async canRunCommand(ts, message, commandDB, withReply = false) {
     if (commandDB) {
       const commandPermission = await ts
         .knex('command_permissions')
@@ -59,6 +59,12 @@ class TSCommand extends Command {
               commandPermission.roles.split(','),
             )
           ) {
+            if (withReply) {
+              await TS.DiscordWrapper.reply(
+                message,
+                "You don't have one of the required roles to use this command. Try using `!help commands` to see a list of all commands available to you **in this channel.**",
+              );
+            }
             return false;
           }
         }
@@ -99,6 +105,12 @@ class TSCommand extends Command {
           }
 
           if (!inAllowedChannel) {
+            if (withReply) {
+              await TS.DiscordWrapper.reply(
+                message,
+                "You can't use this command here. Try using `!help commands` to see a list of all commands available to you **in this channel.**",
+              );
+            }
             return false;
           }
         }
@@ -118,6 +130,12 @@ class TSCommand extends Command {
             (await ts.teamAdmin(message.author.id)))
         )
       ) {
+        if (withReply) {
+          await TS.DiscordWrapper.reply(
+            message,
+            "You don't have one of the required roles to use this command. Try using `!help commands` to see a list of all commands available to you **in this channel.**",
+          );
+        }
         return false;
       }
 
@@ -125,6 +143,12 @@ class TSCommand extends Command {
         !hasChannelPermissions &&
         !ts.inAllowedChannel(message, defaultPermission)
       ) {
+        if (withReply) {
+          await TS.DiscordWrapper.reply(
+            message,
+            "You can't use this command here. Try using `!help commands` to see a list of all commands available to you **in this channel.**",
+          );
+        }
         return false;
       }
       return true;
@@ -179,11 +203,7 @@ class TSCommand extends Command {
           return false;
       }
 
-      if (!(await this.canRun(ts, message))) {
-        await TS.DiscordWrapper.reply(
-          message,
-          "You don't have permission to use this command. Try using `!help commands` to see a list of all commands available to you **in this channel.**",
-        );
+      if (!(await this.canRun(ts, message, true))) {
         return false;
       }
       await this.tsexec(ts, message, {
