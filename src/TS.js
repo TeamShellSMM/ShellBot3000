@@ -73,7 +73,7 @@ class TS {
     this.defaultVariables = defaultVariables;
     this.LEVEL_STATUS = LEVEL_STATUS;
     this.PENDING_LEVELS = PENDING_LEVELS;
-    this.SHOWN_IN_LIST = SHOWN_IN_LIST;
+    // this.SHOWN_IN_LIST = SHOWN_IN_LIST;
     this.REMOVED_LEVELS = REMOVED_LEVELS;
     this.CHANNEL_LABELS = CHANNEL_LABELS;
     this.GAME_STYLES = GAME_STYLES;
@@ -204,6 +204,12 @@ class TS {
         love: this.teamVariables.loveEmote,
         GG: this.teamVariables.GGEmote,
       };
+
+      if (this.teamVariables.hidePendingLevels === 'true') {
+        this.SHOWN_IN_LIST = Object.freeze([LEVEL_STATUS.APPROVED]);
+      } else {
+        this.SHOWN_IN_LIST = SHOWN_IN_LIST;
+      }
 
       const validDifficulty = [];
       const maxDifficulty =

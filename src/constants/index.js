@@ -393,6 +393,21 @@ const defaultVariables = Object.freeze([
     description: 'Check this to hide the members tab on your page.',
   },
   {
+    name: 'hidePendingLevels',
+    caption: 'Hide pending levels',
+    default: false,
+    type: 'boolean',
+    description: 'Check this to hide pending levels from the site.',
+  },
+  {
+    name: 'hideDifficulty',
+    caption: 'Hide difficulty',
+    default: false,
+    type: 'boolean',
+    description:
+      'Check this to hide difficulty and difficulty vote columns from the site.',
+  },
+  {
     name: 'userErrorEmote',
     caption: 'User Error Emote',
     default: null,
