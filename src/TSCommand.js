@@ -59,10 +59,6 @@ class TSCommand extends Command {
               commandPermission.roles.split(','),
             )
           ) {
-            await TS.DiscordWrapper.reply(
-              message,
-              "You don't have one of the required roles to use this command. Try using `!help commands` to see a list of all commands available to you **in this channel.**",
-            );
             return false;
           }
         }
@@ -103,10 +99,6 @@ class TSCommand extends Command {
           }
 
           if (!inAllowedChannel) {
-            await TS.DiscordWrapper.reply(
-              message,
-              "You can't use this command here. Try using `!help commands` to see a list of all commands available to you **in this channel.**",
-            );
             return false;
           }
         }
@@ -126,10 +118,6 @@ class TSCommand extends Command {
             (await ts.teamAdmin(message.author.id)))
         )
       ) {
-        await TS.DiscordWrapper.reply(
-          message,
-          "You don't have one of the required roles to use this command. Try using `!help commands` to see a list of all commands available to you **in this channel.**",
-        );
         return false;
       }
 
@@ -137,10 +125,6 @@ class TSCommand extends Command {
         !hasChannelPermissions &&
         !ts.inAllowedChannel(message, defaultPermission)
       ) {
-        await TS.DiscordWrapper.reply(
-          message,
-          "You can't use this command here. Try using `!help commands` to see a list of all commands available to you **in this channel.**",
-        );
         return false;
       }
       return true;
@@ -196,6 +180,10 @@ class TSCommand extends Command {
       }
 
       if (!(await this.canRun(ts, message))) {
+        await TS.DiscordWrapper.reply(
+          message,
+          "You don't have permission to use this command. Try using `!help commands` to see a list of all commands available to you **in this channel.**",
+        );
         return false;
       }
       await this.tsexec(ts, message, {
