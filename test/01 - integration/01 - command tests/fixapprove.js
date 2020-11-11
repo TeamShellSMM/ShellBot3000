@@ -318,7 +318,7 @@ describe('!fixapprove', function () {
         waitFor: 500,
         discord_id: '128',
       }),
-      141,
+      127,
     );
   });
 

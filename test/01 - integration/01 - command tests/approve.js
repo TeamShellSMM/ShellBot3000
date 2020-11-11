@@ -145,7 +145,7 @@ describe('!approve', function () {
       waitFor: 100,
       discord_id: '256',
     });
-    assert.lengthOf(result, 141, 'no result');
+    assert.lengthOf(result, 127, 'no result');
   });
 
   it('in non modChannel', async () => {
@@ -155,7 +155,7 @@ describe('!approve', function () {
       waitFor: 100,
       discord_id: '256',
     });
-    assert.lengthOf(result, 141, 'no result');
+    assert.lengthOf(result, 127, 'no result');
   });
 
   it('approve judge not pending', async () => {

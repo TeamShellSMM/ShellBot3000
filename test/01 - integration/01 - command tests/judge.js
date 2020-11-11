@@ -6,6 +6,6 @@ describe('!judge', function () {
       waitFor: 100,
       discord_id: '256',
     });
-    assert.lengthOf(result, 141, 'no result');
+    assert.lengthOf(result, 156, 'no result');
   });
 });
