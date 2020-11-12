@@ -123,7 +123,7 @@ describe('!fixdiscuss', function () {
         waitFor: 100,
         discord_id: '64',
       }),
-      65,
+      156,
     );
   });
 

@@ -1,13 +1,10 @@
 'use strict';
 
-const {
-  AkairoClient,
-  CommandHandler,
-  Flag,
-} = require('discord-akairo');
+const { AkairoClient, Flag } = require('discord-akairo');
 const debugError = require('debug')('shellbot3000:error');
 const validUrl = require('valid-url');
 const TS = require('./TS.js');
+const TSCommandHandler = require('./TSCommandHandler.js');
 
 class TSClient extends AkairoClient {
   constructor() {
@@ -481,7 +478,115 @@ class TSClient extends AkairoClient {
       return num;
     };
 
-    this.commandHandler = new CommandHandler(this, {
+    this.resolveType = async (
+      type,
+      message,
+      phrase,
+      argumentDefs,
+    ) => {
+      switch (type) {
+        case 'level':
+          return this.resolveLevel(message, phrase, argumentDefs);
+        case 'level:pending':
+          return this.resolveLevel(
+            message,
+            phrase,
+            argumentDefs,
+            'pending',
+          );
+        case 'level:approved':
+          return this.resolveLevel(
+            message,
+            phrase,
+            argumentDefs,
+            'approved',
+          );
+        case 'level:any':
+          return this.resolveLevel(
+            message,
+            phrase,
+            argumentDefs,
+            'any',
+            true,
+          );
+        case 'levelcode':
+          return this.resolveCode(message, phrase, argumentDefs);
+        case 'makerid':
+          return this.resolveCode(
+            message,
+            phrase,
+            argumentDefs,
+            'maker',
+          );
+        case 'gamestyle':
+          return this.resolveGameStyle(message, phrase, argumentDefs);
+        case 'text':
+          return this.resolveText(message, phrase, argumentDefs, 256);
+        case 'longtext':
+          return this.resolveText(message, phrase, argumentDefs, 800);
+        case 'longertext':
+          return this.resolveText(
+            message,
+            phrase,
+            argumentDefs,
+            1500,
+          );
+        case 'longtext:emotes':
+          return this.resolveText(
+            message,
+            phrase,
+            argumentDefs,
+            800,
+            true,
+            true,
+          );
+        case 'longertext:emotes':
+          return this.resolveText(
+            message,
+            phrase,
+            argumentDefs,
+            1500,
+            true,
+            true,
+          );
+        case 'text:optional':
+          return this.resolveText(
+            message,
+            phrase,
+            argumentDefs,
+            256,
+            false,
+          );
+        case 'tags':
+          return this.resolveTags(message, phrase, argumentDefs);
+        case 'tags:whitelisted':
+          return this.resolveTags(
+            message,
+            phrase,
+            argumentDefs,
+            true,
+          );
+        case 'videos':
+          return this.resolveVideos(message, phrase, argumentDefs);
+        case 'difficulty':
+          return this.resolveDifficulty(
+            message,
+            phrase,
+            argumentDefs,
+          );
+        case 'teammember':
+          return this.resolveMember(message, phrase, argumentDefs);
+        case 'teammembers':
+          return this.resolveMembers(message, phrase, argumentDefs);
+        case 'int':
+          return this.resolveInt(message, phrase, argumentDefs);
+        default:
+          TS.promisedCallback();
+          return Flag.cancel();
+      }
+    };
+
+    this.commandHandler = new TSCommandHandler(this, {
       directory: './src/commands/',
       prefix: '!',
       blockClient: false,
@@ -491,162 +596,216 @@ class TSClient extends AkairoClient {
     this.commandHandler.resolver.addType(
       'level:pending',
       (message, phrase, argumentDefs) => {
-        return this.resolveLevel(
+        return this.resolveType(
+          'level:pending',
           message,
           phrase,
           argumentDefs,
-          'pending',
         );
       },
     );
     this.commandHandler.resolver.addType(
       'level:approved',
       (message, phrase, argumentDefs) => {
-        return this.resolveLevel(
+        return this.resolveType(
+          'level:approved',
           message,
           phrase,
           argumentDefs,
-          'approved',
         );
       },
     );
     this.commandHandler.resolver.addType(
       'level:any',
       (message, phrase, argumentDefs) => {
-        return this.resolveLevel(
+        return this.resolveType(
+          'level:any',
           message,
           phrase,
           argumentDefs,
-          'all',
-          true,
         );
       },
     );
     this.commandHandler.resolver.addType(
       'level',
       (message, phrase, argumentDefs) => {
-        return this.resolveLevel(message, phrase, argumentDefs);
+        return this.resolveType(
+          'level',
+          message,
+          phrase,
+          argumentDefs,
+        );
       },
     );
     this.commandHandler.resolver.addType(
       'levelcode',
       (message, phrase, argumentDefs) => {
-        return this.resolveCode(message, phrase, argumentDefs);
+        return this.resolveType(
+          'levelcode',
+          message,
+          phrase,
+          argumentDefs,
+        );
       },
     );
     this.commandHandler.resolver.addType(
       'makerid',
       (message, phrase, argumentDefs) => {
-        return this.resolveCode(
+        return this.resolveType(
+          'makerid',
           message,
           phrase,
           argumentDefs,
-          'maker',
         );
       },
     );
     this.commandHandler.resolver.addType(
       'gamestyle',
       (message, phrase, argumentDefs) => {
-        return this.resolveGameStyle(message, phrase, argumentDefs);
+        return this.resolveType(
+          'gamestyle',
+          message,
+          phrase,
+          argumentDefs,
+        );
       },
     );
     this.commandHandler.resolver.addType(
       'text',
       (message, phrase, argumentDefs) => {
-        return this.resolveText(message, phrase, argumentDefs, 256);
+        return this.resolveType(
+          'text',
+          message,
+          phrase,
+          argumentDefs,
+        );
       },
     );
     this.commandHandler.resolver.addType(
       'longtext',
       (message, phrase, argumentDefs) => {
-        return this.resolveText(message, phrase, argumentDefs, 800);
+        return this.resolveType(
+          'longtext',
+          message,
+          phrase,
+          argumentDefs,
+        );
       },
     );
     this.commandHandler.resolver.addType(
       'longertext',
       (message, phrase, argumentDefs) => {
-        return this.resolveText(message, phrase, argumentDefs, 1500);
+        return this.resolveType(
+          'longertext',
+          message,
+          phrase,
+          argumentDefs,
+        );
       },
     );
     this.commandHandler.resolver.addType(
       'longtext:emotes',
       (message, phrase, argumentDefs) => {
-        return this.resolveText(
+        return this.resolveType(
+          'longtext:emotes',
           message,
           phrase,
           argumentDefs,
-          800,
-          true,
-          true,
         );
       },
     );
     this.commandHandler.resolver.addType(
       'longertext:emotes',
       (message, phrase, argumentDefs) => {
-        return this.resolveText(
+        return this.resolveType(
+          'longertext:emotes',
           message,
           phrase,
           argumentDefs,
-          1500,
-          true,
-          true,
         );
       },
     );
     this.commandHandler.resolver.addType(
       'text:optional',
       (message, phrase, argumentDefs) => {
-        return this.resolveText(
+        return this.resolveType(
+          'text:optional',
           message,
           phrase,
           argumentDefs,
-          256,
-          false,
         );
       },
     );
     this.commandHandler.resolver.addType(
       'tags',
       (message, phrase, argumentDefs) => {
-        return this.resolveTags(message, phrase, argumentDefs);
+        return this.resolveType(
+          'tags',
+          message,
+          phrase,
+          argumentDefs,
+        );
       },
     );
     this.commandHandler.resolver.addType(
       'tags:whitelisted',
       (message, phrase, argumentDefs) => {
-        return this.resolveTags(message, phrase, argumentDefs, true);
+        return this.resolveType(
+          'tags:whitelisted',
+          message,
+          phrase,
+          argumentDefs,
+        );
       },
     );
     this.commandHandler.resolver.addType(
       'videos',
       (message, phrase, argumentDefs) => {
-        return this.resolveVideos(message, phrase, argumentDefs);
+        return this.resolveType(
+          'videos',
+          message,
+          phrase,
+          argumentDefs,
+        );
       },
     );
     this.commandHandler.resolver.addType(
       'difficulty',
       (message, phrase, argumentDefs) => {
-        return this.resolveDifficulty(message, phrase, argumentDefs);
+        return this.resolveType(
+          'difficulty',
+          message,
+          phrase,
+          argumentDefs,
+        );
       },
     );
     this.commandHandler.resolver.addType(
       'teammember',
       (message, phrase, argumentDefs) => {
-        return this.resolveMember(message, phrase, argumentDefs);
+        return this.resolveType(
+          'teammember',
+          message,
+          phrase,
+          argumentDefs,
+        );
       },
     );
     this.commandHandler.resolver.addType(
       'teammembers',
       (message, phrase, argumentDefs) => {
-        return this.resolveMembers(message, phrase, argumentDefs);
+        return this.resolveType(
+          'teammembers',
+          message,
+          phrase,
+          argumentDefs,
+        );
       },
     );
     this.commandHandler.resolver.addType(
       'int',
       (message, phrase, argumentDefs) => {
-        return this.resolveInt(message, phrase, argumentDefs);
+        return this.resolveType('int', message, phrase, argumentDefs);
       },
     );
 

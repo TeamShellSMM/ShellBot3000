@@ -64,7 +64,7 @@ describe('!rerate', function () {
         waitFor: 100,
         discord_id: '256',
       }),
-      93,
+      156,
     );
   });
   // waitFor:100,

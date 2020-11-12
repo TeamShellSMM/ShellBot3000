@@ -227,7 +227,8 @@ describe('!ammendcode', function () {
       discord_id: TEST.bot_id, // we use bot for now as bot was set to have admin rights in test server
       // TODO: make admin test users
     });
-    assert.lengthOf(result, 119, 'no result');
+    console.log(result);
+    assert.lengthOf(result, 156, 'no result');
   });
 
   it('discord admin, with flags', async function () {

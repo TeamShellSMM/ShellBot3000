@@ -28,11 +28,7 @@ class TSHelp extends TSCommand {
           .orderBy('name', 'ASC');
 
         for (const commandDB of commandsDB) {
-          const allowed = await this.canRunCommand(
-            ts,
-            message,
-            commandDB,
-          );
+          const allowed = await ts.canRunCommand(message, commandDB);
           if (allowed) {
             if (commandDB.category === 'important') {
               replyMessage += `\n> **__${commandDB.name}__**`;

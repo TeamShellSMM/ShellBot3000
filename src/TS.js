@@ -26,6 +26,7 @@ const Videos = require('./models/Videos');
 const {
   defaultChannels,
   defaultVariables,
+  defaultCommandPermissions,
   LEVEL_STATUS,
   PENDING_LEVELS,
   SHOWN_IN_LIST,
@@ -1441,6 +1442,136 @@ class TS {
         ts.userError('website.authError');
       }
       return existingToken.discord_id;
+    };
+
+    this.canRunCommand = async (
+      message,
+      commandDB,
+      withReply = false,
+    ) => {
+      if (commandDB) {
+        const commandPermission = await ts
+          .knex('command_permissions')
+          .where({
+            guild_id: ts.team.id,
+            command_id: commandDB.id,
+          })
+          .first();
+
+        let hasRolePermissions = false;
+        let hasChannelPermissions = false;
+
+        if (commandPermission) {
+          if (commandPermission.disabled) {
+            return false;
+          }
+
+          if (commandPermission.roles) {
+            hasRolePermissions = true;
+            if (
+              !ts.discord.hasRoleList(
+                message.author.id,
+                commandPermission.roles.split(','),
+              )
+            ) {
+              if (withReply) {
+                await TS.DiscordWrapper.reply(
+                  message,
+                  "You don't have one of the required roles to use this command. Try using `!help commands` to see a list of all commands available to you **in this channel.**",
+                );
+              }
+              return false;
+            }
+          }
+
+          if (
+            commandPermission.text_channels ||
+            commandPermission.channel_categories
+          ) {
+            hasChannelPermissions = true;
+
+            let inAllowedChannel = false;
+            if (commandPermission.text_channels) {
+              const channelNames = commandPermission.text_channels.split(
+                ',',
+              );
+              for (const channelName of channelNames) {
+                if (
+                  message.channel.name.toLowerCase() ===
+                  channelName.toLowerCase()
+                ) {
+                  inAllowedChannel = true;
+                }
+              }
+            }
+            if (commandPermission.channel_categories) {
+              const categoryNames = commandPermission.channel_categories.split(
+                ',',
+              );
+              for (const categoryName of categoryNames) {
+                if (
+                  message.channel.parent &&
+                  message.channel.parent.name.toLowerCase() ===
+                    categoryName.toLowerCase()
+                ) {
+                  inAllowedChannel = true;
+                }
+              }
+            }
+
+            if (!inAllowedChannel) {
+              if (withReply) {
+                await TS.DiscordWrapper.reply(
+                  message,
+                  "You can't use this command here. Try using `!help commands` to see a list of all commands available to you **in this channel.**",
+                );
+              }
+              return false;
+            }
+          }
+        }
+
+        // Default behavior if no command permission is set
+        const defaultPermission =
+          defaultCommandPermissions[commandDB.name];
+
+        if (
+          !hasRolePermissions &&
+          !(
+            defaultPermission.allowedRoles === 'all' ||
+            (defaultPermission.allowedRoles === 'mods' &&
+              (await ts.modOnly(message.author.id))) ||
+            (defaultPermission.allowedRoles === 'admins' &&
+              (await ts.teamAdmin(message.author.id)))
+          )
+        ) {
+          if (withReply) {
+            await TS.DiscordWrapper.reply(
+              message,
+              "You don't have one of the required roles to use this command. Try using `!help commands` to see a list of all commands available to you **in this channel.**",
+            );
+          }
+          return false;
+        }
+
+        if (
+          !hasChannelPermissions &&
+          !ts.inAllowedChannel(message, defaultPermission)
+        ) {
+          if (withReply) {
+            await TS.DiscordWrapper.reply(
+              message,
+              "You can't use this command here. Try using `!help commands` to see a list of all commands available to you **in this channel.**",
+            );
+          }
+          return false;
+        }
+        return true;
+      }
+      if (ts.teamAdmin(message.author.id)) {
+        return true;
+      }
+      return false;
     };
 
     /**
