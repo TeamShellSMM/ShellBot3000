@@ -35,6 +35,8 @@ class TSRename extends TSCommand {
       .patch({ level_name: levelName })
       .where({ code: level.code });
 
+    await ts.updatePendingDiscussionChannel(level);
+
     const reply = await ts.message('rename.success', {
       new_level_name: levelName,
       ...level,

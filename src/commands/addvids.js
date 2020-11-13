@@ -48,6 +48,8 @@ class TSAddvids extends TSCommand {
       submitter: player,
     });
 
+    await ts.updatePendingDiscussionChannel(level);
+
     await ts.discord.messageSend(message, reply);
   }
 }

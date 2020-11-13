@@ -157,6 +157,8 @@ class TSAddtags extends TSCommand {
       await ts.checkTagsForRemoval();
     }
 
+    await ts.updatePendingDiscussionChannel(level);
+
     await ts.discord.messageSend(
       message,
       player.userReply +

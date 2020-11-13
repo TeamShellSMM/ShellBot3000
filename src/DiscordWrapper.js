@@ -253,7 +253,7 @@ class DiscordWrapper {
       return null;
     }
     if (roleId instanceof Array) {
-      roleId = roleId.filter((x) => x != null);
+      roleId = roleId.filter((x) => x !== null);
     }
 
     const r = await currMember.roles.remove(roleId);
@@ -414,6 +414,20 @@ class DiscordWrapper {
       return overviewMessage.pin();
     }
     debug(`Pin found for ${channelName}. Editing it`);
+    return overviewMessage.edit(embed);
+  }
+
+  async updateChannelPinnedEmbed(channel, embed) {
+    if (!channel) throw new TypeError('channel undefined');
+    if (!embed) throw new TypeError('embed not defined');
+    const overviewMessage = (
+      await channel.messages.fetchPinned()
+    ).last();
+    if (!overviewMessage) {
+      /* overviewMessage = await channel.send(embed);
+      return overviewMessage.pin(); */
+      return null;
+    }
     return overviewMessage.edit(embed);
   }
 

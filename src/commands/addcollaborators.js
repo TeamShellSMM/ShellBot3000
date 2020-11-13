@@ -33,6 +33,8 @@ class AddCollaborators extends TSCommand {
       submitter,
     });
 
+    await ts.updatePendingDiscussionChannel(level);
+
     await ts.discord.messageSend(message, reply);
   }
 }

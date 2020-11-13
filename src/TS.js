@@ -2475,6 +2475,26 @@ class TS {
         channel_id: this.discord.channel(level.code).id,
       });
     };
+
+    this.updatePendingDiscussionChannel = async (levelArg) => {
+      const level = await ts.db.Levels.query()
+        .where({ code: levelArg.code })
+        .first();
+      const discussionChannel = ts.discord.channel(
+        level.code,
+        ts.channels.levelDiscussionCategory,
+      );
+      if (discussionChannel) {
+        const voteEmbed = await ts.makeVoteEmbed(level);
+        await ts.discord.updateChannelPinnedEmbed(
+          discussionChannel,
+          voteEmbed,
+        );
+        return true;
+      }
+      return false;
+    };
+
     /**
      * Helper function to create a discussion channel in the right parent. If there is already a channel, we will move the channel to the right one
      * @param {string} channelName channel name to find

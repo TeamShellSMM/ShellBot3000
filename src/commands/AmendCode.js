@@ -76,6 +76,8 @@ class AmendCode extends TSCommand {
       );
     }
 
+    await ts.updatePendingDiscussionChannel({ code: newCode });
+
     debug('should send success');
 
     await ts.discord.reply(
