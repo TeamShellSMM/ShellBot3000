@@ -331,7 +331,14 @@ const defaultVariables = Object.freeze([
     description:
       'How far apart the approval/fix votes can be to count as in agreement',
   },
-
+  {
+    name: 'MaximumChannelsAutoDiscuss',
+    caption: 'Maximum Auto Discuss Channels',
+    default: 0,
+    type: 'number',
+    description:
+      'Up to how many discussion channels should be created automatically when a creator submits a level.',
+  },
   {
     name: 'includeOwnPoints',
     caption: 'Own Points',

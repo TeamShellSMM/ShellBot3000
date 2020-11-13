@@ -1237,11 +1237,11 @@ class TS {
         }
       }
 
-      if (initialTags.length > 0) {
-        const level = await ts.db.Levels.query()
-          .where({ code: code })
-          .first();
+      const level = await ts.db.Levels.query()
+        .where({ code: code })
+        .first();
 
+      if (initialTags.length > 0) {
         const newTags = await ts.addTags(
           initialTags,
           ts.knex,
@@ -1288,6 +1288,28 @@ class TS {
       }
 
       await ts.recalculateAfterUpdate({ name: player.name });
+
+      if (
+        ts.teamVariables.MaximumChannelsAutoDiscuss &&
+        ts.teamVariables.MaximumChannelsAutoDiscuss > 0
+      ) {
+        const discussionChannel = DiscordWrapper.channel(
+          ts.channels.levelDiscussionCategory,
+        );
+        if (discussionChannel) {
+          if (
+            discussionChannel.children.size <
+              ts.teamVariables.MaximumChannelsAutoDiscuss &&
+            discussionChannel.children.size <
+              DiscordWrapper.MAX_DISCORD_SIZE
+          ) {
+            const voteEmbed = await ts.makeVoteEmbed(level);
+            await ts.pendingDiscussionChannel(level.code);
+            await this.discord.updatePinned(level.code, voteEmbed);
+          }
+        }
+      }
+
       return {
         reply: await ts.message('add.success', {
           level_name: levelName,
