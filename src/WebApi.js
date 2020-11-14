@@ -406,13 +406,13 @@ module.exports = async function (client) {
       let levelFilter = '';
       if (timePeriod === 2) {
         levelFilter =
-          "AND DATE_FORMAT(levels.created_at,'%m-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%m-%Y')";
+          "AND DATE_FORMAT(levels.original_submission_date,'%m-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%m-%Y')";
       } else if (timePeriod === 3) {
         levelFilter =
-          "AND DATE_FORMAT(levels.created_at,'%u-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%u-%Y')";
+          "AND DATE_FORMAT(levels.original_submission_date,'%u-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%u-%Y')";
       } else if (timePeriod === 4) {
         levelFilter =
-          "AND DATE_FORMAT(levels.created_at,'%j-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%j-%Y')";
+          "AND DATE_FORMAT(levels.original_submission_date,'%j-%Y') = DATE_FORMAT(CURRENT_TIMESTAMP,'%j-%Y')";
       }
 
       let playsFilter = '';
@@ -569,7 +569,7 @@ module.exports = async function (client) {
       LEFT JOIN levels ON
           levels.creator = members.id
       WHERE levels.status IN (0,1)
-          AND levels.created_at between :from_season AND :to_season
+          AND levels.original_submission_date between :from_season AND :to_season
           AND teams.guild_id = :guild_id
           ${membersSQL}
       group by levels.code) a

@@ -3737,6 +3737,7 @@ class TS {
         await ts.db.Levels.query().insert({
           code: newCode,
           level_name: oldLevel.level_name,
+          original_submission_date: oldLevel.original_submission_date,
           creator: oldLevel.creator_id,
           difficulty: false,
           status: 0,
