@@ -1303,9 +1303,16 @@ class TS {
             discussionChannel.children.size <
               DiscordWrapper.MAX_DISCORD_SIZE
           ) {
-            const voteEmbed = await ts.makeVoteEmbed(level);
-            await ts.pendingDiscussionChannel(level.code);
-            await this.discord.updatePinned(level.code, voteEmbed);
+            const reloadLevel = await this.getLevels()
+              .where({ code: level.code })
+              .first();
+
+            const voteEmbed = await ts.makeVoteEmbed(reloadLevel);
+            await ts.pendingDiscussionChannel(reloadLevel.code);
+            await this.discord.updatePinned(
+              reloadLevel.code,
+              voteEmbed,
+            );
           }
         }
       }
@@ -2499,7 +2506,7 @@ class TS {
     };
 
     this.updatePendingDiscussionChannel = async (levelArg) => {
-      const level = await ts.db.Levels.query()
+      const level = await this.getLevels()
         .where({ code: levelArg.code })
         .first();
       const discussionChannel = ts.discord.channel(
