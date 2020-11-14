@@ -100,6 +100,7 @@ module.exports = async function (client) {
         ,levels.approves
         ,levels.rejects
         ,levels.want_fixes
+        ,levels.original_submission_date
         ${registeredColumns}
       FROM
         levels
@@ -174,6 +175,7 @@ module.exports = async function (client) {
           ,levels.approves
           ,levels.rejects
           ,levels.want_fixes
+          ,levels.original_submission_date
           ${registeredColumns}
         FROM
           members m1
