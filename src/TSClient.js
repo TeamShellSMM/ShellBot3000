@@ -135,7 +135,7 @@ class TSClient extends AkairoClient {
       argumentDefs,
     ) => {
       let memberName = memberNameArg;
-      memberName = memberName.replace(/"'“”‘’`´	/g, '');
+      memberName = memberName.replace(/"'“”‘’`´/g, '');
       const ts = TS.teams(TS.DiscordWrapper.messageGetGuild(message));
 
       if (!memberName) {
