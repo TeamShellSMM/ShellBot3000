@@ -2453,6 +2453,10 @@ class TS {
         level = await this.getExistingLevel(code);
       }
 
+      if (/^\d?\d?\.?\d?$/.test(difficulty) === false) {
+        ts.userError(await ts.message('approval.invalidDifficulty'));
+      }
+
       // Check if vote already exists
       const shellder = await ts.getUser(discord_id);
       const vote = await ts
