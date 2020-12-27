@@ -1761,9 +1761,6 @@ class TS {
         ts.userError(await ts.message('clear.invalidDifficulty'));
       }
       if (difficulty) {
-        if (difficulty.toString().length > 4) {
-          ts.userError(await ts.message('clear.invalidDifficulty'));
-        }
         difficulty = parseFloat(difficulty);
       }
       if (
