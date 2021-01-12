@@ -101,6 +101,15 @@ describe('!approve', function () {
         tags: 'tag1,tag2,tag3',
         videos: 'http://twitch.tv,http://youtube.com',
       },
+      {
+        level_name: 'level10',
+        creator: 1,
+        code: 'XXX-XXX-XXA',
+        status: 0,
+        difficulty: 0,
+        tags: 'tag1,tag2,tag3',
+        videos: 'http://twitch.tv,http://youtube.com',
+      },
     ],
     Videos: [
       {
@@ -354,6 +363,22 @@ describe('!approve', function () {
   it('approve invalid difficulty', async function () {
     const result = await TEST.mockBotSend({
       cmd: '!approve XXX-XXX-XX6 invalid long reason',
+      channel: TEST.ts.channels.modChannel,
+      discord_id: '256',
+    });
+    assert.equal(
+      result,
+      `>>> **!approve/fix(+cl) <levelCode> __<difficulty>__ <reason>**\n${await TEST.mockMessageReply(
+        'approval.invalidDifficulty',
+        { type: 'userError', discord_id: 256 },
+        {},
+      )}`,
+    );
+  });
+
+  it('approve invalid difficulty level code as difficulty ', async function () {
+    const result = await TEST.mockBotSend({
+      cmd: '!approve XXX-XXX-XXA 7gk-413-lxg test',
       channel: TEST.ts.channels.modChannel,
       discord_id: '256',
     });

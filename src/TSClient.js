@@ -437,9 +437,20 @@ class TSClient extends AkairoClient {
 
       if (difficulty === '') difficulty = null;
       if (difficulty == null) difficulty = null;
+
       if (difficulty) {
+        if (difficulty.toString().length > 4) {
+          return this.handleError(
+            ts,
+            message,
+            'approval.invalidDifficulty',
+            argumentDefs,
+          );
+        }
+
         difficulty = parseFloat(difficulty);
       }
+
       if (
         (difficulty !== 0 &&
           difficulty &&
