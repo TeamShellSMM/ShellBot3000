@@ -41,6 +41,9 @@ class TSClear extends TSCommand {
         if (options[0] === '') args.difficulty = null;
         if (options[0] == null) args.difficulty = null;
         if (options[0]) {
+          if (options[0].toString().length > 4) {
+            ts.userError(await ts.message('clear.invalidDifficulty'));
+          }
           args.difficulty = parseFloat(options[0]);
         }
         if (
@@ -68,6 +71,11 @@ class TSClear extends TSCommand {
           if (options[0] === '') args.difficulty = null;
           if (options[0] == null) args.difficulty = null;
           if (options[0]) {
+            if (options[0].toString().length > 4) {
+              ts.userError(
+                await ts.message('clear.invalidDifficulty'),
+              );
+            }
             args.difficulty = parseFloat(options[0]);
           }
           if (
