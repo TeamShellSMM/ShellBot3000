@@ -1027,8 +1027,7 @@ const ALLOWED_VIDEO_TYPES = Object.freeze({
   'twitter.com': 'twitter',
   'youtu.be': 'youtube',
   'youtube.com': 'youtube',
-  'twitch.tv/videos': 'twitch-videos',
-  'clips.twitch.tv': 'twitch-clips',
+  'twitch.tv': 'twitch',
   'streamable.com': 'streamable',
 });
 
