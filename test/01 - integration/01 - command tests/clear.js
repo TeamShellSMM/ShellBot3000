@@ -45,6 +45,13 @@ describe('!clears', function () {
           status: 1,
           difficulty: 2.5,
         },
+        {
+          level_name: 'level5',
+          creator: 2,
+          code: 'XXX-XXX-XX5',
+          status: 1,
+          difficulty: 2.5,
+        },
       ],
     });
   });
@@ -102,6 +109,22 @@ describe('!clears', function () {
       cmd: '!clear XXX-XXX-XXX 31.4',
       channel: 'general',
       discord_id: '256',
+    });
+    assert.equal(
+      result,
+      await TEST.mockMessage(
+        'clear.invalidDifficulty',
+        { type: 'userError' },
+        { name: 'Creator' },
+      ),
+    );
+  });
+
+  it('invalid difficulty level code as difficulty', async function () {
+    const result = await TEST.mockBotSend({
+      cmd: '!clear XXX-XXX-XX5 7gk-413-lxg',
+      channel: 'general',
+      discord_id: '128',
     });
     assert.equal(
       result,
