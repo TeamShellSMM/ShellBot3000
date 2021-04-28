@@ -167,6 +167,7 @@ class DiscordWrapper {
     const channel = this.channel(search);
     if (
       channel &&
+      channel.children &&
       channel.children.size >= DiscordWrapper.MAX_DISCORD_SIZE
     ) {
       throw new Error('channel full');
