@@ -38,7 +38,7 @@ module.exports = {
         '\n',
       );
       if (
-        errorStr.indexOf('ER_LOCK_DEADLOCK') !== -1 &&
+        errorStr.indexOf('ER_LOCK_DEADLOCK') === -1 &&
         errorStr !== '{}'
       ) {
         await DiscordWrapper.send(
