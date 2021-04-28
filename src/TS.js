@@ -2537,46 +2537,53 @@ class TS {
     ) => {
       if (!channelName) throw new TypeError('undefined channel_name');
       let created = false;
-      let discussionChannel = ts.discord.channel(channelName);
-      const level = await this.getLevels()
-        .where({ code: channelName.toUpperCase() })
-        .first();
-      let labeled = false;
-      if (oldChannelName) {
-        const oldChannel = ts.discord.channel(oldChannelName);
-        if (oldChannel) {
-          if (!discussionChannel) {
-            await this.labelPendingLevel(level, oldChannelName);
-            discussionChannel = oldChannel;
-            labeled = true;
-          } else {
-            await ts.discord.removeChannel(
-              oldChannelName,
-              'duplicate channel',
-            );
-            DiscordLog.error(
-              'Duplicate channel found for `old_channel_name` reupload to `channel_name`. deleting `old_channel_name`',
-            );
+      if (
+        ts.discord.checkChannelFull(
+          ts.channels.levelDiscussionCategory,
+        )
+      ) {
+        let discussionChannel = ts.discord.channel(channelName);
+        const level = await this.getLevels()
+          .where({ code: channelName.toUpperCase() })
+          .first();
+        let labeled = false;
+        if (oldChannelName) {
+          const oldChannel = ts.discord.channel(oldChannelName);
+          if (oldChannel) {
+            if (!discussionChannel) {
+              await this.labelPendingLevel(level, oldChannelName);
+              discussionChannel = oldChannel;
+              labeled = true;
+            } else {
+              await ts.discord.removeChannel(
+                oldChannelName,
+                'duplicate channel',
+              );
+              DiscordLog.error(
+                'Duplicate channel found for `old_channel_name` reupload to `channel_name`. deleting `old_channel_name`',
+              );
+            }
           }
         }
-      }
-      if (!discussionChannel) {
-        await ts.discord.createChannel(
-          `${await this.makePendingLabel(level)}${channelName}`,
-          {
-            parent: ts.channels.levelDiscussionCategory,
-          },
-        );
-        created = true;
-        labeled = true;
-      }
+        if (!discussionChannel) {
+          await ts.discord.createChannel(
+            `${await this.makePendingLabel(level)}${channelName}`,
+            {
+              parent: ts.channels.levelDiscussionCategory,
+            },
+          );
+          created = true;
+          labeled = true;
+        }
 
-      if (!labeled) await this.labelPendingLevel(level);
-      await ts.discord.setChannelParent(
-        channelName,
-        ts.channels.levelDiscussionCategory,
-      );
-      return { channel: channelName, created };
+        if (!labeled) await this.labelPendingLevel(level);
+        await ts.discord.setChannelParent(
+          channelName,
+          ts.channels.levelDiscussionCategory,
+        );
+        return { channel: channelName, created };
+      }
+      return { channel: channelName, created: false };
     };
 
     /**

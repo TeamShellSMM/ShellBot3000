@@ -31,17 +31,26 @@ module.exports = {
       const devs = process.env.DEVS
         ? process.env.DEVS.split(',')
         : [];
-      const devStr = `<@${devs.join('>,<@')}> ${
-        error.channel ? ` at ${error.channel}` : ''
-      }`;
+      const mentionStr = `<@${devs.join('>,<@')}> `;
+      const devStr = `${error.channel ? ` at ${error.channel}` : ''}`;
       const errorStr = JSON.stringify(error, null, 2).replace(
         /\\n/g,
         '\n',
       );
-      await DiscordWrapper.send(
-        process.env.ERROR_CHANNEL,
-        `${devStr}\`\`\`fix\n${errorStr}\`\`\``,
-      );
+      if (
+        errorStr.indexOf('ER_LOCK_DEADLOCK') !== -1 &&
+        errorStr !== '{}'
+      ) {
+        await DiscordWrapper.send(
+          process.env.ERROR_CHANNEL,
+          `${mentionStr}${devStr}\`\`\`fix\n${errorStr}\`\`\``,
+        );
+      } else {
+        await DiscordWrapper.send(
+          process.env.ERROR_CHANNEL,
+          `${devStr}\`\`\`fix\n${errorStr}\`\`\``,
+        );
+      }
     }
   },
 };
