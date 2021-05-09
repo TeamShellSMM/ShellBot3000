@@ -339,8 +339,8 @@ module.exports = async function (client) {
       json.collaborators = collaborators;
 
       if (
-        user &&
-        user.is_mod
+        (user && user.is_mod) ||
+        (user && user.guild_id === 1)
         // &&
         // [ts.LEVEL_STATUS.PENDING, ts.LEVEL_STATUS.NEED_FIX].includes(
         //  levels[0].status,
