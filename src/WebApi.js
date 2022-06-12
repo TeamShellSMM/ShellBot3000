@@ -19,7 +19,7 @@ module.exports = async function (client) {
   app.use(compression());
 
   async function generateSiteJson(args = {}) {
-    const { ts, user, code, name, dashboard } = args;
+    const { ts, user, code, name, dashboard, discord_id } = args;
     if (!ts) throw new Error(`TS not loaded buzzyS`);
     const competitionWinners = await ts
       .knex('competition_winners')
@@ -48,6 +48,8 @@ module.exports = async function (client) {
       filterSql = 'AND levels.code=:code';
     } else if (name) {
       filterSql = 'AND members.name=:name';
+    } else if (discord_id) {
+      filterSql = 'AND members.discord_id=:discord_id';
     }
 
     const registeredColumns =
@@ -128,6 +130,7 @@ module.exports = async function (client) {
         guild_id: ts.guild_id,
         code,
         name,
+        discord_id,
         player_id: user ? user.id : -1,
         statuses: ts.SHOWN_IN_LIST,
       },
@@ -145,7 +148,8 @@ module.exports = async function (client) {
       seperate,
     };
 
-    if (name) {
+    if (name || discord_id) {
+      const membersFilterSql = name ? 'name=:name' : 'discord_id=:discord_id';
       // get collab levels
       const [collabs] = await knex.raw(
         `
@@ -199,13 +203,14 @@ module.exports = async function (client) {
         WHERE
           levels.status IN (:statuses:)
           AND teams.guild_id=:guild_id
-          AND m1.name=:name
+          AND m1.${membersFilterSql}
         GROUP BY levels.id
         order by levels.id
       `,
         {
           guild_id: ts.guild_id,
           name,
+          discord_id,
           player_id: user ? user.id : -1,
           statuses: ts.SHOWN_IN_LIST,
         },
@@ -243,13 +248,14 @@ module.exports = async function (client) {
         ) a ON
           members.guild_id=a.guild_id
           AND members.id=a.creator
-        WHERE members.name=:name
+        WHERE members.${membersFilterSql}
         AND members.guild_id=:guild_id
         AND members.is_banned is null
       `,
         {
           guild_id: ts.team.id,
           name,
+          discord_id,
           status: ts.LEVEL_STATUS.APPROVED,
         },
       );
