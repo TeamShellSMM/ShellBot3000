@@ -1029,6 +1029,7 @@ const ALLOWED_VIDEO_TYPES = Object.freeze({
   'youtube.com': 'youtube',
   'twitch.tv': 'twitch',
   'streamable.com': 'streamable',
+  'tiktok.com': 'tiktok',
 });
 
 module.exports = {
