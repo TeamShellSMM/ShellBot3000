@@ -146,7 +146,7 @@ class DiscordWrapper {
   }
 
   async createChannel(name, args = {}) {
-    const { type = 'text', parent } = args;
+    const { type = 'text', parent, topic } = args;
     debug(`creating ${name}`);
     const existingChannel = this.channel(name);
     const parentCategory =
@@ -159,6 +159,7 @@ class DiscordWrapper {
     return this.guild().channels.create(name, {
       type,
       parent: parentCategory,
+      topic: topic,
     });
   }
 

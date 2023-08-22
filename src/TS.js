@@ -2633,12 +2633,8 @@ class TS {
       if (!discussionChannel) {
         await ts.discord.createChannel(`${label}${channelName}`, {
           parent: ts.channels.levelAuditCategory,
+          topic: JSON.stringify(auditMetadata),
         });
-
-        await ts.discord.setTopic(
-          `${label}${channelName}`,
-          JSON.stringify(auditMetadata),
-        );
 
         created = true;
       }
