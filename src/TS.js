@@ -727,11 +727,22 @@ class TS {
      * This checks if a video url is from an allowed website
      */
     this.getVideoType = (url) => {
+      let parsedUrl = null;
+      try {
+        parsedUrl = new URL(url);
+      } catch (_) {
+        return null;
+      }
+      let protocol = parsedUrl.protocol;
+      if (protocol != 'https:' && protocol != 'http:') {
+          return null;
+      }
+      let hostname = parsedUrl.hostname;
       let vidType = null;
       for (const allowedType of Object.keys(
         this.ALLOWED_VIDEO_TYPES,
       )) {
-        if (url.indexOf(allowedType) !== -1) {
+        if (hostname == allowedType || hostname.endsWith('.' + allowedType)) {
           vidType = this.ALLOWED_VIDEO_TYPES[allowedType];
           break;
         }
