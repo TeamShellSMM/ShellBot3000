@@ -1025,6 +1025,7 @@ const defaultCommandPermissions = Object.freeze({
 const ALLOWED_VIDEO_TYPES = Object.freeze({
   't.co': 'twitter',
   'twitter.com': 'twitter',
+  'x.com': 'twitter',
   'youtu.be': 'youtube',
   'youtube.com': 'youtube',
   'twitch.tv': 'twitch',
