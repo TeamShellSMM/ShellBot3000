@@ -1031,6 +1031,7 @@ const ALLOWED_VIDEO_TYPES = Object.freeze({
   'twitch.tv': 'twitch',
   'streamable.com': 'streamable',
   'tiktok.com': 'tiktok',
+  'bsky.app': 'bluesky',
 });
 
 module.exports = {
